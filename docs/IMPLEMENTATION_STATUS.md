@@ -1,5 +1,23 @@
 # Implementation Status
 
+## Phase 16 acquisition gaps closure（2026-08-19）
+
+Phase 14–15 声明的四个后续实验已全部执行。ALFWorld source K=4 的完整 candidate-fork cost 由冻结
+pre-compression dataset 精确重建为 16 forks / 108 primitive transitions，其中成功路径 27、失败 forks
+81；target K=1 为 15–39 transitions。现在有共同的句法 step count，但不把不同环境解释成相同经济成本。
+
+Zero-trajectory target-only LLM baseline 已冻结完成：3 targets × 4 calls，0 target trajectory/outcome，
+总成本 $0.0036568。Strict exact program 为 0/12；ALFWorld 与 TIR 的 family/core constraints 为 8/8，
+但均遗漏 fail-closed contract，DiscoveryWorld 4/4 选错 family。这个结果说明 target prior 能恢复 partial
+structure，但本 baseline 未合成 exact safe program；不能外推到所有 LLM/人类。
+
+第三个 algebraic family 已真正 source-induced：official Tetris fresh forks 在 K=3 唯一归纳
+`COMPOSE(PROBE_EFFECT, RECOVERY_EFFECT)==IDENTITY`，不提供 inverse formula 或 raw action token。23 个
+qualification episodes 的 92/92 forks 与 qualification 后才打开的 18 个 reserve episodes 的 72/72 forks
+全部分类正确，0 false positive；effect/label controls 都 abstain。综合状态为
+`DECLARED_PHASE14_15_GAPS_CLOSED_WITH_BOUNDARIES`。完整结果见
+[`PHASE16_GAP_CLOSURE_RESULTS.md`](PHASE16_GAP_CLOSURE_RESULTS.md)。
+
 ## Phase 14–15 matched acquisition 与第二程序族（2026-08-19）
 
 ALFWorld matched acquisition audit 已冻结通过：source 主排序在 `K=4` 恢复完整 normal form，64/64

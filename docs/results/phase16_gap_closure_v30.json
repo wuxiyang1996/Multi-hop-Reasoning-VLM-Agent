@@ -1,0 +1,313 @@
+{
+  "schema_version": "phase16-gap-closure-v30-report",
+  "status": "DECLARED_PHASE14_15_GAPS_CLOSED_WITH_BOUNDARIES",
+  "config_sha256": "c0ce2a4e3aa6c5bb26690f1d0c723ab44345c2c344d7cdc4a924a0301d193d34",
+  "answer": "Program content, not source provenance, causes execution gains. Source interventions provide one empirically validated acquisition route to exact fail-closed content. Target-written programs are equivalent, target K1 trajectories can induce it, and a strong zero-trajectory LLM can recover partial but not exact safe content under the frozen budget.",
+  "complete_source_fork_cost": {
+    "reconstruction_exact_hash_match": true,
+    "primitive_dataset_sha256": "bd18a1a84b3a0faf8c37d5e986d7e01e224ae98eb98515fd7da976cd293e3265",
+    "source_snapshot_episodes": 4,
+    "candidate_fork_resets": 16,
+    "candidate_forks": 16,
+    "successful_candidate_forks": 4,
+    "failed_candidate_forks": 12,
+    "all_candidate_primitive_transitions": 108,
+    "successful_path_primitive_transitions": 27,
+    "failed_path_primitive_transitions": 81,
+    "per_episode": [
+      {
+        "snapshot_id": "09dfaef26c6d3c54a6bd620aa6d2c2f66b5ce4b16a00f078deb839eb8f66015e",
+        "episode_id": "procedural-sokoban-96003",
+        "candidate_forks": 4,
+        "all_candidate_primitive_transitions": 32,
+        "successful_path_primitive_transitions": 8,
+        "failed_path_primitive_transitions": 24
+      },
+      {
+        "snapshot_id": "0dcde59bda4017f5ff04b758233c5244a1a93ea48a84bcc68b3c6c4f41eb47f6",
+        "episode_id": "procedural-sokoban-96018",
+        "candidate_forks": 4,
+        "all_candidate_primitive_transitions": 16,
+        "successful_path_primitive_transitions": 4,
+        "failed_path_primitive_transitions": 12
+      },
+      {
+        "snapshot_id": "0f52a8ba4363ed640e03550bdf9e45279015ccb6c894fd86e3b079db6152915d",
+        "episode_id": "procedural-sokoban-96013",
+        "candidate_forks": 4,
+        "all_candidate_primitive_transitions": 44,
+        "successful_path_primitive_transitions": 11,
+        "failed_path_primitive_transitions": 33
+      },
+      {
+        "snapshot_id": "756e539d72776013107c50c2ef36791457ad7eec13e0517d46445d152708a19a",
+        "episode_id": "procedural-sokoban-96014",
+        "candidate_forks": 4,
+        "all_candidate_primitive_transitions": 16,
+        "successful_path_primitive_transitions": 4,
+        "failed_path_primitive_transitions": 12
+      }
+    ],
+    "target_single_complete_trajectory_primitive_transition_range": [
+      15,
+      39
+    ],
+    "target_single_complete_trajectory_primitive_transition_median": 25.0,
+    "common_syntactic_unit_available": true,
+    "common_unit": "executed primitive environment transition",
+    "source_vs_target_semantic_or_economic_cost_commensurate": false,
+    "interpretation": "The primary source acquisition used 108 executed simulator transitions across 16 reset candidate forks, not 27. A target K1 complete trajectory used 15--39 transitions. The counts now share a syntactic step unit, but environment difficulty, reset cost, and economic cost remain different; no source sample-efficiency claim is made."
+  },
+  "target_schema_synthesis_baseline": {
+    "status": "TARGET_SCHEMA_SYNTHESIS_BASELINE_COMPLETE",
+    "strict_exact_matches": 0,
+    "family_matches": 8,
+    "required_constraint_recall": 8,
+    "calls": 12,
+    "per_target": {
+      "alfworld": {
+        "calls": 4,
+        "exact_program_matches": 0,
+        "family_matches": 4,
+        "required_constraint_recall": 4,
+        "terminal_matches": 4,
+        "fail_closed_contract_matches": 0
+      },
+      "discoveryworld": {
+        "calls": 4,
+        "exact_program_matches": 0,
+        "family_matches": 0,
+        "required_constraint_recall": 0,
+        "terminal_matches": 0,
+        "fail_closed_contract_matches": 0
+      },
+      "tir_rotation": {
+        "calls": 4,
+        "exact_program_matches": 0,
+        "family_matches": 4,
+        "required_constraint_recall": 4,
+        "terminal_matches": 0,
+        "fail_closed_contract_matches": 0
+      }
+    },
+    "resource_accounting": {
+      "provider_calls": 12,
+      "prompt_tokens": 4474,
+      "completion_tokens": 1167,
+      "total_tokens": 5641,
+      "reported_cost_usd": 0.0036568,
+      "wall_clock_seconds_sum": 35.327406633179635,
+      "target_environment_interactions": 0,
+      "complete_target_trajectories": 0
+    },
+    "rows": [
+      {
+        "target": "alfworld",
+        "replicate": 0,
+        "exact_program_match": false,
+        "family_match": true,
+        "required_operator_recall": true,
+        "required_constraint_recall": true,
+        "terminal_match": true,
+        "fail_closed_contract_recall": false
+      },
+      {
+        "target": "alfworld",
+        "replicate": 1,
+        "exact_program_match": false,
+        "family_match": true,
+        "required_operator_recall": true,
+        "required_constraint_recall": true,
+        "terminal_match": true,
+        "fail_closed_contract_recall": false
+      },
+      {
+        "target": "alfworld",
+        "replicate": 2,
+        "exact_program_match": false,
+        "family_match": true,
+        "required_operator_recall": true,
+        "required_constraint_recall": true,
+        "terminal_match": true,
+        "fail_closed_contract_recall": false
+      },
+      {
+        "target": "alfworld",
+        "replicate": 3,
+        "exact_program_match": false,
+        "family_match": true,
+        "required_operator_recall": true,
+        "required_constraint_recall": true,
+        "terminal_match": true,
+        "fail_closed_contract_recall": false
+      },
+      {
+        "target": "discoveryworld",
+        "replicate": 0,
+        "exact_program_match": false,
+        "family_match": false,
+        "required_operator_recall": false,
+        "required_constraint_recall": false,
+        "terminal_match": false,
+        "fail_closed_contract_recall": false
+      },
+      {
+        "target": "discoveryworld",
+        "replicate": 1,
+        "exact_program_match": false,
+        "family_match": false,
+        "required_operator_recall": false,
+        "required_constraint_recall": false,
+        "terminal_match": false,
+        "fail_closed_contract_recall": false
+      },
+      {
+        "target": "discoveryworld",
+        "replicate": 2,
+        "exact_program_match": false,
+        "family_match": false,
+        "required_operator_recall": false,
+        "required_constraint_recall": false,
+        "terminal_match": false,
+        "fail_closed_contract_recall": false
+      },
+      {
+        "target": "discoveryworld",
+        "replicate": 3,
+        "exact_program_match": false,
+        "family_match": false,
+        "required_operator_recall": false,
+        "required_constraint_recall": false,
+        "terminal_match": false,
+        "fail_closed_contract_recall": false
+      },
+      {
+        "target": "tir_rotation",
+        "replicate": 0,
+        "exact_program_match": false,
+        "family_match": true,
+        "required_operator_recall": true,
+        "required_constraint_recall": true,
+        "terminal_match": false,
+        "fail_closed_contract_recall": false
+      },
+      {
+        "target": "tir_rotation",
+        "replicate": 1,
+        "exact_program_match": false,
+        "family_match": true,
+        "required_operator_recall": true,
+        "required_constraint_recall": true,
+        "terminal_match": false,
+        "fail_closed_contract_recall": false
+      },
+      {
+        "target": "tir_rotation",
+        "replicate": 2,
+        "exact_program_match": false,
+        "family_match": true,
+        "required_operator_recall": true,
+        "required_constraint_recall": true,
+        "terminal_match": false,
+        "fail_closed_contract_recall": false
+      },
+      {
+        "target": "tir_rotation",
+        "replicate": 3,
+        "exact_program_match": false,
+        "family_match": true,
+        "required_operator_recall": true,
+        "required_constraint_recall": true,
+        "terminal_match": false,
+        "fail_closed_contract_recall": false
+      }
+    ],
+    "interpretation": "The zero-trajectory LLM recovered the correct family and core constraints for ALFWorld and TIR, but added unsupported operators and omitted fail-closed rules; it selected the wrong recurrent family for DiscoveryWorld. Thus target priors can retrieve partial structure, but this frozen baseline did not synthesize an exact safe executable program."
+  },
+  "third_program_family": {
+    "status": "THIRD_PROGRAM_FAMILY_SOURCE_RESERVE_VALIDATED",
+    "program_family": "ALGEBRAIC_CYCLIC_IDENTITY_RECOVERY",
+    "first_qualified_source_budget": 3,
+    "development_episodes": 39,
+    "qualification_episodes": 23,
+    "reserve_evaluation": {
+      "correct": 72,
+      "total": 72,
+      "all_forks_classified": true,
+      "positive_support": 18,
+      "false_positive_support": 0
+    },
+    "qualification_gates": {
+      "source_k0_abstains": true,
+      "fresh_development_has_minimum_episodes": true,
+      "fresh_qualification_has_minimum_episodes": true,
+      "program_induced_within_budget": true,
+      "qualification_all_forks_classified": true,
+      "qualification_zero_false_positive_support": true,
+      "effect_and_label_controls_abstain": true,
+      "no_raw_source_action_export": true,
+      "no_target_data_read_for_source_induction": true,
+      "matches_frozen_target_execution_semantics": true,
+      "target_written_isomorphic_equivalence_retained": true
+    },
+    "reserve_gates": {
+      "reserve_collected_only_after_qualification": true,
+      "reserve_all_forks_classified": true,
+      "reserve_zero_false_positive_support": true
+    },
+    "target_execution_semantic_match": true,
+    "existing_target_utility": {
+      "tasks": 21,
+      "source_semantics_correct": 19,
+      "target_written_isomorphic_correct": 19,
+      "raw_correct": 4,
+      "destructive_control_correct": {
+        "opposite_group": 0,
+        "binding_rotation": 0,
+        "half_turn_marginal": 0
+      },
+      "wins": 15,
+      "losses": 0,
+      "exact_two_sided_p": 6.103515625e-05
+    },
+    "prospective_boundary": "The TIR execution reserve predates this inducer and used an extensionally identical compiler artifact. It is utility context, not a newly prospective target result for the V28 artifact."
+  },
+  "source_independent_alternatives": {
+    "alfworld_target_written_oracle": {
+      "status": "ALFWORLD_SOURCE_PROVENANCE_NOT_BEHAVIORALLY_IDENTIFIABLE",
+      "zero_source_artifact_reads": true,
+      "all_action_traces_exactly_match": true,
+      "acquisition_cost_measured": false
+    },
+    "alfworld_target_k1_induction": {
+      "independent_single_demos": 9,
+      "all_match_source": true
+    },
+    "discoveryworld_target_k1_induction": {
+      "independent_single_demos": 3,
+      "all_contain_source_subprogram": true
+    },
+    "tir_target_written_oracle": {
+      "correct": 19,
+      "source_semantics_correct": 19
+    },
+    "human_subject_timing_study": "NOT_RUN_AND_NOT_FABRICATED; target-written code is an oracle ceiling, not a measured human acquisition distribution."
+  },
+  "gates": {
+    "complete_source_fork_cost_exactly_reconstructed": true,
+    "matched_zero_trajectory_llm_baseline_complete": true,
+    "source_independent_target_written_ceiling_present": true,
+    "third_algebraic_family_source_induced": true,
+    "independent_source_acquisition_reserve_passed": true,
+    "claim_does_not_require_source_provenance": true,
+    "no_false_cross_environment_cost_equivalence": true,
+    "no_human_behavior_fabricated": true
+  },
+  "remaining_claim_boundaries_not_experimental_failures": [
+    "No recruited-human timing/sample-efficiency study was run.",
+    "Primitive transition counts are syntactically aligned but source and target environment costs are not semantically equivalent.",
+    "The fresh TIR target execution reserve predates the V28 inducer; V28 proves fresh source acquisition plus semantic equivalence, not a newly prospective target execution run.",
+    "Three program families do not imply arbitrary-domain universality."
+  ],
+  "report_sha256": "1f518a290dac62102a1f06df2f1104c5d61c2edc2054e6405c40fd990509d86f"
+}

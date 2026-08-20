@@ -1,5 +1,10 @@
 # Phase 14–15：matched acquisition cost 与第二个 symbolic program family
 
+> **Phase 16 update（2026-08-19）：**本页末尾列出的四个后续实验均已执行。完整 source fork cost、
+> zero-trajectory target LLM baseline、第三个 algebraic family 与 fresh source reserve 见
+> [`PHASE16_GAP_CLOSURE_RESULTS.md`](PHASE16_GAP_CLOSURE_RESULTS.md)。下面“还剩什么”保留为当时的
+> preregistration/history，不再代表当前执行状态。
+
 ## 最终答案
 
 原问题现在可以拆成两个可检验的结论：
@@ -131,7 +136,7 @@ source-permuted `3/12`；source 对 neural 为 `9W/0L/3T`，exact two-sided `p=.
 - 两个 family 足以覆盖任意 game、target domain 或 video MDP；
 - source 自动发现了 target ontology。Target-native neural grounding 与 domain-specific state variables 仍然必要。
 
-## 还剩什么
+## 当时预注册的后续实验（Phase 16 已执行）
 
 最重要的剩余实验不再是增加同 family tasks，而是：
 

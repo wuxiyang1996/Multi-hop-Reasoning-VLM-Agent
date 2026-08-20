@@ -1,0 +1,855 @@
+{
+  "schema_version": "target-schema-synthesis-v29-report",
+  "status": "TARGET_SCHEMA_SYNTHESIS_BASELINE_COMPLETE",
+  "config_sha256": "21dc4bd5724e9ada4dceaf6246aab51a785fe7cf13634c3fb549736b48457be6",
+  "claim_boundary": "A target-only pretrained LLM receives the frozen target interface description and shared IR grammar but zero complete target trajectories, rewards, outcomes, source receipts, source programs, or answer keys. Success proves source provenance is not necessary for that target/program; failure applies only to this frozen model, prompt, and call budget and does not rule out humans or other LLMs.",
+  "model": {
+    "provider": "openrouter",
+    "base_url": "https://openrouter.ai/api/v1",
+    "id": "openai/gpt-4.1-mini",
+    "temperature": 0,
+    "maximum_output_tokens": 220,
+    "timeout_seconds": 180,
+    "max_retries": 2
+  },
+  "rows": [
+    {
+      "model": "openai/gpt-4.1-mini",
+      "temperature": 0.0,
+      "max_tokens": 220,
+      "target": "alfworld",
+      "replicate": 0,
+      "prompt_sha256": "13c5a0cc4a4684d096d677ffd5073043c8884246d709f6aaf14e1a533d0b969a",
+      "status": "PARSED",
+      "provider_model": "openai/gpt-4.1-mini",
+      "provider_response_id_sha256": "350ce784683b8578c08901b2486e065042553085ff21f0fedf21e708ef903d96",
+      "response_sha256": "520644884901f149043f69f925af44be5a987f32b7efff3ff624cab02d8e651d",
+      "response_text": "{\n  \"program_family\": \"RECURRENT_RELATIONAL\",\n  \"operators\": [\n    \"CONTROL_STATE_UPDATE\",\n    \"ENTITY_GOAL_RELATION_UPDATE\",\n    \"POSITIVE_EFFECT_BINDING_UPDATE\",\n    \"PROBE_EFFECT\"\n  ],\n  \"constraints\": [\n    \"BINDING_BEFORE_RELATION\",\n    \"RECURRENT_CONTROL_UNTIL_BINDING\",\n    \"RECURRENT_RELATION_UPDATE\"\n  ],\n  \"terminal\": \"RELATION_COVERAGE_COMPLETE\",\n  \"abstention\": []\n}",
+      "program": {
+        "program_family": "RECURRENT_RELATIONAL",
+        "operators": [
+          "CONTROL_STATE_UPDATE",
+          "ENTITY_GOAL_RELATION_UPDATE",
+          "POSITIVE_EFFECT_BINDING_UPDATE",
+          "PROBE_EFFECT"
+        ],
+        "constraints": [
+          "BINDING_BEFORE_RELATION",
+          "RECURRENT_CONTROL_UNTIL_BINDING",
+          "RECURRENT_RELATION_UPDATE"
+        ],
+        "terminal": "RELATION_COVERAGE_COMPLETE",
+        "abstention": []
+      },
+      "score": {
+        "target": "alfworld",
+        "exact_program_match": false,
+        "field_matches": {
+          "program_family": true,
+          "operators": false,
+          "constraints": true,
+          "terminal": true,
+          "abstention": false
+        },
+        "observed_program": {
+          "program_family": "RECURRENT_RELATIONAL",
+          "operators": [
+            "CONTROL_STATE_UPDATE",
+            "ENTITY_GOAL_RELATION_UPDATE",
+            "POSITIVE_EFFECT_BINDING_UPDATE",
+            "PROBE_EFFECT"
+          ],
+          "constraints": [
+            "BINDING_BEFORE_RELATION",
+            "RECURRENT_CONTROL_UNTIL_BINDING",
+            "RECURRENT_RELATION_UPDATE"
+          ],
+          "terminal": "RELATION_COVERAGE_COMPLETE",
+          "abstention": []
+        },
+        "expected_program_sha256": "d05641004940e7d53324dd5de58279f5ab9af0b8ae28d11acd8ef951355bdd2a"
+      },
+      "parse_error": null,
+      "usage": {
+        "prompt_tokens": 381,
+        "completion_tokens": 106,
+        "total_tokens": 487,
+        "reported_cost_usd": 0.000322
+      },
+      "wall_clock_seconds": 5.641211500857025,
+      "complete_target_trajectories_read": 0,
+      "target_outcomes_read": 0
+    },
+    {
+      "model": "openai/gpt-4.1-mini",
+      "temperature": 0.0,
+      "max_tokens": 220,
+      "target": "alfworld",
+      "replicate": 1,
+      "prompt_sha256": "0ed76d3809dd60ef39ade83107e4a926cdb2efa797fa615ec40bc4f292c2b790",
+      "status": "PARSED",
+      "provider_model": "openai/gpt-4.1-mini",
+      "provider_response_id_sha256": "a5ef86c44a0e282bf92d513c1ec9d5c3ece8201ac4b07c7d5b786ff264f600ca",
+      "response_sha256": "c84a7bf00351d07760b0f784b5c3601e7c71fa83159a5bcb71486c28ac15f722",
+      "response_text": "{\n  \"program_family\": \"RECURRENT_RELATIONAL\",\n  \"operators\": [\n    \"CONTROL_STATE_UPDATE\",\n    \"POSITIVE_EFFECT_BINDING_UPDATE\",\n    \"ENTITY_GOAL_RELATION_UPDATE\",\n    \"PROBE_EFFECT\"\n  ],\n  \"constraints\": [\n    \"RECURRENT_CONTROL_UNTIL_BINDING\",\n    \"BINDING_BEFORE_RELATION\",\n    \"RECURRENT_RELATION_UPDATE\"\n  ],\n  \"terminal\": \"RELATION_COVERAGE_COMPLETE\",\n  \"abstention\": []\n}",
+      "program": {
+        "program_family": "RECURRENT_RELATIONAL",
+        "operators": [
+          "CONTROL_STATE_UPDATE",
+          "ENTITY_GOAL_RELATION_UPDATE",
+          "POSITIVE_EFFECT_BINDING_UPDATE",
+          "PROBE_EFFECT"
+        ],
+        "constraints": [
+          "BINDING_BEFORE_RELATION",
+          "RECURRENT_CONTROL_UNTIL_BINDING",
+          "RECURRENT_RELATION_UPDATE"
+        ],
+        "terminal": "RELATION_COVERAGE_COMPLETE",
+        "abstention": []
+      },
+      "score": {
+        "target": "alfworld",
+        "exact_program_match": false,
+        "field_matches": {
+          "program_family": true,
+          "operators": false,
+          "constraints": true,
+          "terminal": true,
+          "abstention": false
+        },
+        "observed_program": {
+          "program_family": "RECURRENT_RELATIONAL",
+          "operators": [
+            "CONTROL_STATE_UPDATE",
+            "ENTITY_GOAL_RELATION_UPDATE",
+            "POSITIVE_EFFECT_BINDING_UPDATE",
+            "PROBE_EFFECT"
+          ],
+          "constraints": [
+            "BINDING_BEFORE_RELATION",
+            "RECURRENT_CONTROL_UNTIL_BINDING",
+            "RECURRENT_RELATION_UPDATE"
+          ],
+          "terminal": "RELATION_COVERAGE_COMPLETE",
+          "abstention": []
+        },
+        "expected_program_sha256": "d05641004940e7d53324dd5de58279f5ab9af0b8ae28d11acd8ef951355bdd2a"
+      },
+      "parse_error": null,
+      "usage": {
+        "prompt_tokens": 382,
+        "completion_tokens": 106,
+        "total_tokens": 488,
+        "reported_cost_usd": 0.0003224
+      },
+      "wall_clock_seconds": 5.146732565015554,
+      "complete_target_trajectories_read": 0,
+      "target_outcomes_read": 0
+    },
+    {
+      "model": "openai/gpt-4.1-mini",
+      "temperature": 0.0,
+      "max_tokens": 220,
+      "target": "alfworld",
+      "replicate": 2,
+      "prompt_sha256": "13c5a0cc4a4684d096d677ffd5073043c8884246d709f6aaf14e1a533d0b969a",
+      "status": "PARSED",
+      "provider_model": "openai/gpt-4.1-mini",
+      "provider_response_id_sha256": "ff4c41135cd838ad8bb4d5b3b405f92b7cd88c8975665129df7b110dac52c7af",
+      "response_sha256": "520644884901f149043f69f925af44be5a987f32b7efff3ff624cab02d8e651d",
+      "response_text": "{\n  \"program_family\": \"RECURRENT_RELATIONAL\",\n  \"operators\": [\n    \"CONTROL_STATE_UPDATE\",\n    \"ENTITY_GOAL_RELATION_UPDATE\",\n    \"POSITIVE_EFFECT_BINDING_UPDATE\",\n    \"PROBE_EFFECT\"\n  ],\n  \"constraints\": [\n    \"BINDING_BEFORE_RELATION\",\n    \"RECURRENT_CONTROL_UNTIL_BINDING\",\n    \"RECURRENT_RELATION_UPDATE\"\n  ],\n  \"terminal\": \"RELATION_COVERAGE_COMPLETE\",\n  \"abstention\": []\n}",
+      "program": {
+        "program_family": "RECURRENT_RELATIONAL",
+        "operators": [
+          "CONTROL_STATE_UPDATE",
+          "ENTITY_GOAL_RELATION_UPDATE",
+          "POSITIVE_EFFECT_BINDING_UPDATE",
+          "PROBE_EFFECT"
+        ],
+        "constraints": [
+          "BINDING_BEFORE_RELATION",
+          "RECURRENT_CONTROL_UNTIL_BINDING",
+          "RECURRENT_RELATION_UPDATE"
+        ],
+        "terminal": "RELATION_COVERAGE_COMPLETE",
+        "abstention": []
+      },
+      "score": {
+        "target": "alfworld",
+        "exact_program_match": false,
+        "field_matches": {
+          "program_family": true,
+          "operators": false,
+          "constraints": true,
+          "terminal": true,
+          "abstention": false
+        },
+        "observed_program": {
+          "program_family": "RECURRENT_RELATIONAL",
+          "operators": [
+            "CONTROL_STATE_UPDATE",
+            "ENTITY_GOAL_RELATION_UPDATE",
+            "POSITIVE_EFFECT_BINDING_UPDATE",
+            "PROBE_EFFECT"
+          ],
+          "constraints": [
+            "BINDING_BEFORE_RELATION",
+            "RECURRENT_CONTROL_UNTIL_BINDING",
+            "RECURRENT_RELATION_UPDATE"
+          ],
+          "terminal": "RELATION_COVERAGE_COMPLETE",
+          "abstention": []
+        },
+        "expected_program_sha256": "d05641004940e7d53324dd5de58279f5ab9af0b8ae28d11acd8ef951355bdd2a"
+      },
+      "parse_error": null,
+      "usage": {
+        "prompt_tokens": 381,
+        "completion_tokens": 106,
+        "total_tokens": 487,
+        "reported_cost_usd": 0.000322
+      },
+      "wall_clock_seconds": 5.465386954136193,
+      "complete_target_trajectories_read": 0,
+      "target_outcomes_read": 0
+    },
+    {
+      "model": "openai/gpt-4.1-mini",
+      "temperature": 0.0,
+      "max_tokens": 220,
+      "target": "alfworld",
+      "replicate": 3,
+      "prompt_sha256": "0ed76d3809dd60ef39ade83107e4a926cdb2efa797fa615ec40bc4f292c2b790",
+      "status": "PARSED",
+      "provider_model": "openai/gpt-4.1-mini",
+      "provider_response_id_sha256": "e02619fcf472d8763b4863eeb82ff4a8a8948480f30627749f905a7e91090664",
+      "response_sha256": "c84a7bf00351d07760b0f784b5c3601e7c71fa83159a5bcb71486c28ac15f722",
+      "response_text": "{\n  \"program_family\": \"RECURRENT_RELATIONAL\",\n  \"operators\": [\n    \"CONTROL_STATE_UPDATE\",\n    \"POSITIVE_EFFECT_BINDING_UPDATE\",\n    \"ENTITY_GOAL_RELATION_UPDATE\",\n    \"PROBE_EFFECT\"\n  ],\n  \"constraints\": [\n    \"RECURRENT_CONTROL_UNTIL_BINDING\",\n    \"BINDING_BEFORE_RELATION\",\n    \"RECURRENT_RELATION_UPDATE\"\n  ],\n  \"terminal\": \"RELATION_COVERAGE_COMPLETE\",\n  \"abstention\": []\n}",
+      "program": {
+        "program_family": "RECURRENT_RELATIONAL",
+        "operators": [
+          "CONTROL_STATE_UPDATE",
+          "ENTITY_GOAL_RELATION_UPDATE",
+          "POSITIVE_EFFECT_BINDING_UPDATE",
+          "PROBE_EFFECT"
+        ],
+        "constraints": [
+          "BINDING_BEFORE_RELATION",
+          "RECURRENT_CONTROL_UNTIL_BINDING",
+          "RECURRENT_RELATION_UPDATE"
+        ],
+        "terminal": "RELATION_COVERAGE_COMPLETE",
+        "abstention": []
+      },
+      "score": {
+        "target": "alfworld",
+        "exact_program_match": false,
+        "field_matches": {
+          "program_family": true,
+          "operators": false,
+          "constraints": true,
+          "terminal": true,
+          "abstention": false
+        },
+        "observed_program": {
+          "program_family": "RECURRENT_RELATIONAL",
+          "operators": [
+            "CONTROL_STATE_UPDATE",
+            "ENTITY_GOAL_RELATION_UPDATE",
+            "POSITIVE_EFFECT_BINDING_UPDATE",
+            "PROBE_EFFECT"
+          ],
+          "constraints": [
+            "BINDING_BEFORE_RELATION",
+            "RECURRENT_CONTROL_UNTIL_BINDING",
+            "RECURRENT_RELATION_UPDATE"
+          ],
+          "terminal": "RELATION_COVERAGE_COMPLETE",
+          "abstention": []
+        },
+        "expected_program_sha256": "d05641004940e7d53324dd5de58279f5ab9af0b8ae28d11acd8ef951355bdd2a"
+      },
+      "parse_error": null,
+      "usage": {
+        "prompt_tokens": 382,
+        "completion_tokens": 106,
+        "total_tokens": 488,
+        "reported_cost_usd": 0.0003224
+      },
+      "wall_clock_seconds": 5.148206237703562,
+      "complete_target_trajectories_read": 0,
+      "target_outcomes_read": 0
+    },
+    {
+      "model": "openai/gpt-4.1-mini",
+      "temperature": 0.0,
+      "max_tokens": 220,
+      "target": "discoveryworld",
+      "replicate": 0,
+      "prompt_sha256": "eb3bad023b3bc9662ce8aff65a3cd3fd109d0fe83f3b874779340f3f13737cc8",
+      "status": "PARSED",
+      "provider_model": "openai/gpt-4.1-mini",
+      "provider_response_id_sha256": "5468a804b15f95f40a71b9f0be3c465272022dfe0a2fd9beeeaad26fe07f8114",
+      "response_sha256": "236c8f6c33a09d0de5a59f6e04b1189e80a871905375f10e813a1f7ac62639f6",
+      "response_text": "{\n  \"program_family\": \"RECURRENT_RELATIONAL\",\n  \"operators\": [\n    \"CONTROL_STATE_UPDATE\",\n    \"ENTITY_GOAL_RELATION_UPDATE\",\n    \"POSITIVE_EFFECT_BINDING_UPDATE\",\n    \"PROBE_EFFECT\"\n  ],\n  \"constraints\": [\n    \"BINDING_BEFORE_RELATION\",\n    \"RECURRENT_CONTROL_UNTIL_BINDING\",\n    \"RECURRENT_RELATION_UPDATE\"\n  ],\n  \"terminal\": \"TARGET_NATIVE_SUCCESS\",\n  \"abstention\": []\n}",
+      "program": {
+        "program_family": "RECURRENT_RELATIONAL",
+        "operators": [
+          "CONTROL_STATE_UPDATE",
+          "ENTITY_GOAL_RELATION_UPDATE",
+          "POSITIVE_EFFECT_BINDING_UPDATE",
+          "PROBE_EFFECT"
+        ],
+        "constraints": [
+          "BINDING_BEFORE_RELATION",
+          "RECURRENT_CONTROL_UNTIL_BINDING",
+          "RECURRENT_RELATION_UPDATE"
+        ],
+        "terminal": "TARGET_NATIVE_SUCCESS",
+        "abstention": []
+      },
+      "score": {
+        "target": "discoveryworld",
+        "exact_program_match": false,
+        "field_matches": {
+          "program_family": false,
+          "operators": false,
+          "constraints": false,
+          "terminal": false,
+          "abstention": false
+        },
+        "observed_program": {
+          "program_family": "RECURRENT_RELATIONAL",
+          "operators": [
+            "CONTROL_STATE_UPDATE",
+            "ENTITY_GOAL_RELATION_UPDATE",
+            "POSITIVE_EFFECT_BINDING_UPDATE",
+            "PROBE_EFFECT"
+          ],
+          "constraints": [
+            "BINDING_BEFORE_RELATION",
+            "RECURRENT_CONTROL_UNTIL_BINDING",
+            "RECURRENT_RELATION_UPDATE"
+          ],
+          "terminal": "TARGET_NATIVE_SUCCESS",
+          "abstention": []
+        },
+        "expected_program_sha256": "96b3762756c14c825e742d6b7db5b7bc4fe91a630b96ca44bb7f2d605d5c962a"
+      },
+      "parse_error": null,
+      "usage": {
+        "prompt_tokens": 374,
+        "completion_tokens": 103,
+        "total_tokens": 477,
+        "reported_cost_usd": 0.0003144
+      },
+      "wall_clock_seconds": 2.0682537388056517,
+      "complete_target_trajectories_read": 0,
+      "target_outcomes_read": 0
+    },
+    {
+      "model": "openai/gpt-4.1-mini",
+      "temperature": 0.0,
+      "max_tokens": 220,
+      "target": "discoveryworld",
+      "replicate": 1,
+      "prompt_sha256": "427c09855ab0f3d37cbce5ad5c951d8eee943f39f8bd998b4aad9cce95c61c76",
+      "status": "PARSED",
+      "provider_model": "openai/gpt-4.1-mini",
+      "provider_response_id_sha256": "4916cbf8a22a71aaf4fbe03ad43d9a18949044f29219f050340740017d8054c5",
+      "response_sha256": "c84a7bf00351d07760b0f784b5c3601e7c71fa83159a5bcb71486c28ac15f722",
+      "response_text": "{\n  \"program_family\": \"RECURRENT_RELATIONAL\",\n  \"operators\": [\n    \"CONTROL_STATE_UPDATE\",\n    \"POSITIVE_EFFECT_BINDING_UPDATE\",\n    \"ENTITY_GOAL_RELATION_UPDATE\",\n    \"PROBE_EFFECT\"\n  ],\n  \"constraints\": [\n    \"RECURRENT_CONTROL_UNTIL_BINDING\",\n    \"BINDING_BEFORE_RELATION\",\n    \"RECURRENT_RELATION_UPDATE\"\n  ],\n  \"terminal\": \"RELATION_COVERAGE_COMPLETE\",\n  \"abstention\": []\n}",
+      "program": {
+        "program_family": "RECURRENT_RELATIONAL",
+        "operators": [
+          "CONTROL_STATE_UPDATE",
+          "ENTITY_GOAL_RELATION_UPDATE",
+          "POSITIVE_EFFECT_BINDING_UPDATE",
+          "PROBE_EFFECT"
+        ],
+        "constraints": [
+          "BINDING_BEFORE_RELATION",
+          "RECURRENT_CONTROL_UNTIL_BINDING",
+          "RECURRENT_RELATION_UPDATE"
+        ],
+        "terminal": "RELATION_COVERAGE_COMPLETE",
+        "abstention": []
+      },
+      "score": {
+        "target": "discoveryworld",
+        "exact_program_match": false,
+        "field_matches": {
+          "program_family": false,
+          "operators": false,
+          "constraints": false,
+          "terminal": false,
+          "abstention": false
+        },
+        "observed_program": {
+          "program_family": "RECURRENT_RELATIONAL",
+          "operators": [
+            "CONTROL_STATE_UPDATE",
+            "ENTITY_GOAL_RELATION_UPDATE",
+            "POSITIVE_EFFECT_BINDING_UPDATE",
+            "PROBE_EFFECT"
+          ],
+          "constraints": [
+            "BINDING_BEFORE_RELATION",
+            "RECURRENT_CONTROL_UNTIL_BINDING",
+            "RECURRENT_RELATION_UPDATE"
+          ],
+          "terminal": "RELATION_COVERAGE_COMPLETE",
+          "abstention": []
+        },
+        "expected_program_sha256": "96b3762756c14c825e742d6b7db5b7bc4fe91a630b96ca44bb7f2d605d5c962a"
+      },
+      "parse_error": null,
+      "usage": {
+        "prompt_tokens": 375,
+        "completion_tokens": 106,
+        "total_tokens": 481,
+        "reported_cost_usd": 0.0003196
+      },
+      "wall_clock_seconds": 1.8914018450304866,
+      "complete_target_trajectories_read": 0,
+      "target_outcomes_read": 0
+    },
+    {
+      "model": "openai/gpt-4.1-mini",
+      "temperature": 0.0,
+      "max_tokens": 220,
+      "target": "discoveryworld",
+      "replicate": 2,
+      "prompt_sha256": "eb3bad023b3bc9662ce8aff65a3cd3fd109d0fe83f3b874779340f3f13737cc8",
+      "status": "PARSED",
+      "provider_model": "openai/gpt-4.1-mini",
+      "provider_response_id_sha256": "3df87da7c25760536269221309a4ddfc3e9e5e82f8b38841a5abd32476b34db8",
+      "response_sha256": "236c8f6c33a09d0de5a59f6e04b1189e80a871905375f10e813a1f7ac62639f6",
+      "response_text": "{\n  \"program_family\": \"RECURRENT_RELATIONAL\",\n  \"operators\": [\n    \"CONTROL_STATE_UPDATE\",\n    \"ENTITY_GOAL_RELATION_UPDATE\",\n    \"POSITIVE_EFFECT_BINDING_UPDATE\",\n    \"PROBE_EFFECT\"\n  ],\n  \"constraints\": [\n    \"BINDING_BEFORE_RELATION\",\n    \"RECURRENT_CONTROL_UNTIL_BINDING\",\n    \"RECURRENT_RELATION_UPDATE\"\n  ],\n  \"terminal\": \"TARGET_NATIVE_SUCCESS\",\n  \"abstention\": []\n}",
+      "program": {
+        "program_family": "RECURRENT_RELATIONAL",
+        "operators": [
+          "CONTROL_STATE_UPDATE",
+          "ENTITY_GOAL_RELATION_UPDATE",
+          "POSITIVE_EFFECT_BINDING_UPDATE",
+          "PROBE_EFFECT"
+        ],
+        "constraints": [
+          "BINDING_BEFORE_RELATION",
+          "RECURRENT_CONTROL_UNTIL_BINDING",
+          "RECURRENT_RELATION_UPDATE"
+        ],
+        "terminal": "TARGET_NATIVE_SUCCESS",
+        "abstention": []
+      },
+      "score": {
+        "target": "discoveryworld",
+        "exact_program_match": false,
+        "field_matches": {
+          "program_family": false,
+          "operators": false,
+          "constraints": false,
+          "terminal": false,
+          "abstention": false
+        },
+        "observed_program": {
+          "program_family": "RECURRENT_RELATIONAL",
+          "operators": [
+            "CONTROL_STATE_UPDATE",
+            "ENTITY_GOAL_RELATION_UPDATE",
+            "POSITIVE_EFFECT_BINDING_UPDATE",
+            "PROBE_EFFECT"
+          ],
+          "constraints": [
+            "BINDING_BEFORE_RELATION",
+            "RECURRENT_CONTROL_UNTIL_BINDING",
+            "RECURRENT_RELATION_UPDATE"
+          ],
+          "terminal": "TARGET_NATIVE_SUCCESS",
+          "abstention": []
+        },
+        "expected_program_sha256": "96b3762756c14c825e742d6b7db5b7bc4fe91a630b96ca44bb7f2d605d5c962a"
+      },
+      "parse_error": null,
+      "usage": {
+        "prompt_tokens": 374,
+        "completion_tokens": 103,
+        "total_tokens": 477,
+        "reported_cost_usd": 0.0003144
+      },
+      "wall_clock_seconds": 1.8300397363491356,
+      "complete_target_trajectories_read": 0,
+      "target_outcomes_read": 0
+    },
+    {
+      "model": "openai/gpt-4.1-mini",
+      "temperature": 0.0,
+      "max_tokens": 220,
+      "target": "discoveryworld",
+      "replicate": 3,
+      "prompt_sha256": "427c09855ab0f3d37cbce5ad5c951d8eee943f39f8bd998b4aad9cce95c61c76",
+      "status": "PARSED",
+      "provider_model": "openai/gpt-4.1-mini",
+      "provider_response_id_sha256": "24196a111ae447853b8c68df536e6a4be1abb4df0ff2874c42a11fbf19f9ddff",
+      "response_sha256": "dc9f0cd1e772167149c19dd5883ffb68d6d40cb1102690f3cbf9d50d532f4484",
+      "response_text": "{\n  \"program_family\": \"RECURRENT_RELATIONAL\",\n  \"operators\": [\n    \"CONTROL_STATE_UPDATE\",\n    \"POSITIVE_EFFECT_BINDING_UPDATE\",\n    \"ENTITY_GOAL_RELATION_UPDATE\",\n    \"PROBE_EFFECT\"\n  ],\n  \"constraints\": [\n    \"RECURRENT_CONTROL_UNTIL_BINDING\",\n    \"BINDING_BEFORE_RELATION\",\n    \"RECURRENT_RELATION_UPDATE\"\n  ],\n  \"terminal\": \"TARGET_NATIVE_SUCCESS\",\n  \"abstention\": []\n}",
+      "program": {
+        "program_family": "RECURRENT_RELATIONAL",
+        "operators": [
+          "CONTROL_STATE_UPDATE",
+          "ENTITY_GOAL_RELATION_UPDATE",
+          "POSITIVE_EFFECT_BINDING_UPDATE",
+          "PROBE_EFFECT"
+        ],
+        "constraints": [
+          "BINDING_BEFORE_RELATION",
+          "RECURRENT_CONTROL_UNTIL_BINDING",
+          "RECURRENT_RELATION_UPDATE"
+        ],
+        "terminal": "TARGET_NATIVE_SUCCESS",
+        "abstention": []
+      },
+      "score": {
+        "target": "discoveryworld",
+        "exact_program_match": false,
+        "field_matches": {
+          "program_family": false,
+          "operators": false,
+          "constraints": false,
+          "terminal": false,
+          "abstention": false
+        },
+        "observed_program": {
+          "program_family": "RECURRENT_RELATIONAL",
+          "operators": [
+            "CONTROL_STATE_UPDATE",
+            "ENTITY_GOAL_RELATION_UPDATE",
+            "POSITIVE_EFFECT_BINDING_UPDATE",
+            "PROBE_EFFECT"
+          ],
+          "constraints": [
+            "BINDING_BEFORE_RELATION",
+            "RECURRENT_CONTROL_UNTIL_BINDING",
+            "RECURRENT_RELATION_UPDATE"
+          ],
+          "terminal": "TARGET_NATIVE_SUCCESS",
+          "abstention": []
+        },
+        "expected_program_sha256": "96b3762756c14c825e742d6b7db5b7bc4fe91a630b96ca44bb7f2d605d5c962a"
+      },
+      "parse_error": null,
+      "usage": {
+        "prompt_tokens": 375,
+        "completion_tokens": 103,
+        "total_tokens": 478,
+        "reported_cost_usd": 0.0003148
+      },
+      "wall_clock_seconds": 1.780510286334902,
+      "complete_target_trajectories_read": 0,
+      "target_outcomes_read": 0
+    },
+    {
+      "model": "openai/gpt-4.1-mini",
+      "temperature": 0.0,
+      "max_tokens": 220,
+      "target": "tir_rotation",
+      "replicate": 0,
+      "prompt_sha256": "9ec1991e4c91ba6c14ccdc19ba4368c9d321de9a412233e9830b28b68179f934",
+      "status": "PARSED",
+      "provider_model": "openai/gpt-4.1-mini",
+      "provider_response_id_sha256": "e9cd678ef8825aabdf2b6dd35368d632ff8218b0eab057ab9f8e26c56e10a00c",
+      "response_sha256": "a9b5eb2a814679f5c92cc654abe4a2cd9aae04f800606a7d698f1cfb8820853b",
+      "response_text": "{\n  \"program_family\": \"CYCLIC_IDENTITY_RECOVERY\",\n  \"operators\": [\"CONTROL_STATE_UPDATE\", \"PROBE_EFFECT\", \"RECOVERY_EFFECT\"],\n  \"constraints\": [\"COMPOSE_TO_IDENTITY\", \"RECURRENT_CONTROL_UNTIL_BINDING\"],\n  \"terminal\": \"TARGET_NATIVE_SUCCESS\",\n  \"abstention\": []\n}",
+      "program": {
+        "program_family": "CYCLIC_IDENTITY_RECOVERY",
+        "operators": [
+          "CONTROL_STATE_UPDATE",
+          "PROBE_EFFECT",
+          "RECOVERY_EFFECT"
+        ],
+        "constraints": [
+          "COMPOSE_TO_IDENTITY",
+          "RECURRENT_CONTROL_UNTIL_BINDING"
+        ],
+        "terminal": "TARGET_NATIVE_SUCCESS",
+        "abstention": []
+      },
+      "score": {
+        "target": "tir_rotation",
+        "exact_program_match": false,
+        "field_matches": {
+          "program_family": true,
+          "operators": false,
+          "constraints": false,
+          "terminal": false,
+          "abstention": false
+        },
+        "observed_program": {
+          "program_family": "CYCLIC_IDENTITY_RECOVERY",
+          "operators": [
+            "CONTROL_STATE_UPDATE",
+            "PROBE_EFFECT",
+            "RECOVERY_EFFECT"
+          ],
+          "constraints": [
+            "COMPOSE_TO_IDENTITY",
+            "RECURRENT_CONTROL_UNTIL_BINDING"
+          ],
+          "terminal": "TARGET_NATIVE_SUCCESS",
+          "abstention": []
+        },
+        "expected_program_sha256": "87851025cf4724c8e6309375ea8fa1cb08fc9416ac3b7491dd1980ebabe1e750"
+      },
+      "parse_error": null,
+      "usage": {
+        "prompt_tokens": 362,
+        "completion_tokens": 73,
+        "total_tokens": 435,
+        "reported_cost_usd": 0.0002616
+      },
+      "wall_clock_seconds": 1.637276129797101,
+      "complete_target_trajectories_read": 0,
+      "target_outcomes_read": 0
+    },
+    {
+      "model": "openai/gpt-4.1-mini",
+      "temperature": 0.0,
+      "max_tokens": 220,
+      "target": "tir_rotation",
+      "replicate": 1,
+      "prompt_sha256": "f8b957cd2e5bef575f1743371bfaff9575cb25c5869588bcaf8d6fb60290fce0",
+      "status": "PARSED",
+      "provider_model": "openai/gpt-4.1-mini",
+      "provider_response_id_sha256": "c041365b9ea367f70b07460b7110dae4210a2debcb8f73de36b8ad49ca38262e",
+      "response_sha256": "a80841789fa6ff69c2c45143ced65aaa520e863ee847ea60b54e84167aede435",
+      "response_text": "{\n  \"program_family\": \"CYCLIC_IDENTITY_RECOVERY\",\n  \"operators\": [\"PROBE_EFFECT\", \"RECOVERY_EFFECT\", \"CONTROL_STATE_UPDATE\", \"POSITIVE_EFFECT_BINDING_UPDATE\"],\n  \"constraints\": [\"RECURRENT_CONTROL_UNTIL_BINDING\", \"COMPOSE_TO_IDENTITY\"],\n  \"terminal\": \"TARGET_NATIVE_SUCCESS\",\n  \"abstention\": []\n}",
+      "program": {
+        "program_family": "CYCLIC_IDENTITY_RECOVERY",
+        "operators": [
+          "CONTROL_STATE_UPDATE",
+          "POSITIVE_EFFECT_BINDING_UPDATE",
+          "PROBE_EFFECT",
+          "RECOVERY_EFFECT"
+        ],
+        "constraints": [
+          "COMPOSE_TO_IDENTITY",
+          "RECURRENT_CONTROL_UNTIL_BINDING"
+        ],
+        "terminal": "TARGET_NATIVE_SUCCESS",
+        "abstention": []
+      },
+      "score": {
+        "target": "tir_rotation",
+        "exact_program_match": false,
+        "field_matches": {
+          "program_family": true,
+          "operators": false,
+          "constraints": false,
+          "terminal": false,
+          "abstention": false
+        },
+        "observed_program": {
+          "program_family": "CYCLIC_IDENTITY_RECOVERY",
+          "operators": [
+            "CONTROL_STATE_UPDATE",
+            "POSITIVE_EFFECT_BINDING_UPDATE",
+            "PROBE_EFFECT",
+            "RECOVERY_EFFECT"
+          ],
+          "constraints": [
+            "COMPOSE_TO_IDENTITY",
+            "RECURRENT_CONTROL_UNTIL_BINDING"
+          ],
+          "terminal": "TARGET_NATIVE_SUCCESS",
+          "abstention": []
+        },
+        "expected_program_sha256": "87851025cf4724c8e6309375ea8fa1cb08fc9416ac3b7491dd1980ebabe1e750"
+      },
+      "parse_error": null,
+      "usage": {
+        "prompt_tokens": 363,
+        "completion_tokens": 81,
+        "total_tokens": 444,
+        "reported_cost_usd": 0.0002748
+      },
+      "wall_clock_seconds": 1.5902826972305775,
+      "complete_target_trajectories_read": 0,
+      "target_outcomes_read": 0
+    },
+    {
+      "model": "openai/gpt-4.1-mini",
+      "temperature": 0.0,
+      "max_tokens": 220,
+      "target": "tir_rotation",
+      "replicate": 2,
+      "prompt_sha256": "9ec1991e4c91ba6c14ccdc19ba4368c9d321de9a412233e9830b28b68179f934",
+      "status": "PARSED",
+      "provider_model": "openai/gpt-4.1-mini",
+      "provider_response_id_sha256": "45113432e2cecbd3a0f131c604c7ed9dddd08c11c1e74cc2d56dffb2e94356f3",
+      "response_sha256": "cd7c10f2525b7013d5e15a1832d28e392e2291437b553c3bafff65da4a2b7cb7",
+      "response_text": "{\n  \"program_family\": \"CYCLIC_IDENTITY_RECOVERY\",\n  \"operators\": [\n    \"CONTROL_STATE_UPDATE\",\n    \"POSITIVE_EFFECT_BINDING_UPDATE\",\n    \"PROBE_EFFECT\",\n    \"RECOVERY_EFFECT\"\n  ],\n  \"constraints\": [\n    \"COMPOSE_TO_IDENTITY\",\n    \"RECURRENT_CONTROL_UNTIL_BINDING\"\n  ],\n  \"terminal\": \"TARGET_NATIVE_SUCCESS\",\n  \"abstention\": []\n}",
+      "program": {
+        "program_family": "CYCLIC_IDENTITY_RECOVERY",
+        "operators": [
+          "CONTROL_STATE_UPDATE",
+          "POSITIVE_EFFECT_BINDING_UPDATE",
+          "PROBE_EFFECT",
+          "RECOVERY_EFFECT"
+        ],
+        "constraints": [
+          "COMPOSE_TO_IDENTITY",
+          "RECURRENT_CONTROL_UNTIL_BINDING"
+        ],
+        "terminal": "TARGET_NATIVE_SUCCESS",
+        "abstention": []
+      },
+      "score": {
+        "target": "tir_rotation",
+        "exact_program_match": false,
+        "field_matches": {
+          "program_family": true,
+          "operators": false,
+          "constraints": false,
+          "terminal": false,
+          "abstention": false
+        },
+        "observed_program": {
+          "program_family": "CYCLIC_IDENTITY_RECOVERY",
+          "operators": [
+            "CONTROL_STATE_UPDATE",
+            "POSITIVE_EFFECT_BINDING_UPDATE",
+            "PROBE_EFFECT",
+            "RECOVERY_EFFECT"
+          ],
+          "constraints": [
+            "COMPOSE_TO_IDENTITY",
+            "RECURRENT_CONTROL_UNTIL_BINDING"
+          ],
+          "terminal": "TARGET_NATIVE_SUCCESS",
+          "abstention": []
+        },
+        "expected_program_sha256": "87851025cf4724c8e6309375ea8fa1cb08fc9416ac3b7491dd1980ebabe1e750"
+      },
+      "parse_error": null,
+      "usage": {
+        "prompt_tokens": 362,
+        "completion_tokens": 93,
+        "total_tokens": 455,
+        "reported_cost_usd": 0.0002936
+      },
+      "wall_clock_seconds": 1.5797313209623098,
+      "complete_target_trajectories_read": 0,
+      "target_outcomes_read": 0
+    },
+    {
+      "model": "openai/gpt-4.1-mini",
+      "temperature": 0.0,
+      "max_tokens": 220,
+      "target": "tir_rotation",
+      "replicate": 3,
+      "prompt_sha256": "f8b957cd2e5bef575f1743371bfaff9575cb25c5869588bcaf8d6fb60290fce0",
+      "status": "PARSED",
+      "provider_model": "openai/gpt-4.1-mini",
+      "provider_response_id_sha256": "fd76b60c9e2fcc36fbc4bcd5a485c9332df67f0791c0283b7e4ff295807fe28e",
+      "response_sha256": "a80841789fa6ff69c2c45143ced65aaa520e863ee847ea60b54e84167aede435",
+      "response_text": "{\n  \"program_family\": \"CYCLIC_IDENTITY_RECOVERY\",\n  \"operators\": [\"PROBE_EFFECT\", \"RECOVERY_EFFECT\", \"CONTROL_STATE_UPDATE\", \"POSITIVE_EFFECT_BINDING_UPDATE\"],\n  \"constraints\": [\"RECURRENT_CONTROL_UNTIL_BINDING\", \"COMPOSE_TO_IDENTITY\"],\n  \"terminal\": \"TARGET_NATIVE_SUCCESS\",\n  \"abstention\": []\n}",
+      "program": {
+        "program_family": "CYCLIC_IDENTITY_RECOVERY",
+        "operators": [
+          "CONTROL_STATE_UPDATE",
+          "POSITIVE_EFFECT_BINDING_UPDATE",
+          "PROBE_EFFECT",
+          "RECOVERY_EFFECT"
+        ],
+        "constraints": [
+          "COMPOSE_TO_IDENTITY",
+          "RECURRENT_CONTROL_UNTIL_BINDING"
+        ],
+        "terminal": "TARGET_NATIVE_SUCCESS",
+        "abstention": []
+      },
+      "score": {
+        "target": "tir_rotation",
+        "exact_program_match": false,
+        "field_matches": {
+          "program_family": true,
+          "operators": false,
+          "constraints": false,
+          "terminal": false,
+          "abstention": false
+        },
+        "observed_program": {
+          "program_family": "CYCLIC_IDENTITY_RECOVERY",
+          "operators": [
+            "CONTROL_STATE_UPDATE",
+            "POSITIVE_EFFECT_BINDING_UPDATE",
+            "PROBE_EFFECT",
+            "RECOVERY_EFFECT"
+          ],
+          "constraints": [
+            "COMPOSE_TO_IDENTITY",
+            "RECURRENT_CONTROL_UNTIL_BINDING"
+          ],
+          "terminal": "TARGET_NATIVE_SUCCESS",
+          "abstention": []
+        },
+        "expected_program_sha256": "87851025cf4724c8e6309375ea8fa1cb08fc9416ac3b7491dd1980ebabe1e750"
+      },
+      "parse_error": null,
+      "usage": {
+        "prompt_tokens": 363,
+        "completion_tokens": 81,
+        "total_tokens": 444,
+        "reported_cost_usd": 0.0002748
+      },
+      "wall_clock_seconds": 1.5483736209571362,
+      "complete_target_trajectories_read": 0,
+      "target_outcomes_read": 0
+    }
+  ],
+  "per_target": {
+    "alfworld": {
+      "calls": 4,
+      "provider_successes": 4,
+      "parsed": 4,
+      "exact_program_matches": 0,
+      "complete_target_trajectories_read": 0,
+      "target_outcomes_read": 0
+    },
+    "discoveryworld": {
+      "calls": 4,
+      "provider_successes": 4,
+      "parsed": 4,
+      "exact_program_matches": 0,
+      "complete_target_trajectories_read": 0,
+      "target_outcomes_read": 0
+    },
+    "tir_rotation": {
+      "calls": 4,
+      "provider_successes": 4,
+      "parsed": 4,
+      "exact_program_matches": 0,
+      "complete_target_trajectories_read": 0,
+      "target_outcomes_read": 0
+    }
+  },
+  "resource_accounting": {
+    "provider_calls": 12,
+    "prompt_tokens": 4474,
+    "completion_tokens": 1167,
+    "total_tokens": 5641,
+    "reported_cost_usd": 0.0036568,
+    "wall_clock_seconds_sum": 35.327406633179635,
+    "target_environment_interactions": 0,
+    "complete_target_trajectories": 0
+  },
+  "gates": {
+    "all_provider_calls_returned": true,
+    "all_responses_parsed": true,
+    "zero_complete_target_trajectories_read": true,
+    "zero_target_outcomes_read": true,
+    "all_targets_received_frozen_call_budget": true
+  },
+  "report_sha256": "f88a720d676e55a9f0db51a2513100718753230b84e34cac2c83b5069855b8e2"
+}
