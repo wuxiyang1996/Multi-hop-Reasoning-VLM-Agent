@@ -159,7 +159,10 @@ target-written isomorphic content
 
 - 没有招募人类做 timing/sample-efficiency study；target-written code 只是 oracle ceiling；
 - source/target primitive counts 可同名计数，但环境语义与经济成本不可直接等价；
-- V28 没有新的 untouched TIR target population；已有 75 个 rotation items 已被旧 V1/V2 splits 分配；
+- 在 Phase 16 当时，V28 没有新的 untouched TIR target population；已有 75 个 rotation items 已被旧
+  V1/V2 splits 分配。Phase 17 后续没有重用 TIR，而是在新 MiniGrid orientation-recovery population 上
+  prospective 通过 48/48 formal reserve；见
+  [`PHASE17_PROSPECTIVE_V28_TARGET_RESERVE_RESULTS.md`](PHASE17_PROSPECTIVE_V28_TARGET_RESERVE_RESULTS.md)。
 - 三个 program families 不代表 arbitrary-domain universality。
 
 ## 复现

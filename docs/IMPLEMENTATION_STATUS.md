@@ -1,5 +1,19 @@
 # Implementation Status
 
+## Phase 17 V28 prospective target reserve（2026-08-20）
+
+Phase 16 的最高优先级边界已关闭。V28 从 official-Tetris fresh intervention forks 在 `K=3` 自动归纳的
+同一个 `COMPOSE(PROBE_EFFECT, RECOVERY_EFFECT)==IDENTITY` program，现已在冻结后的新 MiniGrid
+orientation-recovery target 上完成 development → fresh qualification → untouched formal reserve。
+
+Target-native MLP 只用 64 development tasks 的 rendered orientation labels 训练，不读 target success、完整
+trajectory、source program 或 source identity；formal grounding 为 336/336 panels、48/48 exact effect
+bindings。Native success：source 48/48、64-label neural-only direct 16/48（32W/0L，`p=4.66e-10`），
+copy/fixed/shuffled controls 为 26/12/13。独立 target-written isomorphic 也是 48/48，所以结果验证的是
+source-acquired program content 的 prospective transfer，而不是 provenance necessity。状态为
+`PROSPECTIVE_V28_TARGET_RESERVE_VALIDATED`。完整协议、排除 pilot 与边界见
+[`PHASE17_PROSPECTIVE_V28_TARGET_RESERVE_RESULTS.md`](PHASE17_PROSPECTIVE_V28_TARGET_RESERVE_RESULTS.md)。
+
 ## Phase 16 acquisition gaps closure（2026-08-19）
 
 Phase 14–15 声明的四个后续实验已全部执行。ALFWorld source K=4 的完整 candidate-fork cost 由冻结
