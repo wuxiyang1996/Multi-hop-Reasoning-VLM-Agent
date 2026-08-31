@@ -1,0 +1,36 @@
+{
+  "schema_version": "harness-controller-qwen35-9b-five-domain-target-adapted-protocol-v1",
+  "status": "FROZEN_BEFORE_TARGET_ADAPTED_WEIGHT_UPDATE",
+  "model": "Qwen/Qwen3.5-9B",
+  "initial_adapter": {
+    "path": "runs/harness_controller_qwen35_9b_mixed_v3/source_only_sft_seed20260901/adapter",
+    "adapter_model_sha256": "7f0c5708af43455f9c58d75dd9cbb54a845415d32f3c999d6634a97295fa7a38",
+    "role": "VALIDATED_SOURCE_ONLY_SIX_BENCHMARK_CONTROLLER"
+  },
+  "target_development_dataset": {
+    "directory": "runs/target_harness_sft_five_domain_v1",
+    "manifest_sha256": "9888a9e3a644ca05ccaca96ee55e15780267cab4667659e04169b72538d6a046",
+    "independent_audit_sha256": "221d5392e5a9b60a1c596513f7969ab303e75a2adb334fa774342250caccc486",
+    "train_sha256": "f5be7ab178928c225536ee6cecff1032da6b743234d54608b3db19990c4ba62c",
+    "validation_sha256": "30479b181b5dc68fcf4f76fbf3fd3a0337727f1b9444cec4af21580cf8d40f15",
+    "train_examples": 4500,
+    "validation_examples": 1500,
+    "target_domains": ["alfworld", "discoveryworld", "tirbench", "video", "webshop"]
+  },
+  "training": {
+    "max_steps": 600,
+    "learning_rate": 0.000005,
+    "gradient_accumulation": 8,
+    "maximum_sequence_length": 2048,
+    "lora_r": 16,
+    "lora_alpha": 32,
+    "seed": 20260902
+  },
+  "required_post_training_gates": {
+    "five_domain_development_validation": "TARGET_DEVELOPMENT_CONTROLLER_GATE_PASSED",
+    "source_scalar_retention": "SOURCE_FAMILY_HELD_OUT_CONTROLLER_GATE_PASSED",
+    "source_multi_ir_retention": "SOURCE_MULTI_IR_HELD_OUT_CONTROLLER_GATE_PASSED"
+  },
+  "output_directory": "runs/harness_controller_qwen35_9b_five_domain_target_adapted_v1/sft_seed20260902",
+  "claim_boundary": "TARGET_ADAPTED_DEPLOYMENT_BASELINE;USES_FIVE_TARGET_DEVELOPMENT_DOMAINS_INCLUDING_VIDEO;DOES_NOT_REPLACE_SOURCE_ONLY_TRANSFER_EVIDENCE;NO_FORMAL_OR_RESERVE_TARGET_OUTCOME_LABELS;NO_DOWNSTREAM_SUCCESS_CLAIM_WITHOUT_A_SEPARATE_UNTOUCHED_EVALUATION"
+}

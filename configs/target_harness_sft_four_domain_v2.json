@@ -1,0 +1,13 @@
+{
+  "schema_version": "target-harness-sft-four-domain-overlay-v2",
+  "resolved_schema_version": "target-harness-sft-four-domain-config-v2",
+  "status": "FROZEN_BEFORE_FOUR_DOMAIN_DATASET_BUILD",
+  "base_config": "configs/target_harness_sft_four_domain_v1.json",
+  "base_config_sha256": "882f3d217c4c0e542f801e8ddb3ae5171465e77ebdd71a1d834252fdafa22216",
+  "supersession_reason": "V1 produced no dataset because only 429 DiscoveryWorld train pairs met the frozen executor condition versus the preregistered quota of 450. V2 adds only anonymous candidate-order equivariance augmentation; target transitions, neural probabilities, source programs, labels, splits, quotas, and gates are unchanged.",
+  "overrides": {
+    "discoveryworld": {
+      "candidate_order_variants": 2
+    }
+  }
+}

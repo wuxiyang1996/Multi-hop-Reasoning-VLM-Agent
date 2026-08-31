@@ -1,0 +1,81 @@
+{
+  "schema_version": "target-harness-sft-baseline-lock-v1",
+  "status": "FROZEN_HEURISTIC_DEPLOYMENT_BASELINE",
+  "baseline_id": "target_harness_sft_five_domain_v1",
+  "git_head_at_lock": "bf4db06a016e560017cc798c5de2ea9ef60b60b3",
+  "artifacts": {
+    "build_config": {
+      "path": "configs/target_harness_sft_five_domain_v1.json",
+      "sha256": "e2c72aebc5cf144412a00d33c0500d32c9e273f69cad7d5f900d2df1e706b7cf"
+    },
+    "build_script": {
+      "path": "scripts/build_target_harness_sft_five_domain_v1.py",
+      "sha256": "8cc8170aafb295d53a7b0ca4d7845937b2f5b4edada669b81f815474d64fad61"
+    },
+    "audit_script": {
+      "path": "scripts/audit_target_harness_sft.py",
+      "sha256": "e6a1fe99cb40cede16a2d24d6a83667efa0b251ff41e982018fd7397220cd97d"
+    },
+    "manifest": {
+      "path": "runs/target_harness_sft_five_domain_v1/manifest.json",
+      "sha256": "9888a9e3a644ca05ccaca96ee55e15780267cab4667659e04169b72538d6a046"
+    },
+    "independent_audit": {
+      "path": "runs/target_harness_sft_five_domain_v1/independent_audit.json",
+      "sha256": "221d5392e5a9b60a1c596513f7969ab303e75a2adb334fa774342250caccc486"
+    },
+    "structured": {
+      "path": "runs/target_harness_sft_five_domain_v1/structured.jsonl",
+      "sha256": "7368d407f1944ae749b283f76328c8c42109557739ca56a444ea6ecaea78d4be"
+    },
+    "train": {
+      "path": "runs/target_harness_sft_five_domain_v1/train.jsonl",
+      "sha256": "f5be7ab178928c225536ee6cecff1032da6b743234d54608b3db19990c4ba62c"
+    },
+    "validation": {
+      "path": "runs/target_harness_sft_five_domain_v1/validation.jsonl",
+      "sha256": "30479b181b5dc68fcf4f76fbf3fd3a0337727f1b9444cec4af21580cf8d40f15"
+    },
+    "video_provenance": {
+      "path": "runs/target_harness_sft_five_domain_v1/video_provenance.jsonl",
+      "sha256": "f202e558e210caf62387bf10476f1478fafc4f7dd53527bbe8328ae1ef51d1fb"
+    }
+  },
+  "frozen_summary": {
+    "examples": 6000,
+    "matched_pairs": 3000,
+    "train_examples": 4500,
+    "validation_examples": 1500,
+    "target_domains": [
+      "webshop",
+      "alfworld",
+      "discoveryworld",
+      "tirbench",
+      "video"
+    ],
+    "video_benchmarks": [
+      "clevrer",
+      "agqa2"
+    ],
+    "new_provider_calls": 0
+  },
+  "heuristic_disclosures": [
+    "CLEVRER converts a learned scalar uplift to all four typed effect heads by broadcast.",
+    "AGQA2 converts multiview evidence to typed effects with hand-specified composition formulas.",
+    "ALFWorld uses an engineered persistence transform with exponent 64.",
+    "TIRBench uses an engineered symbolic program and geometry-derived effect features.",
+    "Target development states are included, so a model trained on this dataset is target-adapted rather than zero-shot."
+  ],
+  "allowed_use": [
+    "engineering regression baseline",
+    "target-adapted deployment experiment",
+    "ablation against the frozen source-only controller"
+  ],
+  "forbidden_claims": [
+    "target-data-free cross-domain transfer",
+    "non-heuristic video skill induction",
+    "downstream benchmark success improvement",
+    "formal or untouched target evaluation"
+  ],
+  "mutation_policy": "DO_NOT_OVERWRITE_ANY_LOCKED_ARTIFACT;CREATE_A_NEW_VERSION_AND_NEW_LOCK_INSTEAD"
+}
