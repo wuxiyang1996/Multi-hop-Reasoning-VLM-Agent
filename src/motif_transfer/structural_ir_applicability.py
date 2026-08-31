@@ -23,6 +23,9 @@ from .phase3_source_function_induction import validate_source_function_program
 from .source_goal_acquisition_induction import (
     validate_goal_acquisition_program,
 )
+from .source_goal_relation_induction import (
+    validate_goal_relation_macro_program,
+)
 
 
 @dataclass(frozen=True)
@@ -315,6 +318,52 @@ def goal_acquisition_artifact_contract(
     )
 
 
+def goal_relation_artifact_contract(
+    artifact: Mapping[str, Any], *, confirmation: Mapping[str, Any],
+) -> SourceIRContract:
+    """Extract the recurrent goal-relation macro used by video routes."""
+
+    validate_goal_relation_macro_program(artifact)
+    confirmation_body = dict(confirmation)
+    claimed_confirmation = confirmation_body.pop("report_sha256", None)
+    if not claimed_confirmation or claimed_confirmation != stable_hash(
+        confirmation_body
+    ):
+        raise ValueError("source goal-relation confirmation hash mismatch")
+    if confirmation.get("artifact_sha256") != artifact.get("artifact_sha256"):
+        raise ValueError("source goal-relation confirmation/artifact mismatch")
+    operators = tuple(
+        _signature(row) for row in artifact.get("operator_types") or ()
+    )
+    program = artifact["program"]
+    recurrent = any(
+        row.get("from_operator_type_id") == row.get("to_operator_type_id")
+        and row.get("cardinality") == "ONE_OR_MORE"
+        for row in program.get("transitions") or ()
+    )
+    terminal = tuple(
+        str(row["predicate_family"])
+        for row in program.get("terminal_predicates") or ()
+    )
+    qualified = (
+        confirmation.get("status")
+        == "SOURCE_GOAL_RELATION_MACRO_FRESH_VALIDATED"
+        and confirmation.get("source_gate_passed") is True
+        and all((confirmation.get("gates") or {}).values())
+        and artifact.get("target_data_read") is False
+        and artifact.get("named_controller_template_used") is False
+    )
+    return SourceIRContract.create(
+        program_sha256=str(artifact["artifact_sha256"]),
+        ir_kind="RECURRENT_GOAL_RELATION_PROGRAM",
+        operator_sequence=operators,
+        recurrent=recurrent,
+        terminal_predicate_families=terminal,
+        source_intervention_qualified=qualified,
+        source_confirmation_sha256=str(claimed_confirmation),
+    )
+
+
 def temporal_function_artifact_contract(
     artifact: Mapping[str, Any], *, source_confirmation_sha256: str,
     source_intervention_qualified: bool,
@@ -418,6 +467,7 @@ def select_source_contract(
 __all__ = [
     "OperatorSignature", "SourceIRContract", "TargetIRRequirement",
     "contract_matches", "goal_acquisition_artifact_contract",
+    "goal_relation_artifact_contract",
     "relational_artifact_contract",
     "select_source_contract", "structural_program_contract",
     "temporal_function_artifact_contract",

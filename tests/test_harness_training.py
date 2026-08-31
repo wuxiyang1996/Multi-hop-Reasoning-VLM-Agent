@@ -48,3 +48,15 @@ def test_training_examples_are_receipt_derived_and_split_by_episode():
     assert summary["objective_counts"]["NEXT_TRANSITION"] == 18
     assert summary["objective_counts"]["RECORDED_ADJACENCY"] == 18
     assert summary["objective_counts"]["TRANSITION_MEMBERSHIP"] == 36
+    assert summary["objective_counts"]["OPERATIONAL_EFFECT_PROBE"] == 18
+    effect = next(
+        row for row in examples if row.objective == "OPERATIONAL_EFFECT_PROBE"
+    )
+    assert effect.target_payload["verdict"] == "OBSERVED_FROM_RECEIPT"
+    assert set(effect.target_payload) == {
+        "observation_changed",
+        "admissible_set_changed",
+        "positive_native_reward",
+        "terminal",
+        "verdict",
+    }

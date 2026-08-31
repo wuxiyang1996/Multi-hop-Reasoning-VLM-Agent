@@ -1,0 +1,53 @@
+{
+  "schema_version": "harness-controller-sft-build-v2",
+  "program_root": "configs/phase3_source_function_v4/frozen_reserve/programs",
+  "development_rows_root": "runs/phase3_source_confirmation_v1",
+  "fresh_reserve_rows_root": "runs/phase3_source_function_v4_reserve",
+  "families": {
+    "candy_crush": {
+      "primary_horizon": 16,
+      "split": "train"
+    },
+    "gymv_columns": {
+      "primary_horizon": 50,
+      "split": "validation"
+    },
+    "gymv_streets_of_rage_2": {
+      "primary_horizon": 50,
+      "split": "train"
+    },
+    "gymv_strider": {
+      "primary_horizon": 22,
+      "split": "train"
+    },
+    "gymv_thunder_force_iii": {
+      "primary_horizon": 23,
+      "split": "source_held_out"
+    },
+    "tetris": {
+      "primary_horizon": 16,
+      "split": "train"
+    }
+  },
+  "split_policy": {
+    "kind": "WHOLE_SOURCE_FAMILY_HELD_OUT",
+    "train_rows": "development_rows_root",
+    "validation_and_source_held_out_rows": "fresh_reserve_rows_root",
+    "rationale": "Train covers qualified/abstaining, retry/no-retry, and horizons 1/4/8. Validation and held-out each contain a completely unseen source family and use post-freeze source rollouts."
+  },
+  "controls": [
+    "DETERMINISTIC_EFFECT_BINDING_SHUFFLE",
+    "NONUNIQUE_ARGMAX_CONTROL",
+    "SINGLETON_CANDIDATE_CONTROL",
+    "MISSING_TYPED_EFFECT_CONTROL",
+    "PROGRAM_TRIAL_BUDGET",
+    "PROGRAM_GRAPH_EDGE"
+  ],
+  "control_sampling": {
+    "abstention_induced_program": "AUTHENTIC_ONLY",
+    "qualified_program_schema_controls": "ONE_OF_TIE_SINGLETON_MISSING_PER_RECEIPT_BY_SNAPSHOT_HASH",
+    "qualified_program_trial_budget_control": "ONE_IN_FOUR_BY_SNAPSHOT_HASH",
+    "purpose": "PREVENT_ALWAYS_ABSTAIN_CLASS_SHORTCUT_WHILE_RETAINING_FAIL_CLOSED_COVERAGE"
+  },
+  "claim_boundary": "SOURCE_ONLY_CONTROLLER_SFT;NO_TARGET_DATA;NO_NATIVE_ACTIONS;NO_HAND_AUTHORED_POLICY_TEMPLATE"
+}

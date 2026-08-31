@@ -1,0 +1,12 @@
+{
+  "schema_version": "harness-mixed-source-sft-build-config-v2",
+  "components": {
+    "SCALAR_EXECUTOR": {
+      "dataset_dir": "runs/harness_controller_sft_v5_schema_closure"
+    },
+    "MULTI_IR_SELECTOR": {
+      "dataset_dir": "runs/harness_multi_ir_selector_sft_v2"
+    }
+  },
+  "claim_boundary": "SOURCE_ONLY_MIXED_SFT;PRESERVE_CARDINALITY_EQUIVARIANT_SCALAR_EXECUTOR;SELECT_SEVEN_SOURCE_INDUCED_PROGRAMS_ACROSS_FIVE_ANONYMOUS_IR_SCHEMAS;AGQA_TEMPORAL_AND_GOAL_RELATION_COMPOSITION_IS_TARGET_NATIVE_AND_OUTSIDE_SFT;NO_TARGET_EXAMPLES_OR_OUTCOMES"
+}

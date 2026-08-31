@@ -1,0 +1,94 @@
+{
+  "schema_version": "harness-controller-qwen35-9b-mixed-protocol-v1",
+  "status": "FROZEN_BEFORE_MIXED_SOURCE_WEIGHT_UPDATES",
+  "model": "Qwen/Qwen3.5-9B",
+  "mixed_source_dataset": {
+    "manifest": {
+      "path": "runs/harness_mixed_source_sft_v1/manifest.json",
+      "sha256": "58da0286adb51d2fe7e63b70098435013d554ce1932df0e00ece3959738b3ef3"
+    },
+    "train": {
+      "path": "runs/harness_mixed_source_sft_v1/train.jsonl",
+      "sha256": "d25235f31a76f0d40cf64d6f662be6bf82f884310267d57b12acbed4fd57f6ec",
+      "examples": 8418
+    },
+    "validation": {
+      "path": "runs/harness_mixed_source_sft_v1/validation.jsonl",
+      "sha256": "41d9d22afcff751c42fb76e72d8800ff6a3778977952e4825aae0cbfe43fede2",
+      "examples": 1460
+    },
+    "target_examples": 0
+  },
+  "source_held_out_gates": {
+    "scalar_executor": {
+      "path": "runs/harness_controller_sft_v5_schema_closure/source_held_out.jsonl",
+      "sha256": "f6a07e8bc8d0cf9f72f375cc1b7259d02fa599ff3173a9ac4751dc7ec681dd5d",
+      "examples": 170,
+      "strict_json_accuracy_minimum": 0.98,
+      "overall_decision_accuracy_minimum": 0.95,
+      "overall_exact_accuracy_minimum": 0.90,
+      "every_arity_decision_accuracy_minimum": 0.95,
+      "every_arity_exact_accuracy_minimum": 0.85,
+      "missing_schema_every_arity_decision_accuracy_minimum": 0.98,
+      "exact_minus_base_minimum": 0.20
+    },
+    "multi_ir_selector": {
+      "path": "runs/harness_multi_ir_selector_sft_v1c/source_held_out.jsonl",
+      "sha256": "7d5e4c037de0ec6a3e073905e5385feba9af51d3cf5523e087a44810b65ec87d",
+      "examples": 1248,
+      "required_ir_kinds": [
+        "FINITE_STRUCTURAL_DELTA_SEQUENCE",
+        "RECURRENT_GOAL_ACQUISITION_RELATION_PROGRAM",
+        "RECURRENT_GOAL_RELATION_PROGRAM",
+        "RECURRENT_RELATIONAL_TRANSITION_PROGRAM"
+      ],
+      "strict_json_accuracy_minimum": 0.98,
+      "overall_decision_accuracy_minimum": 0.95,
+      "overall_exact_accuracy_minimum": 0.90,
+      "select_skill_decision_recall_minimum": 0.95,
+      "abstain_decision_recall_minimum": 0.95,
+      "every_ir_decision_accuracy_minimum": 0.95,
+      "every_ir_exact_accuracy_minimum": 0.90,
+      "every_control_decision_accuracy_minimum": 0.95,
+      "every_control_exact_accuracy_minimum": 0.85,
+      "exact_minus_base_minimum": 0.20
+    }
+  },
+  "initial_adapter": {
+    "role": "SOURCE_ONLY_V4_CARDINALITY_CONTROLLER",
+    "path": "runs/harness_controller_qwen35_9b_v4/cardinality_sft_v1/adapter",
+    "adapter_model_sha256": "9ded4fdf20e8b954d8be1f1af419bb922aefd9af5ce9346909eadbf96e442961",
+    "adapter_config_sha256": "87a7e84cedee48deab7d202ef8a1282ba9cd7e77343688b60356cf8654e8c4ea",
+    "source_qualification": "runs/harness_controller_qwen35_9b_v4/cardinality_sft_v1/source_cardinality_qualification.json",
+    "source_qualification_status": "SOURCE_CARDINALITY_GATE_PASSED"
+  },
+  "fresh_target_reserve": {
+    "preregistration": {
+      "path": "runs/harness_controller_v5_fresh_target_reserve/preregistration.json",
+      "sha256": "5964aae03dd740ab22dd279a71f6b112e7cacccd6df3e384f1908e81ffff42bc"
+    },
+    "dataset": {
+      "path": "runs/harness_controller_v5_fresh_target_reserve/reserve.jsonl",
+      "sha256": "c2a21fb003516b454f0e3585ec9d9a363d83391db96ac58b7afecb827da43ba0",
+      "rows": 1000
+    },
+    "gates": {
+      "overall_exact_accuracy_minimum": 0.90,
+      "overall_decision_accuracy_minimum": 0.95,
+      "every_target_group_decision_accuracy_minimum": 0.90,
+      "every_target_group_exact_accuracy_minimum": 0.80,
+      "every_control_decision_accuracy_minimum": 0.90,
+      "every_control_exact_accuracy_minimum": 0.80,
+      "every_group_structural_valid_rate_minimum": 0.98,
+      "maximum_false_positive_source_authorizations": 0
+    }
+  },
+  "training": {
+    "max_steps": 600,
+    "learning_rate": 0.00002,
+    "gradient_accumulation": 8,
+    "max_length": 2048,
+    "seed": 20260830
+  },
+  "claim_boundary": "The adapter is updated only with source-derived scalar executor and four-schema multi-IR selector supervision. The fresh six-group target-IR reserve was selected prediction-blind and frozen before these weight updates. Target actors, target-native grounders, utility calibration, and native action execution remain frozen and are not trained here."
+}

@@ -41,10 +41,12 @@ def main() -> None:
     parser.add_argument("--gradient-accumulation", type=int, default=8)
     parser.add_argument("--lora-r", type=int, default=16)
     parser.add_argument("--lora-alpha", type=int, default=32)
+    parser.add_argument("--seed", type=int, default=20260830)
+    parser.add_argument("--initial-adapter", type=Path)
     args = parser.parse_args()
 
     import torch
-    from peft import LoraConfig, TaskType, get_peft_model
+    from peft import LoraConfig, PeftModel, TaskType, get_peft_model
     from torch.utils.data import Dataset
     from transformers import (
         AutoModelForCausalLM,
@@ -75,14 +77,19 @@ def main() -> None:
     model.config.use_cache = False
     model.gradient_checkpointing_enable()
     target_modules = resolve_target_modules(model_name_or_arch=args.model)
-    peft_model = get_peft_model(model, LoraConfig(
-        task_type=TaskType.CAUSAL_LM,
-        r=args.lora_r,
-        lora_alpha=args.lora_alpha,
-        lora_dropout=0.05,
-        target_modules=target_modules,
-        bias="none",
-    ))
+    if args.initial_adapter is not None:
+        peft_model = PeftModel.from_pretrained(
+            model, args.initial_adapter, is_trainable=True,
+        )
+    else:
+        peft_model = get_peft_model(model, LoraConfig(
+            task_type=TaskType.CAUSAL_LM,
+            r=args.lora_r,
+            lora_alpha=args.lora_alpha,
+            lora_dropout=0.05,
+            target_modules=target_modules,
+            bias="none",
+        ))
     peft_model.enable_input_require_grads()
     architecture = str(
         getattr(getattr(model.config, "text_config", None), "model_type", "")
@@ -104,16 +111,20 @@ def main() -> None:
             completion_ids = tokenizer(
                 row["completion"] + tokenizer.eos_token,
                 add_special_tokens=False,
-                truncation=True,
-                max_length=max(1, args.max_length - 1),
+                truncation=False,
             )["input_ids"]
-            prompt_budget = max(1, args.max_length - len(completion_ids))
             prompt_ids = tokenizer(
                 row["prompt"], add_special_tokens=True,
-                truncation=True, max_length=prompt_budget,
+                truncation=False,
             )["input_ids"]
-            input_ids = (prompt_ids + completion_ids)[:args.max_length]
-            prompt_length = min(len(prompt_ids), len(input_ids))
+            input_ids = prompt_ids + completion_ids
+            if len(input_ids) > args.max_length:
+                raise ValueError(
+                    "refusing to truncate Harness supervision: "
+                    f"example {row.get('example_id')} has {len(input_ids)} "
+                    f"tokens but max_length={args.max_length}"
+                )
+            prompt_length = len(prompt_ids)
             return {
                 "input_ids": input_ids,
                 "attention_mask": [1] * len(input_ids),
@@ -138,6 +149,19 @@ def main() -> None:
     validation_path = args.dataset_dir / "validation.jsonl"
     train_rows = _read_jsonl(train_path)
     validation_rows = _read_jsonl(validation_path)
+    if not train_rows or not validation_rows:
+        raise SystemExit("Harness train and validation splits must both be nonempty")
+    train_ids = {str(row["example_id"]) for row in train_rows}
+    validation_ids = {str(row["example_id"]) for row in validation_rows}
+    if len(train_ids) != len(train_rows) or len(validation_ids) != len(validation_rows):
+        raise SystemExit("Harness dataset contains duplicate example IDs")
+    if train_ids & validation_ids:
+        raise SystemExit("Harness train and validation examples overlap")
+    dataset_manifest_path = args.dataset_dir / "manifest.json"
+    dataset_manifest = (
+        json.loads(dataset_manifest_path.read_text(encoding="utf-8"))
+        if dataset_manifest_path.exists() else None
+    )
     args.output_dir.mkdir(parents=True, exist_ok=False)
     training_args = TrainingArguments(
         output_dir=str(args.output_dir / "trainer"),
@@ -155,6 +179,8 @@ def main() -> None:
         save_total_limit=2,
         bf16=True,
         gradient_checkpointing=True,
+        seed=args.seed,
+        data_seed=args.seed,
         report_to=[],
         remove_unused_columns=False,
     )
@@ -182,9 +208,62 @@ def main() -> None:
         "gradient_accumulation": args.gradient_accumulation,
         "lora_r": args.lora_r,
         "lora_alpha": args.lora_alpha,
+        "seed": args.seed,
         "lora_coverage": coverage,
         "train_metrics": dict(result.metrics),
-        "target_data_used": False,
+        "target_data_used": bool(
+            dataset_manifest.get("target_data_used", False)
+            if isinstance(dataset_manifest, dict) else False
+        ),
+        "target_outcome_used_for_controller_labels": bool(
+            dataset_manifest.get(
+                "target_outcome_used_for_controller_labels", False,
+            )
+            if isinstance(dataset_manifest, dict) else False
+        ),
+        "formal_or_qualification_targets_used": bool(
+            dataset_manifest.get(
+                "formal_or_qualification_targets_used", False,
+            )
+            if isinstance(dataset_manifest, dict) else False
+        ),
+        "video_target_data_used": bool(
+            dataset_manifest.get("video_target_data_used", False)
+            if isinstance(dataset_manifest, dict) else False
+        ),
+        "target_grounder_training_used_target_outcomes": bool(
+            dataset_manifest.get(
+                "clevrer_grounder_used_consumed_development_outcome_labels",
+                False,
+            )
+            if isinstance(dataset_manifest, dict) else False
+        ),
+        "dataset_claim_boundary": (
+            dataset_manifest.get("claim_boundary")
+            if isinstance(dataset_manifest, dict) else None
+        ),
+        "dataset_manifest": (
+            str(dataset_manifest_path.resolve()) if dataset_manifest is not None else None
+        ),
+        "dataset_manifest_sha256": (
+            _sha256(dataset_manifest_path) if dataset_manifest is not None else None
+        ),
+        "dataset_schema_version": (
+            dataset_manifest.get("schema_version")
+            if isinstance(dataset_manifest, dict) else None
+        ),
+        "source_held_out_file_sha256": (
+            _sha256(args.dataset_dir / "source_held_out.jsonl")
+            if (args.dataset_dir / "source_held_out.jsonl").exists() else None
+        ),
+        "initial_adapter": (
+            str(args.initial_adapter.resolve())
+            if args.initial_adapter is not None else None
+        ),
+        "initial_adapter_file_sha256": (
+            _sha256(args.initial_adapter / "adapter_model.safetensors")
+            if args.initial_adapter is not None else None
+        ),
     }
     (args.output_dir / "training_receipt.json").write_text(
         json.dumps(receipt, indent=2, sort_keys=True) + "\n",

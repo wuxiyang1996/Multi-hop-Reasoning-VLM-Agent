@@ -17,6 +17,7 @@ from .structural_ir_applicability import (
     TargetIRRequirement,
     select_source_contract,
 )
+from .neural_multi_ir_selector import NeuralMultiIRSelector
 from .unified_transfer_runtime import (
     ExecutionAuthorization,
     SelectiveTargetExecutor,
@@ -253,6 +254,52 @@ class UnifiedNeurosymbolicHarness:
         return self._authorization(
             verdict=TransferVerdict.SELECT_SKILL,
             reason="STRUCTURE_AND_CALIBRATED_UTILITY_AGREE",
+            target=target, selection=selection, utility=utility,
+        )
+
+    def decide_neural(
+        self, target: UnifiedTargetGrounding,
+        selector: NeuralMultiIRSelector,
+    ) -> Phase7Authorization:
+        """Use a neural structural selector without Python exact-match repair.
+
+        The frozen utility router remains a separate safety and calibration
+        authority.  A legal but wrong neural catalog choice reaches the route
+        agreement check and causes abstention; it is never replaced by the
+        deterministic choice from :func:`select_source_contract`.
+        """
+
+        eligible = [row.contract for row in self.programs if row.admitted]
+        neural = selector.decide(
+            contracts=eligible, requirement=target.requirement,
+        )
+        selection = {
+            "receipt_sha256": neural.receipt_sha256,
+            "selected_program_sha256": neural.selected_program_sha256,
+        }
+        if not neural.source_program_authorized:
+            return self._authorization(
+                verdict=TransferVerdict.ABSTAIN,
+                reason=f"NEURAL_STRUCTURAL_SELECTION:{neural.reason}",
+                target=target, selection=selection, utility=None,
+            )
+        utility = self.runtime.decide(target.applicability)
+        validate_authorization(utility)
+        if utility.verdict != TransferVerdict.SELECT_SKILL:
+            return self._authorization(
+                verdict=TransferVerdict.ABSTAIN,
+                reason=f"UTILITY_ROUTER:{utility.reason}",
+                target=target, selection=selection, utility=utility,
+            )
+        if utility.source_program_sha256 != neural.selected_program_sha256:
+            return self._authorization(
+                verdict=TransferVerdict.ABSTAIN,
+                reason="NEURAL_ROUTE_SOURCE_CONTRACT_MISMATCH",
+                target=target, selection=selection, utility=utility,
+            )
+        return self._authorization(
+            verdict=TransferVerdict.SELECT_SKILL,
+            reason="NEURAL_STRUCTURE_AND_CALIBRATED_UTILITY_AGREE",
             target=target, selection=selection, utility=utility,
         )
 

@@ -28,6 +28,14 @@ def main() -> None:
     )
     parser.add_argument("dataset", type=Path)
     parser.add_argument("--output-dir", required=True, type=Path)
+    parser.add_argument(
+        "--include-game-id-hash",
+        action="store_true",
+        help=(
+            "Expose a stable source-game hash. Disabled by default to prevent "
+            "the Harness from learning a game-identity shortcut."
+        ),
+    )
     args = parser.parse_args()
     args.output_dir.mkdir(parents=True, exist_ok=True)
     streams = {
@@ -40,10 +48,16 @@ def main() -> None:
             for line in source:
                 row = json.loads(line)
                 split = str(row["split"])
+                game_identity = (
+                    "GAME_ID_HASH="
+                    + hashlib.sha256(str(row["game"]).encode()).hexdigest()
+                    + "\n"
+                    if args.include_game_id_hash else ""
+                )
                 prompt = (
                     f"{SYSTEM}\n\nOBJECTIVE={row['objective']}\n"
-                    f"GAME_ID_HASH={hashlib.sha256(str(row['game']).encode()).hexdigest()}\n"
-                    "EVIDENCE_INPUT=\n"
+                    + game_identity
+                    + "EVIDENCE_INPUT=\n"
                     + json.dumps(
                         row["input_payload"], sort_keys=True, ensure_ascii=False,
                     )
@@ -80,6 +94,7 @@ def main() -> None:
             "target_action_authority": False,
             "human_predicates": False,
             "source_target_mapping": False,
+            "game_identity_exposed": args.include_game_id_hash,
             "json_only": True,
         },
     }

@@ -1,0 +1,927 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Implementation guide for intervention-grounded neural-symbolic skill transfer in the Multi-hop Reasoning VLM Agent repository.">
+  <title>Neural-Symbolic Skill Transfer · Implementation Guide</title>
+  <link rel="stylesheet" href="neurosymbolic-skill-transfer-implementation.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="hero">
+    <div class="wrap">
+      <p class="eyebrow">Implementation guide · source interventions → target-native execution</p>
+      <h1>Implementing Cross-Domain<br>Neural-Symbolic Skill Transfer</h1>
+      <p class="subtitle">
+        This page maps the implementation in <code>Multi-hop-Reasoning-VLM-Agent-two-agent-clean</code>:
+        induce anonymous, typed, fail-closed symbolic programs from game
+        <code>(state, action, effect, next_state)</code> rollouts, then realize their content in WebShop,
+        ALFWorld, DiscoveryWorld, TIR, MiniGrid, and selective video QA through target-native neural
+        grounders and native executors.
+      </p>
+      <div class="hero-meta">
+        <span class="badge good">Core mechanism validated</span>
+        <span class="badge symbolic">3 induced program families</span>
+        <span class="badge info">Target-native neural grounding</span>
+        <span class="badge good">9B · 6 benchmarks validated</span>
+        <span class="badge">68 results · 229 JSON receipts</span>
+        <span class="badge">Updated 2026-08-31</span>
+        <a class="badge" href="neurosymbolic-skill-transfer-implementation-zh.html">中文</a>
+      </div>
+    </div>
+  </header>
+
+  <nav class="top-nav" aria-label="Page navigation">
+    <div class="wrap">
+      <a href="#thesis">Definition</a>
+      <a href="#architecture">Architecture</a>
+      <a href="#source">Source induction</a>
+      <a href="#ir">Symbolic IR</a>
+      <a href="#target">Target grounding</a>
+      <a href="#runtime">Unified runtime</a>
+      <a href="#new-domain">Add a domain</a>
+      <a href="#atlas">Results atlas</a>
+      <a href="#evidence">Evidence</a>
+      <a href="#training">Training</a>
+      <a href="#reproduce">Reproduce</a>
+      <a href="#status">Status</a>
+    </div>
+  </nav>
+
+  <main id="main" class="wrap">
+    <section class="panel" id="thesis">
+      <p class="eyebrow">01 · Transfer object</p>
+      <h2>We transfer intervention-grounded program content, not game actions</h2>
+      <p class="lead">
+        A skill is implemented as typed operators, transition or partial-order constraints, terminal
+        relations, and an abstention contract supported by source interventions. Source action names,
+        pixels, game identity, and the complete source controller are not transfer objects.
+      </p>
+
+      <div class="callout symbolic">
+        <strong>Most accurate method name:</strong>
+        intervention-grounded symbolic program transfer with target-native neural grounding.
+      </div>
+
+      <div class="grid">
+        <article class="card span-4 card-accent-green">
+          <p class="metric-label">The source supplies</p>
+          <p class="metric-value">Causal structure</p>
+          <p class="small">Matched intervention forks identify effect relations, control flow, stopping conditions, and evidence-sensitive abstention.</p>
+        </article>
+        <article class="card span-4 card-accent-blue">
+          <p class="metric-label">The target supplies</p>
+          <p class="metric-value">Native grounding</p>
+          <p class="small">Target text, images, frames, or candidate actions are bound to entities, relations, effects, and calibrated confidence.</p>
+        </article>
+        <article class="card span-4 card-accent-purple">
+          <p class="metric-label">The Harness supplies</p>
+          <p class="metric-value">Safe composition</p>
+          <p class="small">It authorizes only a unique structural match with qualified grounding and positive prior utility; otherwise it falls back.</p>
+        </article>
+      </div>
+
+      <div class="authority">
+        <div class="authority-side symbolic-side">
+          <h3>Transferred invariants</h3>
+          <ul>
+            <li>operator type and effect relation</li>
+            <li>transition, recurrence, or composition</li>
+            <li>terminal predicate</li>
+            <li>unique-candidate and abstention rules</li>
+            <li>source receipt lineage</li>
+          </ul>
+        </div>
+        <div class="authority-divider" aria-hidden="true">≠</div>
+        <div class="authority-side neural-side">
+          <h3>Not transferred directly</h3>
+          <ul>
+            <li>source pixels or visual features</li>
+            <li>source action tokens or game identity</li>
+            <li>a complete target policy</li>
+            <li>target reward, gold answer, or formal success</li>
+            <li>one hand-written universal controller</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" id="architecture">
+      <p class="eyebrow">02 · End-to-end architecture</p>
+      <h2>Six deliberately separated authorities</h2>
+      <p class="lead">The central implementation choice is not merely connecting modules; it is limiting what each module may observe and emit.</p>
+
+      <div class="flow" role="img" aria-label="Six-stage flow from source receipts to target-native execution">
+        <div class="flow-node evidence-node">
+          <strong>1 · Source receipts</strong>
+          <span>Real intervention tuples, effects, next states, and lineage hashes</span>
+        </div>
+        <div class="flow-node symbolic-node">
+          <strong>2 · Program induction</strong>
+          <span>Find a unique explanation in a typed hypothesis space</span>
+        </div>
+        <div class="flow-node symbolic-node">
+          <strong>3 · Anonymous IR</strong>
+          <span>Operators, transitions, terminals, and abstention</span>
+        </div>
+        <div class="flow-node neural-node">
+          <strong>4 · Target grounder</strong>
+          <span>Bind only target-native entities, effects, and confidence</span>
+        </div>
+        <div class="flow-node gate-node">
+          <strong>5 · Authorization</strong>
+          <span>Structure × qualification × past utility</span>
+        </div>
+        <div class="flow-node evidence-node">
+          <strong>6 · Native executor</strong>
+          <span>The only component allowed to emit an action or answer</span>
+        </div>
+      </div>
+
+      <pre>source data authority       = source observations + interventions only
+induction authority         = emit a program, never a target action
+target grounding authority  = bind native evidence, never read formal outcome
+selection authority         = emit SELECT_SKILL / ABSTAIN, never an action
+execution authority         = emit a native action after valid authorization
+evaluation authority        = open gold/outcome only after receipts are frozen</pre>
+    </section>
+
+    <section class="panel" id="source">
+      <p class="eyebrow">03 · Source-side implementation</p>
+      <h2>From rollout to a source-qualified symbolic program</h2>
+
+      <ol class="steps">
+        <li>
+          <strong>Instrument source environments.</strong>
+          At each step, record the before state, native candidates, selected intervention, after state, reward or terminal evidence, operational effect, and content hash.
+        </li>
+        <li>
+          <strong>Build matched candidate forks.</strong>
+          Execute different candidates from the same source state and retain successful and failed forks. Success-only trajectories cannot identify a causal operator.
+        </li>
+        <li>
+          <strong>Anonymize source vocabulary.</strong>
+          Action names, game names, and semantic labels cannot cross into the target. The inducer reads typed state/effect endpoints and transition evidence.
+        </li>
+        <li>
+          <strong>Search a frozen hypothesis class.</strong>
+          Find the unique operator, transition, terminal, and abstention program that exactly separates intervention outcomes. Zero or multiple explanations both cause abstention.
+        </li>
+        <li>
+          <strong>Qualify on source evidence.</strong>
+          Test held-out episodes and fresh reserves, plus shuffled effects, permuted transitions, alpha-renamed actions, and missing-evidence controls.
+        </li>
+      </ol>
+
+      <p class="code-caption">Minimal conceptual source-receipt schema</p>
+      <pre>{
+  "before": state_receipt,
+  "candidate_action": anonymous_action_id,
+  "observed_effect": typed_effect,
+  "after": next_state_receipt,
+  "terminal": false,
+  "receipt_sha256": "...",
+  "source_split": "development | qualification | reserve"
+}</pre>
+
+      <details open>
+        <summary>Three non-isomorphic program families currently induced</summary>
+        <div class="details-body">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Family</th><th>Source-side content</th><th>Target realization</th><th>Critical abstention</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td>Recurrent goal relation</td>
+                  <td>Repeat UPDATE until a unique terminal relation</td>
+                  <td>Target-native relation execution in ALFWorld, TIR, CLEVRER, and related routes</td>
+                  <td>Non-unique candidate, unclosed relation, or unverified effect</td>
+                </tr>
+                <tr>
+                  <td>Finite add/remove</td>
+                  <td><code>ADD ENTITY_SLOT → REMOVE ENTITY_SLOT</code></td>
+                  <td>DiscoveryWorld partial-order acquisition</td>
+                  <td>Missing operator binding or partial-order conflict</td>
+                </tr>
+                <tr>
+                  <td>Cyclic identity recovery</td>
+                  <td><code>COMPOSE(PROBE_EFFECT, RECOVERY_EFFECT)==IDENTITY</code></td>
+                  <td>MiniGrid orientation recovery</td>
+                  <td>Zero or multiple recovery tokens satisfy identity</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </details>
+
+      <div class="grid">
+        <article class="card span-6">
+          <h3>Core implementation</h3>
+          <ul class="file-list">
+            <li><a href="../src/motif_transfer/contracts.py"><code>src/motif_transfer/contracts.py</code></a> — receipts and stable content hashes.</li>
+            <li><a href="../src/motif_transfer/instrumented_import.py"><code>instrumented_import.py</code></a> — imported source episodes.</li>
+            <li><a href="../src/motif_transfer/phase3_source_induction.py"><code>phase3_source_induction.py</code></a> — source-only structural induction.</li>
+            <li><a href="../src/motif_transfer/phase3_source_function_induction.py"><code>phase3_source_function_induction.py</code></a> — typed functions, transitions, and abstention induction.</li>
+          </ul>
+        </article>
+        <article class="card span-6">
+          <h3>Specialized inducers</h3>
+          <ul class="file-list">
+            <li><a href="../src/motif_transfer/source_goal_relation_induction.py"><code>source_goal_relation_induction.py</code></a> — recurrent goal relations.</li>
+            <li><a href="../src/motif_transfer/cyclic_identity_induction.py"><code>cyclic_identity_induction.py</code></a> — cyclic composition family.</li>
+            <li><a href="../scripts/analyze_tetris_cyclic_source_induction_v28.py"><code>analyze_tetris_cyclic_source_induction_v28.py</code></a> — source qualification and reserve audit.</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <section class="panel" id="ir">
+      <p class="eyebrow">04 · Shared symbolic representation</p>
+      <h2>The shared object is an IR contract, not a canonical controller</h2>
+      <p>
+        Different games may induce different program bodies, but each body is wrapped in the same
+        content-addressed envelope. Target routing operates on required capabilities and program content,
+        never source identity.
+      </p>
+
+      <p class="code-caption">Neural-symbolic program contract</p>
+      <pre>Program = {
+  typed_operators,
+  transition_or_partial_order,
+  terminal_predicates,
+  abstention_rules,
+  neural_probe_specs: {
+    input_kind,
+    model_artifact_sha256,
+    supported_min_score,
+    refuted_max_score,
+    UNKNOWN band
+  },
+  source_lineage,
+  program_sha256
+}</pre>
+
+      <div class="grid">
+        <article class="card span-4 card-accent-purple">
+          <h3>Hard symbolic checks</h3>
+          <ul>
+            <li>type and capability compatibility</li>
+            <li>program and artifact hash consistency</li>
+            <li>candidate uniqueness</li>
+            <li>reachable transitions and explicit termination</li>
+            <li>UNKNOWN always fails closed</li>
+          </ul>
+        </article>
+        <article class="card span-4 card-accent-blue">
+          <h3>Neural probe contract</h3>
+          <ul>
+            <li>return only a calibrated score or binding</li>
+            <li>never write control flow</li>
+            <li>never observe source identity</li>
+            <li>never observe formal outcome or gold</li>
+            <li>freeze artifact and thresholds</li>
+          </ul>
+        </article>
+        <article class="card span-4 card-accent-green">
+          <h3>Content-addressed evidence</h3>
+          <ul>
+            <li>program, grounder, and executor have hashes</li>
+            <li>authorization is bound to target state</li>
+            <li>evaluation opens after runtime receipts</li>
+            <li>alpha renaming cannot change execution</li>
+          </ul>
+        </article>
+      </div>
+
+      <ul class="file-list">
+        <li><a href="../src/motif_transfer/neurosymbolic_ir.py"><code>src/motif_transfer/neurosymbolic_ir.py</code></a> — probe, node, route, and program validation.</li>
+        <li><a href="../src/motif_transfer/structural_ir_applicability.py"><code>structural_ir_applicability.py</code></a> — source contract / target requirement matching.</li>
+        <li><a href="../src/motif_transfer/unified_neurosymbolic_harness.py"><code>unified_neurosymbolic_harness.py</code></a> — envelope, structural selection, and Phase-7 authorization.</li>
+      </ul>
+    </section>
+
+    <section class="panel" id="target">
+      <p class="eyebrow">05 · Target-native neural grounding</p>
+      <h2>Only the grounder and executor change across targets</h2>
+      <p class="lead">
+        The target grounder turns text, images, or video evidence into the target-native bindings required
+        by the IR. The symbolic program never reads pixels, native action names, or gold. Grounder training
+        is restricted to development or adaptation splits, and thresholds are frozen before qualification.
+      </p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Target</th><th>Neural / native measurement</th><th>Symbolic execution</th><th>Fallback</th></tr></thead>
+          <tbody>
+            <tr><td>WebShop</td><td>goal, attribute, candidate product, and action binding</td><td>typed applicability and selective action authorization</td><td>neural-only policy</td></tr>
+            <tr><td>ALFWorld</td><td>native command effect, entity multiplicity, and goal relation</td><td>recurrent / relation program drives acquisition and terminal action</td><td>target actor</td></tr>
+            <tr><td>DiscoveryWorld</td><td>entity slots, spatial/task relation, and candidate effect</td><td>finite partial-order or recurrent program</td><td>target-native baseline</td></tr>
+            <tr><td>TIR</td><td>visual start/goal, move deltas, and question relation</td><td>maze or rotation executor</td><td>direct answer</td></tr>
+            <tr><td>MiniGrid</td><td>rendered orientation → anonymous order-four effect</td><td>identity-composition recovery</td><td>direct target MLP</td></tr>
+            <tr><td>AGQA / CLEVRER</td><td>interval, event relation, object binding, and dynamics evidence</td><td>temporal/recurrent composition or proof recovery</td><td>identical direct VLM answer</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="code-caption">A target grounder returns evidence, not an action</p>
+      <pre>TargetGroundingReceipt = {
+  task_id,
+  target_state_sha256,
+  target_grounder_sha256,
+  capabilities,
+  candidate_ids,
+  structural_predicates,
+  calibrated_bindings,
+  grounder_qualified,
+  formal_outcome_read: false
+}</pre>
+
+      <div class="grid">
+        <article class="card span-6">
+          <h3>Grounder implementations</h3>
+          <ul class="file-list">
+            <li><a href="../src/motif_transfer/webshop_neural_grounder_v5.py"><code>webshop_neural_grounder_v5.py</code></a></li>
+            <li><a href="../src/motif_transfer/alfworld_neural_grounder.py"><code>alfworld_neural_grounder.py</code></a></li>
+            <li><a href="../src/motif_transfer/discoveryworld_applicability_grounder_v4.py"><code>discoveryworld_applicability_grounder_v4.py</code></a></li>
+            <li><a href="../src/motif_transfer/minigrid_neural_grounder.py"><code>minigrid_neural_grounder.py</code></a></li>
+          </ul>
+        </article>
+        <article class="card span-6">
+          <h3>Video and visual implementations</h3>
+          <ul class="file-list">
+            <li><a href="../src/motif_transfer/tir_maze_topology.py"><code>tir_maze_topology.py</code></a></li>
+            <li><a href="../src/motif_transfer/agqa_temporal_localized_query.py"><code>agqa_temporal_localized_query.py</code></a></li>
+            <li><a href="../src/motif_transfer/clevrer_unified_goal_relation.py"><code>clevrer_unified_goal_relation.py</code></a></li>
+            <li><a href="../src/motif_transfer/clevrer_proof_receipts.py"><code>clevrer_proof_receipts.py</code></a></li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <section class="panel" id="runtime">
+      <p class="eyebrow">06 · Selection, authorization, execution</p>
+      <h2>The unified Harness decision path</h2>
+
+      <pre>eligible_programs = source_programs where:
+  source_intervention_qualified
+  and learned_from_(state, action, effect, next_state)
+  and target_data_read == false
+  and named_policy_template_used == false
+
+selected = unique_structural_match(eligible_programs, target_requirement)
+
+if no unique selected program:
+    return ABSTAIN
+if target_grounder not qualified or structural predicates not closed:
+    return ABSTAIN
+if past matched utility <= 0 or authentic does not beat permuted control:
+    return ABSTAIN
+
+authorization = SELECT_SKILL(program_sha256, executor_sha256)
+native_output = target_native_executor(authorization, grounding, candidates)</pre>
+
+      <div class="callout warn">
+        <strong>No current-task outcome feedback:</strong> the current task's reward, gold answer, or official
+        success cannot influence its own route selection. Utility calibration may use only earlier completed,
+        frozen matched trials.
+      </div>
+
+      <div class="grid">
+        <article class="card span-6 card-accent-amber">
+          <h3>The Harness may emit</h3>
+          <ul>
+            <li><code>SELECT_SKILL</code> or <code>ABSTAIN</code></li>
+            <li>selected program hash</li>
+            <li>target executor identity and hash</li>
+            <li>utility and authenticity lower bounds</li>
+            <li>a structured reason and authorization receipt</li>
+          </ul>
+        </article>
+        <article class="card span-6 card-accent-green">
+          <h3>Only the executor may emit</h3>
+          <ul>
+            <li>a WebShop native action</li>
+            <li>an ALFWorld command</li>
+            <li>a DiscoveryWorld operation</li>
+            <li>a TIR or video answer slot</li>
+            <li>a MiniGrid anonymous recovery token</li>
+          </ul>
+        </article>
+      </div>
+
+      <ul class="file-list">
+        <li><a href="../src/motif_transfer/unified_transfer_runtime.py"><code>src/motif_transfer/unified_transfer_runtime.py</code></a> — route validation, utility/authenticity gates, and authorization.</li>
+        <li><a href="../src/motif_transfer/unified_neurosymbolic_harness.py"><code>unified_neurosymbolic_harness.py</code></a> — structural selection and target-execution handoff.</li>
+      </ul>
+    </section>
+
+    <section class="panel" id="new-domain">
+      <p class="eyebrow">07 · Adding a new target domain</p>
+      <h2>Standard procedure for a new target adapter</h2>
+      <p>A new domain must begin with a target MDP or QA interface and measurable native grounding—not by inserting source prompts into a target actor.</p>
+
+      <ol class="steps">
+        <li><strong>Write the target interface contract.</strong> Define observation, native candidates, formal outcome, interaction budget, and information that runtime may never read.</li>
+        <li><strong>Define the IR requirement.</strong> List target-groundable capabilities, typed entities/effects, and terminal relation without source game names or action mappings.</li>
+        <li><strong>Build the target-native grounder.</strong> Train or tune prompts only on development/adaptation tasks; record model, data, threshold, and artifact hash.</li>
+        <li><strong>Run intrinsic qualification.</strong> On fresh qualification, measure coverage, covered accuracy, calibration, unique binding, and abstention. A failure keeps formal reserve sealed.</li>
+        <li><strong>Implement the native executor.</strong> Its only inputs are authorization, grounding receipt, and native candidates; verify it accepts no source token or gold.</li>
+        <li><strong>Freeze the matched condition matrix.</strong> Include neural-only, source-induced, source-permuted/shuffled, generic scaffold, and target-written isomorphic ceiling.</li>
+        <li><strong>Run untouched formal evaluation.</strong> Atomically write runtime receipts before opening the evaluator; report paired wins/losses/ties and negative-transfer rate at the correct clustering unit.</li>
+        <li><strong>Register the route.</strong> Add program, grounder, executor, and evidence-report hashes to the skill library only after every gate passes.</li>
+      </ol>
+
+      <details>
+        <summary>Formal gates that must be preregistered</summary>
+        <div class="details-body">
+          <ul class="checklist">
+            <li class="done">Target selection and splits freeze before outcome calls.</li>
+            <li class="done">Source induction reads zero target trajectories or outcomes.</li>
+            <li class="done">Target grounder qualification precedes formal reserve.</li>
+            <li class="done">Every unauthorized row preserves the identical baseline fallback.</li>
+            <li class="done">Authentic content significantly beats destructive source controls.</li>
+            <li class="done">Negative transfer remains under a frozen limit.</li>
+            <li class="done">Alpha renaming is invariant and source identity is hidden.</li>
+            <li class="done">A target-written equivalent acts as the content-versus-provenance ceiling.</li>
+          </ul>
+        </div>
+      </details>
+    </section>
+
+    <section class="panel" id="atlas">
+      <p class="eyebrow">08 · Results atlas</p>
+      <h2>The full evidence lineage from failure diagnosis to prospective validation</h2>
+      <p class="lead">
+        This repository records a sequence of experiments that progressively close alternative explanations,
+        not one final run. <code>docs/</code> currently contains 68 result reports, 3 status reports, and 29
+        protocol/design documents; <code>docs/results/</code> contains 229 JSON receipts. The atlas first explains
+        how the conclusion evolved, then exposes the complete human-readable catalog by research thread.
+      </p>
+
+      <div class="callout info">
+        <strong>Recommended reading order:</strong> start with Phases 3–8 for the unified mechanism, then Phases
+        9–17 for source specificity, program content, provenance, acquisition cost, and prospective transfer.
+        Early V1–V24 reports preserve failure causes and protocol repairs; later headline numbers do not erase them.
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Stage</th><th>Research question</th><th>Conclusion</th><th>Main entry points</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>0 · Retargeting audit</td>
+              <td>Can an old mega-skill or motif be moved directly into a target?</td>
+              <td>No. Exact topology, semantic retrieval, and weak-prior pilots exposed action leakage, target-phase relabeling, and non-replicating gains.</td>
+              <td><a href="HARNESS_RETARGETING_SMOKE_V1_RESULTS.md">retargeting smoke</a> · <a href="OLD_RESULTS.md">old-results policy</a></td>
+            </tr>
+            <tr>
+              <td>1 · Controlled mechanism</td>
+              <td>Can lower-level intervention/effect structure transfer?</td>
+              <td>Controlled diagnosis and neural-symbolic V3 first established the viable split: transfer an effect relation and ground it natively; raw or high-level skill text is insufficient.</td>
+              <td><a href="CONTROLLED_INTERVENTION_TRANSFER_V1_V2_RESULTS.md">controlled V1/V2</a> · <a href="CONTROLLED_NEURAL_SYMBOLIC_TRANSFER_V3_RESULTS.md">controlled V3</a></td>
+            </tr>
+            <tr>
+              <td>2 · Domain-specific construction</td>
+              <td>Can WebShop, ALFWorld, DiscoveryWorld, and TIR obtain real action or answer gains?</td>
+              <td>After several negative-transfer and grounding/applicability repairs, each received a formal positive route. They share an authority boundary, not one controller.</td>
+              <td><a href="PHASE8_FOUR_DOMAIN_UNIFIED_NEUROSYMBOLIC_TRANSFER_RESULTS.md">Phase 8</a></td>
+            </tr>
+            <tr>
+              <td>3 · Source-only induction</td>
+              <td>Can typed programs be induced from <code>(s,a,e,s')</code> instead of hand-written templates?</td>
+              <td>Yes, inside frozen hypothesis spaces: induce operators, transitions, terminals, and abstention. DiscoveryWorld and TIR later produced prospective positives.</td>
+              <td><a href="PHASE3_SOURCE_INDUCTION_DISCOVERYWORLD_ALFWORLD_RESULTS.md">Phase 3 induction</a> · <a href="PHASE3_STRUCTURAL_IR_TRANSFER_V2_RESULTS.md">structural IR V2</a></td>
+            </tr>
+            <tr>
+              <td>4 · Unified runtime</td>
+              <td>Do four targets actually use the same Harness contract?</td>
+              <td>Phases 4–7 implemented structural selection, utility gating, and target-native execution; Phase 8 moved ALFWorld from correct abstention to formal positive evidence.</td>
+              <td><a href="PHASE4_TO_PHASE7_UNIFIED_NEUROSYMBOLIC_TRANSFER_RESULTS.md">Phases 4–7</a> · <a href="PHASE8_FOUR_DOMAIN_UNIFIED_NEUROSYMBOLIC_TRANSFER_RESULTS.md">Phase 8</a></td>
+            </tr>
+            <tr>
+              <td>5 · Video grounding</td>
+              <td>Can the same mechanism enter video reasoning?</td>
+              <td>Free-text ledgers and the generic STAR/NExT route failed the strongest-target gate. Benchmark-native typed routes on CLEVRER and AGQA obtained formal positive evidence.</td>
+              <td><a href="THREE_VIDEO_TYPED_GROUNDING_V30_V33_RESULTS.md">three-video stop</a> · <a href="AGQA2_FULL_DISTRIBUTION_NEUROSYMBOLIC_V57_V62_RESULTS.md">AGQA V62</a></td>
+            </tr>
+            <tr>
+              <td>6 · Causal identification</td>
+              <td>Is value caused by source identity, any isomorphic controller, or correct program content?</td>
+              <td>Program content causes execution value; source provenance has no extra effect. Source value is acquiring exact fail-closed content with zero complete target trajectories.</td>
+              <td><a href="PHASE12_SOURCE_PROVENANCE_IDENTIFIABILITY_RESULTS.md">Phase 12</a> · <a href="PHASE13_ALFWORLD_SOURCE_ACQUISITION_VALUE_RESULTS.md">Phase 13</a></td>
+            </tr>
+            <tr>
+              <td>7 · Breadth and prospective reserve</td>
+              <td>Is this only one recurrent family, and is there a genuinely new target population?</td>
+              <td>Finite add/remove and cyclic-identity families were induced. V31 reached 48/48 on a MiniGrid population generated only after protocol freeze.</td>
+              <td><a href="PHASE14_PHASE15_MATCHED_ACQUISITION_AND_SECOND_FAMILY_RESULTS.md">Phases 14–15</a> · <a href="PHASE17_PROSPECTIVE_V28_TARGET_RESERVE_RESULTS.md">Phase 17</a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>How to interpret artifact types</h3>
+      <div class="grid">
+        <article class="card span-3 card-accent-green">
+          <span class="tag good">formal validated</span>
+          <p class="small">An untouched reserve opened after qualification and all preregistered gates passed.</p>
+        </article>
+        <article class="card span-3 card-accent-amber">
+          <span class="tag warn">development / consumed</span>
+          <p class="small">Useful for grounder changes, debugging, or headroom estimates; not new confirmatory evidence.</p>
+        </article>
+        <article class="card span-3 card-accent-red">
+          <span class="tag bad">failed / aborted</span>
+          <p class="small">Failed gates, runtime aborts, and contamination boundaries remain visible and cannot be reinterpreted with later thresholds.</p>
+        </article>
+        <article class="card span-3 card-accent-blue">
+          <span class="tag info">machine receipt</span>
+          <p class="small">Hashes, splits, counts, and gates in JSON define the formal claim authority.</p>
+        </article>
+      </div>
+
+      <details open>
+        <summary>Complete human-readable result catalog (68 reports, grouped by question)</summary>
+        <div class="details-body">
+          <div class="grid">
+            <article class="card span-6">
+              <h3>Foundation, controls, and source identifiability</h3>
+              <ul class="file-list">
+                <li><a href="HARNESS_RETARGETING_SMOKE_V1_RESULTS.md">Harness retargeting smoke V1</a></li>
+                <li><a href="CONTROLLED_INTERVENTION_TRANSFER_V1_V2_RESULTS.md">Controlled intervention V1/V2</a></li>
+                <li><a href="CONTROLLED_NEURAL_SYMBOLIC_TRANSFER_V3_RESULTS.md">Controlled neural-symbolic V3</a></li>
+                <li><a href="INTERVENTION_GROUNDED_NEUROSYMBOLIC_V16_V19_RESULTS.md">Intervention-grounded V16–V19</a></li>
+                <li><a href="REAL_GAME_TO_ALFWORLD_INTERVENTION_V1_RESULTS.md">Real game → ALFWorld intervention V1</a></li>
+                <li><a href="REAL_SOURCE_RELATION_V20_V24_RESULTS.md">Real-source relation V20–V24</a></li>
+                <li><a href="TRANSFORMATION_ACTION_CONTRAST_V14_RESULTS.md">Transformation action contrast V14</a></li>
+                <li><a href="SUBGOAL_OPTION_CONTRAST_V15_RESULTS.md">Subgoal option contrast V15</a></li>
+                <li><a href="SOURCE_TRIAGE_GATE_V15_RESULTS.md">Source triage gate V15</a></li>
+                <li><a href="SEARCH_AUTOMATON_TRANSFER_V16_RESULTS.md">Search automaton V16</a></li>
+                <li><a href="GAME_TO_FOUR_TARGET_HARNESS_V1_RESULTS.md">Game → four-target Harness V1</a></li>
+              </ul>
+            </article>
+
+            <article class="card span-6">
+              <h3>ALFWorld: from negative transfer to program-driven policy</h3>
+              <ul class="file-list">
+                <li><a href="SOKOBAN_ALFWORLD_NEUROSYMBOLIC_TRANSFER_V1_V2_RESULTS.md">Sokoban → ALFWorld V1/V2</a></li>
+                <li><a href="MULTISOURCE_ALFWORLD_NEUROSYMBOLIC_V1_RESULTS.md">Multi-source ALFWorld V1</a></li>
+                <li><a href="MULTISOURCE_ALFWORLD_NEUROSYMBOLIC_V2_V4_RESULTS.md">Multi-source ALFWorld V2–V4</a></li>
+                <li><a href="TYPED_MULTISOURCE_V3_RESULTS.md">Typed multi-source V3</a></li>
+                <li><a href="TYPED_MULTISOURCE_V4_RESULTS.md">Typed multi-source V4</a></li>
+                <li><a href="TYPED_MULTISOURCE_ALFWORLD_V5_RESULTS.md">Typed multi-source ALFWorld V5</a></li>
+                <li><a href="PARAMETERIZED_ALFWORLD_V7_RESULTS.md">Parameterized ALFWorld V7</a></li>
+                <li><a href="SLOT_AWARE_ALFWORLD_V8_RESULTS.md">Slot-aware ALFWorld V8</a></li>
+                <li><a href="EXECUTABLE_SOURCE_GRAPH_ALFWORLD_V9_RESULTS.md">Executable source graph V9</a></li>
+                <li><a href="BUDGETED_EXECUTABLE_SOURCE_GRAPH_V10_RESULTS.md">Budgeted graph V10</a></li>
+                <li><a href="BUDGETED_RELATION_EDGE_V11_RESULTS.md">Relation edge V11</a></li>
+                <li><a href="SELECTIVE_BUDGETED_RELATION_EDGE_V12_RESULTS.md">Selective relation edge V12</a></li>
+                <li><a href="RELATION_EDGE_INTERVENTION_VALUE_V13_RESULTS.md">Intervention value V13</a></li>
+                <li><a href="PROCEDURAL_GAME_ALFWORLD_NEUROSYMBOLIC_V1_RESULTS.md">Procedural-game ALFWorld</a></li>
+                <li><a href="ALFWORLD_SOURCE_INDUCED_RELATION_MACRO_V3_V8_RESULTS.md">Source-induced relation macro V3–V8</a></li>
+                <li><a href="ALFWORLD_SOURCE_INDUCED_ACQUISITION_V1_V10_RESULTS.md">Source-induced acquisition V1–V10</a></li>
+                <li><a href="PHASE11_ALFWORLD_PROGRAM_DRIVEN_POLICY_RESULTS.md">Phase 11 program-driven policy</a></li>
+                <li><a href="PHASE13_ALFWORLD_SOURCE_ACQUISITION_VALUE_RESULTS.md">Phase 13 acquisition value</a></li>
+              </ul>
+            </article>
+
+            <article class="card span-6">
+              <h3>WebShop, DiscoveryWorld, and TIR</h3>
+              <ul class="file-list">
+                <li><a href="WEBSHOP_SELECTIVE_NEUROSYMBOLIC_V6_RESULTS.md">WebShop selective V6</a></li>
+                <li><a href="WEBSHOP_NEUROSYMBOLIC_CAUSAL_V7_RESULTS.md">WebShop causal V7</a></li>
+                <li><a href="WEBSHOP_NEUROSYMBOLIC_APPLICABILITY_V8_RESULTS.md">WebShop applicability V8</a></li>
+                <li><a href="WEBSHOP_NEURAL_SYMBOLIC_TRANSFER_V9_V11_RESULTS.md">WebShop V9–V11</a></li>
+                <li><a href="SOKOBAN_WEBSHOP_NEUROSYMBOLIC_TRANSFER_V12_V13_RESULTS.md">Sokoban → WebShop V12/V13</a></li>
+                <li><a href="DISCOVERYWORLD_NEUROSYMBOLIC_TRANSFER_V16_RESULTS.md">DiscoveryWorld V16 qualification</a></li>
+                <li><a href="DISCOVERYWORLD_NEUROSYMBOLIC_TRANSFER_V17_FORMAL_RESULTS.md">DiscoveryWorld V17 formal</a></li>
+                <li><a href="DISCOVERYWORLD_NEUROSYMBOLIC_TRANSFER_V18_V21_RESULTS.md">DiscoveryWorld V18–V21</a></li>
+                <li><a href="DISCOVERYWORLD_NEUROSYMBOLIC_TRANSFER_V22_NORMAL_FORMAL_RESULTS.md">DiscoveryWorld Normal V22</a></li>
+                <li><a href="DISCOVERYWORLD_SOKOBAN_V23_RESULTS.md">Sokoban → DiscoveryWorld V23</a></li>
+                <li><a href="PHASE10_DISCOVERYWORLD_NORMAL_SOURCE_VALUE_RESULTS.md">Phase 10 Normal source value</a></li>
+                <li><a href="TIR_MAZE_SOKOBAN_TOPOLOGY_V1_V2_RESULTS.md">Sokoban topology → TIR maze</a></li>
+                <li><a href="TIR_TETRIS_ROTATION_COUNTERFACTUAL_V2_RESULTS.md">Tetris → TIR rotation V2</a></li>
+                <li><a href="ACTIVE_VIDEO_TIR_NEUROSYMBOLIC_PREFLIGHT_RESULTS.md">Active Video/TIR preflight</a></li>
+              </ul>
+            </article>
+
+            <article class="card span-6">
+              <h3>Unified IR, source specificity, and acquisition</h3>
+              <ul class="file-list">
+                <li><a href="PHASE3_SOURCE_INDUCTION_DISCOVERYWORLD_ALFWORLD_RESULTS.md">Phase 3 source induction</a></li>
+                <li><a href="PHASE3_STRUCTURAL_IR_TRANSFER_V2_RESULTS.md">Phase 3 structural IR V2</a></li>
+                <li><a href="PHASE4_TO_PHASE7_UNIFIED_NEUROSYMBOLIC_TRANSFER_RESULTS.md">Phases 4–7 unified Harness</a></li>
+                <li><a href="PHASE8_FOUR_DOMAIN_UNIFIED_NEUROSYMBOLIC_TRANSFER_RESULTS.md">Phase 8 four-domain validation</a></li>
+                <li><a href="PHASE9_SOURCE_PROGRAM_HETEROGENEITY_RESULTS.md">Phase 9 program heterogeneity</a></li>
+                <li><a href="PHASE12_SOURCE_PROVENANCE_IDENTIFIABILITY_RESULTS.md">Phase 12 provenance identifiability</a></li>
+                <li><a href="PHASE14_PHASE15_MATCHED_ACQUISITION_AND_SECOND_FAMILY_RESULTS.md">Phases 14–15 acquisition + second family</a></li>
+                <li><a href="PHASE16_GAP_CLOSURE_RESULTS.md">Phase 16 gap closure</a></li>
+                <li><a href="PHASE17_PROSPECTIVE_V28_TARGET_RESERVE_RESULTS.md">Phase 17 prospective reserve</a></li>
+              </ul>
+            </article>
+
+            <article class="card span-12">
+              <h3>Video: grounding failures, CLEVRER, STAR, and AGQA 2.0</h3>
+              <div class="grid">
+                <div class="span-6">
+                  <ul class="file-list">
+                    <li><a href="THREE_VIDEO_GROUNDING_QUALIFICATION_V28_V29_RESULTS.md">Three-video grounding V28/V29</a></li>
+                    <li><a href="STAR_INTERACTION_GROUNDING_FACTORIAL_V27_RESULTS.md">STAR grounding factorial V27</a></li>
+                    <li><a href="THREE_VIDEO_TYPED_GROUNDING_V30_V33_RESULTS.md">Three-video typed V30–V33</a></li>
+                    <li><a href="STAR_ANNOTATION_GOAL_RELATION_V38_RESULTS.md">STAR annotation-side V38</a></li>
+                    <li><a href="SOKOBAN_CLEVRER_EVENT_GRAPH_V14_RESULTS.md">Sokoban → CLEVRER V14</a></li>
+                    <li><a href="CLEVRER_UNIFIED_GOAL_RELATION_V15_RESULTS.md">CLEVRER unified V15</a></li>
+                  </ul>
+                </div>
+                <div class="span-6">
+                  <ul class="file-list">
+                    <li><a href="AGQA2_PROGRAM_TRANSFER_V1_RESULTS.md">AGQA program feasibility V1</a></li>
+                    <li><a href="AGQA2_FRAME_GROUNDER_V2_RESULTS.md">AGQA frame grounder V2</a></li>
+                    <li><a href="AGQA2_ACTIVE_NEUROSYMBOLIC_TRANSFER_V3_V8_RESULTS.md">AGQA active V3–V13</a></li>
+                    <li><a href="AGQA2_ACTIVE_NEUROSYMBOLIC_TRANSFER_V14_V19_RESULTS.md">AGQA active V14–V19</a></li>
+                    <li><a href="AGQA2_QUERY_OBJECT_V20_V25_RESULTS.md">AGQA QUERY_OBJECT V20–V25</a></li>
+                    <li><a href="AGQA2_SOURCE_SPECIFIC_V26_V28_RESULTS.md">AGQA source-specific V26–V28</a></li>
+                    <li><a href="AGQA2_POSTGROUND_NEUROSYMBOLIC_V29_V32_RESULTS.md">AGQA post-ground V29–V32</a></li>
+                    <li><a href="AGQA2_MULTI_OPERATOR_NEUROSYMBOLIC_V33_V40_RESULTS.md">AGQA multi-operator V33–V56</a></li>
+                    <li><a href="AGQA2_FULL_DISTRIBUTION_NEUROSYMBOLIC_V57_V62_RESULTS.md">AGQA full-distribution V57–V62</a></li>
+                  </ul>
+                </div>
+              </div>
+            </article>
+          </div>
+        </div>
+      </details>
+
+      <details>
+        <summary>Three status pages and machine-readable receipts</summary>
+        <div class="details-body">
+          <div class="grid">
+            <article class="card span-6">
+              <h3>Status and interpretation</h3>
+              <ul class="file-list">
+                <li><a href="IMPLEMENTATION_STATUS.md">Implementation status through Phase 17</a></li>
+                <li><a href="PHASE2_FOUR_TARGET_CAUSAL_UTILITY_STATUS.md">Phase 2 four-target causal utility status</a></li>
+                <li><a href="ALFWORLD_ONE_SHOT_STATUS.md">ALFWorld one-shot status</a></li>
+                <li><a href="OLD_RESULTS.md">How old results enter the new Harness</a></li>
+              </ul>
+            </article>
+            <article class="card span-6">
+              <h3>Machine-readable hubs</h3>
+              <ul class="file-list">
+                <li><a href="results/phase8_four_domain_unified_neurosymbolic_v2.json">Phase 8 aggregate</a></li>
+                <li><a href="results/phase9_source_program_heterogeneity_v1.json">Phase 9 heterogeneity</a></li>
+                <li><a href="results/phase16_gap_closure_v30.json">Phase 16 gap closure</a></li>
+                <li><a href="results/minigrid_orientation_target_v31_summary.json">V31 prospective reserve</a></li>
+                <li><a href="results/agqa2_full_distribution_v57_v62_summary.json">AGQA V57–V62</a></li>
+                <li><a href="results/three_video_typed_grounding_v30_v33_summary.json">Three-video V30–V33</a></li>
+              </ul>
+              <p class="small">The remaining JSON files are retained in <code>docs/results/</code> by experiment/version. Aborted, failed, and consumed artifacts are part of the evidence chain.</p>
+            </article>
+          </div>
+        </div>
+      </details>
+    </section>
+
+    <section class="panel" id="evidence">
+      <p class="eyebrow">09 · What the implementation has validated</p>
+      <h2>Current formal evidence and its boundaries</h2>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Route</th><th>Source-induced</th><th>Neural/direct</th><th>Paired result</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td>WebShop V21</td><td><strong>23/32</strong></td><td>7/32</td><td>16W / 0L</td><td><span class="tag good">validated</span></td></tr>
+            <tr><td>DiscoveryWorld Easy</td><td><strong>12/12</strong></td><td>3/12</td><td>9W / 0L</td><td><span class="tag good">validated</span></td></tr>
+            <tr><td>TIR single-image maze</td><td><strong>12/18</strong></td><td>6/18</td><td>6W / 0L</td><td><span class="tag good">validated</span></td></tr>
+            <tr><td>ALFWorld multiplicity</td><td><strong>20/24</strong></td><td>13/24</td><td>7W / 0L</td><td><span class="tag good">validated</span></td></tr>
+            <tr><td>MiniGrid V31</td><td><strong>48/48</strong></td><td>16/48</td><td>32W / 0L</td><td><span class="tag good">prospective</span></td></tr>
+            <tr><td>CLEVRER V14</td><td><strong>511/720</strong></td><td>489/720</td><td>+22</td><td><span class="tag good">validated</span></td></tr>
+            <tr><td>AGQA V62</td><td><strong>290/900</strong></td><td>249/900</td><td>44W / 3L</td><td><span class="tag good">selective formal</span></td></tr>
+            <tr><td>STAR / NExT-QA generic route</td><td>8/12 typed</td><td>9/12 strongest direct</td><td>0W / 1L</td><td><span class="tag bad">gate failed</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="grid">
+        <article class="card span-6 card-accent-green">
+          <h3>Supported by evidence</h3>
+          <ul class="checklist">
+            <li class="done">Correct symbolic content can execute across semantically distinct targets.</li>
+            <li class="done">Target-native neural grounding composes with source-induced IR.</li>
+            <li class="done">Selective abstention can bound negative transfer.</li>
+            <li class="done">Different interventions induce different program families.</li>
+            <li class="done">A source route can acquire structure with zero complete target trajectories.</li>
+          </ul>
+        </article>
+        <article class="card span-6 card-accent-red">
+          <h3>Not supported by evidence</h3>
+          <ul class="checklist">
+            <li class="stop">Source provenance itself provides extra execution value.</li>
+            <li class="stop">Any game skill transfers to any domain.</li>
+            <li class="stop">Target perception transfers directly from games.</li>
+            <li class="stop">AGQA's entire 669k-question test set is solved.</li>
+            <li class="stop">Broad multi-step video-MDP transfer is validated.</li>
+          </ul>
+        </article>
+      </div>
+
+      <p class="small">
+        Detailed reports: <a href="PHASE8_FOUR_DOMAIN_UNIFIED_NEUROSYMBOLIC_TRANSFER_RESULTS.md">unified four-domain results</a>,
+        <a href="PHASE17_PROSPECTIVE_V28_TARGET_RESERVE_RESULTS.md">V31 prospective result</a>,
+        <a href="AGQA2_FULL_DISTRIBUTION_NEUROSYMBOLIC_V57_V62_RESULTS.md">AGQA V57–V62</a>, and
+        <a href="THREE_VIDEO_TYPED_GROUNDING_V30_V33_RESULTS.md">natural-video stop result</a>.
+      </p>
+    </section>
+
+    <section class="panel" id="training">
+      <p class="eyebrow">10 · Learned Harness training</p>
+      <h2>What is trained now, and what should be trained next</h2>
+
+      <div class="grid">
+        <article class="card span-4 card-accent-green">
+          <p class="metric-label">Already trained</p>
+          <p class="metric-value">Target grounders</p>
+          <p class="small">For example, the V31 orientation MLP. Target perception and effect binding can be trained and frozen independently.</p>
+        </article>
+        <article class="card span-4 card-accent-green">
+          <p class="metric-label">Trained</p>
+          <p class="metric-value">Qwen3.5-9B LoRA</p>
+          <p class="small">V3 used 10,594 source-only mixed-SFT rows for 800 steps and completed stably on one L40S.</p>
+        </article>
+        <article class="card span-4 card-accent-blue">
+          <p class="metric-label">Fresh substitution gate</p>
+          <p class="metric-value">2,246 / 2,246</p>
+          <p class="small">Route exact is 100% on six benchmarks; 1,864/1,864 native actions are equivalent with zero divergence.</p>
+        </article>
+      </div>
+
+      <div class="callout good">
+        The V1 diagnostic reached 2,238/2,246; all eight errors were conservative false abstentions. We sealed that
+        result, froze new anonymous aliases and catalog permutations, and then updated the model using only symmetric
+        permutation closure over seven source programs. The fresh reserve reached 2,246/2,246. See the
+        <a href="HARNESS_CONTROLLER_QWEN35_9B_SIX_BENCHMARK_V3_RESULTS.md">Harness 9B six-benchmark V3 report</a>.
+      </div>
+
+      <p class="code-caption">Frozen Harness 9B V3 supervision contract</p>
+      <pre>input:
+  anonymous seven-program source catalog
+  target-native typed structural requirement
+  source intervention qualification flags
+
+targets:
+  SELECT_SKILL + copied opaque catalog ID
+  or fail-closed ABSTAIN + structural reason
+
+controls:
+  catalog order and opaque alias permutations
+  duplicate match / unqualified source
+  IR kind / operator / recurrence / terminal mismatch
+
+split:
+  source-only closure train/validation
+  old source retention + fresh alias held-out
+  no target prompt, error ID, action, or outcome in SFT</pre>
+
+      <ol class="steps">
+        <li><strong>Done: seal the consumed diagnostic.</strong> V2 scored 2,238/2,246; none of the eight target errors became training rows.</li>
+        <li><strong>Done: freeze a fresh reserve first.</strong> Prompts, aliases, catalog orders, and IDs are disjoint from V1; native tasks retain their original pre-outcome authority.</li>
+        <li><strong>Done: source-only permutation closure.</strong> Seven source programs are treated symmetrically, with 3,584 SELECT and 3,584 ABSTAIN rows.</li>
+        <li><strong>Done: re-pass source gates.</strong> Scalar decision accuracy is 100%; the 2,016-row multi-IR exact score is 99.90%.</li>
+        <li><strong>Done: six-benchmark strong substitution closure.</strong> 2,246/2,246 routes and 1,864/1,864 actions match; base route exact is 0%.</li>
+        <li><strong>Optional next: target-adapted Harness.</strong> A separate five-target-domain SFT adapter may estimate a deployment ceiling, but cannot replace source-only transfer evidence.</li>
+      </ol>
+
+      <ul class="file-list">
+        <li><a href="../scripts/build_harness_pretraining_dataset.py"><code>scripts/build_harness_pretraining_dataset.py</code></a></li>
+        <li><a href="../scripts/format_harness_sft_dataset.py"><code>scripts/format_harness_sft_dataset.py</code></a></li>
+        <li><a href="../src/motif_transfer/harness_training.py"><code>src/motif_transfer/harness_training.py</code></a></li>
+        <li><a href="../scripts/train_harness_lora.py"><code>scripts/train_harness_lora.py</code></a></li>
+        <li><a href="../scripts/evaluate_harness_controller_lora_v2.py"><code>scripts/evaluate_harness_controller_lora_v2.py</code></a></li>
+        <li><a href="../scripts/build_harness_multi_ir_permutation_closure_sft_v3.py"><code>scripts/build_harness_multi_ir_permutation_closure_sft_v3.py</code></a></li>
+        <li><a href="../scripts/freeze_harness_9b_six_benchmark_substitution_fresh_v2.py"><code>scripts/freeze_harness_9b_six_benchmark_substitution_fresh_v2.py</code></a></li>
+        <li><a href="../cluster/train_harness_controller_qwen35_9b_mixed_v3_l40s.sbatch"><code>cluster/train_harness_controller_qwen35_9b_mixed_v3_l40s.sbatch</code></a></li>
+        <li><a href="HARNESS_CONTROLLER_QWEN35_9B_SIX_BENCHMARK_V3_RESULTS.md"><code>HARNESS_CONTROLLER_QWEN35_9B_SIX_BENCHMARK_V3_RESULTS.md</code></a></li>
+      </ul>
+    </section>
+
+    <section class="panel" id="reproduce">
+      <p class="eyebrow">11 · Reproduction entry points</p>
+      <h2>Install, unit-test, and analysis commands</h2>
+
+      <p class="code-caption">Core install and tests</p>
+      <pre>cd /fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean
+python -m pip install -e '.[test,source-spatial]'
+
+python -m pytest -q \
+  tests/test_neurosymbolic_program.py \
+  tests/test_unified_neurosymbolic_harness.py \
+  tests/test_phase3_source_induction.py \
+  tests/test_phase3_source_function_induction.py</pre>
+
+      <p class="code-caption">Source induction and prospective target</p>
+      <pre>python scripts/analyze_tetris_cyclic_source_induction_v28.py
+python scripts/analyze_phase16_gap_closure_v30.py
+python scripts/analyze_minigrid_orientation_target_v31.py
+
+python -m pytest -q \
+  tests/test_cyclic_identity_induction.py \
+  tests/test_minigrid_orientation_recovery.py \
+  tests/test_minigrid_neural_grounder.py \
+  tests/test_analyze_minigrid_orientation_target_v31.py</pre>
+
+      <p class="code-caption">Unified registry and release audit</p>
+      <pre>PYTHONPATH=src python scripts/audit_four_domain_neurosymbolic_library.py \
+  --registry configs/neurosymbolic_skill_library_v1.json \
+  --output docs/results/four_domain_neurosymbolic_harness_v1_summary.json
+
+python -m pytest -q \
+  tests/test_four_domain_neurosymbolic_registry.py \
+  tests/test_four_domain_release_bundle.py</pre>
+
+      <p class="code-caption">Harness 9B six-benchmark substitution audit</p>
+      <pre>python scripts/build_harness_9b_six_benchmark_paper_report_v1.py
+
+python -m pytest -q \
+  tests/test_harness_six_benchmark_substitution.py \
+  tests/test_harness_controller_v4_cardinality.py \
+  tests/test_harness_controller_training.py</pre>
+
+      <div class="callout good">
+        <strong>Current full-suite audit:</strong> on 2026-08-31, all 1,013 tests passed. The former four TIR
+        failures were closed by rebuilding the registry, frozen summary, release-manifest, and portable-audit hash
+        chain through the official fail-closed audit path.
+      </div>
+    </section>
+
+    <section class="panel" id="status">
+      <p class="eyebrow">12 · Repository status and completion criteria</p>
+      <h2>The mechanism and 9B six-benchmark substitution are complete; release work remains</h2>
+
+      <div class="grid">
+        <article class="card span-6">
+          <h3>Complete</h3>
+          <ul class="checklist">
+            <li class="done">source receipt instrumentation and matched interventions</li>
+            <li class="done">source-only induction, typed IR, and abstention</li>
+            <li class="done">unified structural and utility authorization</li>
+            <li class="done">four non-video formal routes</li>
+            <li class="done">MiniGrid prospective target reserve</li>
+            <li class="done">CLEVRER and AGQA selective video-QA routes</li>
+            <li class="done">causal separation of source provenance and program content</li>
+            <li class="done">Qwen3.5-9B Harness source-only SFT and model-unseen execution gate</li>
+            <li class="done">fresh six-benchmark 2,246/2,246 route substitution</li>
+            <li class="done">1,864/1,864 success-critical native-action equivalence</li>
+          </ul>
+        </article>
+        <article class="card span-6">
+          <h3>Required before closure</h3>
+          <ul class="checklist">
+            <li class="done">four-domain frozen release hash chain rebuilt and portable audit revalidated</li>
+            <li class="todo">triage unrelated pre-existing dirty-worktree files separately</li>
+            <li class="done">V3 paper artifacts are linked from README with a machine-readable evidence map</li>
+            <li class="todo">optional: train a separate five-domain target-adapted 9B ceiling without overwriting the source-only adapter</li>
+            <li class="todo">refresh README and clean-room installation recipe</li>
+            <li class="todo">if retaining natural video: train a STAR ontology grounder and obtain video-disjoint NExT-QA</li>
+          </ul>
+        </article>
+      </div>
+
+      <div class="callout good">
+        <strong>Recommended paper claim:</strong> Source interventions can acquire exact, fail-closed symbolic
+        program content that transfers through target-native neural grounding and improves selective target
+        execution. The content—not source provenance—causes the gain.
+      </div>
+
+      <div class="callout bad">
+        <strong>Do not claim:</strong> a universal policy trained on games now solves every new domain zero-shot,
+        or game perception / neural weights transfer directly into video and embodied targets.
+      </div>
+
+      <details open>
+        <summary>Machine-readable evidence map</summary>
+        <div class="details-body">
+          <ul class="file-list">
+            <li><a href="results/phase8_four_domain_unified_neurosymbolic_v2.json"><code>results/phase8_four_domain_unified_neurosymbolic_v2.json</code></a></li>
+            <li><a href="results/phase16_gap_closure_v30.json"><code>results/phase16_gap_closure_v30.json</code></a></li>
+            <li><a href="results/minigrid_orientation_target_v31_summary.json"><code>results/minigrid_orientation_target_v31_summary.json</code></a></li>
+            <li><a href="results/agqa2_full_distribution_v57_v62_summary.json"><code>results/agqa2_full_distribution_v57_v62_summary.json</code></a></li>
+            <li><a href="results/three_video_typed_grounding_v30_v33_summary.json"><code>results/three_video_typed_grounding_v30_v33_summary.json</code></a></li>
+            <li><a href="results/harness_controller_qwen35_9b_six_benchmark_v3.json"><code>results/harness_controller_qwen35_9b_six_benchmark_v3.json</code></a></li>
+          </ul>
+        </div>
+      </details>
+    </section>
+  </main>
+
+  <footer class="wrap">
+    <p>
+      This guide does not replace frozen JSON receipts. If prose, code, and hash-bound reports disagree,
+      formal preregistration, runtime receipts, and fail-closed audits define the claim. Branch:
+      <code>agent/harness-transfer-bitter-lessons</code>.
+    </p>
+  </footer>
+</body>
+</html>

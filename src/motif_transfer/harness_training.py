@@ -14,6 +14,7 @@ OBJECTIVES = (
     "TRANSITION_MEMBERSHIP",
     "RECORDED_ADJACENCY",
     "MISSING_EVIDENCE_ABSTENTION",
+    "OPERATIONAL_EFFECT_PROBE",
 )
 
 
@@ -147,7 +148,32 @@ def _transition_examples(
         target_payload={"relation": "OBSERVED_FOR_THIS_RECEIPT"},
         evidence_receipt_ids=(record.transition.receipt_id,),
     )
-    return next_transition, outcome, membership, abstention
+    operational_effect = _make_example(
+        game=game,
+        episode_id=episode_id,
+        split=split,
+        objective="OPERATIONAL_EFFECT_PROBE",
+        input_payload={
+            **shared_input,
+            "after": dict(record.after.state),
+            "after_native_actions": record.after.native_actions,
+        },
+        target_payload={
+            # These are target/source-native observable facts.  They do not
+            # assert a named cross-domain predicate or semantic equivalence.
+            "observation_changed": (
+                record.transition.before_hash != record.transition.after_hash
+            ),
+            "admissible_set_changed": (
+                set(record.before.native_actions) != set(record.after.native_actions)
+            ),
+            "positive_native_reward": record.reward > 0,
+            "terminal": record.after.terminal,
+            "verdict": "OBSERVED_FROM_RECEIPT",
+        },
+        evidence_receipt_ids=(record.transition.receipt_id,),
+    )
+    return next_transition, outcome, membership, abstention, operational_effect
 
 
 def build_harness_training_examples(
