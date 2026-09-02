@@ -30,7 +30,22 @@ def main() -> int:
     if args.output.exists(): raise FileExistsError("semantic runtime is immutable")
     cohort=json.loads(args.cohort.read_text()); qualification=json.loads(args.qualification.read_text())
     if qualification["status"]!="SEMANTIC_PARSER_QUALIFIED": raise ValueError("semantic parser is not fully qualified")
-    if cohort["answers_read"] or cohort["scene_graphs_read"] or cohort["functional_program_visible_at_runtime"]:
+    # Accept both the legacy runtime schema and the newer projection schema.
+    # Missing authority fields are not silently accepted: the V1 projection
+    # must explicitly say that evaluator-only values were not projected.
+    if cohort.get("schema_version") == "agqa-full-train-broad-public-v1":
+        crossed_authority = not (
+            cohort.get("answers_projected") is False
+            and cohort.get("functional_programs_projected") is False
+            and cohort.get("scene_graph_grounding_projected") is False
+        )
+    else:
+        crossed_authority = (
+            cohort.get("answers_read") is not False
+            or cohort.get("scene_graphs_read") is not False
+            or cohort.get("functional_program_visible_at_runtime") is not False
+        )
+    if crossed_authority:
         raise ValueError("semantic runtime cohort crossed target authority boundary")
     parser_sha=stable_hash({"model_dir":str(args.model_dir),"qualification":qualification["report_sha256"]})
     tokenizer=AutoTokenizer.from_pretrained(args.model_dir)

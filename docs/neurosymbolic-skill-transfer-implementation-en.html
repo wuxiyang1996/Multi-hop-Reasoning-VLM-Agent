@@ -909,7 +909,7 @@ python -m pytest -q \
 
     <section class="panel" id="full-video-v2">
       <p class="eyebrow">14 · Full source algebra + fresh CLEVRER Layer B</p>
-      <h2>An anonymous game-induced controller passes CLEVRER fresh formal and two AGQA raw-video replications</h2>
+      <h2>The same anonymous game-induced controller passes fresh CLEVRER and AGQA2 raw-video formals</h2>
       <p>
         Six source-game lineages induce three content-addressed state-delta operators and three observed
         transitions from state/action/effect/next-state data: held-out is 58/58, effect shuffle is 0/58, and
@@ -930,12 +930,25 @@ python -m pytest -q \
         Source versus neural/permuted is 464W/23L, one-sided exact <code>p=3.91e-108</code>, with 1.44%
         negative transfer and 100% isomorphic equivalence. Source commits only on descriptive/explanatory,
         whose grounding fidelity was qualified; predictive/counterfactual share the fallback. Anonymous-controller
-        substitution is exact on 1,600/1,600 tasks, and the same artifact is exact on the AGQA 512+256 tasks.
+        substitution is exact on 1,600/1,600 tasks.
+      </div>
+      <table>
+        <thead><tr><th>Powered AGQA2 arm</th><th>Correct</th><th>Accuracy</th></tr></thead>
+        <tbody>
+          <tr><td>neural-only / source-permuted</td><td>803/1790</td><td>44.86%</td></tr>
+          <tr><td>source-induced / target-written isomorphic</td><td><strong>832/1790</strong></td><td><strong>46.48%</strong></td></tr>
+          <tr><td>generic target-native ceiling</td><td>833/1790</td><td>46.54%</td></tr>
+        </tbody>
+      </table>
+      <div class="callout good">
+        AGQA2 freezes 179 prior-raw-runtime-video-disjoint official balanced-train videos / 1,790 tasks.
+        Source versus neural/permuted is 69W/40L, exact two-sided <code>p=.00704</code>, with 2.23%
+        negative transfer, 30.28% commit coverage, and 100% isomorphic equivalence. All five arms share
+        Qwen3-VL-32B 48/96-frame grounding, parser, executor, and the thinking-disabled 9B fallback.
       </div>
       <div class="callout bad">
-        No untouched AGQA2 official-test video remains, so a new video-disjoint official-test formal cannot be
-        claimed. Existing 512-task broad and independent 256-video temporal raw-video evidence passes the new
-        full-algebra outcome-blind compatibility and anonymous-controller substitution audits, but is not a fresh efficacy run. See the
+        The fresh AGQA result uses official balanced-train, not official test, and is not a video-QA SOTA claim.
+        The universal typed VM and target-native grounding remain designer-specified. See the
         <a href="FULL_VIDEO_SOURCE_ALGEBRA_LAYER_B_V1_RESULTS.md">full video results</a>.
       </div>
     </section>
@@ -997,6 +1010,7 @@ python -m pytest -q \
             <li><a href="results/agqa2_full_distribution_v57_v62_summary.json"><code>results/agqa2_full_distribution_v57_v62_summary.json</code></a></li>
             <li><a href="results/three_video_typed_grounding_v30_v33_summary.json"><code>results/three_video_typed_grounding_v30_v33_summary.json</code></a></li>
             <li><a href="results/harness_controller_qwen35_9b_six_benchmark_v3.json"><code>results/harness_controller_qwen35_9b_six_benchmark_v3.json</code></a></li>
+            <li><a href="results/two_video_transfer_bundle_v2.json"><code>results/two_video_transfer_bundle_v2.json</code></a></li>
           </ul>
         </div>
       </details>

@@ -1,0 +1,183 @@
+{
+  "agqa2": {
+    "atomic_claim_provider_cost_usd": 0.522416232,
+    "formal_report_sha256": "89fa9c68ed99ee6ab122a0fd306224a4bfb68e06289c2e71c8012585c5c7e417",
+    "freshness": "task-disjoint, parser-supervision-task-disjoint, and prior-raw-runtime-video-disjoint",
+    "gain_correct": 29,
+    "gain_percentage_points": 1.6201117318435765,
+    "gates": {
+      "minimum_source_symbolic_commit_fraction": true,
+      "negative_transfer_losses_at_most_five_percent": true,
+      "shared_grounder_receipt_fraction": true,
+      "source_beats_neural": true,
+      "source_permuted_prediction_equivalence_to_neural": true,
+      "source_vs_neural_significant": true,
+      "source_vs_permuted_significant": true,
+      "target_written_isomorphic_action_equivalence": true
+    },
+    "generic_ceiling_accuracy": 0.4653631284916201,
+    "generic_ceiling_correct": 833,
+    "grounding": {
+      "events": 7026,
+      "nonempty_event_graphs": 1670,
+      "provider_cost_usd": 0.8833975279999999,
+      "provider_errors_fail_closed": 15
+    },
+    "negative_transfer_loss_fraction": 0.0223463687150838,
+    "neural_accuracy": 0.44860335195530726,
+    "neural_correct": 803,
+    "observable_failure_taxonomy": {
+      "committed_both_correct": 229,
+      "committed_shared_failure": 204,
+      "fallback_correct": 534,
+      "fallback_generic_headroom": 52,
+      "fallback_shared_failure": 662,
+      "negative_transfer": 40,
+      "symbolic_recovery": 69
+    },
+    "preoutcome_receipt_sha256": "d7420a51df4a77bab1f5b81b7feb88909d58d59f267fa5fc01b0e3d31c7d6827",
+    "semantic_breakdown": {
+      "action": {
+        "generic_correct": 82,
+        "losses": 15,
+        "neural_correct": 71,
+        "source_commits": 104,
+        "source_correct": 80,
+        "tasks": 144,
+        "wins": 24
+      },
+      "object": {
+        "generic_correct": 455,
+        "losses": 6,
+        "neural_correct": 433,
+        "source_commits": 302,
+        "source_correct": 448,
+        "tasks": 1091,
+        "wins": 21
+      },
+      "relation": {
+        "generic_correct": 296,
+        "losses": 19,
+        "neural_correct": 299,
+        "source_commits": 136,
+        "source_correct": 304,
+        "tasks": 555,
+        "wins": 24
+      }
+    },
+    "source_accuracy": 0.464804469273743,
+    "source_correct": 832,
+    "source_symbolic_commit_fraction": 0.3027932960893855,
+    "source_symbolic_commits": 542,
+    "source_vs_neural": {
+      "discordant": 109,
+      "exact_two_sided_p": 0.007040750835507646,
+      "losses": 40,
+      "wins": 69
+    },
+    "split": "official_balanced_train",
+    "status": "LAYER_B_GATES_PASSED",
+    "structural_breakdown": {
+      "choose": {
+        "generic_correct": 170,
+        "losses": 1,
+        "neural_correct": 155,
+        "source_commits": 83,
+        "source_correct": 158,
+        "tasks": 358,
+        "wins": 4
+      },
+      "compare": {
+        "generic_correct": 218,
+        "losses": 18,
+        "neural_correct": 198,
+        "source_commits": 208,
+        "source_correct": 219,
+        "tasks": 358,
+        "wins": 39
+      },
+      "logic": {
+        "generic_correct": 189,
+        "losses": 17,
+        "neural_correct": 184,
+        "source_commits": 75,
+        "source_correct": 184,
+        "tasks": 358,
+        "wins": 17
+      },
+      "query": {
+        "generic_correct": 60,
+        "losses": 0,
+        "neural_correct": 60,
+        "source_commits": 93,
+        "source_correct": 60,
+        "tasks": 358,
+        "wins": 0
+      },
+      "verify": {
+        "generic_correct": 196,
+        "losses": 4,
+        "neural_correct": 206,
+        "source_commits": 83,
+        "source_correct": 211,
+        "tasks": 358,
+        "wins": 9
+      }
+    },
+    "tasks": 1790,
+    "total_receipt_provider_cost_usd": 1.40581376,
+    "videos": 179
+  },
+  "anonymous_controller_artifact_sha256": "cd48690e64392f8702e1a239afa1739c25863ce4bd6ae2efea355ac70467bfe6",
+  "artifact_file_sha256s": {
+    "configs/agqa2_full_train_broad_powered_v4_runtime_freeze.json": "4321311561e767488885faee6039d01dda4b3521ac4d84414e1d05789271fc18",
+    "runs/agqa2_full_train_broad_powered_v4/atomic_claims_full1790.json": "91cca2ab55596303523f727738d87e056f6e6989fa142c03f4fbb9c4103b73af",
+    "runs/agqa2_full_train_broad_powered_v4/formal_evaluation.json": "0b5446a926b77ed7865c36150699724e8201f720be11d26f10d174efe9ef7ac0",
+    "runs/agqa2_full_train_broad_powered_v4/parser_qualified_reserve/manifest.json": "0fb5f0ad4be73faf5e04ec27366488334a1aaa049b86bc7fe03a53e5acb74b72",
+    "runs/agqa2_full_train_broad_powered_v4/parser_qualified_reserve/public_cohort.json": "c84f93a5102a6ad91efbfaf99629a21d88ff4aa6838db212ec34c32fa715ef08",
+    "runs/agqa2_full_train_broad_powered_v4/preoutcome_receipt.json": "671563d578a1de4ab42fc655053563f1458d920cca47274d455e9c3921f98570",
+    "runs/agqa2_full_train_broad_powered_v4/qwen32_grounding_full1790.json": "fd838ae3dc142459555e9c2c460d255bdbb88d5b7ab9ba664dda1f2408429bcd",
+    "runs/agqa2_full_train_broad_powered_v4/shared_fallback_full1790.json": "b98844055539c582d8270c159e41666e091365a9f0c6db5e8aef1eeea0f9940b",
+    "runs/anonymous_video_harness_v1/controller.json": "698d3f377366d5cd8ae278461c2a29466d3a6f1af8885aa8fd6373139309a82e",
+    "runs/clevrer_full_raw_video_v2/anonymous_harness_substitution_v1.json": "80360826a3b7b1ccd7e73f387b419d2cc53b062818416336d12d9a23900cd250",
+    "runs/clevrer_full_raw_video_v2/failure_taxonomy_v1.json": "a1d06097aede31d16cdcaa77e12df8125c0e4bb8e37aa93e21f7e9cef83c755a",
+    "runs/clevrer_full_raw_video_v2/formal_report.json": "9f3f017be07724d3f66db2cd0b4b662e318816914f79382943c65aef66dc7fe3"
+  },
+  "bundle_sha256": "0d6808e1f7c4a69f73ee438a1eed5bbf05d4edccc318b1492c14a45d2f193d11",
+  "claim": "One source-only anonymous game controller significantly improves final QA under benchmark-shared raw-video grounding on fresh CLEVRER and fresh AGQA broad reserves.",
+  "clevrer": {
+    "anonymous_substitution_exact_tasks": 1600,
+    "formal_report_sha256": "30ddf5d1a2031b5ed3d7349768b585688bc8c2a1e743ce407a0d550088dbeeed",
+    "generic_correct": 1123,
+    "negative_transfer_loss_fraction": 0.014375,
+    "neural_correct": 556,
+    "source_correct": 997,
+    "source_vs_neural": {
+      "losses": 23,
+      "net_wins": 441,
+      "one_sided_exact_p": 3.907193862591056e-108,
+      "ties": 1113,
+      "wins": 464
+    },
+    "status": "CLEVRER_FULL_LAYER_B_TRANSFER_VALIDATED",
+    "tasks": 1600
+  },
+  "paper_boundaries": {
+    "agqa_official_test_claimed": false,
+    "clevrer_predictive_counterfactual_source_commit": false,
+    "raw_video_QA_SOTA_claimed": false,
+    "source_provenance_identifiable_against_isomorphic_target_controller": false,
+    "target_native_grounding_is_designer_selected": true,
+    "universal_typed_VM_is_designer_specified": true
+  },
+  "schema_version": "two-video-fresh-layer-b-transfer-bundle-v2",
+  "shared_invariants": {
+    "generic_is_reported_ceiling_not_pass_gate": true,
+    "same_anonymous_source_controller_across_benchmarks": true,
+    "source_permuted_equals_neural": true,
+    "target_outcomes_unavailable_before_final_evaluators": true,
+    "target_written_isomorphic_equals_source": true,
+    "within_benchmark_all_arms_share_frames_grounder_parser_executor_fallback": true
+  },
+  "status": "BOTH_VIDEO_BENCHMARKS_FRESH_LAYER_B_VALIDATED"
+}

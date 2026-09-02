@@ -9,12 +9,12 @@
    counterfactual 各一题，共 1,600 题。source-induced Harness 相对 frozen Qwen3.5-9B
    graph actor 提升 27.56 percentage points，且 matched-permuted、negative-transfer、
    isomorphic 与 shared-state gates 全通过。
-2. **AGQA2 raw-video Layer B 已有两份既有 efficacy evidence，并已接上新的 full source
-   algebra provenance。** 512-task broad qualification 与 256-video temporal replication
-   都显著优于 neural-only / matched-permuted；新的 outcome-blind compatibility audit 在
-   768/768 semantic receipts 上 authentic 全授权、matched-permuted 全 abstain。但 AGQA2
-   official test 已没有 untouched video，不能再制造一份新的 video-disjoint official-test
-   formal。
+2. **AGQA2 fresh powered broad Layer B 已通过。** 从官方 balanced-train archive 中先按历史
+   raw-runtime exposure 排除视频，再哈希冻结并 range-download 180 个新视频；question-only
+   parser gate 后整体剔除一个 invalid video block，最终为 179 个视频、1,790 题。相同匿名
+   game controller 相对 neural-only / matched-permuted 提升 29 个正确答案，`69W/40L`，
+   exact two-sided `p=.00704`；所有 negative-transfer、coverage、shared-grounding 与
+   isomorphic gates 通过。
 
 这支持的是：**game intervention rollouts 归纳出的 typed symbolic structure，在共享的
 target-native neural grounding 下，可以选择性提高 final video-QA accuracy。** 它不证明
@@ -147,60 +147,82 @@ V1 consumed diagnostic 必须保留：旧实现把 symbolic explicit executor �
 69.06%、104W/137L。V2 没有在同一 reserve 重试，而是修正 arm semantics 后冻结新的
 video-disjoint cohort。
 
-## AGQA2：现有 Layer B evidence 与 full-algebra bridge
+## AGQA2：fresh powered broad raw-video formal
 
-### Raw-video evidence
+### 为什么是 powered replication
 
-| Cohort | Neural | Source | Generic | Source vs neural | Status under current claim |
-|---|---:|---:|---:|---:|---|
-| broad, 512 tasks/videos | 238/512 | 258/512 | 264/512 | 44W/24L, `p=.0205` | selective transfer signal |
-| temporal, 256 tasks/videos | 106/256 | 135/256 | 149/256 | 34W/5L, `p=2.43e-6` | independent selective replication |
+第一份 24-video / 240-task fresh diagnostic 保持完全相同的方法，得到 neural 105/240、source
+108/240（6W/3L，`p=.508`）。方向为正且 loss gate 通过，但 discordant sample 只有 9，不能称为
+validated。该 cohort 随即封存，未用于调 controller、grounder、threshold 或 gate；只用观察到的
+effect size 决定增加独立视频数。
 
-两个实验都使用 raw video，禁止 official STSG/runtime functional program，五臂共享 frames、
-grounder、parser、executor 与 fallback；isomorphic equivalence 为 100%，loss fraction 分别为
-4.69% 和 1.95%。旧 preregistration 要求 source 必须胜过 generic，因此 artifact status 写作
-`GATES_FAILED`；当前目标明确把 generic 当 target-native ceiling 报告，不能篡改旧 status，
-也不能把它重写成新 formal。
+随后从 official balanced-train 的 7,786 个视频 ID 中排除所有历史 raw-runtime exposure 和 exact
+parser-supervision tasks，在 1,573 个合格候选视频中哈希选择 180 个。通过 HTTP range 仅下载选中
+视频（313MB），全部 content-bound。Question-only parser 为 1,799/1,800 valid；唯一 invalid 的
+`OEE36` 在任何 pixel inference 前连同整个 10-task block 一起排除，保留 179 videos × 5 public
+structural strata × 2 tasks = 1,790 tasks。
 
-新的 full-algebra compatibility audit 完全不读 outcome：
+### 共享 Layer-B pipeline
 
-- broad 512：8 个 structural families，authentic `512/512 AUTHORIZED`，permuted
-  `512/512 ABSTAINED`，report SHA `1d83a025...ddb5928`；
-- temporal 256：authentic `256/256 AUTHORIZED`，permuted `256/256 ABSTAINED`，report SHA
-  `5bac5dce...e1e51`。
+五臂共享：48-frame Qwen3-VL-32B raw event graph、96-frame single-proposition Qwen3-VL-32B
+atomic evidence、operator-free Flan-T5 parser、typed executor 和 thinking-disabled Qwen3.5-9B
+fallback。Grounder、atomic verifier 与 fallback 都看不到 source controller、official scene graph、
+functional program 或 answer。只有 Harness 在 neural-only、generic、source-permuted、
+game source-induced、target-written isomorphic 之间变化。
 
-另有 grounding-isolated Layer A 2,400-task result：source 96.67%、Qwen9B neural 81.04%，
-379W/4L，覆盖 choose/compare/logic/query/verify；但它使用 official STSG，不能当 Layer B
-raw-video evidence。
+Base grounding 为 1,790/1,790 receipts，1,670 个非空 event graphs、7,026 events；15 个 provider
+structured-output failures（0.84%）按冻结 contract 产生空图并 fail closed。Grounding receipts 成本
+`$0.8834`，atomic claims `$0.5224`，总 receipt-reported OpenRouter cost `$1.4058`；本地 9B actor
+无 API cost。
 
-### 为什么不能再跑 fresh official AGQA formal
+### Formal result
 
-最新 outcome-blind inventory 显示：official test 1,814/1,814 videos 已进入历史 runtime，
-untouched 为 0；train formal-holdout 777 个中也已有 775 个被消费，只剩 `99XHN`、`EYABM`，
-且本地 raw MP4 均缺失。即使取得两段视频，两个样本也无法构成 broad statistical reserve。
-因此当前不能满足“新的 video-disjoint official AGQA broad reserve”这一更强要求。
+| Arm | Correct | Accuracy | Symbolic commits |
+|---|---:|---:|---:|
+| neural-only Qwen3.5-9B | 803/1790 | 44.86% | 0 |
+| source-permuted | 803/1790 | 44.86% | 0 |
+| **source-induced** | **832/1790** | **46.48%** | 542 |
+| target-written isomorphic | 832/1790 | 46.48% | 542 |
+| generic target-native ceiling | 833/1790 | 46.54% | 874 |
 
-匿名 controller 已对两个既有 raw-video results 完成 substitution replay：broad 为 232 commit /
-280 fallback，temporal 为 107 commit / 149 fallback；两者 source/isomorphic、fallback 与
-matched-permuted action equivalence 均为 100%。报告 SHA 为
-`bd4e607b226f0569e5aff3d598b4383a5063a2f35f8e22a9af4a6a3dba2c076e`。这增强了“同一
-source-induced controller 跨 benchmark”证据，但它是 consumed-result audit，不产生新的 AGQA
-fresh efficacy claim。
+Source 相对 neural/permuted 为 `69W/40L`，net +29、`+1.62 pp`，exact two-sided
+`p=.00704075`；negative-transfer loss fraction 2.23%；source commit coverage 30.28%；
+source-permuted 与 neural prediction equivalence 100%，target-written isomorphic 与 source
+prediction equivalence 100%。Generic 是 ceiling、不是 pass gate；它只比 source 多 1 个正确答案，
+source-vs-generic 为 66W/67L、`p=1.0`。
+
+逐 structural stratum：
+
+| Stratum | Neural | Source | Generic | W/L |
+|---|---:|---:|---:|---:|
+| choose | 155/358 | 158/358 | 170/358 | 4/1 |
+| compare | 198/358 | **219/358** | 218/358 | 39/18 |
+| logic | 184/358 | 184/358 | 189/358 | 17/17 |
+| query | 60/358 | 60/358 | 60/358 | 0/0 |
+| verify | 206/358 | **211/358** | 196/358 | 9/4 |
+
+因此 AGQA claim 是 **broad-distribution selective transfer**，不是每个 family 都改善；主要净收益
+来自 compare、verify 与 choose，logic 持平，query 全部 fallback-equivalent。
+
+机器 formal SHA：`89fa9c68ed99ee6ab122a0fd306224a4bfb68e06289c2e71c8012585c5c7e417`；
+pre-outcome receipt SHA：`d7420a51df4a77bab1f5b81b7feb88909d58d59f267fa5fc01b0e3d31c7d6827`。
+旧 512-task broad 与 256-video temporal results 仍作为独立 replication evidence 保留，但新的
+powered result 才是当前 fresh authoritative AGQA Layer-B result。
 
 ## Validation verdict 与复现
 
-机器审计状态为 `TWO_VIDEO_TRANSFER_EVIDENCE_BUNDLE_VALIDATED`（bundle SHA
-`f86998c288a487af83454ee4f551f91fbe24e76d12313ef8dd56ba51294ffc38`）：
+机器审计状态为 `BOTH_VIDEO_BENCHMARKS_FRESH_LAYER_B_VALIDATED`（bundle SHA
+`0d6808e1f7c4a69f73ee438a1eed5bbf05d4edccc318b1492c14a45d2f193d11`）：
 
 - CLEVRER：fresh full-benchmark selective Layer-B formal validated；
-- AGQA2：两个相互独立的既有 raw-video selective replications validated，且匿名 controller
-  substitution validated；没有新的 untouched official-test formal。
+- AGQA2：fresh powered balanced-train broad raw-video formal validated，另有两个早期独立
+  selective replications。
 
 从 repo 根目录复现 source compilation、controller substitution、CLEVRER evaluator、failure
 taxonomy、bundle hash audit 与相关测试：
 
 ```bash
-bash scripts/reproduce_two_video_transfer_v1.sh "$PWD"
+bash scripts/reproduce_two_video_transfer_v2.sh "$PWD"
 ```
 
 该命令不重新调用 provider，也不重新采集 raw-video grounding；它审核冻结 artifacts。完整的
@@ -210,14 +232,14 @@ raw collection 依赖已记录的 off-the-shelf grounder outputs 与历史 provi
 
 可以写：
 
-> A source-only typed operator algebra induced from game interventions yields significant,
-> low-negative-transfer improvements on a fresh 1,600-question CLEVRER raw-video-grounded
-> reserve, and is compatible with independently validated selective AGQA2 raw-video transfer
-> results under matched grounding and permutation controls.
+> A source-only anonymous controller induced from game interventions yields significant,
+> low-negative-transfer final-QA improvements on fresh raw-video-grounded CLEVRER (1,600
+> questions) and AGQA2 broad (1,790 questions) reserves under matched grounding, source-
+> permutation, and isomorphic-controller controls.
 
 不能写：
 
-- full AGQA2 official-test raw-video transfer has a new untouched replication；
+- AGQA2 official-test transfer（fresh result 使用 official balanced-train，不是 test）；
 - every CLEVRER family receives symbolic transfer（predictive/counterfactual 当前 abstain）；
 - source provenance is necessary（target-written isomorphic 与 source 完全相同）；
 - generic target-native symbolic engineering is weaker（两个视频 benchmark 的 generic ceiling
@@ -235,9 +257,14 @@ raw collection 依赖已记录的 off-the-shelf grounder outputs 与历史 provi
 - CLEVRER formal: `runs/clevrer_full_raw_video_v2/formal_report.json`
 - AGQA broad compatibility: `runs/agqa2_layer_b_raw_video_v1/qualification_v4/full_source_algebra_compatibility_v1.json`
 - AGQA temporal compatibility: `runs/agqa2_layer_b_raw_video_v1/typed_temporal_replication_v1/full_source_algebra_compatibility_v1.json`
-- AGQA current inventory: `docs/results/agqa2_untouched_inventory_v16_20260902.json`
+- AGQA powered cohort: `runs/agqa2_full_train_broad_powered_v4/parser_qualified_reserve/public_cohort.json`
+- AGQA powered grounding: `runs/agqa2_full_train_broad_powered_v4/qwen32_grounding_full1790.json`
+- AGQA powered atomic claims: `runs/agqa2_full_train_broad_powered_v4/atomic_claims_full1790.json`
+- AGQA powered fallback: `runs/agqa2_full_train_broad_powered_v4/shared_fallback_full1790.json`
+- AGQA powered pre-outcome: `runs/agqa2_full_train_broad_powered_v4/preoutcome_receipt.json`
+- AGQA powered formal: `runs/agqa2_full_train_broad_powered_v4/formal_evaluation.json`
 - Anonymous source controller: `runs/anonymous_video_harness_v1/controller.json`
 - CLEVRER anonymous substitution: `runs/clevrer_full_raw_video_v2/anonymous_harness_substitution_v1.json`
 - CLEVRER failure taxonomy: `runs/clevrer_full_raw_video_v2/failure_taxonomy_v1.json`
 - AGQA anonymous substitution: `runs/agqa2_layer_b_raw_video_v1/anonymous_harness_substitution_v1.json`
-- Two-video paper bundle: `docs/results/two_video_transfer_bundle_v1.json`
+- Two-video paper bundle: `docs/results/two_video_transfer_bundle_v2.json`

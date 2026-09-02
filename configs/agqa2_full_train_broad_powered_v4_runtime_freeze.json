@@ -1,0 +1,63 @@
+{
+  "schema_version": "agqa-full-train-broad-powered-runtime-freeze-v4",
+  "status": "FROZEN_BEFORE_ANY_V4_RAW_VIDEO_GROUNDER_FALLBACK_OR_OUTCOME_RUNTIME",
+  "purpose": "Increase paired statistical power without changing the game-induced Harness after the consumed 240-task V3 diagnostic.",
+  "power_basis": {
+    "consumed_v3_tasks": 240,
+    "source_vs_neural_wins": 6,
+    "source_vs_neural_losses": 3,
+    "observed_accuracy_gain_pp": 1.25,
+    "method_selected_or_changed_from_v3_outcomes": false,
+    "replication_strategy": "larger independent raw-video sample only"
+  },
+  "cohort": {
+    "videos_before_parser_qualification": 180,
+    "tasks_before_parser_qualification": 1800,
+    "parser_invalid_whole_video_blocks_removed": ["OEE36"],
+    "formal_videos": 179,
+    "formal_tasks": 1790,
+    "tasks_per_video_per_stratum": 2,
+    "structural_strata": ["choose", "compare", "logic", "query", "verify"],
+    "raw_runtime_video_disjoint": true,
+    "exact_parser_supervision_task_disjoint": true
+  },
+  "frozen_components": {
+    "raw_event_grounder": "OpenRouter qwen/qwen3-vl-32b-instruct, 48 uniform frames, max 24 events",
+    "atomic_claim_grounder": "OpenRouter qwen/qwen3-vl-32b-instruct, 96 uniform frames, one operator-free proposition per call",
+    "fallback_actor": "Qwen/Qwen3.5-9B, thinking disabled, temperature 0",
+    "source_vm_capabilities_sha256": "8db5041579e8d5a69c5612247d62803ada2d98e745734fd9fac8cc3d7ca7902d",
+    "anonymous_source_controller_sha256": "cd48690e64392f8702e1a239afa1739c25863ce4bd6ae2efea355ac70467bfe6"
+  },
+  "formal_gates": {
+    "source_accuracy_strictly_above_neural": true,
+    "source_vs_neural_exact_two_sided_p_maximum": 0.05,
+    "source_vs_permuted_exact_two_sided_p_maximum": 0.05,
+    "negative_transfer_loss_fraction_maximum": 0.05,
+    "minimum_source_symbolic_commit_fraction": 0.2,
+    "source_permuted_prediction_equivalence_to_neural": 1.0,
+    "target_written_isomorphic_prediction_equivalence": 1.0,
+    "shared_grounder_receipt_fraction": 1.0,
+    "generic_symbolic_is_reported_ceiling_not_a_pass_gate": true
+  },
+  "frozen_file_sha256s": {
+    "download_selection": "70d30c05148519c78db95ff1e5b4e6bd63d7a52be85f0b244422a3963a6740f7",
+    "download_receipt": "23479692f2850150cbc2982fcb232406d55bc847a403d7592294bd0e163b3716",
+    "public_cohort": "c84f93a5102a6ad91efbfaf99629a21d88ff4aa6838db212ec34c32fa715ef08",
+    "manifest": "0fb5f0ad4be73faf5e04ec27366488334a1aaa049b86bc7fe03a53e5acb74b72",
+    "semantic_runtime": "2d3f4bec7273a309cf44a0d7f7893dd2ebf670ba626676ea3764344475177c10",
+    "preregistration": "e5427d82bda93f103deeca3748a3f1edb197ff7288c47446f7c27640aff68341",
+    "raw_grounder": "480608348a85e7b7c139dea0b5c6952ce366582322329aa8390f9eb66d4aefc7",
+    "atomic_claim_grounder": "db67d398982494c19f34769e273ddb57fed450e437828776ddc3f0bf3daa89a2",
+    "fallback_actor": "dda4fba97fe6a5da0af9a9d8f2156d82f6e8cab82cb0f7cbdb08de3edd0ee330",
+    "preoutcome_freezer": "efb86ef1b36c9051dd40b259b992a95a3e65012a69f3b6e9f901c389768a3de9",
+    "evaluator": "6a0fcd90ccf8f9735da83e5e90ea7564b80b5e67f0d9d8a3586acf010515f43f"
+  },
+  "authority": {
+    "v4_raw_video_calls_before_freeze": 0,
+    "v4_answers_read": false,
+    "v4_functional_programs_read": false,
+    "v4_scene_graphs_read": false,
+    "source_or_threshold_changed_after_v3": false,
+    "formal_gates_changed_after_v3": false
+  }
+}

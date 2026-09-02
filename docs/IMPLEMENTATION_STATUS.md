@@ -1,6 +1,6 @@
 # Implementation Status
 
-## Full video source algebra + CLEVRER Layer B（2026-09-02）
+## Full video source algebra + CLEVRER/AGQA2 Layer B（2026-09-02）
 
 Anonymous controller gap 已关闭：六个 source-game `(state, action, effect, next_state)` lineage
 自动汇总出 3 个 content-addressed state-delta operators 与 3 条 observed transitions；held-out
@@ -20,15 +20,18 @@ neural-only 556/1600，source-induced 997/1600（+27.56 pp），source-permuted 
 target-native ceiling 为 1123/1600。Source 按预冻结 grounder fidelity 只在 descriptive 与
 explanatory commit，另外两类 fail closed。
 
-AGQA2 既有 raw-video 512-task broad signal 与独立 256-video temporal replication 已通过新
-full-algebra outcome-blind compatibility bridge；但 official test 已无 untouched video，train
-formal 也只余两个且本地 raw video 缺失，不能再声称新的 video-disjoint AGQA formal。完整结果、
-失败 V1、cost 与 paper-safe claim 见
+AGQA2 fresh powered broad formal 也已通过。先封存 24-video / 240-task 正向但不显著的 diagnostic，
+不改方法，只据此扩大独立样本；随后从 1,573 个未进入历史 raw runtime 的合格 official
+balanced-train videos 中哈希选择并 range-download 180 个。Question-only parser gate 后整体排除
+一个 invalid video block，最终 179 videos / 1,790 tasks。Neural-only 803/1790，source-induced
+832/1790（+1.62 pp），matched-permuted 803/1790，69W/40L，exact two-sided `p=.00704`，loss
+2.23%，commit coverage 30.28%，isomorphic equivalence 100%；generic ceiling 833/1790。完整结果、
+早期 diagnostics、cost 与 paper-safe claim 见
 [`FULL_VIDEO_SOURCE_ALGEBRA_LAYER_B_V1_RESULTS.md`](FULL_VIDEO_SOURCE_ALGEBRA_LAYER_B_V1_RESULTS.md)。
 机器可读总审计为
-[`results/two_video_transfer_bundle_v1.json`](results/two_video_transfer_bundle_v1.json)，状态
-`TWO_VIDEO_TRANSFER_EVIDENCE_BUNDLE_VALIDATED`；其中 CLEVRER 是 fresh formal，AGQA 是两个
-既有独立 raw-video replication，仍不声称新的 untouched official-test formal。
+[`results/two_video_transfer_bundle_v2.json`](results/two_video_transfer_bundle_v2.json)，状态
+`BOTH_VIDEO_BENCHMARKS_FRESH_LAYER_B_VALIDATED`。AGQA fresh result 来自 official
+balanced-train，不声称 official-test SOTA。
 
 ## Phase 17 V28 prospective target reserve（2026-08-20）
 

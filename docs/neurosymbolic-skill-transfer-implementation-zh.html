@@ -903,7 +903,7 @@ python -m pytest -q \
 
     <section class="panel" id="full-video-v2">
       <p class="eyebrow">14 · Full source algebra + fresh CLEVRER Layer B</p>
-      <h2>匿名 game-induced controller 已在 CLEVRER fresh formal 与 AGQA 两个 raw-video replication 上通过</h2>
+      <h2>同一匿名 game-induced controller 已通过 CLEVRER 与 AGQA2 fresh raw-video formal</h2>
       <p>
         六个 source-game lineage 从 state/action/effect/next-state 自动得到 3 个 content-addressed
         state-delta operators 与 3 条 observed transitions；held-out 为 58/58，effect shuffle 为 0/58，
@@ -924,12 +924,25 @@ python -m pytest -q \
         Source 对 neural/permuted 为 464W/23L，单侧 exact <code>p=3.91e-108</code>，negative
         transfer 1.44%，isomorphic equivalence 100%。Source 只在已通过 grounder-fidelity gate 的
         descriptive/explanatory 上 commit；predictive/counterfactual 共享 fallback。匿名 controller
-        substitution 为 1,600/1,600 exact；同一 artifact 在 AGQA 512+256 tasks 上也 100% 等价。
+        substitution 为 1,600/1,600 exact。
+      </div>
+      <table>
+        <thead><tr><th>AGQA2 powered arm</th><th>Correct</th><th>Accuracy</th></tr></thead>
+        <tbody>
+          <tr><td>neural-only / source-permuted</td><td>803/1790</td><td>44.86%</td></tr>
+          <tr><td>source-induced / target-written isomorphic</td><td><strong>832/1790</strong></td><td><strong>46.48%</strong></td></tr>
+          <tr><td>generic target-native ceiling</td><td>833/1790</td><td>46.54%</td></tr>
+        </tbody>
+      </table>
+      <div class="callout good">
+        AGQA2 从 official balanced-train 中冻结 179 个 prior-raw-runtime-video-disjoint videos / 1,790
+        tasks。Source 对 neural/permuted 为 69W/40L，exact two-sided <code>p=.00704</code>，negative
+        transfer 2.23%，commit coverage 30.28%，isomorphic equivalence 100%。所有五臂共享
+        Qwen3-VL-32B 48/96-frame grounding、parser、executor 与 thinking-disabled 9B fallback。
       </div>
       <div class="callout bad">
-        AGQA2 official test 已无 untouched video；不能再声称新的 video-disjoint official-test formal。
-        既有 raw-video 512-task broad signal 与独立 256-video temporal replication 已通过新 full-algebra
-        outcome-blind compatibility 与 anonymous-controller substitution audit，但不是新 efficacy run。完整边界见
+        AGQA fresh result 使用 official balanced-train，不是 official test；也不声称 video-QA SOTA。
+        Universal typed VM 与 target-native grounding 仍是 designer-specified。完整边界见
         <a href="FULL_VIDEO_SOURCE_ALGEBRA_LAYER_B_V1_RESULTS.md">full video results</a>。
       </div>
     </section>
@@ -991,6 +1004,7 @@ python -m pytest -q \
             <li><a href="results/agqa2_full_distribution_v57_v62_summary.json"><code>results/agqa2_full_distribution_v57_v62_summary.json</code></a></li>
             <li><a href="results/three_video_typed_grounding_v30_v33_summary.json"><code>results/three_video_typed_grounding_v30_v33_summary.json</code></a></li>
             <li><a href="results/harness_controller_qwen35_9b_six_benchmark_v3.json"><code>results/harness_controller_qwen35_9b_six_benchmark_v3.json</code></a></li>
+            <li><a href="results/two_video_transfer_bundle_v2.json"><code>results/two_video_transfer_bundle_v2.json</code></a></li>
           </ul>
         </div>
       </details>

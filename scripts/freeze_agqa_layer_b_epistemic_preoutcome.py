@@ -16,6 +16,7 @@ from motif_transfer.agqa_layer_b_epistemic import (
 from motif_transfer.agqa_layer_b_executor import execute_layer_b_semantics
 from motif_transfer.agqa_layer_b_harness import plan_harness_arm
 from motif_transfer.contracts import stable_hash
+from motif_transfer.anonymous_video_harness import route_grounded_candidate
 from scripts.evaluate_agqa_layer_b_five_arm import _grounding, _semantic
 
 
@@ -49,6 +50,7 @@ def main() -> int:
     parser.add_argument("--claims", type=Path, required=True)
     parser.add_argument("--fallback", type=Path, required=True)
     parser.add_argument("--source-capabilities", type=Path, required=True)
+    parser.add_argument("--anonymous-controller", type=Path)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     if args.output.exists():
@@ -57,9 +59,28 @@ def main() -> int:
     cohort = json.loads(args.cohort.read_text()); runtime = json.loads(args.semantic_runtime.read_text())
     grounding = json.loads(args.grounding.read_text()); claim_report = json.loads(args.claims.read_text())
     fallback = json.loads(args.fallback.read_text()); source = json.loads(args.source_capabilities.read_text())
-    if prereg["status"] != "FROZEN_BEFORE_PARSER_GROUNDER_CLAIMS_FALLBACK_OR_OUTCOME":
-        raise ValueError("invalid V4 preregistration status")
-    if prereg["cohort"]["public_cohort_sha256"] != cohort["cohort_sha256"]:
+    controller = (
+        json.loads(args.anonymous_controller.read_text())
+        if args.anonymous_controller is not None else None
+    )
+    if controller is not None and controller.get("status") != "ANONYMOUS_SOURCE_VIDEO_HARNESS_QUALIFIED":
+        raise ValueError("anonymous source controller is not qualified")
+    new_broad_protocol = prereg.get("schema_version") in {
+        "agqa-full-train-broad-layer-b-preregistration-v1",
+        "agqa-full-train-broad-layer-b-preregistration-v2",
+    }
+    expected_status = (
+        "FROZEN_AFTER_QUESTION_ONLY_PARSER_QUALIFICATION_AND_BEFORE_RAW_VIDEO_OR_OUTCOME"
+        if prereg.get("schema_version") == "agqa-full-train-broad-layer-b-preregistration-v2"
+        else "FROZEN_BEFORE_PARSER_GROUNDER_CLAIMS_FALLBACK_OR_OUTCOME"
+    )
+    if prereg["status"] != expected_status:
+        raise ValueError("invalid Layer-B preregistration status")
+    prereg_cohort_sha = (
+        prereg["cohort"]["cohort_sha256"] if new_broad_protocol
+        else prereg["cohort"]["public_cohort_sha256"]
+    )
+    if prereg_cohort_sha != cohort["cohort_sha256"]:
         raise ValueError("preregistered cohort mismatch")
     if runtime["valid"] != len(cohort["rows"]) or runtime["invalid"]:
         raise ValueError("semantic runtime is incomplete")
@@ -96,6 +117,10 @@ def main() -> int:
             symbolic_prediction=execution.receipt.prediction,
             evidence=evidence,
         )
+        if controller is not None:
+            route = route_grounded_candidate(controller, candidate_qualified=safe)
+            safe = route[-1] == "COMMIT"
+            reason = f"ANONYMOUS_ROUTE:{'/'.join(route)};TARGET_NATIVE:{reason}"
         commits += int(safe)
         rows.append({
             "task_id": task_id, "planned": plan.status == "PLANNED",
@@ -103,7 +128,11 @@ def main() -> int:
             "open_world_reason": reason, "claim_receipt_sha256": evidence.receipt_sha256,
         })
     coverage = commits / len(rows)
-    threshold = float(prereg["gates"]["outcome_blind_source_execution_coverage_at_least"])
+    threshold = float(
+        prereg["formal_gates"]["minimum_source_symbolic_commit_fraction"]
+        if new_broad_protocol else
+        prereg["gates"]["outcome_blind_source_execution_coverage_at_least"]
+    )
     body = {
         "schema_version": "agqa-layer-b-epistemic-pre-outcome-freeze-v1",
         "status": "ALL_RUNTIME_ARTIFACTS_FROZEN_BEFORE_OUTCOMES" if coverage >= threshold
@@ -115,6 +144,9 @@ def main() -> int:
         "claim_report_sha256": claim_report["report_sha256"],
         "fallback_report_sha256": fallback["report_sha256"],
         "source_capability_sha256": source["artifact_sha256"],
+        "anonymous_controller_sha256": (
+            controller["artifact_sha256"] if controller is not None else None
+        ),
         "source_open_world_commits": commits, "tasks": len(rows),
         "source_open_world_execution_coverage": coverage,
         "coverage_threshold": threshold, "coverage_gate_passed": coverage >= threshold,
