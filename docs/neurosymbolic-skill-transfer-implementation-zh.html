@@ -622,7 +622,7 @@ native_output = target_native_executor(authorization, grounding, candidates)</pr
             <article class="card span-12">
               <h3>Video：grounding failures、CLEVRER、STAR 与 AGQA 2.0</h3>
               <p class="small"><a href="TWO_VIDEO_GROUNDING_ISOLATED_PRIMARY_V1.md">Grounding-isolated primary audit</a> 是当前主视频证据：AGQA 使用 official STSG typed tools，CLEVRER 每题所有 controller arms 共用一个冻结 event-graph proof receipt；不调用生成式 captioner 或外部 VLM。原始视频 Qwen/Gemini 路线保留为 secondary robustness evidence。</p>
-              <p class="small">Raw-video robustness 没有通过：<a href="AGQA2_ROUTER_V65_FORMAL_V1_RESULTS.md">V1</a> 为 53/80 vs 45/80（14W/6L，<code>p=.057659</code>）；后续 <a href="AGQA2_MULTICLASS_ROUTER_V65_FORMAL_V2_RESULTS.md">V2</a> 的 question-only route 仅 78/91 正确，触发全局 fail-closed，source 授权为 0。V2 是 post-V74 exploratory diagnostic，不能改变 raw-video negative verdict。论文主结果仍是 shared structured grounding 下的 matched-arm transfer delta。</p>
+              <p class="small">早期 AGQA raw-video router V1/V2 没有通过，但后续严格共享 grounding 的两个 selective Layer-B cohort 已得到显著 signal；CLEVRER V2 又在 400 个全新视频 / 1,600 题上通过 fresh formal。旧 negative diagnostics 保留，不被新结果覆写。最新结果与 freshness 边界见 <a href="FULL_VIDEO_SOURCE_ALGEBRA_LAYER_B_V1_RESULTS.md">full video report</a>。</p>
               <div class="grid">
                 <div class="span-6">
                   <ul class="file-list">
@@ -901,8 +901,41 @@ python -m pytest -q \
       </div>
     </section>
 
+    <section class="panel" id="full-video-v2">
+      <p class="eyebrow">14 · Full source algebra + fresh CLEVRER Layer B</p>
+      <h2>匿名 game-induced controller 已在 CLEVRER fresh formal 与 AGQA 两个 raw-video replication 上通过</h2>
+      <p>
+        六个 source-game lineage 从 state/action/effect/next-state 自动得到 3 个 content-addressed
+        state-delta operators 与 3 条 observed transitions；held-out 为 58/58，effect shuffle 为 0/58，
+        alpha-renaming 不改变 artifact。29 个 typed opcodes 与 73 条 composition edges 现明确归入
+        designer-specified universal VM，不再误称为 ontology-free source induction。CLEVRER V2 的 400 个视频与所有历史
+        runtime video-disjoint，五臂共享 32-frame receipt、cached off-the-shelf NS-DR graph、public-text
+        parser、executor 与 frozen Qwen3.5-9B fallback。
+      </p>
+      <table>
+        <thead><tr><th>Arm</th><th>Correct</th><th>Accuracy</th></tr></thead>
+        <tbody>
+          <tr><td>neural-only / source-permuted</td><td>556/1600</td><td>34.75%</td></tr>
+          <tr><td>source-induced / target-written isomorphic</td><td><strong>997/1600</strong></td><td><strong>62.31%</strong></td></tr>
+          <tr><td>generic target-native ceiling</td><td>1123/1600</td><td>70.19%</td></tr>
+        </tbody>
+      </table>
+      <div class="callout good">
+        Source 对 neural/permuted 为 464W/23L，单侧 exact <code>p=3.91e-108</code>，negative
+        transfer 1.44%，isomorphic equivalence 100%。Source 只在已通过 grounder-fidelity gate 的
+        descriptive/explanatory 上 commit；predictive/counterfactual 共享 fallback。匿名 controller
+        substitution 为 1,600/1,600 exact；同一 artifact 在 AGQA 512+256 tasks 上也 100% 等价。
+      </div>
+      <div class="callout bad">
+        AGQA2 official test 已无 untouched video；不能再声称新的 video-disjoint official-test formal。
+        既有 raw-video 512-task broad signal 与独立 256-video temporal replication 已通过新 full-algebra
+        outcome-blind compatibility 与 anonymous-controller substitution audit，但不是新 efficacy run。完整边界见
+        <a href="FULL_VIDEO_SOURCE_ALGEBRA_LAYER_B_V1_RESULTS.md">full video results</a>。
+      </div>
+    </section>
+
     <section class="panel" id="status">
-      <p class="eyebrow">14 · Repository status and completion criteria</p>
+      <p class="eyebrow">15 · Repository status and completion criteria</p>
       <h2>研究机制与 9B 六 benchmark 替换已完成；剩余为 release 收口</h2>
 
       <div class="grid">
@@ -917,6 +950,7 @@ python -m pytest -q \
             <li class="done">CLEVRER 与 AGQA selective video QA routes</li>
             <li class="done">AGQA full-family typed algebra：fresh 2,400-question 六臂 formal validation</li>
             <li class="done">AGQA Layer B：256 个 fresh raw-video task 上 selective typed transfer 显著</li>
+            <li class="done">CLEVRER Layer B：400 个新视频 / 1,600 题，source +27.56 pp，全部新 gate 通过</li>
             <li class="done">source provenance 与 program content 的因果区分</li>
             <li class="done">Qwen3.5-9B Harness source-only SFT 与 model-unseen execution gate</li>
             <li class="done">fresh 六 benchmark 2,246/2,246 route substitution</li>

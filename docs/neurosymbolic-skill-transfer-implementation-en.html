@@ -626,7 +626,7 @@ native_output = target_native_executor(authorization, grounding, candidates)</pr
             <article class="card span-12">
               <h3>Video: grounding failures, CLEVRER, STAR, and AGQA 2.0</h3>
               <p class="small">The <a href="TWO_VIDEO_GROUNDING_ISOLATED_PRIMARY_V1.md">grounding-isolated primary audit</a> is the current primary video evidence: AGQA uses official STSG typed tools, while every controller arm for a CLEVRER task shares one frozen event-graph proof receipt. Neither route calls a generative captioner or external VLM. Raw-video Qwen/Gemini routes remain secondary robustness evidence.</p>
-              <p class="small">Raw-video robustness did not pass: <a href="AGQA2_ROUTER_V65_FORMAL_V1_RESULTS.md">V1</a> reached 53/80 versus 45/80 (14W/6L, <code>p=.057659</code>); the later <a href="AGQA2_MULTICLASS_ROUTER_V65_FORMAL_V2_RESULTS.md">V2</a> question-only route was correct on only 78/91 tasks, triggering global fail-closed and zero source authorizations. V2 is a post-V74 exploratory diagnostic and cannot alter the negative raw-video verdict. The paper-primary result remains the matched-arm transfer delta under shared structured grounding.</p>
+              <p class="small">The early AGQA raw-video router V1/V2 did not pass, but two later selective Layer-B cohorts with strictly shared grounding produced significant signals, and CLEVRER V2 passed a fresh formal on 400 new videos / 1,600 questions. The old negative diagnostics remain recorded rather than overwritten. See the <a href="FULL_VIDEO_SOURCE_ALGEBRA_LAYER_B_V1_RESULTS.md">full video report</a> for the current results and freshness boundary.</p>
               <div class="grid">
                 <div class="span-6">
                   <ul class="file-list">
@@ -907,8 +907,41 @@ python -m pytest -q \
       </div>
     </section>
 
+    <section class="panel" id="full-video-v2">
+      <p class="eyebrow">14 · Full source algebra + fresh CLEVRER Layer B</p>
+      <h2>An anonymous game-induced controller passes CLEVRER fresh formal and two AGQA raw-video replications</h2>
+      <p>
+        Six source-game lineages induce three content-addressed state-delta operators and three observed
+        transitions from state/action/effect/next-state data: held-out is 58/58, effect shuffle is 0/58, and
+        alpha-renaming cannot change the artifact. The 29 typed opcodes and 73 composition edges are now
+        explicitly treated as a designer-specified universal VM, not ontology-free source induction. CLEVRER V2 uses 400 videos disjoint from every prior runtime;
+        all five arms share 32-frame receipts, cached off-the-shelf NS-DR graphs, the public-text parser, executor,
+        and frozen Qwen3.5-9B fallback.
+      </p>
+      <table>
+        <thead><tr><th>Arm</th><th>Correct</th><th>Accuracy</th></tr></thead>
+        <tbody>
+          <tr><td>neural-only / source-permuted</td><td>556/1600</td><td>34.75%</td></tr>
+          <tr><td>source-induced / target-written isomorphic</td><td><strong>997/1600</strong></td><td><strong>62.31%</strong></td></tr>
+          <tr><td>generic target-native ceiling</td><td>1123/1600</td><td>70.19%</td></tr>
+        </tbody>
+      </table>
+      <div class="callout good">
+        Source versus neural/permuted is 464W/23L, one-sided exact <code>p=3.91e-108</code>, with 1.44%
+        negative transfer and 100% isomorphic equivalence. Source commits only on descriptive/explanatory,
+        whose grounding fidelity was qualified; predictive/counterfactual share the fallback. Anonymous-controller
+        substitution is exact on 1,600/1,600 tasks, and the same artifact is exact on the AGQA 512+256 tasks.
+      </div>
+      <div class="callout bad">
+        No untouched AGQA2 official-test video remains, so a new video-disjoint official-test formal cannot be
+        claimed. Existing 512-task broad and independent 256-video temporal raw-video evidence passes the new
+        full-algebra outcome-blind compatibility and anonymous-controller substitution audits, but is not a fresh efficacy run. See the
+        <a href="FULL_VIDEO_SOURCE_ALGEBRA_LAYER_B_V1_RESULTS.md">full video results</a>.
+      </div>
+    </section>
+
     <section class="panel" id="status">
-      <p class="eyebrow">14 · Repository status and completion criteria</p>
+      <p class="eyebrow">15 · Repository status and completion criteria</p>
       <h2>The mechanism and 9B six-benchmark substitution are complete; release work remains</h2>
 
       <div class="grid">
@@ -923,6 +956,7 @@ python -m pytest -q \
             <li class="done">CLEVRER and AGQA selective video-QA routes</li>
             <li class="done">AGQA full-family typed algebra: fresh 2,400-question six-arm formal validation</li>
             <li class="done">AGQA Layer B: significant selective typed transfer on 256 fresh raw-video tasks</li>
+            <li class="done">CLEVRER Layer B: 400 new videos / 1,600 questions, source +27.56 pp, all new gates pass</li>
             <li class="done">causal separation of source provenance and program content</li>
             <li class="done">Qwen3.5-9B Harness source-only SFT and model-unseen execution gate</li>
             <li class="done">fresh six-benchmark 2,246/2,246 route substitution</li>

@@ -1,0 +1,662 @@
+{
+  "schema_version": "phase3-source-lineage-induction-report-v1",
+  "status": "SOURCE_ONLY_INDUCTION_HELDOUT_VALIDATED",
+  "source_game": "gymv_streets_of_rage_2",
+  "rows_path": "runs/phase1_common_search_ir_streets_formal_v2/gymv_streets_of_rage_2/rows.jsonl",
+  "rows_file_sha256": "86b8803d45d93c3322701ab1ee7be3324ce346f0338b6a14bab9b896f43e0742",
+  "primary_horizon": 50,
+  "ledger_audit": {
+    "snapshots": 36,
+    "eligible_ledgers": 27,
+    "exclusions": {
+      "NO_UNIQUE_VALUED_CANDIDATE": 9
+    },
+    "split_totals": {
+      "development": 12,
+      "heldout": 12,
+      "qualification": 12
+    },
+    "split_eligible": {
+      "development": 6,
+      "heldout": 11,
+      "qualification": 10
+    },
+    "split_eligible_fraction": {
+      "development": 0.5,
+      "heldout": 0.9166666666666666,
+      "qualification": 0.8333333333333334
+    },
+    "verified_candidate_rank_counts": {
+      "0": 7,
+      "1": 7,
+      "2": 7,
+      "3": 6
+    },
+    "native_action_tokens_exported_to_ir": false,
+    "rows_path": "runs/phase1_common_search_ir_streets_formal_v2/gymv_streets_of_rage_2/rows.jsonl",
+    "rows_file_sha256": "86b8803d45d93c3322701ab1ee7be3324ce346f0338b6a14bab9b896f43e0742",
+    "source_rows": 288
+  },
+  "source_profile": {
+    "primary_horizon": 50,
+    "eligible_ledgers": 27,
+    "candidate_count_min": 4,
+    "candidate_count_max": 4,
+    "candidate_count_median": 4,
+    "return_gap_min": 10.0,
+    "return_gap_lower_quartile": 20.0,
+    "return_gap_median": 50.0,
+    "verified_rank_distribution": {
+      "0": 7,
+      "1": 7,
+      "2": 7,
+      "3": 6
+    },
+    "profile_sha256": "beb465b2a49c27fa4560ffca8bc60265db3ba684fde64d972915a3f6d578dea2"
+  },
+  "authentic_program": {
+    "schema_version": "phase3-source-induced-anonymous-program-v1",
+    "status": "SOURCE_INDUCED_PROGRAM_QUALIFIED",
+    "source_game": "gymv_streets_of_rage_2",
+    "source_rows_sha256": "86b8803d45d93c3322701ab1ee7be3324ce346f0338b6a14bab9b896f43e0742",
+    "induction_authority": "SOURCE_DISCOVERY_INTERVENTION_TUPLES_ONLY;QUALIFICATION_FOR_FAIL_CLOSED_CALIBRATION;NO_TARGET_DATA",
+    "operator_vocabulary": "CONTENT_ADDRESSED_STATE_DELTAS_ONLY",
+    "operators": [
+      {
+        "operator_id": "OP_23e232e1a9ece985",
+        "preconditions": [
+          {
+            "field": "active_presence",
+            "value": "ABSENT"
+          }
+        ],
+        "state_delta": [
+          [
+            "active",
+            "OBSERVED_EFFECT"
+          ],
+          [
+            "tried",
+            "ADD_ONE"
+          ]
+        ],
+        "discovery_support": 15,
+        "discovery_precision": 1.0,
+        "qualification_support": 22,
+        "qualification_precision": 1.0
+      },
+      {
+        "operator_id": "OP_a3126032f76e895f",
+        "preconditions": [
+          {
+            "field": "active_effect",
+            "value": "HIGH"
+          },
+          {
+            "field": "active_presence",
+            "value": "PRESENT"
+          }
+        ],
+        "state_delta": [
+          [
+            "terminal",
+            "TRUE"
+          ]
+        ],
+        "discovery_support": 6,
+        "discovery_precision": 1.0,
+        "qualification_support": 10,
+        "qualification_precision": 1.0
+      },
+      {
+        "operator_id": "OP_b1eed9a105f62ecd",
+        "preconditions": [
+          {
+            "field": "active_effect",
+            "value": "LOW"
+          },
+          {
+            "field": "active_presence",
+            "value": "PRESENT"
+          }
+        ],
+        "state_delta": [
+          [
+            "active",
+            "ABSENT"
+          ]
+        ],
+        "discovery_support": 9,
+        "discovery_precision": 1.0,
+        "qualification_support": 12,
+        "qualification_precision": 1.0
+      }
+    ],
+    "abstention_rule": {
+      "kind": "NO_UNIQUE_QUALIFIED_OPERATOR",
+      "unknown_predicate_value": "ABSTAIN",
+      "zero_matching_operators": "ABSTAIN",
+      "multiple_matching_operators": "ABSTAIN"
+    },
+    "discovery_metrics": {
+      "examples": 30,
+      "admitted": 30,
+      "correct": 30,
+      "wrong": 0,
+      "abstained": 0,
+      "coverage": 1.0,
+      "selective_accuracy": 1.0,
+      "overall_accuracy": 1.0,
+      "operator_route_counts": {
+        "OP_23e232e1a9ece985": 15,
+        "OP_a3126032f76e895f": 6,
+        "OP_b1eed9a105f62ecd": 9
+      }
+    },
+    "qualification_metrics": {
+      "examples": 44,
+      "admitted": 44,
+      "correct": 44,
+      "wrong": 0,
+      "abstained": 0,
+      "coverage": 1.0,
+      "selective_accuracy": 1.0,
+      "overall_accuracy": 1.0,
+      "operator_route_counts": {
+        "OP_23e232e1a9ece985": 22,
+        "OP_a3126032f76e895f": 10,
+        "OP_b1eed9a105f62ecd": 12
+      }
+    },
+    "operator_gates": {
+      "OP_23e232e1a9ece985": {
+        "discovery_support": true,
+        "discovery_precision": true,
+        "qualification_support": true,
+        "qualification_precision": true
+      },
+      "OP_a3126032f76e895f": {
+        "discovery_support": true,
+        "discovery_precision": true,
+        "qualification_support": true,
+        "qualification_precision": true
+      },
+      "OP_b1eed9a105f62ecd": {
+        "discovery_support": true,
+        "discovery_precision": true,
+        "qualification_support": true,
+        "qualification_precision": true
+      }
+    },
+    "gates": {
+      "at_least_three_anonymous_operators_induced": true,
+      "all_operator_gates_pass": true,
+      "qualification_coverage": true,
+      "qualification_selective_accuracy": true,
+      "unknown_or_ambiguous_routes_fail_closed": true,
+      "no_named_phase2_policy_tokens": true,
+      "no_source_native_action_or_candidate_export": true,
+      "no_induction_errors": true
+    },
+    "induction_errors": [],
+    "thresholds": {
+      "maximum_literals": 3,
+      "minimum_discovery_support": 2,
+      "minimum_qualification_support": 2,
+      "minimum_qualification_precision": 1.0,
+      "minimum_qualification_coverage": 0.95
+    },
+    "forbidden_export_fields": [
+      "candidate_action",
+      "candidate_id",
+      "actions",
+      "option_template_id"
+    ],
+    "program_sha256": "21efb3133bba74b18c2a0859e4b2e98a8b3e8cfb3e6776a3b06cb87b3bd8c519"
+  },
+  "shuffled_effect_program": {
+    "schema_version": "phase3-source-induced-anonymous-program-v1",
+    "status": "SOURCE_INDUCED_PROGRAM_NOT_QUALIFIED",
+    "source_game": "gymv_streets_of_rage_2",
+    "source_rows_sha256": "86b8803d45d93c3322701ab1ee7be3324ce346f0338b6a14bab9b896f43e0742",
+    "induction_authority": "SOURCE_DISCOVERY_INTERVENTION_TUPLES_ONLY;QUALIFICATION_FOR_FAIL_CLOSED_CALIBRATION;NO_TARGET_DATA",
+    "operator_vocabulary": "CONTENT_ADDRESSED_STATE_DELTAS_ONLY",
+    "operators": [
+      {
+        "operator_id": "OP_23e232e1a9ece985",
+        "preconditions": [
+          {
+            "field": "active_presence",
+            "value": "ABSENT"
+          }
+        ],
+        "state_delta": [
+          [
+            "active",
+            "OBSERVED_EFFECT"
+          ],
+          [
+            "tried",
+            "ADD_ONE"
+          ]
+        ],
+        "discovery_support": 15,
+        "discovery_precision": 1.0,
+        "qualification_support": 22,
+        "qualification_precision": 1.0
+      }
+    ],
+    "abstention_rule": {
+      "kind": "NO_UNIQUE_QUALIFIED_OPERATOR",
+      "unknown_predicate_value": "ABSTAIN",
+      "zero_matching_operators": "ABSTAIN",
+      "multiple_matching_operators": "ABSTAIN"
+    },
+    "discovery_metrics": {
+      "examples": 30,
+      "admitted": 15,
+      "correct": 15,
+      "wrong": 0,
+      "abstained": 15,
+      "coverage": 0.5,
+      "selective_accuracy": 1.0,
+      "overall_accuracy": 0.5,
+      "operator_route_counts": {
+        "OP_23e232e1a9ece985": 15
+      }
+    },
+    "qualification_metrics": {
+      "examples": 44,
+      "admitted": 22,
+      "correct": 22,
+      "wrong": 0,
+      "abstained": 22,
+      "coverage": 0.5,
+      "selective_accuracy": 1.0,
+      "overall_accuracy": 0.5,
+      "operator_route_counts": {
+        "OP_23e232e1a9ece985": 22
+      }
+    },
+    "operator_gates": {
+      "OP_23e232e1a9ece985": {
+        "discovery_support": true,
+        "discovery_precision": true,
+        "qualification_support": true,
+        "qualification_precision": true
+      }
+    },
+    "gates": {
+      "at_least_three_anonymous_operators_induced": false,
+      "all_operator_gates_pass": true,
+      "qualification_coverage": false,
+      "qualification_selective_accuracy": true,
+      "unknown_or_ambiguous_routes_fail_closed": true,
+      "no_named_phase2_policy_tokens": true,
+      "no_source_native_action_or_candidate_export": true,
+      "no_induction_errors": false
+    },
+    "induction_errors": [
+      {
+        "state_delta": [
+          [
+            "active",
+            "ABSENT"
+          ]
+        ],
+        "error": "no bounded precondition conjunction separates an observed state delta"
+      },
+      {
+        "state_delta": [
+          [
+            "terminal",
+            "TRUE"
+          ]
+        ],
+        "error": "no bounded precondition conjunction separates an observed state delta"
+      }
+    ],
+    "thresholds": {
+      "maximum_literals": 3,
+      "minimum_discovery_support": 2,
+      "minimum_qualification_support": 2,
+      "minimum_qualification_precision": 1.0,
+      "minimum_qualification_coverage": 0.95
+    },
+    "forbidden_export_fields": [
+      "candidate_action",
+      "candidate_id",
+      "actions",
+      "option_template_id"
+    ],
+    "program_sha256": "77a6f538b216ab3cf3be66141eae3cfdabc4df8697dafd595987f190131ce17c"
+  },
+  "heldout": {
+    "authentic": {
+      "source_split": "heldout",
+      "examples": 58,
+      "admitted": 58,
+      "correct": 58,
+      "wrong": 0,
+      "abstained": 0,
+      "coverage": 1.0,
+      "selective_accuracy": 1.0,
+      "overall_accuracy": 1.0,
+      "operator_route_counts": {
+        "OP_23e232e1a9ece985": 29,
+        "OP_a3126032f76e895f": 11,
+        "OP_b1eed9a105f62ecd": 18
+      }
+    },
+    "shuffled_effect_program_on_authentic_effects": {
+      "source_split": "heldout",
+      "examples": 58,
+      "admitted": 29,
+      "correct": 29,
+      "wrong": 0,
+      "abstained": 29,
+      "coverage": 0.5,
+      "selective_accuracy": 1.0,
+      "overall_accuracy": 0.5,
+      "operator_route_counts": {
+        "OP_23e232e1a9ece985": 29
+      }
+    },
+    "authentic_closed_loop": {
+      "source_split": "heldout",
+      "ledgers": 11,
+      "successes": 11,
+      "success_rate": 1.0,
+      "abstentions": 0,
+      "incorrect_terminations": 0,
+      "operator_route_counts": {
+        "OP_23e232e1a9ece985": 29,
+        "OP_a3126032f76e895f": 11,
+        "OP_b1eed9a105f62ecd": 18
+      },
+      "per_ledger": [
+        {
+          "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.94602.step_2",
+          "success": true,
+          "abstained": false,
+          "incorrect_termination": false,
+          "route_operator_ids": [
+            "OP_23e232e1a9ece985",
+            "OP_b1eed9a105f62ecd",
+            "OP_23e232e1a9ece985",
+            "OP_a3126032f76e895f"
+          ]
+        },
+        {
+          "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.94604.step_5",
+          "success": true,
+          "abstained": false,
+          "incorrect_termination": false,
+          "route_operator_ids": [
+            "OP_23e232e1a9ece985",
+            "OP_b1eed9a105f62ecd",
+            "OP_23e232e1a9ece985",
+            "OP_a3126032f76e895f"
+          ]
+        },
+        {
+          "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.94608.step_19",
+          "success": true,
+          "abstained": false,
+          "incorrect_termination": false,
+          "route_operator_ids": [
+            "OP_23e232e1a9ece985",
+            "OP_a3126032f76e895f"
+          ]
+        },
+        {
+          "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.94609.step_3",
+          "success": true,
+          "abstained": false,
+          "incorrect_termination": false,
+          "route_operator_ids": [
+            "OP_23e232e1a9ece985",
+            "OP_b1eed9a105f62ecd",
+            "OP_23e232e1a9ece985",
+            "OP_b1eed9a105f62ecd",
+            "OP_23e232e1a9ece985",
+            "OP_a3126032f76e895f"
+          ]
+        },
+        {
+          "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.94615.step_2",
+          "success": true,
+          "abstained": false,
+          "incorrect_termination": false,
+          "route_operator_ids": [
+            "OP_23e232e1a9ece985",
+            "OP_b1eed9a105f62ecd",
+            "OP_23e232e1a9ece985",
+            "OP_b1eed9a105f62ecd",
+            "OP_23e232e1a9ece985",
+            "OP_a3126032f76e895f"
+          ]
+        },
+        {
+          "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.94617.step_13",
+          "success": true,
+          "abstained": false,
+          "incorrect_termination": false,
+          "route_operator_ids": [
+            "OP_23e232e1a9ece985",
+            "OP_b1eed9a105f62ecd",
+            "OP_23e232e1a9ece985",
+            "OP_a3126032f76e895f"
+          ]
+        },
+        {
+          "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.94627.step_3",
+          "success": true,
+          "abstained": false,
+          "incorrect_termination": false,
+          "route_operator_ids": [
+            "OP_23e232e1a9ece985",
+            "OP_b1eed9a105f62ecd",
+            "OP_23e232e1a9ece985",
+            "OP_b1eed9a105f62ecd",
+            "OP_23e232e1a9ece985",
+            "OP_a3126032f76e895f"
+          ]
+        },
+        {
+          "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.94632.step_13",
+          "success": true,
+          "abstained": false,
+          "incorrect_termination": false,
+          "route_operator_ids": [
+            "OP_23e232e1a9ece985",
+            "OP_b1eed9a105f62ecd",
+            "OP_23e232e1a9ece985",
+            "OP_b1eed9a105f62ecd",
+            "OP_23e232e1a9ece985",
+            "OP_b1eed9a105f62ecd",
+            "OP_23e232e1a9ece985",
+            "OP_a3126032f76e895f"
+          ]
+        },
+        {
+          "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.94633.step_6",
+          "success": true,
+          "abstained": false,
+          "incorrect_termination": false,
+          "route_operator_ids": [
+            "OP_23e232e1a9ece985",
+            "OP_b1eed9a105f62ecd",
+            "OP_23e232e1a9ece985",
+            "OP_b1eed9a105f62ecd",
+            "OP_23e232e1a9ece985",
+            "OP_b1eed9a105f62ecd",
+            "OP_23e232e1a9ece985",
+            "OP_a3126032f76e895f"
+          ]
+        },
+        {
+          "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.94634.step_10",
+          "success": true,
+          "abstained": false,
+          "incorrect_termination": false,
+          "route_operator_ids": [
+            "OP_23e232e1a9ece985",
+            "OP_a3126032f76e895f"
+          ]
+        },
+        {
+          "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.94636.step_19",
+          "success": true,
+          "abstained": false,
+          "incorrect_termination": false,
+          "route_operator_ids": [
+            "OP_23e232e1a9ece985",
+            "OP_b1eed9a105f62ecd",
+            "OP_23e232e1a9ece985",
+            "OP_b1eed9a105f62ecd",
+            "OP_23e232e1a9ece985",
+            "OP_b1eed9a105f62ecd",
+            "OP_23e232e1a9ece985",
+            "OP_a3126032f76e895f"
+          ]
+        }
+      ]
+    },
+    "shuffled_program_closed_loop_on_authentic_effects": {
+      "source_split": "heldout",
+      "ledgers": 11,
+      "successes": 0,
+      "success_rate": 0.0,
+      "abstentions": 11,
+      "incorrect_terminations": 0,
+      "operator_route_counts": {
+        "OP_23e232e1a9ece985": 11
+      },
+      "per_ledger": [
+        {
+          "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.94602.step_2",
+          "success": false,
+          "abstained": true,
+          "incorrect_termination": false,
+          "route_operator_ids": [
+            "OP_23e232e1a9ece985"
+          ]
+        },
+        {
+          "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.94604.step_5",
+          "success": false,
+          "abstained": true,
+          "incorrect_termination": false,
+          "route_operator_ids": [
+            "OP_23e232e1a9ece985"
+          ]
+        },
+        {
+          "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.94608.step_19",
+          "success": false,
+          "abstained": true,
+          "incorrect_termination": false,
+          "route_operator_ids": [
+            "OP_23e232e1a9ece985"
+          ]
+        },
+        {
+          "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.94609.step_3",
+          "success": false,
+          "abstained": true,
+          "incorrect_termination": false,
+          "route_operator_ids": [
+            "OP_23e232e1a9ece985"
+          ]
+        },
+        {
+          "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.94615.step_2",
+          "success": false,
+          "abstained": true,
+          "incorrect_termination": false,
+          "route_operator_ids": [
+            "OP_23e232e1a9ece985"
+          ]
+        },
+        {
+          "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.94617.step_13",
+          "success": false,
+          "abstained": true,
+          "incorrect_termination": false,
+          "route_operator_ids": [
+            "OP_23e232e1a9ece985"
+          ]
+        },
+        {
+          "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.94627.step_3",
+          "success": false,
+          "abstained": true,
+          "incorrect_termination": false,
+          "route_operator_ids": [
+            "OP_23e232e1a9ece985"
+          ]
+        },
+        {
+          "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.94632.step_13",
+          "success": false,
+          "abstained": true,
+          "incorrect_termination": false,
+          "route_operator_ids": [
+            "OP_23e232e1a9ece985"
+          ]
+        },
+        {
+          "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.94633.step_6",
+          "success": false,
+          "abstained": true,
+          "incorrect_termination": false,
+          "route_operator_ids": [
+            "OP_23e232e1a9ece985"
+          ]
+        },
+        {
+          "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.94634.step_10",
+          "success": false,
+          "abstained": true,
+          "incorrect_termination": false,
+          "route_operator_ids": [
+            "OP_23e232e1a9ece985"
+          ]
+        },
+        {
+          "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.94636.step_19",
+          "success": false,
+          "abstained": true,
+          "incorrect_termination": false,
+          "route_operator_ids": [
+            "OP_23e232e1a9ece985"
+          ]
+        }
+      ]
+    }
+  },
+  "thresholds": {
+    "maximum_literals": 3,
+    "minimum_discovery_support": 2,
+    "minimum_qualification_support": 2,
+    "minimum_qualification_precision": 1.0,
+    "minimum_qualification_coverage": 0.95,
+    "minimum_heldout_coverage": 0.95,
+    "minimum_heldout_selective_accuracy": 1.0,
+    "minimum_heldout_closed_loop_success_rate": 1.0,
+    "maximum_shuffled_heldout_accuracy": 0.75
+  },
+  "gates": {
+    "authentic_program_qualification_passed": true,
+    "heldout_authentic_coverage": true,
+    "heldout_authentic_selective_accuracy": true,
+    "heldout_authentic_strictly_beats_shuffled": true,
+    "shuffled_does_not_match_authentic": true,
+    "heldout_authentic_closed_loop_success": true,
+    "heldout_authentic_closed_loop_strictly_beats_shuffled": true,
+    "source_only_provenance": true
+  },
+  "claim_boundary": "SOURCE_ONLY_ANONYMOUS_OPERATOR_INDUCTION_AND_HELDOUT_REPLAY;NO_TARGET_CAUSAL_UTILITY_CLAIM",
+  "report_sha256": "25412e4c01d4584afa9d78da3c74332dd71ce3a874866fb2643554193ac06ad5"
+}

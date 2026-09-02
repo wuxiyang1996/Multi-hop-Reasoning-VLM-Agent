@@ -1,0 +1,50 @@
+{
+  "schema_version": "clevrer-full-raw-video-transfer-preregistration-v2",
+  "status": "FROZEN_BEFORE_V2_COHORT_SELECTION_OR_ANY_NEW_OUTCOME_READ",
+  "parent_failed_formal_report": "runs/clevrer_full_raw_video_v1b/formal_report.json",
+  "parent_failure_disposition": "CONSUMED_DIAGNOSTIC;NO_RETUNING_ON_SAME_RESERVE",
+  "architecture_correction": "V1 neural_only was actually an explicit symbolic executor and source always selected a weaker trajectory reconstruction. V2 uses a frozen Qwen3.5-9B actor over the exact shared NS-DR graph as neural_only and uses the source-induced algebra to authorize target-native execution.",
+  "claim": "Selective game-induced typed operator execution improves final CLEVRER QA over a frozen neural graph actor on a fresh full four-family raw-video-grounded reserve.",
+  "source_algebra_path": "runs/full_video_source_algebra_v1/source_algebra.json",
+  "source_algebra_sha256": "c442412f9e4739bfb885d33337e0c8c31ab4bfe94ed495e7ec830d821d2246c3",
+  "signature_binding_path": "configs/video_target_signature_bindings_v1.json",
+  "grounder_config_path": "configs/clevrer_nsdr_tool_grounder_v1.json",
+  "grounder_qualification_path": "runs/clevrer_full_raw_video_v1b/grounder_qualification_v1c.json",
+  "frozen_neural_actor": {
+    "model": "qwen/qwen3.5-9b",
+    "thinking_enabled": false,
+    "temperature": 0,
+    "evidence": "SHARED_CACHED_NSDR_COMPACT_TYPED_FACTS",
+    "one_task_per_call": true,
+    "pilot_artifact": "runs/clevrer_full_raw_video_v1b/qwen9b_graph_actor_pilot40_v3.json",
+    "pilot_runtime_sha256": "8f9e97416798a37a1d15c760c71be234a15e93281365a43467cf76c1f3c67315"
+  },
+  "source_applicability": {
+    "source_signature_required": true,
+    "target_grounder_fidelity_required": true,
+    "authorized_families": ["descriptive", "explanatory"],
+    "abstained_families": ["predictive", "counterfactual"],
+    "reason": "The frozen grounder qualification established observed object/attribute/collision fidelity, but only counterfactual world completeness and no predictive/counterfactual event fidelity. This boundary is fixed without target QA outcomes."
+  },
+  "selection_nonce": "clevrer-full-raw-video-v2-20260902-after-v1-consumed-before-v2-outcomes",
+  "require_all_families_per_video": true,
+  "development_video_count": 0,
+  "reserve_video_count": 400,
+  "question_families": ["descriptive", "explanatory", "predictive", "counterfactual"],
+  "maximum_questions_per_family_per_video": 1,
+  "disjointness": ["all-prior-runtime-video-disjoint", "v1b-formal-video-disjoint"],
+  "formal_gates": {
+    "source_vs_neural_one_sided_exact_p_maximum": 0.05,
+    "source_vs_permuted_one_sided_exact_p_maximum": 0.05,
+    "source_vs_neural_net_wins_minimum": 1,
+    "source_vs_permuted_net_wins_minimum": 1,
+    "negative_transfer_loss_fraction_maximum": 0.05,
+    "target_written_isomorphic_prediction_equivalence": 1.0,
+    "shared_grounder_receipt_fraction": 1.0,
+    "minimum_source_symbolic_commits": 50
+  },
+  "arms": ["neural_only", "generic_symbolic", "source_permuted", "source_induced", "target_written_isomorphic"],
+  "shared_runtime": ["raw_frames", "grounder_receipt", "frame_budget", "question_parser", "executor", "fallback_actor"],
+  "runtime_forbidden": ["official_object_annotations", "official_motion_traces", "official_functional_programs", "answers", "source_identity"],
+  "failure_policy": "FAIL_CLOSED_AND_REPORT;NO_RESERVE_RETUNING"
+}

@@ -1,5 +1,35 @@
 # Implementation Status
 
+## Full video source algebra + CLEVRER Layer B（2026-09-02）
+
+Anonymous controller gap 已关闭：六个 source-game `(state, action, effect, next_state)` lineage
+自动汇总出 3 个 content-addressed state-delta operators 与 3 条 observed transitions；held-out
+closed loop `58/58`，effect-shuffled `0/58`，alpha-renaming invariance 通过。相同 controller
+artifact 未经修改 replay CLEVRER 1,600 tasks 与 AGQA 512+256 tasks，所有 commit/fallback、
+isomorphic 与 fail-closed permuted decisions 100% 等价。Universal video VM 与 target-native
+grounding/binding 明确列为 designer-specified，不再把其 29 个 opcode 误称为 ontology-free
+source induction。
+
+Source-only video algebra 已从六类 source intervention evidence 自动汇总为 29 个 typed
+primitives 与 73 条 composition edges；held-out/shuffled controls、source abstention 与新的
+capacity-matched semantic permutation control 均已接入。
+
+CLEVRER V2 在 400 个全新 videos / 1,600 题上通过 raw-video-grounded 五臂 formal：Qwen3.5-9B
+neural-only 556/1600，source-induced 997/1600（+27.56 pp），source-permuted 556/1600，
+464W/23L，`p=3.91e-108`，negative transfer 1.44%，isomorphic equivalence 100%；generic
+target-native ceiling 为 1123/1600。Source 按预冻结 grounder fidelity 只在 descriptive 与
+explanatory commit，另外两类 fail closed。
+
+AGQA2 既有 raw-video 512-task broad signal 与独立 256-video temporal replication 已通过新
+full-algebra outcome-blind compatibility bridge；但 official test 已无 untouched video，train
+formal 也只余两个且本地 raw video 缺失，不能再声称新的 video-disjoint AGQA formal。完整结果、
+失败 V1、cost 与 paper-safe claim 见
+[`FULL_VIDEO_SOURCE_ALGEBRA_LAYER_B_V1_RESULTS.md`](FULL_VIDEO_SOURCE_ALGEBRA_LAYER_B_V1_RESULTS.md)。
+机器可读总审计为
+[`results/two_video_transfer_bundle_v1.json`](results/two_video_transfer_bundle_v1.json)，状态
+`TWO_VIDEO_TRANSFER_EVIDENCE_BUNDLE_VALIDATED`；其中 CLEVRER 是 fresh formal，AGQA 是两个
+既有独立 raw-video replication，仍不声称新的 untouched official-test formal。
+
 ## Phase 17 V28 prospective target reserve（2026-08-20）
 
 Phase 16 的最高优先级边界已关闭。V28 从 official-Tetris fresh intervention forks 在 `K=3` 自动归纳的

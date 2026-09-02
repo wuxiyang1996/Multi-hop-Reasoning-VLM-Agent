@@ -1,0 +1,61 @@
+{
+  "claim_boundary": "Categories are observable commit/correctness outcomes. committed_residual_error cannot distinguish grounder, parser, executor, or dataset ambiguity without additional intervention.",
+  "gates": {
+    "actor_usage_complete": true,
+    "no_causal_error_attribution_from_final_answers": true,
+    "paired_losses_match_formal": true,
+    "paired_wins_match_formal": true,
+    "taxonomy_partitions_all_tasks": true
+  },
+  "input_file_sha256s": {
+    "actor": "b7502c0f5a94703e33d00b1bcb73d5b1ec230015b0b0382a82815202d9d1bfe0",
+    "annotations": "fdf841678a476655b906165e6ee4b0ed1516785c5ab927c8d0a4614e4e27e10d",
+    "predictions": "5a60a96637bfc620ee5067509a6c113a99cdf193ac019d112c9bb525218f982e"
+  },
+  "neural_actor_cost": {
+    "completion_tokens": 34643,
+    "estimate_disclosure": "Approximation recorded in the experiment notes; provider receipts contain tokens but no immutable USD charge.",
+    "historical_estimate_usd": 0.24,
+    "prompt_tokens": 2345134,
+    "provider_calls": 1600,
+    "receipt_backed_usd": null,
+    "total_tokens": 2379777
+  },
+  "per_family": {
+    "counterfactual": {
+      "abstained_fallback_correct": 61,
+      "abstained_generic_headroom": 137,
+      "abstained_shared_failure": 202
+    },
+    "descriptive": {
+      "committed_both_correct": 174,
+      "committed_residual_error": 36,
+      "negative_transfer": 21,
+      "symbolic_recovery": 169
+    },
+    "explanatory": {
+      "committed_both_correct": 41,
+      "committed_residual_error": 62,
+      "negative_transfer": 2,
+      "symbolic_recovery": 295
+    },
+    "predictive": {
+      "abstained_fallback_correct": 257,
+      "abstained_generic_headroom": 72,
+      "abstained_shared_failure": 71
+    }
+  },
+  "report_sha256": "8656fcad9dbdae7d052b1741f60693be4946d0817bc15107e21af5208616c081",
+  "schema_version": "clevrer-v2-observable-failure-taxonomy-v1",
+  "status": "CLEVRER_V2_FAILURE_TAXONOMY_VERIFIED",
+  "tasks": 1600,
+  "taxonomy": {
+    "abstained_fallback_correct": 318,
+    "abstained_generic_headroom": 209,
+    "abstained_shared_failure": 273,
+    "committed_both_correct": 215,
+    "committed_residual_error": 98,
+    "negative_transfer": 23,
+    "symbolic_recovery": 464
+  }
+}

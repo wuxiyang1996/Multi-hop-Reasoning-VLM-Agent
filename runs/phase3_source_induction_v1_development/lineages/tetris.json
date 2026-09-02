@@ -1,0 +1,587 @@
+{
+  "schema_version": "phase3-source-lineage-induction-report-v1",
+  "status": "SOURCE_ONLY_INDUCTION_HELDOUT_VALIDATED",
+  "source_game": "tetris",
+  "rows_path": "runs/phase1_common_search_ir_formal_v1/tetris/rows.jsonl",
+  "rows_file_sha256": "925842ca9aca8c6fee1490f3982c6ee7b854dfd5eae95613c65d2d957e85f955",
+  "primary_horizon": 16,
+  "ledger_audit": {
+    "snapshots": 36,
+    "eligible_ledgers": 24,
+    "exclusions": {
+      "NO_UNIQUE_VALUED_CANDIDATE": 12
+    },
+    "split_totals": {
+      "development": 12,
+      "heldout": 12,
+      "qualification": 12
+    },
+    "split_eligible": {
+      "development": 7,
+      "heldout": 8,
+      "qualification": 9
+    },
+    "split_eligible_fraction": {
+      "development": 0.5833333333333334,
+      "heldout": 0.6666666666666666,
+      "qualification": 0.75
+    },
+    "verified_candidate_rank_counts": {
+      "0": 6,
+      "1": 7,
+      "2": 5,
+      "3": 6
+    },
+    "native_action_tokens_exported_to_ir": false,
+    "rows_path": "runs/phase1_common_search_ir_formal_v1/tetris/rows.jsonl",
+    "rows_file_sha256": "925842ca9aca8c6fee1490f3982c6ee7b854dfd5eae95613c65d2d957e85f955",
+    "source_rows": 288
+  },
+  "source_profile": {
+    "primary_horizon": 16,
+    "eligible_ledgers": 24,
+    "candidate_count_min": 4,
+    "candidate_count_max": 4,
+    "candidate_count_median": 4,
+    "return_gap_min": 1.0,
+    "return_gap_lower_quartile": 1.0,
+    "return_gap_median": 1.0,
+    "verified_rank_distribution": {
+      "0": 6,
+      "1": 7,
+      "2": 5,
+      "3": 6
+    },
+    "profile_sha256": "66f3173e18a617a79382df9671a27507c1bf85afb943691f3d14f175ff689cf2"
+  },
+  "authentic_program": {
+    "schema_version": "phase3-source-induced-anonymous-program-v1",
+    "status": "SOURCE_INDUCED_PROGRAM_QUALIFIED",
+    "source_game": "tetris",
+    "source_rows_sha256": "925842ca9aca8c6fee1490f3982c6ee7b854dfd5eae95613c65d2d957e85f955",
+    "induction_authority": "SOURCE_DISCOVERY_INTERVENTION_TUPLES_ONLY;QUALIFICATION_FOR_FAIL_CLOSED_CALIBRATION;NO_TARGET_DATA",
+    "operator_vocabulary": "CONTENT_ADDRESSED_STATE_DELTAS_ONLY",
+    "operators": [
+      {
+        "operator_id": "OP_23e232e1a9ece985",
+        "preconditions": [
+          {
+            "field": "active_presence",
+            "value": "ABSENT"
+          }
+        ],
+        "state_delta": [
+          [
+            "active",
+            "OBSERVED_EFFECT"
+          ],
+          [
+            "tried",
+            "ADD_ONE"
+          ]
+        ],
+        "discovery_support": 20,
+        "discovery_precision": 1.0,
+        "qualification_support": 22,
+        "qualification_precision": 1.0
+      },
+      {
+        "operator_id": "OP_a3126032f76e895f",
+        "preconditions": [
+          {
+            "field": "active_effect",
+            "value": "HIGH"
+          },
+          {
+            "field": "active_presence",
+            "value": "PRESENT"
+          }
+        ],
+        "state_delta": [
+          [
+            "terminal",
+            "TRUE"
+          ]
+        ],
+        "discovery_support": 7,
+        "discovery_precision": 1.0,
+        "qualification_support": 9,
+        "qualification_precision": 1.0
+      },
+      {
+        "operator_id": "OP_b1eed9a105f62ecd",
+        "preconditions": [
+          {
+            "field": "active_effect",
+            "value": "LOW"
+          },
+          {
+            "field": "active_presence",
+            "value": "PRESENT"
+          }
+        ],
+        "state_delta": [
+          [
+            "active",
+            "ABSENT"
+          ]
+        ],
+        "discovery_support": 13,
+        "discovery_precision": 1.0,
+        "qualification_support": 13,
+        "qualification_precision": 1.0
+      }
+    ],
+    "abstention_rule": {
+      "kind": "NO_UNIQUE_QUALIFIED_OPERATOR",
+      "unknown_predicate_value": "ABSTAIN",
+      "zero_matching_operators": "ABSTAIN",
+      "multiple_matching_operators": "ABSTAIN"
+    },
+    "discovery_metrics": {
+      "examples": 40,
+      "admitted": 40,
+      "correct": 40,
+      "wrong": 0,
+      "abstained": 0,
+      "coverage": 1.0,
+      "selective_accuracy": 1.0,
+      "overall_accuracy": 1.0,
+      "operator_route_counts": {
+        "OP_23e232e1a9ece985": 20,
+        "OP_a3126032f76e895f": 7,
+        "OP_b1eed9a105f62ecd": 13
+      }
+    },
+    "qualification_metrics": {
+      "examples": 44,
+      "admitted": 44,
+      "correct": 44,
+      "wrong": 0,
+      "abstained": 0,
+      "coverage": 1.0,
+      "selective_accuracy": 1.0,
+      "overall_accuracy": 1.0,
+      "operator_route_counts": {
+        "OP_23e232e1a9ece985": 22,
+        "OP_a3126032f76e895f": 9,
+        "OP_b1eed9a105f62ecd": 13
+      }
+    },
+    "operator_gates": {
+      "OP_23e232e1a9ece985": {
+        "discovery_support": true,
+        "discovery_precision": true,
+        "qualification_support": true,
+        "qualification_precision": true
+      },
+      "OP_a3126032f76e895f": {
+        "discovery_support": true,
+        "discovery_precision": true,
+        "qualification_support": true,
+        "qualification_precision": true
+      },
+      "OP_b1eed9a105f62ecd": {
+        "discovery_support": true,
+        "discovery_precision": true,
+        "qualification_support": true,
+        "qualification_precision": true
+      }
+    },
+    "gates": {
+      "at_least_three_anonymous_operators_induced": true,
+      "all_operator_gates_pass": true,
+      "qualification_coverage": true,
+      "qualification_selective_accuracy": true,
+      "unknown_or_ambiguous_routes_fail_closed": true,
+      "no_named_phase2_policy_tokens": true,
+      "no_source_native_action_or_candidate_export": true,
+      "no_induction_errors": true
+    },
+    "induction_errors": [],
+    "thresholds": {
+      "maximum_literals": 3,
+      "minimum_discovery_support": 2,
+      "minimum_qualification_support": 2,
+      "minimum_qualification_precision": 1.0,
+      "minimum_qualification_coverage": 0.95
+    },
+    "forbidden_export_fields": [
+      "candidate_action",
+      "candidate_id",
+      "actions",
+      "option_template_id"
+    ],
+    "program_sha256": "fe7ba80090f249df316b2acb42cb1329aba5b156c4d1288f9817f2e9c5a31a24"
+  },
+  "shuffled_effect_program": {
+    "schema_version": "phase3-source-induced-anonymous-program-v1",
+    "status": "SOURCE_INDUCED_PROGRAM_NOT_QUALIFIED",
+    "source_game": "tetris",
+    "source_rows_sha256": "925842ca9aca8c6fee1490f3982c6ee7b854dfd5eae95613c65d2d957e85f955",
+    "induction_authority": "SOURCE_DISCOVERY_INTERVENTION_TUPLES_ONLY;QUALIFICATION_FOR_FAIL_CLOSED_CALIBRATION;NO_TARGET_DATA",
+    "operator_vocabulary": "CONTENT_ADDRESSED_STATE_DELTAS_ONLY",
+    "operators": [
+      {
+        "operator_id": "OP_23e232e1a9ece985",
+        "preconditions": [
+          {
+            "field": "active_presence",
+            "value": "ABSENT"
+          }
+        ],
+        "state_delta": [
+          [
+            "active",
+            "OBSERVED_EFFECT"
+          ],
+          [
+            "tried",
+            "ADD_ONE"
+          ]
+        ],
+        "discovery_support": 20,
+        "discovery_precision": 1.0,
+        "qualification_support": 22,
+        "qualification_precision": 1.0
+      }
+    ],
+    "abstention_rule": {
+      "kind": "NO_UNIQUE_QUALIFIED_OPERATOR",
+      "unknown_predicate_value": "ABSTAIN",
+      "zero_matching_operators": "ABSTAIN",
+      "multiple_matching_operators": "ABSTAIN"
+    },
+    "discovery_metrics": {
+      "examples": 40,
+      "admitted": 20,
+      "correct": 20,
+      "wrong": 0,
+      "abstained": 20,
+      "coverage": 0.5,
+      "selective_accuracy": 1.0,
+      "overall_accuracy": 0.5,
+      "operator_route_counts": {
+        "OP_23e232e1a9ece985": 20
+      }
+    },
+    "qualification_metrics": {
+      "examples": 44,
+      "admitted": 22,
+      "correct": 22,
+      "wrong": 0,
+      "abstained": 22,
+      "coverage": 0.5,
+      "selective_accuracy": 1.0,
+      "overall_accuracy": 0.5,
+      "operator_route_counts": {
+        "OP_23e232e1a9ece985": 22
+      }
+    },
+    "operator_gates": {
+      "OP_23e232e1a9ece985": {
+        "discovery_support": true,
+        "discovery_precision": true,
+        "qualification_support": true,
+        "qualification_precision": true
+      }
+    },
+    "gates": {
+      "at_least_three_anonymous_operators_induced": false,
+      "all_operator_gates_pass": true,
+      "qualification_coverage": false,
+      "qualification_selective_accuracy": true,
+      "unknown_or_ambiguous_routes_fail_closed": true,
+      "no_named_phase2_policy_tokens": true,
+      "no_source_native_action_or_candidate_export": true,
+      "no_induction_errors": false
+    },
+    "induction_errors": [
+      {
+        "state_delta": [
+          [
+            "active",
+            "ABSENT"
+          ]
+        ],
+        "error": "no bounded precondition conjunction separates an observed state delta"
+      },
+      {
+        "state_delta": [
+          [
+            "terminal",
+            "TRUE"
+          ]
+        ],
+        "error": "no bounded precondition conjunction separates an observed state delta"
+      }
+    ],
+    "thresholds": {
+      "maximum_literals": 3,
+      "minimum_discovery_support": 2,
+      "minimum_qualification_support": 2,
+      "minimum_qualification_precision": 1.0,
+      "minimum_qualification_coverage": 0.95
+    },
+    "forbidden_export_fields": [
+      "candidate_action",
+      "candidate_id",
+      "actions",
+      "option_template_id"
+    ],
+    "program_sha256": "013fd8dafd3737523e88be7f85a185e25cb262613a17871d49d021d5c131fc11"
+  },
+  "heldout": {
+    "authentic": {
+      "source_split": "heldout",
+      "examples": 34,
+      "admitted": 34,
+      "correct": 34,
+      "wrong": 0,
+      "abstained": 0,
+      "coverage": 1.0,
+      "selective_accuracy": 1.0,
+      "overall_accuracy": 1.0,
+      "operator_route_counts": {
+        "OP_23e232e1a9ece985": 17,
+        "OP_a3126032f76e895f": 8,
+        "OP_b1eed9a105f62ecd": 9
+      }
+    },
+    "shuffled_effect_program_on_authentic_effects": {
+      "source_split": "heldout",
+      "examples": 34,
+      "admitted": 17,
+      "correct": 17,
+      "wrong": 0,
+      "abstained": 17,
+      "coverage": 0.5,
+      "selective_accuracy": 1.0,
+      "overall_accuracy": 0.5,
+      "operator_route_counts": {
+        "OP_23e232e1a9ece985": 17
+      }
+    },
+    "authentic_closed_loop": {
+      "source_split": "heldout",
+      "ledgers": 8,
+      "successes": 8,
+      "success_rate": 1.0,
+      "abstentions": 0,
+      "incorrect_terminations": 0,
+      "operator_route_counts": {
+        "OP_23e232e1a9ece985": 17,
+        "OP_a3126032f76e895f": 8,
+        "OP_b1eed9a105f62ecd": 9
+      },
+      "per_ledger": [
+        {
+          "snapshot_id": "tetris.observed_hash_policy.94001.step_10",
+          "success": true,
+          "abstained": false,
+          "incorrect_termination": false,
+          "route_operator_ids": [
+            "OP_23e232e1a9ece985",
+            "OP_b1eed9a105f62ecd",
+            "OP_23e232e1a9ece985",
+            "OP_a3126032f76e895f"
+          ]
+        },
+        {
+          "snapshot_id": "tetris.observed_hash_policy.94002.step_7",
+          "success": true,
+          "abstained": false,
+          "incorrect_termination": false,
+          "route_operator_ids": [
+            "OP_23e232e1a9ece985",
+            "OP_a3126032f76e895f"
+          ]
+        },
+        {
+          "snapshot_id": "tetris.observed_hash_policy.94005.step_10",
+          "success": true,
+          "abstained": false,
+          "incorrect_termination": false,
+          "route_operator_ids": [
+            "OP_23e232e1a9ece985",
+            "OP_b1eed9a105f62ecd",
+            "OP_23e232e1a9ece985",
+            "OP_b1eed9a105f62ecd",
+            "OP_23e232e1a9ece985",
+            "OP_b1eed9a105f62ecd",
+            "OP_23e232e1a9ece985",
+            "OP_a3126032f76e895f"
+          ]
+        },
+        {
+          "snapshot_id": "tetris.observed_hash_policy.94011.step_7",
+          "success": true,
+          "abstained": false,
+          "incorrect_termination": false,
+          "route_operator_ids": [
+            "OP_23e232e1a9ece985",
+            "OP_a3126032f76e895f"
+          ]
+        },
+        {
+          "snapshot_id": "tetris.observed_hash_policy.94012.step_10",
+          "success": true,
+          "abstained": false,
+          "incorrect_termination": false,
+          "route_operator_ids": [
+            "OP_23e232e1a9ece985",
+            "OP_b1eed9a105f62ecd",
+            "OP_23e232e1a9ece985",
+            "OP_a3126032f76e895f"
+          ]
+        },
+        {
+          "snapshot_id": "tetris.observed_hash_policy.94024.step_13",
+          "success": true,
+          "abstained": false,
+          "incorrect_termination": false,
+          "route_operator_ids": [
+            "OP_23e232e1a9ece985",
+            "OP_a3126032f76e895f"
+          ]
+        },
+        {
+          "snapshot_id": "tetris.observed_hash_policy.94026.step_19",
+          "success": true,
+          "abstained": false,
+          "incorrect_termination": false,
+          "route_operator_ids": [
+            "OP_23e232e1a9ece985",
+            "OP_b1eed9a105f62ecd",
+            "OP_23e232e1a9ece985",
+            "OP_a3126032f76e895f"
+          ]
+        },
+        {
+          "snapshot_id": "tetris.observed_hash_policy.94030.step_3",
+          "success": true,
+          "abstained": false,
+          "incorrect_termination": false,
+          "route_operator_ids": [
+            "OP_23e232e1a9ece985",
+            "OP_b1eed9a105f62ecd",
+            "OP_23e232e1a9ece985",
+            "OP_b1eed9a105f62ecd",
+            "OP_23e232e1a9ece985",
+            "OP_b1eed9a105f62ecd",
+            "OP_23e232e1a9ece985",
+            "OP_a3126032f76e895f"
+          ]
+        }
+      ]
+    },
+    "shuffled_program_closed_loop_on_authentic_effects": {
+      "source_split": "heldout",
+      "ledgers": 8,
+      "successes": 0,
+      "success_rate": 0.0,
+      "abstentions": 8,
+      "incorrect_terminations": 0,
+      "operator_route_counts": {
+        "OP_23e232e1a9ece985": 8
+      },
+      "per_ledger": [
+        {
+          "snapshot_id": "tetris.observed_hash_policy.94001.step_10",
+          "success": false,
+          "abstained": true,
+          "incorrect_termination": false,
+          "route_operator_ids": [
+            "OP_23e232e1a9ece985"
+          ]
+        },
+        {
+          "snapshot_id": "tetris.observed_hash_policy.94002.step_7",
+          "success": false,
+          "abstained": true,
+          "incorrect_termination": false,
+          "route_operator_ids": [
+            "OP_23e232e1a9ece985"
+          ]
+        },
+        {
+          "snapshot_id": "tetris.observed_hash_policy.94005.step_10",
+          "success": false,
+          "abstained": true,
+          "incorrect_termination": false,
+          "route_operator_ids": [
+            "OP_23e232e1a9ece985"
+          ]
+        },
+        {
+          "snapshot_id": "tetris.observed_hash_policy.94011.step_7",
+          "success": false,
+          "abstained": true,
+          "incorrect_termination": false,
+          "route_operator_ids": [
+            "OP_23e232e1a9ece985"
+          ]
+        },
+        {
+          "snapshot_id": "tetris.observed_hash_policy.94012.step_10",
+          "success": false,
+          "abstained": true,
+          "incorrect_termination": false,
+          "route_operator_ids": [
+            "OP_23e232e1a9ece985"
+          ]
+        },
+        {
+          "snapshot_id": "tetris.observed_hash_policy.94024.step_13",
+          "success": false,
+          "abstained": true,
+          "incorrect_termination": false,
+          "route_operator_ids": [
+            "OP_23e232e1a9ece985"
+          ]
+        },
+        {
+          "snapshot_id": "tetris.observed_hash_policy.94026.step_19",
+          "success": false,
+          "abstained": true,
+          "incorrect_termination": false,
+          "route_operator_ids": [
+            "OP_23e232e1a9ece985"
+          ]
+        },
+        {
+          "snapshot_id": "tetris.observed_hash_policy.94030.step_3",
+          "success": false,
+          "abstained": true,
+          "incorrect_termination": false,
+          "route_operator_ids": [
+            "OP_23e232e1a9ece985"
+          ]
+        }
+      ]
+    }
+  },
+  "thresholds": {
+    "maximum_literals": 3,
+    "minimum_discovery_support": 2,
+    "minimum_qualification_support": 2,
+    "minimum_qualification_precision": 1.0,
+    "minimum_qualification_coverage": 0.95,
+    "minimum_heldout_coverage": 0.95,
+    "minimum_heldout_selective_accuracy": 1.0,
+    "minimum_heldout_closed_loop_success_rate": 1.0,
+    "maximum_shuffled_heldout_accuracy": 0.75
+  },
+  "gates": {
+    "authentic_program_qualification_passed": true,
+    "heldout_authentic_coverage": true,
+    "heldout_authentic_selective_accuracy": true,
+    "heldout_authentic_strictly_beats_shuffled": true,
+    "shuffled_does_not_match_authentic": true,
+    "heldout_authentic_closed_loop_success": true,
+    "heldout_authentic_closed_loop_strictly_beats_shuffled": true,
+    "source_only_provenance": true
+  },
+  "claim_boundary": "SOURCE_ONLY_ANONYMOUS_OPERATOR_INDUCTION_AND_HELDOUT_REPLAY;NO_TARGET_CAUSAL_UTILITY_CLAIM",
+  "report_sha256": "aebbaea63633a96fea46e9fa94f62ce6ad265e05f6509769b87e026befbbe311"
+}

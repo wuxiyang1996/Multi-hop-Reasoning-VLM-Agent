@@ -1,0 +1,24 @@
+{
+  "schema_version": "video-target-signature-bindings-v2",
+  "status": "TARGET_NATIVE_SIGNATURES_FROZEN_BEFORE_NEW_TARGET_RESERVES",
+  "authority": "PUBLIC_TARGET_SEMANTICS_AND_SOURCE_TYPED_GRAPH_ONLY;NO_TARGET_OUTCOME_OR_PROGRAM",
+  "amendment": "Every target signature has at least one source-lineage composition anchor so a capacity-matched semantic-label derangement is destructive even for singleton semantic queries.",
+  "agqa": {
+    "presence_question": {"primitives": ["RELATION_PROJECT", "PRESENCE"], "compositions": [["RELATION_PROJECT", "PRESENCE"]]},
+    "membership_question": {"primitives": ["RELATION_PROJECT", "PRESENCE"], "compositions": [["RELATION_PROJECT", "PRESENCE"]]},
+    "equality_condition": {"primitives": ["MEASURE_EQUIVALENCE", "GUARDED_BRANCH"], "compositions": [["MEASURE_EQUIVALENCE", "GUARDED_BRANCH"]]},
+    "exclusive_condition": {"primitives": ["PRESENCE", "LOGICAL_XOR"], "compositions": [["PRESENCE", "LOGICAL_XOR"]]},
+    "joint_condition": {"primitives": ["PRESENCE", "LOGICAL_AND"], "compositions": [["PRESENCE", "LOGICAL_AND"]]},
+    "alternatives": {"primitives": ["PRESENCE", "ALTERNATIVE_ADVANCE", "GUARDED_BRANCH"], "compositions": [["PRESENCE", "ALTERNATIVE_ADVANCE"], ["PRESENCE", "GUARDED_BRANCH"]]},
+    "duration_choice": {"primitives": ["ORDERED_PATH", "FIRST_EVENT", "LAST_EVENT", "INTERVAL_MEASURE", "GUARDED_BRANCH"], "compositions": [["ORDERED_PATH", "FIRST_EVENT"], ["ORDERED_PATH", "LAST_EVENT"], ["FIRST_EVENT", "INTERVAL_MEASURE"], ["LAST_EVENT", "INTERVAL_MEASURE"]]},
+    "duration_extremum": {"primitives": ["ORDERED_PATH", "FIRST_EVENT", "LAST_EVENT", "INTERVAL_MEASURE", "EFFECT_ARGMAX"], "compositions": [["ORDERED_PATH", "FIRST_EVENT"], ["ORDERED_PATH", "LAST_EVENT"], ["FIRST_EVENT", "INTERVAL_MEASURE"], ["LAST_EVENT", "INTERVAL_MEASURE"]]},
+    "goal": {"primitives": ["RELATION_PROJECT", "GOAL_RELATION_TEST", "GUARDED_BRANCH"], "compositions": [["GOAL_RELATION_TEST", "GUARDED_BRANCH"]]}
+  },
+  "clevrer": {
+    "descriptive": {"primitives": ["RELATION_PROJECT", "PRESENCE", "SET_CARDINALITY"], "compositions": [["RELATION_PROJECT", "PRESENCE"], ["RELATION_PROJECT", "SET_CARDINALITY"]]},
+    "explanatory": {"primitives": ["PRECONDITION_DEPENDENCY", "ORDERED_PATH", "FIRST_EVENT"], "compositions": [["ORDERED_PATH", "FIRST_EVENT"]]},
+    "predictive": {"primitives": ["PRECONDITION_DEPENDENCY", "ORDERED_PATH", "LAST_EVENT"], "compositions": [["ORDERED_PATH", "LAST_EVENT"]]},
+    "counterfactual": {"primitives": ["PRECONDITION_DEPENDENCY", "COUNTERFACTUAL_REFUTATION", "LOGICAL_NOT"], "compositions": [["COUNTERFACTUAL_REFUTATION", "LOGICAL_NOT"]]}
+  },
+  "abstention": {"unknown_family": "ABSTAIN", "missing_primitive": "ABSTAIN", "missing_composition": "ABSTAIN", "target_outcome_read": "REJECT", "source_identity_feature": "REJECT"}
+}

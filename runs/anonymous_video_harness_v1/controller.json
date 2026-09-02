@@ -1,0 +1,167 @@
+{
+  "abstention_rule": {
+    "kind": "NO_UNIQUE_QUALIFIED_OPERATOR",
+    "multiple_matching_operators": "ABSTAIN",
+    "unknown_predicate_value": "ABSTAIN",
+    "zero_matching_operators": "ABSTAIN"
+  },
+  "artifact_sha256": "cd48690e64392f8702e1a239afa1739c25863ce4bd6ae2efea355ac70467bfe6",
+  "authority": "SOURCE_STATE_ACTION_EFFECT_NEXT_STATE_AND_HELDOUT_CONTROLS_ONLY",
+  "claim_boundary": {
+    "designer_specified": "universal typed VM and target-native grounding/binding",
+    "source_induced": "operator instances, transition counts, and abstention behavior"
+  },
+  "gates": {
+    "all_discovered_lineages_qualified": true,
+    "anonymous_operator_inventory_nonempty": true,
+    "at_least_three_independent_source_lineages": true,
+    "fail_closed_abstention_consensus": true,
+    "heldout_authentic_closed_loop_exact": true,
+    "heldout_effect_shuffle_destructive": true,
+    "observed_transition_graph_nonempty": true
+  },
+  "heldout_control": {
+    "authentic_successes": 58,
+    "effect_shuffled_successes": 0,
+    "total_ledgers": 58
+  },
+  "lineage_receipts": [
+    {
+      "authentic_successes": 10,
+      "effect_shuffled_successes": 0,
+      "file_sha256": "96f5fc152e323ba9cc411a9c946aa5202d8719ad9406e1710de7184cd6bb033c",
+      "heldout_ledgers": 10,
+      "lineage_id": "6447519d8db186cd",
+      "program_sha256": "1b668c1b0fe12b33ca6f021040df9f367b06aaca56a1d054c59fb2111756d4f7",
+      "status": "SOURCE_HELDOUT_QUALIFIED"
+    },
+    {
+      "authentic_successes": 10,
+      "effect_shuffled_successes": 0,
+      "file_sha256": "77b1d19cadf19f24f8fd685826440eee9fb29b61c2c9ef53697fb3a00eda6c2f",
+      "heldout_ledgers": 10,
+      "lineage_id": "c5884a0021543531",
+      "program_sha256": "e4d1531e10db55c9e5afa4236025305dad196b41ed4f55ce79150abec8275c77",
+      "status": "SOURCE_HELDOUT_QUALIFIED"
+    },
+    {
+      "authentic_successes": 11,
+      "effect_shuffled_successes": 0,
+      "file_sha256": "814594938c63bfe09e4f70960bffc511b697258d508a83f9cc4bddc477f2c724",
+      "heldout_ledgers": 11,
+      "lineage_id": "ed1f2cf104ba47f8",
+      "program_sha256": "21efb3133bba74b18c2a0859e4b2e98a8b3e8cfb3e6776a3b06cb87b3bd8c519",
+      "status": "SOURCE_HELDOUT_QUALIFIED"
+    },
+    {
+      "authentic_successes": 10,
+      "effect_shuffled_successes": 0,
+      "file_sha256": "8074530920db44196f282be0be2d3e4979685e4c995a7e6795f173fddd0d4c3a",
+      "heldout_ledgers": 10,
+      "lineage_id": "601bd5fba0d7bdec",
+      "program_sha256": "d5de6e593631251e484a5cb5297910e4c0ebce3f33bd8452bdd035746d82339d",
+      "status": "SOURCE_HELDOUT_QUALIFIED"
+    },
+    {
+      "authentic_successes": 9,
+      "effect_shuffled_successes": 0,
+      "file_sha256": "97987c538083ba4e99cd45bc2c557676d93751d1ec290fb4d8e3cd444b32dfb3",
+      "heldout_ledgers": 9,
+      "lineage_id": "22cdbcddf341dd17",
+      "program_sha256": "5d6af8f8b33a8628095cc230fe810a60edc56b2761252b6cc9a71f6dfebfc0df",
+      "status": "SOURCE_HELDOUT_QUALIFIED"
+    },
+    {
+      "authentic_successes": 8,
+      "effect_shuffled_successes": 0,
+      "file_sha256": "cf010ddd6b4776d624be46930336624130e5f78e7bb2b4f99b467b6d68a0abca",
+      "heldout_ledgers": 8,
+      "lineage_id": "28867b1f800fb58f",
+      "program_sha256": "fe7ba80090f249df316b2acb42cb1329aba5b156c4d1288f9817f2e9c5a31a24",
+      "status": "SOURCE_HELDOUT_QUALIFIED"
+    }
+  ],
+  "operator_identity": "CONTENT_HASH_OF_PRECONDITIONS_AND_STATE_DELTA;SUPPLIED_NAMES_IGNORED",
+  "operators": [
+    {
+      "heldout_route_support": 190,
+      "operator_id": "OP_23e232e1a9ece985",
+      "preconditions": [
+        {
+          "field": "active_presence",
+          "value": "ABSENT"
+        }
+      ],
+      "state_delta": [
+        [
+          "active",
+          "OBSERVED_EFFECT"
+        ],
+        [
+          "tried",
+          "ADD_ONE"
+        ]
+      ]
+    },
+    {
+      "heldout_route_support": 58,
+      "operator_id": "OP_a3126032f76e895f",
+      "preconditions": [
+        {
+          "field": "active_effect",
+          "value": "HIGH"
+        },
+        {
+          "field": "active_presence",
+          "value": "PRESENT"
+        }
+      ],
+      "state_delta": [
+        [
+          "terminal",
+          "TRUE"
+        ]
+      ]
+    },
+    {
+      "heldout_route_support": 132,
+      "operator_id": "OP_b1eed9a105f62ecd",
+      "preconditions": [
+        {
+          "field": "active_effect",
+          "value": "LOW"
+        },
+        {
+          "field": "active_presence",
+          "value": "PRESENT"
+        }
+      ],
+      "state_delta": [
+        [
+          "active",
+          "ABSENT"
+        ]
+      ]
+    }
+  ],
+  "schema_version": "anonymous-source-video-harness-v1",
+  "status": "ANONYMOUS_SOURCE_VIDEO_HARNESS_QUALIFIED",
+  "target_data_read": false,
+  "transitions": [
+    {
+      "from_operator_id": "OP_23e232e1a9ece985",
+      "heldout_support": 58,
+      "to_operator_id": "OP_a3126032f76e895f"
+    },
+    {
+      "from_operator_id": "OP_23e232e1a9ece985",
+      "heldout_support": 132,
+      "to_operator_id": "OP_b1eed9a105f62ecd"
+    },
+    {
+      "from_operator_id": "OP_b1eed9a105f62ecd",
+      "heldout_support": 132,
+      "to_operator_id": "OP_23e232e1a9ece985"
+    }
+  ]
+}

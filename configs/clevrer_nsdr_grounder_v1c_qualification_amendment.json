@@ -1,0 +1,11 @@
+{
+  "schema_version": "clevrer-nsdr-grounder-qualification-amendment-v1c",
+  "status": "FROZEN_AFTER_V1B_FAILED_METRIC_DEFINITION_BEFORE_V1C_RERUN",
+  "parent_failed_report": "runs/clevrer_full_raw_video_v1b/grounder_qualification.json",
+  "parent_failed_report_sha256": "ebd4bb19d079c5bafa5dedeafa3a080b34d7ff2d79a07f5a6aead2173297d7ca",
+  "change": "Observed collision precision/recall includes only predicted collisions at or before the final decoded raw-video frame. Later collisions remain available only to predictive/counterfactual execution.",
+  "reason": "The official NS-DR what_if=-1 trajectory rolls past the 128-frame observed video; V1B incorrectly labeled future predictions as observed false positives.",
+  "unchanged": ["development videos", "grounder weights/artifacts", "source algebra", "thresholds", "object metrics", "frame budget", "formal reserve"],
+  "target_qa_answers_read": false,
+  "formal_reserve_read": false
+}

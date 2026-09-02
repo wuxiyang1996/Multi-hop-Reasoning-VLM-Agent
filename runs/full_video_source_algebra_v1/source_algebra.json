@@ -1,0 +1,1055 @@
+{
+  "artifact_sha256": "c442412f9e4739bfb885d33337e0c8c31ab4bfe94ed495e7ec830d821d2246c3",
+  "authority": "SOURCE_ARTIFACTS_AND_HELDOUT_SOURCE_CONTROLS_ONLY",
+  "catalog_file_sha256": "5a64c31ab1345a3cc6ba8989032fcaed7b19a30d866813201cc80c5dcbd365a2",
+  "catalog_sha256": "3311a17de8d890d628122419963b20cae510347346d68957ef44bc28965da562",
+  "composition_edge_count": 73,
+  "composition_edges": [
+    [
+      "COUNTERFACTUAL_REFUTATION",
+      "ALTERNATIVE_ADVANCE"
+    ],
+    [
+      "COUNTERFACTUAL_REFUTATION",
+      "GUARDED_BRANCH"
+    ],
+    [
+      "COUNTERFACTUAL_REFUTATION",
+      "LOGICAL_AND"
+    ],
+    [
+      "COUNTERFACTUAL_REFUTATION",
+      "LOGICAL_NOT"
+    ],
+    [
+      "COUNTERFACTUAL_REFUTATION",
+      "LOGICAL_XOR"
+    ],
+    [
+      "EFFECT_ARGMAX",
+      "EFFECT_COMPOSE"
+    ],
+    [
+      "EFFECT_ARGMAX",
+      "EFFECT_SCORE"
+    ],
+    [
+      "EFFECT_ARGMAX",
+      "IDENTITY_TEST"
+    ],
+    [
+      "EFFECT_ARGMAX",
+      "INVERSE_RECOVERY"
+    ],
+    [
+      "EFFECT_ARGMAX",
+      "PRECONDITION_DEPENDENCY"
+    ],
+    [
+      "EFFECT_COMPOSE",
+      "EFFECT_SCORE"
+    ],
+    [
+      "EFFECT_COMPOSE",
+      "IDENTITY_TEST"
+    ],
+    [
+      "EFFECT_COMPOSE",
+      "INVERSE_RECOVERY"
+    ],
+    [
+      "EFFECT_COMPOSE",
+      "PRECONDITION_DEPENDENCY"
+    ],
+    [
+      "ENTITY_BIND",
+      "RELATION_ADD"
+    ],
+    [
+      "ENTITY_BIND",
+      "RELATION_PROJECT"
+    ],
+    [
+      "ENTITY_BIND",
+      "STATE_MUTATION"
+    ],
+    [
+      "FIRST_EVENT",
+      "INTERVAL_MEASURE"
+    ],
+    [
+      "GOAL_RELATION_TEST",
+      "ALTERNATIVE_ADVANCE"
+    ],
+    [
+      "GOAL_RELATION_TEST",
+      "GUARDED_BRANCH"
+    ],
+    [
+      "GOAL_RELATION_TEST",
+      "LOGICAL_AND"
+    ],
+    [
+      "GOAL_RELATION_TEST",
+      "LOGICAL_NOT"
+    ],
+    [
+      "GOAL_RELATION_TEST",
+      "LOGICAL_XOR"
+    ],
+    [
+      "GUARDED_SEQUENCE",
+      "FIRST_EVENT"
+    ],
+    [
+      "GUARDED_SEQUENCE",
+      "LAST_EVENT"
+    ],
+    [
+      "IDENTITY_TEST",
+      "ALTERNATIVE_ADVANCE"
+    ],
+    [
+      "IDENTITY_TEST",
+      "GUARDED_BRANCH"
+    ],
+    [
+      "IDENTITY_TEST",
+      "LOGICAL_AND"
+    ],
+    [
+      "IDENTITY_TEST",
+      "LOGICAL_NOT"
+    ],
+    [
+      "IDENTITY_TEST",
+      "LOGICAL_XOR"
+    ],
+    [
+      "INVERSE_RECOVERY",
+      "EFFECT_COMPOSE"
+    ],
+    [
+      "INVERSE_RECOVERY",
+      "EFFECT_SCORE"
+    ],
+    [
+      "INVERSE_RECOVERY",
+      "IDENTITY_TEST"
+    ],
+    [
+      "INVERSE_RECOVERY",
+      "PRECONDITION_DEPENDENCY"
+    ],
+    [
+      "LAST_EVENT",
+      "INTERVAL_MEASURE"
+    ],
+    [
+      "LOGICAL_AND",
+      "ALTERNATIVE_ADVANCE"
+    ],
+    [
+      "LOGICAL_AND",
+      "GUARDED_BRANCH"
+    ],
+    [
+      "LOGICAL_AND",
+      "LOGICAL_NOT"
+    ],
+    [
+      "LOGICAL_AND",
+      "LOGICAL_XOR"
+    ],
+    [
+      "LOGICAL_NOT",
+      "ALTERNATIVE_ADVANCE"
+    ],
+    [
+      "LOGICAL_NOT",
+      "GUARDED_BRANCH"
+    ],
+    [
+      "LOGICAL_NOT",
+      "LOGICAL_AND"
+    ],
+    [
+      "LOGICAL_NOT",
+      "LOGICAL_XOR"
+    ],
+    [
+      "LOGICAL_XOR",
+      "ALTERNATIVE_ADVANCE"
+    ],
+    [
+      "LOGICAL_XOR",
+      "GUARDED_BRANCH"
+    ],
+    [
+      "LOGICAL_XOR",
+      "LOGICAL_AND"
+    ],
+    [
+      "LOGICAL_XOR",
+      "LOGICAL_NOT"
+    ],
+    [
+      "MEASURE_EQUIVALENCE",
+      "ALTERNATIVE_ADVANCE"
+    ],
+    [
+      "MEASURE_EQUIVALENCE",
+      "GUARDED_BRANCH"
+    ],
+    [
+      "MEASURE_EQUIVALENCE",
+      "LOGICAL_AND"
+    ],
+    [
+      "MEASURE_EQUIVALENCE",
+      "LOGICAL_NOT"
+    ],
+    [
+      "MEASURE_EQUIVALENCE",
+      "LOGICAL_XOR"
+    ],
+    [
+      "ORDERED_PATH",
+      "FIRST_EVENT"
+    ],
+    [
+      "ORDERED_PATH",
+      "GUARDED_SEQUENCE"
+    ],
+    [
+      "ORDERED_PATH",
+      "LAST_EVENT"
+    ],
+    [
+      "PRESENCE",
+      "ALTERNATIVE_ADVANCE"
+    ],
+    [
+      "PRESENCE",
+      "GUARDED_BRANCH"
+    ],
+    [
+      "PRESENCE",
+      "LOGICAL_AND"
+    ],
+    [
+      "PRESENCE",
+      "LOGICAL_NOT"
+    ],
+    [
+      "PRESENCE",
+      "LOGICAL_XOR"
+    ],
+    [
+      "RELATION_PROJECT",
+      "ENTITY_BIND"
+    ],
+    [
+      "RELATION_PROJECT",
+      "PRESENCE"
+    ],
+    [
+      "RELATION_PROJECT",
+      "SET_CARDINALITY"
+    ],
+    [
+      "RELATION_PROJECT",
+      "UNIQUE_BINDING"
+    ],
+    [
+      "STATE_EQUIVALENCE",
+      "ALTERNATIVE_ADVANCE"
+    ],
+    [
+      "STATE_EQUIVALENCE",
+      "GUARDED_BRANCH"
+    ],
+    [
+      "STATE_EQUIVALENCE",
+      "LOGICAL_AND"
+    ],
+    [
+      "STATE_EQUIVALENCE",
+      "LOGICAL_NOT"
+    ],
+    [
+      "STATE_EQUIVALENCE",
+      "LOGICAL_XOR"
+    ],
+    [
+      "STATE_MUTATION",
+      "STATE_EQUIVALENCE"
+    ],
+    [
+      "UNIQUE_BINDING",
+      "RELATION_ADD"
+    ],
+    [
+      "UNIQUE_BINDING",
+      "RELATION_PROJECT"
+    ],
+    [
+      "UNIQUE_BINDING",
+      "STATE_MUTATION"
+    ]
+  ],
+  "composition_rule": "EXACT_OUTPUT_TO_INPUT_TYPE_CLOSURE",
+  "family_receipts": [
+    {
+      "evidence_kind": "typed_spatial_report",
+      "family_id": "typed_spatial_preconditions",
+      "primitive_count": 5,
+      "qualified": true
+    },
+    {
+      "evidence_kind": "goal_acquisition",
+      "family_id": "relational_goal_binding",
+      "primitive_count": 5,
+      "qualified": true
+    },
+    {
+      "evidence_kind": "topology",
+      "family_id": "ordered_topology",
+      "primitive_count": 3,
+      "qualified": true
+    },
+    {
+      "evidence_kind": "search_automaton",
+      "family_id": "counterfactual_search",
+      "primitive_count": 3,
+      "qualified": true
+    },
+    {
+      "evidence_kind": "cyclic_identity",
+      "family_id": "cyclic_identity",
+      "primitive_count": 4,
+      "qualified": true
+    },
+    {
+      "evidence_kind": "temporal_manifest",
+      "family_id": "multihorizon_effects",
+      "primitive_count": 9,
+      "qualified": true
+    }
+  ],
+  "primitive_names": [
+    "ALTERNATIVE_ADVANCE",
+    "COUNTERFACTUAL_REFUTATION",
+    "EFFECT_ARGMAX",
+    "EFFECT_COMPOSE",
+    "EFFECT_SCORE",
+    "ENTITY_BIND",
+    "FIRST_EVENT",
+    "GOAL_RELATION_TEST",
+    "GUARDED_BRANCH",
+    "GUARDED_SEQUENCE",
+    "IDENTITY_TEST",
+    "INTERVAL_MEASURE",
+    "INVERSE_RECOVERY",
+    "LAST_EVENT",
+    "LOGICAL_AND",
+    "LOGICAL_NOT",
+    "LOGICAL_XOR",
+    "MEASURE_EQUIVALENCE",
+    "ORDERED_ENDPOINTS",
+    "ORDERED_PATH",
+    "PRECONDITION_DEPENDENCY",
+    "PRESENCE",
+    "RELATION_ADD",
+    "RELATION_PROJECT",
+    "SET_CARDINALITY",
+    "STATE_EQUIVALENCE",
+    "STATE_MUTATION",
+    "UNIQUE_BINDING",
+    "VERIFIED_COMMIT"
+  ],
+  "primitives": [
+    {
+      "artifact_sha256s": [
+        "1bbcc533cf55ae53fa65fea58097601ac3ce9d049f8f95142c9cf703c13b1bc6",
+        "92ae5e2d41bc5302566bf07c58e40aa1922ef44079abff0a6359b6280e9a337b"
+      ],
+      "control": "typed-effect binding shuffle and source-program permutation",
+      "evidence_family": "typed_spatial_preconditions",
+      "input_types": [
+        "EntitySet"
+      ],
+      "name": "ENTITY_BIND",
+      "output_type": "BoundEntity",
+      "source_domains": [
+        "MiniGrid DoorKey",
+        "MiniGrid UnlockPickup",
+        "MiniGrid PutNear"
+      ],
+      "support": 32
+    },
+    {
+      "artifact_sha256s": [
+        "1bbcc533cf55ae53fa65fea58097601ac3ce9d049f8f95142c9cf703c13b1bc6",
+        "92ae5e2d41bc5302566bf07c58e40aa1922ef44079abff0a6359b6280e9a337b"
+      ],
+      "control": "typed-effect binding shuffle and source-program permutation",
+      "evidence_family": "typed_spatial_preconditions",
+      "input_types": [
+        "BoundEntity",
+        "State"
+      ],
+      "name": "STATE_MUTATION",
+      "output_type": "State",
+      "source_domains": [
+        "MiniGrid DoorKey",
+        "MiniGrid UnlockPickup",
+        "MiniGrid PutNear"
+      ],
+      "support": 32
+    },
+    {
+      "artifact_sha256s": [
+        "1bbcc533cf55ae53fa65fea58097601ac3ce9d049f8f95142c9cf703c13b1bc6",
+        "92ae5e2d41bc5302566bf07c58e40aa1922ef44079abff0a6359b6280e9a337b"
+      ],
+      "control": "typed-effect binding shuffle and source-program permutation",
+      "evidence_family": "typed_spatial_preconditions",
+      "input_types": [
+        "BoundEntity",
+        "Entity"
+      ],
+      "name": "RELATION_ADD",
+      "output_type": "Relation",
+      "source_domains": [
+        "MiniGrid DoorKey",
+        "MiniGrid UnlockPickup",
+        "MiniGrid PutNear"
+      ],
+      "support": 32
+    },
+    {
+      "artifact_sha256s": [
+        "1bbcc533cf55ae53fa65fea58097601ac3ce9d049f8f95142c9cf703c13b1bc6",
+        "92ae5e2d41bc5302566bf07c58e40aa1922ef44079abff0a6359b6280e9a337b"
+      ],
+      "control": "typed-effect binding shuffle and source-program permutation",
+      "evidence_family": "typed_spatial_preconditions",
+      "input_types": [
+        "PredicateSet",
+        "TransitionSeq"
+      ],
+      "name": "GUARDED_SEQUENCE",
+      "output_type": "TransitionSeq",
+      "source_domains": [
+        "MiniGrid DoorKey",
+        "MiniGrid UnlockPickup",
+        "MiniGrid PutNear"
+      ],
+      "support": 12
+    },
+    {
+      "artifact_sha256s": [
+        "1bbcc533cf55ae53fa65fea58097601ac3ce9d049f8f95142c9cf703c13b1bc6",
+        "92ae5e2d41bc5302566bf07c58e40aa1922ef44079abff0a6359b6280e9a337b"
+      ],
+      "control": "typed-effect binding shuffle and source-program permutation",
+      "evidence_family": "typed_spatial_preconditions",
+      "input_types": [
+        "Effect",
+        "Effect"
+      ],
+      "name": "PRECONDITION_DEPENDENCY",
+      "output_type": "CausalEdge",
+      "source_domains": [
+        "MiniGrid DoorKey",
+        "MiniGrid UnlockPickup",
+        "MiniGrid PutNear"
+      ],
+      "support": 12
+    },
+    {
+      "artifact_sha256s": [
+        "7ff3e950f3eebaf75cca015df88ab6a01f2f364fe246102984a3cb4ee095f0d7",
+        "a37edef5ad43702e2eac8df1c0d29f0e1c5d5fa54cbd782a72b114cc282bd4b9",
+        "bcdd55fe0d80f93a660a4040a3aafb66eb4c9693f71490cf3ba5a5d336cf276f"
+      ],
+      "control": "held-out next-effect shuffle",
+      "evidence_family": "relational_goal_binding",
+      "input_types": [
+        "EntitySet"
+      ],
+      "name": "SET_CARDINALITY",
+      "output_type": "Natural",
+      "source_domains": [
+        "Sokoban"
+      ],
+      "support": 85
+    },
+    {
+      "artifact_sha256s": [
+        "7ff3e950f3eebaf75cca015df88ab6a01f2f364fe246102984a3cb4ee095f0d7",
+        "a37edef5ad43702e2eac8df1c0d29f0e1c5d5fa54cbd782a72b114cc282bd4b9",
+        "bcdd55fe0d80f93a660a4040a3aafb66eb4c9693f71490cf3ba5a5d336cf276f"
+      ],
+      "control": "held-out next-effect shuffle",
+      "evidence_family": "relational_goal_binding",
+      "input_types": [
+        "EntitySet"
+      ],
+      "name": "PRESENCE",
+      "output_type": "Truth3",
+      "source_domains": [
+        "Sokoban"
+      ],
+      "support": 85
+    },
+    {
+      "artifact_sha256s": [
+        "7ff3e950f3eebaf75cca015df88ab6a01f2f364fe246102984a3cb4ee095f0d7",
+        "a37edef5ad43702e2eac8df1c0d29f0e1c5d5fa54cbd782a72b114cc282bd4b9",
+        "bcdd55fe0d80f93a660a4040a3aafb66eb4c9693f71490cf3ba5a5d336cf276f"
+      ],
+      "control": "held-out next-effect shuffle",
+      "evidence_family": "relational_goal_binding",
+      "input_types": [
+        "EntitySet"
+      ],
+      "name": "UNIQUE_BINDING",
+      "output_type": "BoundEntity",
+      "source_domains": [
+        "Sokoban"
+      ],
+      "support": 85
+    },
+    {
+      "artifact_sha256s": [
+        "7ff3e950f3eebaf75cca015df88ab6a01f2f364fe246102984a3cb4ee095f0d7",
+        "a37edef5ad43702e2eac8df1c0d29f0e1c5d5fa54cbd782a72b114cc282bd4b9",
+        "bcdd55fe0d80f93a660a4040a3aafb66eb4c9693f71490cf3ba5a5d336cf276f"
+      ],
+      "control": "held-out next-effect shuffle",
+      "evidence_family": "relational_goal_binding",
+      "input_types": [
+        "BoundEntity",
+        "RelationSet"
+      ],
+      "name": "RELATION_PROJECT",
+      "output_type": "EntitySet",
+      "source_domains": [
+        "Sokoban"
+      ],
+      "support": 85
+    },
+    {
+      "artifact_sha256s": [
+        "7ff3e950f3eebaf75cca015df88ab6a01f2f364fe246102984a3cb4ee095f0d7",
+        "a37edef5ad43702e2eac8df1c0d29f0e1c5d5fa54cbd782a72b114cc282bd4b9",
+        "bcdd55fe0d80f93a660a4040a3aafb66eb4c9693f71490cf3ba5a5d336cf276f"
+      ],
+      "control": "held-out next-effect shuffle",
+      "evidence_family": "relational_goal_binding",
+      "input_types": [
+        "RelationSet",
+        "GoalRelation"
+      ],
+      "name": "GOAL_RELATION_TEST",
+      "output_type": "Truth3",
+      "source_domains": [
+        "Sokoban"
+      ],
+      "support": 85
+    },
+    {
+      "artifact_sha256s": [
+        "12da519aa68896a501834915f1eea5c600cc3c45c6b8a9296714a8daee656963",
+        "bdbfd067f77a75ed87a815050e52556aad509812270b1d9e214476f4382525a9",
+        "d3c69a4ccce16b4e344eafefd0d8ade7145692aa44ecb9e491ece5b144330ee7"
+      ],
+      "control": "direction permutation, phase reversal, and length marginal",
+      "evidence_family": "ordered_topology",
+      "input_types": [
+        "TransitionSet"
+      ],
+      "name": "ORDERED_PATH",
+      "output_type": "TransitionSeq",
+      "source_domains": [
+        "Sokoban"
+      ],
+      "support": 62
+    },
+    {
+      "artifact_sha256s": [
+        "12da519aa68896a501834915f1eea5c600cc3c45c6b8a9296714a8daee656963",
+        "bdbfd067f77a75ed87a815050e52556aad509812270b1d9e214476f4382525a9",
+        "d3c69a4ccce16b4e344eafefd0d8ade7145692aa44ecb9e491ece5b144330ee7"
+      ],
+      "control": "direction permutation, phase reversal, and length marginal",
+      "evidence_family": "ordered_topology",
+      "input_types": [
+        "TransitionSeq"
+      ],
+      "name": "FIRST_EVENT",
+      "output_type": "Event",
+      "source_domains": [
+        "Sokoban"
+      ],
+      "support": 62
+    },
+    {
+      "artifact_sha256s": [
+        "12da519aa68896a501834915f1eea5c600cc3c45c6b8a9296714a8daee656963",
+        "bdbfd067f77a75ed87a815050e52556aad509812270b1d9e214476f4382525a9",
+        "d3c69a4ccce16b4e344eafefd0d8ade7145692aa44ecb9e491ece5b144330ee7"
+      ],
+      "control": "direction permutation, phase reversal, and length marginal",
+      "evidence_family": "ordered_topology",
+      "input_types": [
+        "TransitionSeq"
+      ],
+      "name": "LAST_EVENT",
+      "output_type": "Event",
+      "source_domains": [
+        "Sokoban"
+      ],
+      "support": 62
+    },
+    {
+      "artifact_sha256s": [
+        "261847ec1825dac50f87da013c3967d939e593f2c204abcd046d1886eb7f6a54",
+        "66c015e11afa0deb63d58fef6a7a7d50f675a5ea7ffd25d603ba88e552b1e7d8",
+        "ba848d54a10c785912f2dbe29c9ea8e35ef8eec3daf2cea4e5d303919b6cd75f"
+      ],
+      "control": "event-binding permutation and ledger-blind policy",
+      "evidence_family": "counterfactual_search",
+      "input_types": [
+        "ExpectedEffect",
+        "ObservedEffect"
+      ],
+      "name": "COUNTERFACTUAL_REFUTATION",
+      "output_type": "Truth3",
+      "source_domains": [
+        "Sokoban"
+      ],
+      "support": 85
+    },
+    {
+      "artifact_sha256s": [
+        "261847ec1825dac50f87da013c3967d939e593f2c204abcd046d1886eb7f6a54",
+        "66c015e11afa0deb63d58fef6a7a7d50f675a5ea7ffd25d603ba88e552b1e7d8",
+        "ba848d54a10c785912f2dbe29c9ea8e35ef8eec3daf2cea4e5d303919b6cd75f"
+      ],
+      "control": "event-binding permutation and ledger-blind policy",
+      "evidence_family": "counterfactual_search",
+      "input_types": [
+        "CandidateLedger",
+        "Truth3"
+      ],
+      "name": "ALTERNATIVE_ADVANCE",
+      "output_type": "CandidateLedger",
+      "source_domains": [
+        "Sokoban"
+      ],
+      "support": 85
+    },
+    {
+      "artifact_sha256s": [
+        "261847ec1825dac50f87da013c3967d939e593f2c204abcd046d1886eb7f6a54",
+        "66c015e11afa0deb63d58fef6a7a7d50f675a5ea7ffd25d603ba88e552b1e7d8",
+        "ba848d54a10c785912f2dbe29c9ea8e35ef8eec3daf2cea4e5d303919b6cd75f"
+      ],
+      "control": "event-binding permutation and ledger-blind policy",
+      "evidence_family": "counterfactual_search",
+      "input_types": [
+        "ExpectedEffect",
+        "ObservedEffect"
+      ],
+      "name": "VERIFIED_COMMIT",
+      "output_type": "Decision",
+      "source_domains": [
+        "Sokoban"
+      ],
+      "support": 85
+    },
+    {
+      "artifact_sha256s": [
+        "62d18bcffe16e7a44c5448e73175ac198e89fa5a0c7f509151015289695f3e4c",
+        "991c42abcd34c5cdc55acfab4258e4073ea79ee8b528402c23a6c5d439f8865b"
+      ],
+      "control": "terminal-label and recovery-binding permutation",
+      "evidence_family": "cyclic_identity",
+      "input_types": [
+        "State",
+        "State"
+      ],
+      "name": "STATE_EQUIVALENCE",
+      "output_type": "Truth3",
+      "source_domains": [
+        "Tetris"
+      ],
+      "support": 72
+    },
+    {
+      "artifact_sha256s": [
+        "62d18bcffe16e7a44c5448e73175ac198e89fa5a0c7f509151015289695f3e4c",
+        "991c42abcd34c5cdc55acfab4258e4073ea79ee8b528402c23a6c5d439f8865b"
+      ],
+      "control": "terminal-label and recovery-binding permutation",
+      "evidence_family": "cyclic_identity",
+      "input_types": [
+        "Effect",
+        "Effect"
+      ],
+      "name": "EFFECT_COMPOSE",
+      "output_type": "Effect",
+      "source_domains": [
+        "Tetris"
+      ],
+      "support": 72
+    },
+    {
+      "artifact_sha256s": [
+        "62d18bcffe16e7a44c5448e73175ac198e89fa5a0c7f509151015289695f3e4c",
+        "991c42abcd34c5cdc55acfab4258e4073ea79ee8b528402c23a6c5d439f8865b"
+      ],
+      "control": "terminal-label and recovery-binding permutation",
+      "evidence_family": "cyclic_identity",
+      "input_types": [
+        "Effect"
+      ],
+      "name": "IDENTITY_TEST",
+      "output_type": "Truth3",
+      "source_domains": [
+        "Tetris"
+      ],
+      "support": 72
+    },
+    {
+      "artifact_sha256s": [
+        "62d18bcffe16e7a44c5448e73175ac198e89fa5a0c7f509151015289695f3e4c",
+        "991c42abcd34c5cdc55acfab4258e4073ea79ee8b528402c23a6c5d439f8865b"
+      ],
+      "control": "terminal-label and recovery-binding permutation",
+      "evidence_family": "cyclic_identity",
+      "input_types": [
+        "Effect"
+      ],
+      "name": "INVERSE_RECOVERY",
+      "output_type": "Effect",
+      "source_domains": [
+        "Tetris"
+      ],
+      "support": 72
+    },
+    {
+      "artifact_sha256s": [
+        "098ba5686a2de8ea14b5da118b8bbfb6bb0d3509a6d9cffb89dda3e90aceea17",
+        "16126397c971669f1a3c091746785d647c10fbe229e3381770cf975f85115cc8",
+        "2c6d9278a7550f00f5ecc02768da526883b8ec6ede66726a8f8fc591c3bfebab",
+        "4644584624e761a0bfa983fc8671a77f9d7641bebdfafea48818f8b1dbdf74c1",
+        "723f25be198631db7edd329bd7970d7c3152e3d52728970e448b3c45b1ba5690",
+        "762beb66b1738b5b9deff3b47ddc0e82d708ca33e1125a4b63f0ce1ddbb97741",
+        "85e37d2459fb684e63e83be591573bf78539b32721d70aa579639b585e822465",
+        "8d5df39e844c2d84ce25da85919f969170904fc2e1c62a75ec802e34df5f7968",
+        "a2e23b729cdd3849483a82cca77c35bf865bd1658e420838488dfd01978f047f",
+        "a60daf1d3c38928156d72201750739b00c46d9f1e931156efbc147da89642c3a",
+        "c81902a54dcc0fe31b4f50a6b4ca8e79d776ecb82da7d3223e40e014fec04034",
+        "cc5f177fd54a2f17ccaa688ea1ecf6d0ae2395554a97a921563e70c32721601d",
+        "d757224c64d13bef76f6ac4a29ad7d9edb33b3a5a36c043735bca9f4b017a76c",
+        "df90d1ce8eabdce4ed81e10c47f22ff5b41a68073efc7b55bffc43e8adac269b"
+      ],
+      "control": "held-out full-effect-vector shuffle; failed sources retained as abstentions",
+      "evidence_family": "multihorizon_effects",
+      "input_types": [
+        "Effect"
+      ],
+      "name": "EFFECT_SCORE",
+      "output_type": "Scalar",
+      "source_domains": [
+        "tetris",
+        "candy_crush",
+        "gymv_columns",
+        "gymv_thunder_force_iii"
+      ],
+      "support": 55
+    },
+    {
+      "artifact_sha256s": [
+        "098ba5686a2de8ea14b5da118b8bbfb6bb0d3509a6d9cffb89dda3e90aceea17",
+        "16126397c971669f1a3c091746785d647c10fbe229e3381770cf975f85115cc8",
+        "2c6d9278a7550f00f5ecc02768da526883b8ec6ede66726a8f8fc591c3bfebab",
+        "4644584624e761a0bfa983fc8671a77f9d7641bebdfafea48818f8b1dbdf74c1",
+        "723f25be198631db7edd329bd7970d7c3152e3d52728970e448b3c45b1ba5690",
+        "762beb66b1738b5b9deff3b47ddc0e82d708ca33e1125a4b63f0ce1ddbb97741",
+        "85e37d2459fb684e63e83be591573bf78539b32721d70aa579639b585e822465",
+        "8d5df39e844c2d84ce25da85919f969170904fc2e1c62a75ec802e34df5f7968",
+        "a2e23b729cdd3849483a82cca77c35bf865bd1658e420838488dfd01978f047f",
+        "a60daf1d3c38928156d72201750739b00c46d9f1e931156efbc147da89642c3a",
+        "c81902a54dcc0fe31b4f50a6b4ca8e79d776ecb82da7d3223e40e014fec04034",
+        "cc5f177fd54a2f17ccaa688ea1ecf6d0ae2395554a97a921563e70c32721601d",
+        "d757224c64d13bef76f6ac4a29ad7d9edb33b3a5a36c043735bca9f4b017a76c",
+        "df90d1ce8eabdce4ed81e10c47f22ff5b41a68073efc7b55bffc43e8adac269b"
+      ],
+      "control": "held-out full-effect-vector shuffle; failed sources retained as abstentions",
+      "evidence_family": "multihorizon_effects",
+      "input_types": [
+        "EffectSet"
+      ],
+      "name": "EFFECT_ARGMAX",
+      "output_type": "Effect",
+      "source_domains": [
+        "tetris",
+        "candy_crush",
+        "gymv_columns",
+        "gymv_thunder_force_iii"
+      ],
+      "support": 55
+    },
+    {
+      "artifact_sha256s": [
+        "098ba5686a2de8ea14b5da118b8bbfb6bb0d3509a6d9cffb89dda3e90aceea17",
+        "16126397c971669f1a3c091746785d647c10fbe229e3381770cf975f85115cc8",
+        "2c6d9278a7550f00f5ecc02768da526883b8ec6ede66726a8f8fc591c3bfebab",
+        "4644584624e761a0bfa983fc8671a77f9d7641bebdfafea48818f8b1dbdf74c1",
+        "723f25be198631db7edd329bd7970d7c3152e3d52728970e448b3c45b1ba5690",
+        "762beb66b1738b5b9deff3b47ddc0e82d708ca33e1125a4b63f0ce1ddbb97741",
+        "85e37d2459fb684e63e83be591573bf78539b32721d70aa579639b585e822465",
+        "8d5df39e844c2d84ce25da85919f969170904fc2e1c62a75ec802e34df5f7968",
+        "a2e23b729cdd3849483a82cca77c35bf865bd1658e420838488dfd01978f047f",
+        "a60daf1d3c38928156d72201750739b00c46d9f1e931156efbc147da89642c3a",
+        "c81902a54dcc0fe31b4f50a6b4ca8e79d776ecb82da7d3223e40e014fec04034",
+        "cc5f177fd54a2f17ccaa688ea1ecf6d0ae2395554a97a921563e70c32721601d",
+        "d757224c64d13bef76f6ac4a29ad7d9edb33b3a5a36c043735bca9f4b017a76c",
+        "df90d1ce8eabdce4ed81e10c47f22ff5b41a68073efc7b55bffc43e8adac269b"
+      ],
+      "control": "held-out full-effect-vector shuffle; failed sources retained as abstentions",
+      "evidence_family": "multihorizon_effects",
+      "input_types": [
+        "EffectTrace"
+      ],
+      "name": "ORDERED_ENDPOINTS",
+      "output_type": "EventSeq",
+      "source_domains": [
+        "tetris",
+        "candy_crush",
+        "gymv_columns",
+        "gymv_thunder_force_iii"
+      ],
+      "support": 55
+    },
+    {
+      "artifact_sha256s": [
+        "098ba5686a2de8ea14b5da118b8bbfb6bb0d3509a6d9cffb89dda3e90aceea17",
+        "16126397c971669f1a3c091746785d647c10fbe229e3381770cf975f85115cc8",
+        "2c6d9278a7550f00f5ecc02768da526883b8ec6ede66726a8f8fc591c3bfebab",
+        "4644584624e761a0bfa983fc8671a77f9d7641bebdfafea48818f8b1dbdf74c1",
+        "723f25be198631db7edd329bd7970d7c3152e3d52728970e448b3c45b1ba5690",
+        "762beb66b1738b5b9deff3b47ddc0e82d708ca33e1125a4b63f0ce1ddbb97741",
+        "85e37d2459fb684e63e83be591573bf78539b32721d70aa579639b585e822465",
+        "8d5df39e844c2d84ce25da85919f969170904fc2e1c62a75ec802e34df5f7968",
+        "a2e23b729cdd3849483a82cca77c35bf865bd1658e420838488dfd01978f047f",
+        "a60daf1d3c38928156d72201750739b00c46d9f1e931156efbc147da89642c3a",
+        "c81902a54dcc0fe31b4f50a6b4ca8e79d776ecb82da7d3223e40e014fec04034",
+        "cc5f177fd54a2f17ccaa688ea1ecf6d0ae2395554a97a921563e70c32721601d",
+        "d757224c64d13bef76f6ac4a29ad7d9edb33b3a5a36c043735bca9f4b017a76c",
+        "df90d1ce8eabdce4ed81e10c47f22ff5b41a68073efc7b55bffc43e8adac269b"
+      ],
+      "control": "held-out full-effect-vector shuffle; failed sources retained as abstentions",
+      "evidence_family": "multihorizon_effects",
+      "input_types": [
+        "Event",
+        "Event"
+      ],
+      "name": "INTERVAL_MEASURE",
+      "output_type": "Interval",
+      "source_domains": [
+        "tetris",
+        "candy_crush",
+        "gymv_columns",
+        "gymv_thunder_force_iii"
+      ],
+      "support": 55
+    },
+    {
+      "artifact_sha256s": [
+        "098ba5686a2de8ea14b5da118b8bbfb6bb0d3509a6d9cffb89dda3e90aceea17",
+        "16126397c971669f1a3c091746785d647c10fbe229e3381770cf975f85115cc8",
+        "2c6d9278a7550f00f5ecc02768da526883b8ec6ede66726a8f8fc591c3bfebab",
+        "4644584624e761a0bfa983fc8671a77f9d7641bebdfafea48818f8b1dbdf74c1",
+        "723f25be198631db7edd329bd7970d7c3152e3d52728970e448b3c45b1ba5690",
+        "762beb66b1738b5b9deff3b47ddc0e82d708ca33e1125a4b63f0ce1ddbb97741",
+        "85e37d2459fb684e63e83be591573bf78539b32721d70aa579639b585e822465",
+        "8d5df39e844c2d84ce25da85919f969170904fc2e1c62a75ec802e34df5f7968",
+        "a2e23b729cdd3849483a82cca77c35bf865bd1658e420838488dfd01978f047f",
+        "a60daf1d3c38928156d72201750739b00c46d9f1e931156efbc147da89642c3a",
+        "c81902a54dcc0fe31b4f50a6b4ca8e79d776ecb82da7d3223e40e014fec04034",
+        "cc5f177fd54a2f17ccaa688ea1ecf6d0ae2395554a97a921563e70c32721601d",
+        "d757224c64d13bef76f6ac4a29ad7d9edb33b3a5a36c043735bca9f4b017a76c",
+        "df90d1ce8eabdce4ed81e10c47f22ff5b41a68073efc7b55bffc43e8adac269b"
+      ],
+      "control": "held-out full-effect-vector shuffle; failed sources retained as abstentions",
+      "evidence_family": "multihorizon_effects",
+      "input_types": [
+        "Truth3",
+        "Transition",
+        "Transition"
+      ],
+      "name": "GUARDED_BRANCH",
+      "output_type": "Transition",
+      "source_domains": [
+        "tetris",
+        "candy_crush",
+        "gymv_columns",
+        "gymv_thunder_force_iii"
+      ],
+      "support": 16
+    },
+    {
+      "artifact_sha256s": [
+        "098ba5686a2de8ea14b5da118b8bbfb6bb0d3509a6d9cffb89dda3e90aceea17",
+        "16126397c971669f1a3c091746785d647c10fbe229e3381770cf975f85115cc8",
+        "2c6d9278a7550f00f5ecc02768da526883b8ec6ede66726a8f8fc591c3bfebab",
+        "4644584624e761a0bfa983fc8671a77f9d7641bebdfafea48818f8b1dbdf74c1",
+        "723f25be198631db7edd329bd7970d7c3152e3d52728970e448b3c45b1ba5690",
+        "762beb66b1738b5b9deff3b47ddc0e82d708ca33e1125a4b63f0ce1ddbb97741",
+        "85e37d2459fb684e63e83be591573bf78539b32721d70aa579639b585e822465",
+        "8d5df39e844c2d84ce25da85919f969170904fc2e1c62a75ec802e34df5f7968",
+        "a2e23b729cdd3849483a82cca77c35bf865bd1658e420838488dfd01978f047f",
+        "a60daf1d3c38928156d72201750739b00c46d9f1e931156efbc147da89642c3a",
+        "c81902a54dcc0fe31b4f50a6b4ca8e79d776ecb82da7d3223e40e014fec04034",
+        "cc5f177fd54a2f17ccaa688ea1ecf6d0ae2395554a97a921563e70c32721601d",
+        "d757224c64d13bef76f6ac4a29ad7d9edb33b3a5a36c043735bca9f4b017a76c",
+        "df90d1ce8eabdce4ed81e10c47f22ff5b41a68073efc7b55bffc43e8adac269b"
+      ],
+      "control": "held-out full-effect-vector shuffle; failed sources retained as abstentions",
+      "evidence_family": "multihorizon_effects",
+      "input_types": [
+        "Truth3"
+      ],
+      "name": "LOGICAL_NOT",
+      "output_type": "Truth3",
+      "source_domains": [
+        "tetris",
+        "candy_crush",
+        "gymv_columns",
+        "gymv_thunder_force_iii"
+      ],
+      "support": 16
+    },
+    {
+      "artifact_sha256s": [
+        "098ba5686a2de8ea14b5da118b8bbfb6bb0d3509a6d9cffb89dda3e90aceea17",
+        "16126397c971669f1a3c091746785d647c10fbe229e3381770cf975f85115cc8",
+        "2c6d9278a7550f00f5ecc02768da526883b8ec6ede66726a8f8fc591c3bfebab",
+        "4644584624e761a0bfa983fc8671a77f9d7641bebdfafea48818f8b1dbdf74c1",
+        "723f25be198631db7edd329bd7970d7c3152e3d52728970e448b3c45b1ba5690",
+        "762beb66b1738b5b9deff3b47ddc0e82d708ca33e1125a4b63f0ce1ddbb97741",
+        "85e37d2459fb684e63e83be591573bf78539b32721d70aa579639b585e822465",
+        "8d5df39e844c2d84ce25da85919f969170904fc2e1c62a75ec802e34df5f7968",
+        "a2e23b729cdd3849483a82cca77c35bf865bd1658e420838488dfd01978f047f",
+        "a60daf1d3c38928156d72201750739b00c46d9f1e931156efbc147da89642c3a",
+        "c81902a54dcc0fe31b4f50a6b4ca8e79d776ecb82da7d3223e40e014fec04034",
+        "cc5f177fd54a2f17ccaa688ea1ecf6d0ae2395554a97a921563e70c32721601d",
+        "d757224c64d13bef76f6ac4a29ad7d9edb33b3a5a36c043735bca9f4b017a76c",
+        "df90d1ce8eabdce4ed81e10c47f22ff5b41a68073efc7b55bffc43e8adac269b"
+      ],
+      "control": "held-out full-effect-vector shuffle; failed sources retained as abstentions",
+      "evidence_family": "multihorizon_effects",
+      "input_types": [
+        "Truth3",
+        "Truth3"
+      ],
+      "name": "LOGICAL_AND",
+      "output_type": "Truth3",
+      "source_domains": [
+        "tetris",
+        "candy_crush",
+        "gymv_columns",
+        "gymv_thunder_force_iii"
+      ],
+      "support": 16
+    },
+    {
+      "artifact_sha256s": [
+        "098ba5686a2de8ea14b5da118b8bbfb6bb0d3509a6d9cffb89dda3e90aceea17",
+        "16126397c971669f1a3c091746785d647c10fbe229e3381770cf975f85115cc8",
+        "2c6d9278a7550f00f5ecc02768da526883b8ec6ede66726a8f8fc591c3bfebab",
+        "4644584624e761a0bfa983fc8671a77f9d7641bebdfafea48818f8b1dbdf74c1",
+        "723f25be198631db7edd329bd7970d7c3152e3d52728970e448b3c45b1ba5690",
+        "762beb66b1738b5b9deff3b47ddc0e82d708ca33e1125a4b63f0ce1ddbb97741",
+        "85e37d2459fb684e63e83be591573bf78539b32721d70aa579639b585e822465",
+        "8d5df39e844c2d84ce25da85919f969170904fc2e1c62a75ec802e34df5f7968",
+        "a2e23b729cdd3849483a82cca77c35bf865bd1658e420838488dfd01978f047f",
+        "a60daf1d3c38928156d72201750739b00c46d9f1e931156efbc147da89642c3a",
+        "c81902a54dcc0fe31b4f50a6b4ca8e79d776ecb82da7d3223e40e014fec04034",
+        "cc5f177fd54a2f17ccaa688ea1ecf6d0ae2395554a97a921563e70c32721601d",
+        "d757224c64d13bef76f6ac4a29ad7d9edb33b3a5a36c043735bca9f4b017a76c",
+        "df90d1ce8eabdce4ed81e10c47f22ff5b41a68073efc7b55bffc43e8adac269b"
+      ],
+      "control": "held-out full-effect-vector shuffle; failed sources retained as abstentions",
+      "evidence_family": "multihorizon_effects",
+      "input_types": [
+        "Truth3",
+        "Truth3"
+      ],
+      "name": "LOGICAL_XOR",
+      "output_type": "Truth3",
+      "source_domains": [
+        "tetris",
+        "candy_crush",
+        "gymv_columns",
+        "gymv_thunder_force_iii"
+      ],
+      "support": 16
+    },
+    {
+      "artifact_sha256s": [
+        "098ba5686a2de8ea14b5da118b8bbfb6bb0d3509a6d9cffb89dda3e90aceea17",
+        "16126397c971669f1a3c091746785d647c10fbe229e3381770cf975f85115cc8",
+        "2c6d9278a7550f00f5ecc02768da526883b8ec6ede66726a8f8fc591c3bfebab",
+        "4644584624e761a0bfa983fc8671a77f9d7641bebdfafea48818f8b1dbdf74c1",
+        "723f25be198631db7edd329bd7970d7c3152e3d52728970e448b3c45b1ba5690",
+        "762beb66b1738b5b9deff3b47ddc0e82d708ca33e1125a4b63f0ce1ddbb97741",
+        "85e37d2459fb684e63e83be591573bf78539b32721d70aa579639b585e822465",
+        "8d5df39e844c2d84ce25da85919f969170904fc2e1c62a75ec802e34df5f7968",
+        "a2e23b729cdd3849483a82cca77c35bf865bd1658e420838488dfd01978f047f",
+        "a60daf1d3c38928156d72201750739b00c46d9f1e931156efbc147da89642c3a",
+        "c81902a54dcc0fe31b4f50a6b4ca8e79d776ecb82da7d3223e40e014fec04034",
+        "cc5f177fd54a2f17ccaa688ea1ecf6d0ae2395554a97a921563e70c32721601d",
+        "d757224c64d13bef76f6ac4a29ad7d9edb33b3a5a36c043735bca9f4b017a76c",
+        "df90d1ce8eabdce4ed81e10c47f22ff5b41a68073efc7b55bffc43e8adac269b"
+      ],
+      "control": "matched-repeat effect measures versus fixed candidate derangement; authentic=576/576; deranged=312/576",
+      "evidence_family": "multihorizon_effects",
+      "input_types": [
+        "Measure",
+        "Measure"
+      ],
+      "name": "MEASURE_EQUIVALENCE",
+      "output_type": "Truth3",
+      "source_domains": [
+        "tetris",
+        "candy_crush",
+        "gymv_columns",
+        "gymv_thunder_force_iii"
+      ],
+      "support": 576
+    }
+  ],
+  "schema_version": "source-video-operator-algebra-v1",
+  "source_abstentions": [
+    {
+      "program_sha256": "0c07633bee316940db0bfeb1825d30d928a652659f1e18e71c7917d7b020e439",
+      "source": "gymv_streets_of_rage_2",
+      "status": "SOURCE_ABSTAINED"
+    },
+    {
+      "program_sha256": "01f6def57262e80f82e0ab1fd47a4c4c13285ad14d229ce9b7a7ce615fb759a8",
+      "source": "gymv_strider",
+      "status": "SOURCE_ABSTAINED"
+    }
+  ],
+  "status": "SOURCE_VIDEO_OPERATOR_ALGEBRA_QUALIFIED",
+  "target_data_read": false,
+  "target_dsl_tokens_used_for_induction": false
+}

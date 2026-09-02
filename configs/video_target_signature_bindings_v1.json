@@ -1,0 +1,29 @@
+{
+  "schema_version": "video-target-signature-bindings-v1",
+  "status": "TARGET_NATIVE_SIGNATURES_FROZEN_BEFORE_NEW_TARGET_RESERVES",
+  "authority": "PUBLIC_QUESTION_SCHEMA_AND_TYPED_INTERFACE_ONLY;NO_TARGET_OUTCOME",
+  "agqa": {
+    "presence_question": {"primitives": ["PRESENCE"], "compositions": []},
+    "membership_question": {"primitives": ["RELATION_PROJECT", "PRESENCE"], "compositions": [["RELATION_PROJECT", "PRESENCE"]]},
+    "equality_condition": {"primitives": ["MEASURE_EQUIVALENCE"], "compositions": []},
+    "exclusive_condition": {"primitives": ["PRESENCE", "LOGICAL_XOR"], "compositions": [["PRESENCE", "LOGICAL_XOR"]]},
+    "joint_condition": {"primitives": ["PRESENCE", "LOGICAL_AND"], "compositions": [["PRESENCE", "LOGICAL_AND"]]},
+    "alternatives": {"primitives": ["PRESENCE", "ALTERNATIVE_ADVANCE", "GUARDED_BRANCH"], "compositions": [["PRESENCE", "ALTERNATIVE_ADVANCE"], ["PRESENCE", "GUARDED_BRANCH"]]},
+    "duration_choice": {"primitives": ["ORDERED_PATH", "FIRST_EVENT", "LAST_EVENT", "INTERVAL_MEASURE", "GUARDED_BRANCH"], "compositions": [["ORDERED_PATH", "FIRST_EVENT"], ["ORDERED_PATH", "LAST_EVENT"], ["FIRST_EVENT", "INTERVAL_MEASURE"], ["LAST_EVENT", "INTERVAL_MEASURE"]]},
+    "duration_extremum": {"primitives": ["ORDERED_PATH", "FIRST_EVENT", "LAST_EVENT", "INTERVAL_MEASURE", "EFFECT_ARGMAX"], "compositions": [["ORDERED_PATH", "FIRST_EVENT"], ["ORDERED_PATH", "LAST_EVENT"], ["FIRST_EVENT", "INTERVAL_MEASURE"], ["LAST_EVENT", "INTERVAL_MEASURE"]]},
+    "goal": {"primitives": ["RELATION_PROJECT", "GOAL_RELATION_TEST"], "compositions": []}
+  },
+  "clevrer": {
+    "descriptive": {"primitives": ["RELATION_PROJECT", "PRESENCE", "SET_CARDINALITY"], "compositions": [["RELATION_PROJECT", "PRESENCE"], ["RELATION_PROJECT", "SET_CARDINALITY"]]},
+    "explanatory": {"primitives": ["PRECONDITION_DEPENDENCY", "ORDERED_PATH", "FIRST_EVENT"], "compositions": [["ORDERED_PATH", "FIRST_EVENT"]]},
+    "predictive": {"primitives": ["PRECONDITION_DEPENDENCY", "ORDERED_PATH", "LAST_EVENT"], "compositions": [["ORDERED_PATH", "LAST_EVENT"]]},
+    "counterfactual": {"primitives": ["PRECONDITION_DEPENDENCY", "COUNTERFACTUAL_REFUTATION", "LOGICAL_NOT"], "compositions": [["COUNTERFACTUAL_REFUTATION", "LOGICAL_NOT"]]}
+  },
+  "abstention": {
+    "missing_primitive": "ABSTAIN",
+    "type_mismatch": "ABSTAIN",
+    "unknown_question_family": "ABSTAIN",
+    "conflicting_or_unknown_grounding": "ABSTAIN",
+    "target_outcome_available": "REJECT_RECEIPT"
+  }
+}

@@ -1,0 +1,168 @@
+{
+  "claim_boundary": "Raw frames are content-bound to cached off-the-shelf NS-DR outputs; this is not live raw-video inference. Generic and isomorphic arms are ceilings, not provenance controls.",
+  "family_metrics": {
+    "counterfactual": {
+      "generic_symbolic": {
+        "accuracy": 0.4325,
+        "correct": 173,
+        "count": 400
+      },
+      "neural_only": {
+        "accuracy": 0.1525,
+        "correct": 61,
+        "count": 400
+      },
+      "source_induced": {
+        "accuracy": 0.1525,
+        "correct": 61,
+        "count": 400
+      },
+      "source_permuted": {
+        "accuracy": 0.1525,
+        "correct": 61,
+        "count": 400
+      },
+      "target_written_isomorphic": {
+        "accuracy": 0.1525,
+        "correct": 61,
+        "count": 400
+      }
+    },
+    "descriptive": {
+      "generic_symbolic": {
+        "accuracy": 0.8575,
+        "correct": 343,
+        "count": 400
+      },
+      "neural_only": {
+        "accuracy": 0.4875,
+        "correct": 195,
+        "count": 400
+      },
+      "source_induced": {
+        "accuracy": 0.8575,
+        "correct": 343,
+        "count": 400
+      },
+      "source_permuted": {
+        "accuracy": 0.4875,
+        "correct": 195,
+        "count": 400
+      },
+      "target_written_isomorphic": {
+        "accuracy": 0.8575,
+        "correct": 343,
+        "count": 400
+      }
+    },
+    "explanatory": {
+      "generic_symbolic": {
+        "accuracy": 0.84,
+        "correct": 336,
+        "count": 400
+      },
+      "neural_only": {
+        "accuracy": 0.1075,
+        "correct": 43,
+        "count": 400
+      },
+      "source_induced": {
+        "accuracy": 0.84,
+        "correct": 336,
+        "count": 400
+      },
+      "source_permuted": {
+        "accuracy": 0.1075,
+        "correct": 43,
+        "count": 400
+      },
+      "target_written_isomorphic": {
+        "accuracy": 0.84,
+        "correct": 336,
+        "count": 400
+      }
+    },
+    "predictive": {
+      "generic_symbolic": {
+        "accuracy": 0.6775,
+        "correct": 271,
+        "count": 400
+      },
+      "neural_only": {
+        "accuracy": 0.6425,
+        "correct": 257,
+        "count": 400
+      },
+      "source_induced": {
+        "accuracy": 0.6425,
+        "correct": 257,
+        "count": 400
+      },
+      "source_permuted": {
+        "accuracy": 0.6425,
+        "correct": 257,
+        "count": 400
+      },
+      "target_written_isomorphic": {
+        "accuracy": 0.6425,
+        "correct": 257,
+        "count": 400
+      }
+    }
+  },
+  "gates": {
+    "minimum_source_commits": true,
+    "negative_transfer_controlled": true,
+    "shared_receipt_fraction": true,
+    "source_vs_neural_positive": true,
+    "source_vs_neural_significant": true,
+    "source_vs_permuted_positive": true,
+    "source_vs_permuted_significant": true,
+    "target_written_isomorphic_equivalence": true
+  },
+  "metrics": {
+    "generic_symbolic": {
+      "accuracy": 0.701875,
+      "correct": 1123
+    },
+    "neural_only": {
+      "accuracy": 0.3475,
+      "correct": 556
+    },
+    "source_induced": {
+      "accuracy": 0.623125,
+      "correct": 997
+    },
+    "source_permuted": {
+      "accuracy": 0.3475,
+      "correct": 556
+    },
+    "target_written_isomorphic": {
+      "accuracy": 0.623125,
+      "correct": 997
+    }
+  },
+  "negative_transfer_loss_fraction": 0.014375,
+  "paired": {
+    "source_vs_neural": {
+      "losses": 23,
+      "net_wins": 441,
+      "one_sided_exact_p": 3.907193862591056e-108,
+      "ties": 1113,
+      "wins": 464
+    },
+    "source_vs_permuted": {
+      "losses": 23,
+      "net_wins": 441,
+      "one_sided_exact_p": 3.907193862591056e-108,
+      "ties": 1113,
+      "wins": 464
+    }
+  },
+  "predictions_sha256": "379900016c057ad7779e61c12038ae1a090ebc78113b96d96e756ae80ce312b3",
+  "report_sha256": "30ddf5d1a2031b5ed3d7349768b585688bc8c2a1e743ce407a0d550088dbeeed",
+  "schema_version": "clevrer-five-arm-formal-report-v1",
+  "status": "CLEVRER_FULL_LAYER_B_TRANSFER_VALIDATED",
+  "target_written_isomorphic_prediction_equivalence": 1.0,
+  "task_count": 1600
+}
