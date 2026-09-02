@@ -1,0 +1,59 @@
+{
+  "schema_version": "agqa2-layer-b-raw-video-qualification-v2-preregistration",
+  "status": "FROZEN_BEFORE_PARSER_GROUNDER_FALLBACK_OR_OUTCOME",
+  "claim": "game-acquired symbolic skills transfer to raw-video question answering under matched target-native grounding",
+  "cohort": {
+    "rows": 128,
+    "public_cohort_sha256": "b1d4ae4e089ac28fa3515c1410041987c9e1434a83cb13a365c9582e19acc077",
+    "manifest_sha256": "ec5cae60d14798cec460017c425ae5f7cfa1990083dfc5709d5b1f8c929362cd",
+    "excluded_prior_tasks_and_videos": 128,
+    "answers_read": false
+  },
+  "shared_pipeline": {
+    "semantic_parser": "frozen source-only Flan-T5-small operator-free parser",
+    "grounder_candidates": [
+      "Qwen3-VL-32B uniform 48 frames plus frozen SlowFast-R50 Charades dense10x32",
+      "Qwen3-VL-32B uniform 96 frames plus the same frozen SlowFast-R50 Charades dense10x32"
+    ],
+    "grounder_router": "FIRST_GENERIC_COMMIT_ELSE_FIRST_CANDIDATE",
+    "grounder_router_may_read_source_capabilities": false,
+    "grounder_router_may_read_answers_or_official_programs_or_scene_graphs": false,
+    "maximum_actual_frame_presentations_per_task": 464,
+    "slowfast_action_threshold": 0.1,
+    "fallback_actor": "frozen Qwen3.5-9B",
+    "shared_across_all_arms": [
+      "raw videos",
+      "presented frames",
+      "frame budget",
+      "VLM and action grounders",
+      "grounder routing",
+      "question parser",
+      "executor",
+      "fallback actor"
+    ]
+  },
+  "arms": [
+    "neural_only",
+    "generic_scaffold",
+    "source_permuted",
+    "source_induced",
+    "target_written_isomorphic"
+  ],
+  "source_capability_artifact_sha256": "8db5041579e8d5a69c5612247d62803ada2d98e745734fd9fac8cc3d7ca7902d",
+  "gates": {
+    "intrinsic_source_commit_rate_at_least": 0.5,
+    "source_accuracy_strictly_above_neural_only": true,
+    "source_vs_neural_exact_mcnemar_p_below": 0.05,
+    "source_accuracy_strictly_above_generic_scaffold": true,
+    "source_permuted_not_above_source": true,
+    "negative_transfer_losses_fraction_at_most": 0.05,
+    "target_written_isomorphic_action_equivalence": 1.0
+  },
+  "decision_rule": "Qualification passes only if every gate passes. Answers are read once, after parser, both grounding candidates, routing, fallback, and hashes freeze. A failure seals this reserve and forbids same-reserve tuning.",
+  "layer_boundary": {
+    "official_stsg_runtime_allowed": false,
+    "official_functional_program_runtime_allowed": false,
+    "official_answer_allowed_before_final_evaluator": false,
+    "layer_a_oracle_stsg_results_are_not_layer_b_evidence": true
+  }
+}

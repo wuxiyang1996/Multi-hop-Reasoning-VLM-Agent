@@ -152,15 +152,18 @@ def _provider_json_call(
     # envelope with null choices. Retry the identical request; never cache it.
     for _ in range(3):
         try:
-            candidate = client.chat.completions.create(
-                model=str(model["id"]), temperature=0, max_tokens=max_tokens,
-                response_format=dict(response_format),
-                messages=[
+            request = {
+                "model": str(model["id"]), "max_tokens": max_tokens,
+                "response_format": dict(response_format),
+                "messages": [
                     {"role": "system", "content": system},
                     {"role": "user", "content": content},
                 ],
-                extra_body=extra_body,
-            )
+                "extra_body": extra_body,
+            }
+            if not model.get("omit_temperature"):
+                request["temperature"] = 0
+            candidate = client.chat.completions.create(**request)
             if not getattr(candidate, "choices", None):
                 raise TypeError("provider response omitted choices")
             choice = candidate.choices[0]
@@ -1203,7 +1206,11 @@ def collect(
         target = metadata_rows[task_id]
         runtime = runtime_rows[task_id]
         program = str(target["program"])
-        if stable_hash(program) != frozen["program_sha256"]:
+        expected_program_sha256 = frozen.get("program_sha256")
+        if (
+            expected_program_sha256 is not None
+            and stable_hash(program) != expected_program_sha256
+        ):
             raise ValueError(f"functional-program hash mismatch: {task_id}")
         oracle_route = profile_program(task_id=task_id, program=program).route_kind
         gold = str(target["answer"])
@@ -1217,6 +1224,7 @@ def collect(
         typed_prediction = decision if decisive else direct
         evaluated.append(runtime | {
             "oracle_route_evaluator_only": oracle_route,
+            "program_sha256_evaluator_only": stable_hash(program),
             "gold_answer_evaluator_only": gold,
             "predicted_route_correct": (
                 runtime["query_plan"]["obligation_kind"] == oracle_route

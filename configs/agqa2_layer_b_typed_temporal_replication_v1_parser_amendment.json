@@ -1,0 +1,29 @@
+{
+  "schema_version": "agqa2-layer-b-typed-temporal-parser-amendment-v1",
+  "status": "FROZEN_AFTER_QUESTION_ONLY_PARSER_FAILURE_BEFORE_ANY_VIDEO_PROVIDER_OR_OUTCOME",
+  "base_preregistration_file_sha256": "3a8fe1ad9cfdc14472602cf16ff7a12ed7b7cd86a50e93e664e57472118cb152",
+  "cohort_sha256": "7274d64939ae875ca5cae4731afcc9da8ea9a0c32e04620a25e7739f5d367179",
+  "base_runtime_sha256": "5dbf2580580be12e572b1b6ccb6a122985afe393544d97bee5af148e19536a9d",
+  "base_runtime_file_sha256": "8858026bcdf7a8f50b3ec1f0ddedffe15759ce4c96b48f6c2e036175481dd511",
+  "failure": {
+    "invalid_tasks": 1,
+    "task_id": "85OEC-8624",
+    "parser_reason": "trailing token: )",
+    "observed_before_video_grounding": true
+  },
+  "repair": {
+    "policy": "UNIQUE_MINIMAL_SURPLUS_TRAILING_PARENTHESIS_REMOVAL",
+    "semantic_tokens_added_removed_or_reordered": false,
+    "only_surplus_suffix_delimiter_removed": true,
+    "answer_read": false,
+    "functional_program_read": false,
+    "video_read": false,
+    "provider_calls": 0,
+    "repair_script_sha256": "736b4bb5dc163dab26cc49c8deeecee27b893d78ac5c50a1fb9a8cdb464ff845"
+  },
+  "repaired_runtime_sha256": "ec7622590fea8883277bb7bb7b08a319f7c93f96afd9164f0c7f5cbae6d063b0",
+  "repaired_runtime_file_sha256": "54e5bd19fb2a7ddc57c46746ac0db04265d1c0649986ebddd2d6cd8dcac3f3c6",
+  "downstream_runtime": "runs/agqa2_layer_b_raw_video_v1/typed_temporal_replication_v1/semantic_runtime_repaired.json",
+  "decision_rule_unchanged": true,
+  "harness_grounder_executor_fallback_and_gates_unchanged": true
+}

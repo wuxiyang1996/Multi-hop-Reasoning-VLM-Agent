@@ -500,8 +500,8 @@ native_output = target_native_executor(authorization, grounding, candidates)</pr
             <tr>
               <td>5 · Video grounding</td>
               <td>同一机制能否进入 video reasoning？</td>
-              <td>自由文本 ledger 和通用 STAR/NExT route 未过 strongest-target gate；CLEVRER 与 AGQA 的 benchmark-native typed routes 获得正式正结果。</td>
-              <td><a href="THREE_VIDEO_TYPED_GROUNDING_V30_V33_RESULTS.md">three-video stop</a> · <a href="AGQA2_FULL_DISTRIBUTION_NEUROSYMBOLIC_V57_V62_RESULTS.md">AGQA V62</a></td>
+              <td>自由文本 ledger 和通用 STAR/NExT route 未过 strongest-target gate；AGQA 与 CLEVRER 的主比较现共用 benchmark-native structured grounding，因而 visual grounder 不能造成 matched-arm transfer delta。</td>
+              <td><a href="TWO_VIDEO_GROUNDING_ISOLATED_PRIMARY_V1.md">two-video grounding-isolated primary</a> · <a href="THREE_VIDEO_TYPED_GROUNDING_V30_V33_RESULTS.md">raw-video stop</a></td>
             </tr>
             <tr>
               <td>6 · Causal identification</td>
@@ -621,6 +621,8 @@ native_output = target_native_executor(authorization, grounding, candidates)</pr
 
             <article class="card span-12">
               <h3>Video：grounding failures、CLEVRER、STAR 与 AGQA 2.0</h3>
+              <p class="small"><a href="TWO_VIDEO_GROUNDING_ISOLATED_PRIMARY_V1.md">Grounding-isolated primary audit</a> 是当前主视频证据：AGQA 使用 official STSG typed tools，CLEVRER 每题所有 controller arms 共用一个冻结 event-graph proof receipt；不调用生成式 captioner 或外部 VLM。原始视频 Qwen/Gemini 路线保留为 secondary robustness evidence。</p>
+              <p class="small">Raw-video robustness 没有通过：<a href="AGQA2_ROUTER_V65_FORMAL_V1_RESULTS.md">V1</a> 为 53/80 vs 45/80（14W/6L，<code>p=.057659</code>）；后续 <a href="AGQA2_MULTICLASS_ROUTER_V65_FORMAL_V2_RESULTS.md">V2</a> 的 question-only route 仅 78/91 正确，触发全局 fail-closed，source 授权为 0。V2 是 post-V74 exploratory diagnostic，不能改变 raw-video negative verdict。论文主结果仍是 shared structured grounding 下的 matched-arm transfer delta。</p>
               <div class="grid">
                 <div class="span-6">
                   <ul class="file-list">
@@ -671,6 +673,8 @@ native_output = target_native_executor(authorization, grounding, candidates)</pr
                 <li><a href="results/phase9_source_program_heterogeneity_v1.json">Phase 9 heterogeneity</a></li>
                 <li><a href="results/phase16_gap_closure_v30.json">Phase 16 gap closure</a></li>
                 <li><a href="results/minigrid_orientation_target_v31_summary.json">V31 prospective reserve</a></li>
+                <li><a href="results/two_video_grounding_isolated_primary_v2.json">Two-video grounding-isolated consolidated audit</a></li>
+                <li><a href="results/agqa2_router_v65_formal_v1_audit.json">AGQA frozen-router/V65 raw-video audit</a></li>
                 <li><a href="results/agqa2_full_distribution_v57_v62_summary.json">AGQA V57–V62</a></li>
                 <li><a href="results/three_video_typed_grounding_v30_v33_summary.json">Three-video V30–V33</a></li>
               </ul>
@@ -694,8 +698,8 @@ native_output = target_native_executor(authorization, grounding, candidates)</pr
             <tr><td>TIR single-image maze</td><td><strong>12/18</strong></td><td>6/18</td><td>6W / 0L</td><td><span class="tag good">validated</span></td></tr>
             <tr><td>ALFWorld multiplicity</td><td><strong>20/24</strong></td><td>13/24</td><td>7W / 0L</td><td><span class="tag good">validated</span></td></tr>
             <tr><td>MiniGrid V31</td><td><strong>48/48</strong></td><td>16/48</td><td>32W / 0L</td><td><span class="tag good">prospective</span></td></tr>
-            <tr><td>CLEVRER V14</td><td><strong>511/720</strong></td><td>489/720</td><td>+22</td><td><span class="tag good">validated</span></td></tr>
-            <tr><td>AGQA V62</td><td><strong>290/900</strong></td><td>249/900</td><td>44W / 3L</td><td><span class="tag good">selective formal</span></td></tr>
+            <tr><td>CLEVRER V15 structured primary</td><td><strong>252/360</strong></td><td>236/360 neural-only</td><td>16W / 0L</td><td><span class="tag good">grounding-isolated</span></td></tr>
+            <tr><td>AGQA STSG fresh V3</td><td><strong>386/900</strong></td><td>322/900 generic</td><td>64W / 0L</td><td><span class="tag good">grounding-isolated</span></td></tr>
             <tr><td>STAR / NExT-QA generic route</td><td>8/12 typed</td><td>9/12 strongest direct</td><td>0W / 1L</td><td><span class="tag bad">gate failed</span></td></tr>
           </tbody>
         </table>
@@ -710,6 +714,7 @@ native_output = target_native_executor(authorization, grounding, candidates)</pr
             <li class="done">selective abstention 能限制 negative transfer。</li>
             <li class="done">不同 interventions 可归纳不同 program family。</li>
             <li class="done">source route 可在零完整 target trajectory 下取得结构。</li>
+            <li class="done">AGQA/CLEVRER 的 matched-arm delta 已与 visual-model grounding 隔离。</li>
           </ul>
         </article>
         <article class="card span-6 card-accent-red">
@@ -725,9 +730,9 @@ native_output = target_native_executor(authorization, grounding, candidates)</pr
       </div>
 
       <p class="small">
-        详细结果：<a href="PHASE8_FOUR_DOMAIN_UNIFIED_NEUROSYMBOLIC_TRANSFER_RESULTS.md">四域统一结果</a>、
+        视频表的结论严格条件化于 benchmark-native shared structured grounding；它不声称 raw-pixel video QA 或视觉感知已经解决。CLEVRER 的 absolute accuracy 仍依赖冻结 neural proof grounder；同题各 arm 共用相同 receipt 只保证它不混淆 paired delta。CLEVRER 对 generic scaffold 的 13W/6L 为正但未达显著；AGQA 的 target-written isomorphic controller 与 source-induced 相等，因此不能证明 source provenance 必要。详细结果：<a href="PHASE8_FOUR_DOMAIN_UNIFIED_NEUROSYMBOLIC_TRANSFER_RESULTS.md">四域统一结果</a>、
         <a href="PHASE17_PROSPECTIVE_V28_TARGET_RESERVE_RESULTS.md">V31 prospective result</a>、
-        <a href="AGQA2_FULL_DISTRIBUTION_NEUROSYMBOLIC_V57_V62_RESULTS.md">AGQA V57–V62</a>、
+        <a href="TWO_VIDEO_GROUNDING_ISOLATED_PRIMARY_V1.md">two-video grounding-isolated primary</a>、
         <a href="THREE_VIDEO_TYPED_GROUNDING_V30_V33_RESULTS.md">自然视频 stop result</a>。
       </p>
     </section>
@@ -851,8 +856,53 @@ python -m pytest -q \
       </div>
     </section>
 
+    <section class="panel" id="agqa-full-typed-v1">
+      <p class="eyebrow">12 · AGQA full-family typed transfer</p>
+      <h2>早期 selective AGQA 结果已扩展并通过 fresh 六臂 formal gate</h2>
+      <p>
+        Source-only induction 得到 15 个 typed operators 与 32 条 composition edges，再由 AGQA-native
+        question compiler 和 official-STSG executor 执行。在 2,400 个 fresh questions 上，source-induced 为
+        <strong>2,320/2,400（96.67%）</strong>，neural-only 为 1,945/2,400，generic scaffold 为
+        1,950/2,400。Source 对 generic 为 374W/4L（<code>p=2.75e-105</code>），所有预注册 gate 均通过。
+      </p>
+      <div class="callout good">
+        <strong>因果解释：</strong>source-induced 与 target-written-isomorphic 完全一致（0W/0L），而
+        source-permuted 与 generic 都不能复现增益。因此起作用的是 program content，不是 source identity；
+        source induction 的价值是无需 target-outcome controller tuning 即可恢复这份结构。
+      </div>
+      <div class="callout bad">
+        <strong>边界：</strong>这是复用 videos 和 official STSG 的 2,400-question fresh-outcome sample，不能写成
+        full official-test、raw-video SOTA 或 video-disjoint。详见
+        <a href="AGQA2_FULL_TYPED_OPERATOR_TRANSFER_V1_RESULTS.md">V1 hash-bound 报告</a>。
+      </div>
+    </section>
+
+    <section class="panel" id="agqa-layer-b-raw-video-v1">
+      <p class="eyebrow">13 · AGQA Layer B raw-video transfer</p>
+      <h2>在共享冻结感知下，游戏归纳的 ordered-effect skill 显著改善最终视频 QA</h2>
+      <p>
+        新的 video-disjoint typed-temporal replication 从真实 Charades 视频开始，经共享的
+        Qwen3-VL-32B 48/96-frame grounder、SlowFast、operator-free semantic parser、typed executor
+        与 Qwen3.5-9B fallback，只替换 symbolic Harness。在 256 个 fresh task/video 上，
+        source-induced 为 <strong>135/256（52.73%）</strong>，neural-only 与保持 operator/edge
+        数量的 source-permuted 均为 106/256（41.41%）：34W/5L，<code>p=2.43e-6</code>，
+        negative-transfer loss 为 1.95%。
+      </p>
+      <div class="callout good">
+        <strong>允许的结论：</strong>game-acquired ordered-effect structure selectively transfers to
+        raw-video temporal/duration reasoning under shared frozen perception。Source-permuted 未复现增益，
+        target-written-isomorphic 与 source 完全等价，因此有效变量是正确的 program composition。
+      </div>
+      <div class="callout bad">
+        <strong>边界：</strong>unrestricted generic target-VM scaffold 为 149/256，高于 source；所以不能声称
+        source policy 优于更宽的 target-engineered controller，也不能称为 full-distribution AGQA2 或
+        video SOTA。详见 <a href="AGQA2_LAYER_B_TYPED_TEMPORAL_REPLICATION_V1_RESULTS.md">Layer B
+        hash-bound 结果</a>。
+      </div>
+    </section>
+
     <section class="panel" id="status">
-      <p class="eyebrow">12 · Repository status and completion criteria</p>
+      <p class="eyebrow">14 · Repository status and completion criteria</p>
       <h2>研究机制与 9B 六 benchmark 替换已完成；剩余为 release 收口</h2>
 
       <div class="grid">
@@ -865,6 +915,8 @@ python -m pytest -q \
             <li class="done">四个非视频 formal routes</li>
             <li class="done">MiniGrid prospective target reserve</li>
             <li class="done">CLEVRER 与 AGQA selective video QA routes</li>
+            <li class="done">AGQA full-family typed algebra：fresh 2,400-question 六臂 formal validation</li>
+            <li class="done">AGQA Layer B：256 个 fresh raw-video task 上 selective typed transfer 显著</li>
             <li class="done">source provenance 与 program content 的因果区分</li>
             <li class="done">Qwen3.5-9B Harness source-only SFT 与 model-unseen execution gate</li>
             <li class="done">fresh 六 benchmark 2,246/2,246 route substitution</li>
@@ -879,7 +931,7 @@ python -m pytest -q \
             <li class="done">V3 paper artifacts 已从 README 链接，并提供 machine-readable evidence map</li>
             <li class="todo">可选：独立训练 five-domain target-adapted 9B ceiling，不覆盖 source-only adapter</li>
             <li class="todo">刷新 README 与 clean-room installation recipe</li>
-            <li class="todo">若保留自然视频：训练 STAR ontology grounder，并取得 video-disjoint NExT-QA</li>
+            <li class="todo">可选扩展：用同一 Layer-B 协议在第二个自然视频 benchmark replication</li>
           </ul>
         </article>
       </div>

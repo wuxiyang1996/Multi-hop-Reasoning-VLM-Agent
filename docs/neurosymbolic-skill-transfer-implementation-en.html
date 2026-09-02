@@ -504,8 +504,8 @@ native_output = target_native_executor(authorization, grounding, candidates)</pr
             <tr>
               <td>5 · Video grounding</td>
               <td>Can the same mechanism enter video reasoning?</td>
-              <td>Free-text ledgers and the generic STAR/NExT route failed the strongest-target gate. Benchmark-native typed routes on CLEVRER and AGQA obtained formal positive evidence.</td>
-              <td><a href="THREE_VIDEO_TYPED_GROUNDING_V30_V33_RESULTS.md">three-video stop</a> · <a href="AGQA2_FULL_DISTRIBUTION_NEUROSYMBOLIC_V57_V62_RESULTS.md">AGQA V62</a></td>
+              <td>Free-text ledgers and the generic STAR/NExT route failed the strongest-target gate. The AGQA and CLEVRER primary comparisons now share benchmark-native structured grounding, so a visual grounder cannot cause the matched-arm transfer delta.</td>
+              <td><a href="TWO_VIDEO_GROUNDING_ISOLATED_PRIMARY_V1.md">two-video grounding-isolated primary</a> · <a href="THREE_VIDEO_TYPED_GROUNDING_V30_V33_RESULTS.md">raw-video stop</a></td>
             </tr>
             <tr>
               <td>6 · Causal identification</td>
@@ -625,6 +625,8 @@ native_output = target_native_executor(authorization, grounding, candidates)</pr
 
             <article class="card span-12">
               <h3>Video: grounding failures, CLEVRER, STAR, and AGQA 2.0</h3>
+              <p class="small">The <a href="TWO_VIDEO_GROUNDING_ISOLATED_PRIMARY_V1.md">grounding-isolated primary audit</a> is the current primary video evidence: AGQA uses official STSG typed tools, while every controller arm for a CLEVRER task shares one frozen event-graph proof receipt. Neither route calls a generative captioner or external VLM. Raw-video Qwen/Gemini routes remain secondary robustness evidence.</p>
+              <p class="small">Raw-video robustness did not pass: <a href="AGQA2_ROUTER_V65_FORMAL_V1_RESULTS.md">V1</a> reached 53/80 versus 45/80 (14W/6L, <code>p=.057659</code>); the later <a href="AGQA2_MULTICLASS_ROUTER_V65_FORMAL_V2_RESULTS.md">V2</a> question-only route was correct on only 78/91 tasks, triggering global fail-closed and zero source authorizations. V2 is a post-V74 exploratory diagnostic and cannot alter the negative raw-video verdict. The paper-primary result remains the matched-arm transfer delta under shared structured grounding.</p>
               <div class="grid">
                 <div class="span-6">
                   <ul class="file-list">
@@ -675,6 +677,8 @@ native_output = target_native_executor(authorization, grounding, candidates)</pr
                 <li><a href="results/phase9_source_program_heterogeneity_v1.json">Phase 9 heterogeneity</a></li>
                 <li><a href="results/phase16_gap_closure_v30.json">Phase 16 gap closure</a></li>
                 <li><a href="results/minigrid_orientation_target_v31_summary.json">V31 prospective reserve</a></li>
+                <li><a href="results/two_video_grounding_isolated_primary_v2.json">Two-video grounding-isolated consolidated audit</a></li>
+                <li><a href="results/agqa2_router_v65_formal_v1_audit.json">AGQA frozen-router/V65 raw-video audit</a></li>
                 <li><a href="results/agqa2_full_distribution_v57_v62_summary.json">AGQA V57–V62</a></li>
                 <li><a href="results/three_video_typed_grounding_v30_v33_summary.json">Three-video V30–V33</a></li>
               </ul>
@@ -698,8 +702,8 @@ native_output = target_native_executor(authorization, grounding, candidates)</pr
             <tr><td>TIR single-image maze</td><td><strong>12/18</strong></td><td>6/18</td><td>6W / 0L</td><td><span class="tag good">validated</span></td></tr>
             <tr><td>ALFWorld multiplicity</td><td><strong>20/24</strong></td><td>13/24</td><td>7W / 0L</td><td><span class="tag good">validated</span></td></tr>
             <tr><td>MiniGrid V31</td><td><strong>48/48</strong></td><td>16/48</td><td>32W / 0L</td><td><span class="tag good">prospective</span></td></tr>
-            <tr><td>CLEVRER V14</td><td><strong>511/720</strong></td><td>489/720</td><td>+22</td><td><span class="tag good">validated</span></td></tr>
-            <tr><td>AGQA V62</td><td><strong>290/900</strong></td><td>249/900</td><td>44W / 3L</td><td><span class="tag good">selective formal</span></td></tr>
+            <tr><td>CLEVRER V15 structured primary</td><td><strong>252/360</strong></td><td>236/360 neural-only</td><td>16W / 0L</td><td><span class="tag good">grounding-isolated</span></td></tr>
+            <tr><td>AGQA STSG fresh V3</td><td><strong>386/900</strong></td><td>322/900 generic</td><td>64W / 0L</td><td><span class="tag good">grounding-isolated</span></td></tr>
             <tr><td>STAR / NExT-QA generic route</td><td>8/12 typed</td><td>9/12 strongest direct</td><td>0W / 1L</td><td><span class="tag bad">gate failed</span></td></tr>
           </tbody>
         </table>
@@ -714,6 +718,7 @@ native_output = target_native_executor(authorization, grounding, candidates)</pr
             <li class="done">Selective abstention can bound negative transfer.</li>
             <li class="done">Different interventions induce different program families.</li>
             <li class="done">A source route can acquire structure with zero complete target trajectories.</li>
+            <li class="done">The AGQA/CLEVRER matched-arm deltas are isolated from visual-model grounding.</li>
           </ul>
         </article>
         <article class="card span-6 card-accent-red">
@@ -729,9 +734,9 @@ native_output = target_native_executor(authorization, grounding, candidates)</pr
       </div>
 
       <p class="small">
-        Detailed reports: <a href="PHASE8_FOUR_DOMAIN_UNIFIED_NEUROSYMBOLIC_TRANSFER_RESULTS.md">unified four-domain results</a>,
+        The video-table claim is strictly conditional on benchmark-native shared structured grounding; it does not claim raw-pixel video QA or solved visual perception. CLEVRER absolute accuracy still depends on its frozen neural proof grounder; sharing the same per-task receipt only prevents it from confounding the paired delta. CLEVRER's 13W/6L comparison against the generic scaffold is positive but non-significant. AGQA's target-written isomorphic controller equals source-induced, so it cannot establish source-provenance necessity. Detailed reports: <a href="PHASE8_FOUR_DOMAIN_UNIFIED_NEUROSYMBOLIC_TRANSFER_RESULTS.md">unified four-domain results</a>,
         <a href="PHASE17_PROSPECTIVE_V28_TARGET_RESERVE_RESULTS.md">V31 prospective result</a>,
-        <a href="AGQA2_FULL_DISTRIBUTION_NEUROSYMBOLIC_V57_V62_RESULTS.md">AGQA V57–V62</a>, and
+        <a href="TWO_VIDEO_GROUNDING_ISOLATED_PRIMARY_V1.md">two-video grounding-isolated primary</a>, and
         <a href="THREE_VIDEO_TYPED_GROUNDING_V30_V33_RESULTS.md">natural-video stop result</a>.
       </p>
     </section>
@@ -856,8 +861,54 @@ python -m pytest -q \
       </div>
     </section>
 
+    <section class="panel" id="agqa-full-typed-v1">
+      <p class="eyebrow">12 · Full-family AGQA typed transfer</p>
+      <h2>The former selective AGQA result now passes a fresh six-arm formal gate</h2>
+      <p>
+        A source-only induced algebra of 15 typed operators and 32 composition edges is executed by an
+        AGQA-native question compiler and official-STSG executor. On 2,400 fresh questions, source-induced
+        reaches <strong>2,320/2,400 (96.67%)</strong>, versus 1,945/2,400 neural-only and 1,950/2,400 generic
+        scaffold. Source versus generic is 374W/4L (<code>p=2.75e-105</code>); all preregistered gates pass.
+      </p>
+      <div class="callout good">
+        <strong>Causal interpretation:</strong> source-induced exactly matches the target-written-isomorphic arm
+        (0W/0L), while source-permuted and generic controls fail to reproduce the gain. Program content—not source
+        identity—causes the improvement; source induction recovers that content without target-outcome controller tuning.
+      </div>
+      <div class="callout bad">
+        <strong>Boundary:</strong> this is a 2,400-question fresh-outcome sample using reused videos and official
+        STSG, not a full official-test or raw-video/video-disjoint SOTA claim. See
+        <a href="AGQA2_FULL_TYPED_OPERATOR_TRANSFER_V1_RESULTS.md">the hash-bound V1 report</a>.
+      </div>
+    </section>
+
+    <section class="panel" id="agqa-layer-b-raw-video-v1">
+      <p class="eyebrow">13 · AGQA Layer B raw-video transfer</p>
+      <h2>Game-induced ordered-effect skills significantly improve final video QA under shared frozen perception</h2>
+      <p>
+        A new video-disjoint typed-temporal replication starts from real Charades videos and shares the exact
+        Qwen3-VL-32B 48/96-frame grounder, SlowFast evidence, operator-free semantic parser, typed executor,
+        and Qwen3.5-9B fallback across arms. Only the symbolic Harness changes. On 256 fresh task/video pairs,
+        source-induced reaches <strong>135/256 (52.73%)</strong>, versus 106/256 (41.41%) for both
+        neural-only and the inventory/edge-count-matched source-permuted control: 34W/5L,
+        <code>p=2.43e-6</code>, with 1.95% negative-transfer losses.
+      </p>
+      <div class="callout good">
+        <strong>Supported claim:</strong> game-acquired ordered-effect structure selectively transfers to
+        raw-video temporal/duration reasoning under shared frozen perception. The permuted arm does not reproduce
+        the gain, while the target-written-isomorphic arm is exactly equivalent to source-induced, identifying
+        correct program composition as the effective variable.
+      </div>
+      <div class="callout bad">
+        <strong>Boundary:</strong> the unrestricted generic target-VM scaffold reaches 149/256 and therefore
+        outperforms source-induced. This is not superiority over a broader target-engineered controller,
+        full-distribution AGQA2, or video SOTA. See the
+        <a href="AGQA2_LAYER_B_TYPED_TEMPORAL_REPLICATION_V1_RESULTS.md">hash-bound Layer B report</a>.
+      </div>
+    </section>
+
     <section class="panel" id="status">
-      <p class="eyebrow">12 · Repository status and completion criteria</p>
+      <p class="eyebrow">14 · Repository status and completion criteria</p>
       <h2>The mechanism and 9B six-benchmark substitution are complete; release work remains</h2>
 
       <div class="grid">
@@ -870,6 +921,8 @@ python -m pytest -q \
             <li class="done">four non-video formal routes</li>
             <li class="done">MiniGrid prospective target reserve</li>
             <li class="done">CLEVRER and AGQA selective video-QA routes</li>
+            <li class="done">AGQA full-family typed algebra: fresh 2,400-question six-arm formal validation</li>
+            <li class="done">AGQA Layer B: significant selective typed transfer on 256 fresh raw-video tasks</li>
             <li class="done">causal separation of source provenance and program content</li>
             <li class="done">Qwen3.5-9B Harness source-only SFT and model-unseen execution gate</li>
             <li class="done">fresh six-benchmark 2,246/2,246 route substitution</li>
@@ -884,7 +937,7 @@ python -m pytest -q \
             <li class="done">V3 paper artifacts are linked from README with a machine-readable evidence map</li>
             <li class="todo">optional: train a separate five-domain target-adapted 9B ceiling without overwriting the source-only adapter</li>
             <li class="todo">refresh README and clean-room installation recipe</li>
-            <li class="todo">if retaining natural video: train a STAR ontology grounder and obtain video-disjoint NExT-QA</li>
+            <li class="todo">optional extension: replicate the same Layer-B protocol on a second natural-video benchmark</li>
           </ul>
         </article>
       </div>
