@@ -10,6 +10,13 @@ from pathlib import Path
 
 
 IMPLEMENTATION_PATHS = (
+    "scripts/audit_agqa2_program_transfer_v1.py",
+    "scripts/collect_agqa2_frame_grounding_v2.py",
+    "scripts/compile_agqa_action_genome_sgdet_bindings.py",
+    "scripts/evaluate_agqa_layer_b_five_arm.py",
+    "scripts/evaluate_agqa_query_grounder_v2_fresh_formal.py",
+    "scripts/freeze_agqa_query_grounder_v2_powered_qualification.py",
+    "scripts/freeze_agqa_query_grounder_v2_qualification.py",
     "scripts/freeze_agqa_query_grounder_v2_strict_boundary_formal.py",
     "scripts/run_agqa_layer_b_semantic_parser.py",
     "scripts/pilot_agqa_action_genome_sgdet.py",
@@ -25,12 +32,20 @@ IMPLEMENTATION_PATHS = (
     "scripts/freeze_agqa_query_grounder_v2_strict_boundary_preoutcome.py",
     "scripts/evaluate_agqa_query_grounder_v2_strict_boundary_formal.py",
     "src/motif_transfer/agqa_layer_b_harness.py",
+    "src/motif_transfer/agqa_layer_b_authority.py",
+    "src/motif_transfer/agqa_layer_b_contracts.py",
+    "src/motif_transfer/agqa_layer_b_executor.py",
     "src/motif_transfer/agqa_layer_b_executor_v2.py",
     "src/motif_transfer/agqa_query_grounder_v2.py",
+    "src/motif_transfer/agqa_query_object_grounder.py",
+    "src/motif_transfer/agqa_semantic_slots.py",
     "src/motif_transfer/agqa_action_genome_grounder.py",
     "src/motif_transfer/agqa_strict_temporal_projection.py",
+    "src/motif_transfer/agqa_temporal_sampling.py",
     "src/motif_transfer/agqa_track_verified_candidate.py",
     "src/motif_transfer/anonymous_video_harness.py",
+    "src/motif_transfer/contracts.py",
+    "src/motif_transfer/phase3_source_induction.py",
 )
 
 
@@ -141,6 +156,11 @@ def build_protocol(
         "formal_gates": {
             "minimum_source_symbolic_commit_fraction": 0.2,
             "maximum_source_permuted_commit_fraction": 0.05,
+            # This is checked before outcomes are opened.  A 5 pp decision-change
+            # opportunity is the minimum effect size this protocol treats as a
+            # non-trivial Harness evaluation; commits that merely reproduce the
+            # shared fallback do not satisfy it.
+            "minimum_source_neural_prediction_disagreement_fraction_preoutcome": 0.05,
             "source_accuracy_strictly_above_neural": True,
             "source_accuracy_strictly_above_matched_permuted": True,
             "source_vs_neural_exact_two_sided_p_maximum": 0.05,

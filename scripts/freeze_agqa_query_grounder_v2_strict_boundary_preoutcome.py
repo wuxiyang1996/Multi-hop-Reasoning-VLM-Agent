@@ -28,6 +28,32 @@ def _sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
+def _prediction_disagreement_opportunity(
+    rows: list[dict], *, minimum_fraction: float,
+) -> dict:
+    """Audit whether the Harness can produce a non-trivial paired comparison.
+
+    This check is deliberately outcome-blind.  Symbolic commits are not enough:
+    if the shared neural actor already emits the same answer, the Harness cannot
+    contribute paired wins (or losses), regardless of grounding precision.
+    """
+
+    if not 0.0 <= minimum_fraction <= 1.0:
+        raise ValueError("minimum prediction-disagreement fraction must be in [0,1]")
+    disagreements = sum(
+        row["predictions"]["source_induced"]
+        != row["predictions"]["neural_only"]
+        for row in rows
+    )
+    fraction = disagreements / len(rows) if rows else 0.0
+    return {
+        "source_neural_prediction_disagreements": disagreements,
+        "source_neural_prediction_disagreement_fraction": fraction,
+        "minimum_source_neural_prediction_disagreement_fraction": minimum_fraction,
+        "passes": fraction >= minimum_fraction,
+    }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     for name in (
@@ -278,6 +304,13 @@ def main() -> int:
     coverage = source_commits / n
     permuted_coverage = permuted_commits / n
     formal_gates = protocol["formal_gates"]
+    disagreement = _prediction_disagreement_opportunity(
+        outputs,
+        minimum_fraction=float(formal_gates.get(
+            "minimum_source_neural_prediction_disagreement_fraction_preoutcome",
+            0.0,
+        )),
+    )
     invariants = {
         "source_commit_coverage": coverage >= float(
             formal_gates["minimum_source_symbolic_commit_fraction"]
@@ -300,6 +333,7 @@ def main() -> int:
             for row in outputs
         ),
         "full_cohort_frozen": len(outputs) == n,
+        "nontrivial_paired_prediction_opportunity": disagreement["passes"],
     }
     body = {
         "schema_version": "agqa-query-grounder-v2-strict-boundary-formal-preoutcome-v1",
@@ -318,6 +352,7 @@ def main() -> int:
         "source_symbolic_commit_fraction": coverage,
         "source_permuted_commits": permuted_commits,
         "source_permuted_commit_fraction": permuted_coverage,
+        **{key: value for key, value in disagreement.items() if key != "passes"},
         "invariants": invariants, "rows": outputs,
         "answers_read": False, "official_scene_graph_read": False,
         "functional_program_read": False, "target_outcome_read": False,
@@ -331,6 +366,9 @@ def main() -> int:
         "source_symbolic_commits": source_commits,
         "source_symbolic_commit_fraction": coverage,
         "source_permuted_commits": permuted_commits,
+        "source_neural_prediction_disagreements": disagreement[
+            "source_neural_prediction_disagreements"
+        ],
         "invariants": invariants, "receipt_sha256": body["receipt_sha256"],
     }, indent=2))
     return 0 if all(invariants.values()) else 1

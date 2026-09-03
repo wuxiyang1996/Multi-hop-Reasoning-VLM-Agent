@@ -55,6 +55,9 @@ def test_builds_five_arm_protocol_only_after_pass(tmp_path: Path) -> None:
         "source_induced", "target_written_isomorphic",
     ]
     assert result["formal_gates"]["maximum_source_permuted_commit_fraction"] == 0.05
+    assert result["formal_gates"][
+        "minimum_source_neural_prediction_disagreement_fraction_preoutcome"
+    ] == 0.05
 
 
 def test_rejects_failed_qualification(tmp_path: Path) -> None:
