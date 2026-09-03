@@ -1,0 +1,191 @@
+{
+  "artifact_file_sha256s": {
+    "runs/agqa2_full_operator_transfer_v1/source_capabilities_v2.json": "2f11b31b41a8ca72ee7c889d4fba00b8103599ce885269eb845ae89c0e78d31c",
+    "runs/agqa2_offtheshelf_compositional_development_v15/development_evaluation_v15c.json": "2f598efacc1a56cae1ce2c7f77c1721b2773fbbae4511b85aa80a2b400ecd4ca",
+    "runs/agqa2_offtheshelf_compositional_development_v15/qwen32_development_evaluation_v18b.json": "361d0fecd7eb29bf02919bae96dbd3c3d735ae66ab07420e5a07fab69ac06cc6",
+    "runs/agqa2_offtheshelf_qwen32_formal_protocol_v17b/protocol.json": "f20c09ab54ea8c0311d0d229d7dfead6ac1215b47da3d379ebd4172394139d55",
+    "runs/agqa2_offtheshelf_qwen32_formal_v17b/download_receipt.json": "e0a4d17f6e7bbb9f756051c4c002d4f3c89be0bc7fd67f6523c43d5057d16664",
+    "runs/agqa2_offtheshelf_qwen32_formal_v17b/manifest.json": "3c3dc64cf381c5990e221adb746cea986e9acea219134e80266782d83b257bcf",
+    "runs/agqa2_offtheshelf_qwen32_formal_v17b/public_cohort.json": "f52118e3d37c853b037c8b178ad14c67c9717795db3bf811a05fe5a4a22597a4",
+    "runs/agqa2_offtheshelf_qwen32_formal_v17b/qwen32_48f_96f_routed_v17b.json": "50e4b0c045ac915f956c155e956fd5406209859d68f5e17532ec31c564f3b86e",
+    "runs/agqa2_offtheshelf_qwen32_formal_v17b/qwen32_48f_full_v17b.json": "8b956a0ab1732f91dce60fcdad0156535872daf9163f21809493eb32bb14bb88",
+    "runs/agqa2_offtheshelf_qwen32_formal_v17b/qwen32_96f_full_v17b.json": "f748548863c2d58b6e15e62e59d5cbf280559a8d2cee29fdb9d1f22b748b82d4",
+    "runs/agqa2_offtheshelf_qwen32_formal_v17b/qwen32_five_arm_preoutcome_v17b.json": "1e71eb7d04a8a282252d9f989331a0d75057b2f0ca74d3ea6ac399cc24a15448",
+    "runs/agqa2_offtheshelf_qwen32_formal_v17b/qwen32_formal_evaluation_v17b.json": "1efa8a3b6385a1ececa5687e1a91c9ff25bfd8808659c5c58adb99b6d8808775",
+    "runs/agqa2_offtheshelf_qwen32_formal_v17b/qwen32_shared_fallback_qwen9b_v17b.json": "8a2acf94e047cf4bddaf4eb37637a9dcd4b1b486bb4a448e79b960f658ff15d2",
+    "runs/agqa2_offtheshelf_qwen32_formal_v17b/semantic_runtime.json": "19017b7d05c55cccf1e7591ca8e8ca42d39cd919371d1fdf3c6e6472e8e33d6b",
+    "runs/anonymous_video_harness_v1/controller.json": "698d3f377366d5cd8ae278461c2a29466d3a6f1af8885aa8fd6373139309a82e"
+  },
+  "bundle_sha256": "29b568b4b7a313bd0ee573535e0dd40a6bcebdfbc360d8336ac6903cee60102f",
+  "claim": "A source-only anonymous controller induced from game interventions significantly improves final AGQA duration-compositional QA on a one-shot fresh video/task-disjoint balanced-train reserve under shared answer-blind raw-video grounding.",
+  "claim_scope": "FRESH_VIDEO_AND_TASK_DISJOINT_BALANCED_TRAIN_COMPOSITIONAL_TRANSFER",
+  "development_diagnostics": {
+    "development_results_are_not_formal_evidence": true,
+    "qwen32_v16_source_accuracy": 0.45703125,
+    "qwen32_v16_source_vs_neural": {
+      "discordant": 24,
+      "exact_two_sided_p": 0.006610751152038574,
+      "losses": 5,
+      "wins": 19
+    },
+    "qwen32_v16_status": "V18_COMPOSITIONAL_DEVELOPMENT_TRANSFER_SIGNAL_PASSED",
+    "slowfast_v15_source_accuracy": 0.3046875,
+    "slowfast_v15_source_vs_neural": {
+      "discordant": 24,
+      "exact_two_sided_p": 0.5412561893463135,
+      "losses": 10,
+      "wins": 14
+    },
+    "slowfast_v15_status": "V15_COMPOSITIONAL_DEVELOPMENT_TRANSFER_SIGNAL_FAILED"
+  },
+  "failure_taxonomy": {
+    "abstained_fallback_correct": 86,
+    "abstained_shared_failure": 107,
+    "committed_shared_failure": 22,
+    "negative_transfer": 4,
+    "symbolic_recovery": 20
+  },
+  "formal_gates": {
+    "preoutcome_gates_passed": true,
+    "source_beats_matched_permuted": true,
+    "source_beats_neural": true,
+    "source_negative_transfer_bounded": true,
+    "source_vs_matched_permuted_significant": true,
+    "source_vs_neural_significant": true,
+    "target_written_isomorphic_equivalence": true
+  },
+  "grounding": {
+    "downloaded_bytes": 418691313,
+    "downloaded_videos": 256,
+    "empty_event_graphs": 27,
+    "events": 2107,
+    "frame_views": [
+      48,
+      96
+    ],
+    "incremental_provider_cost_usd": 0.29046326400000005,
+    "provider_calls": 512,
+    "provider_errors_fail_closed": 10,
+    "provider_receipt_cost_usd": 0.29046326400000005,
+    "routed_candidate_counts": [
+      226,
+      30
+    ],
+    "total_frame_presentations_per_task": 144
+  },
+  "main_table": [
+    {
+      "accuracy": 0.41796875,
+      "arm": "neural_only",
+      "correct": 107,
+      "symbolic_commits": 0,
+      "total": 256
+    },
+    {
+      "accuracy": 0.515625,
+      "arm": "generic_scaffold",
+      "correct": 132,
+      "symbolic_commits": 148,
+      "total": 256
+    },
+    {
+      "accuracy": 0.41796875,
+      "arm": "source_permuted",
+      "correct": 107,
+      "symbolic_commits": 0,
+      "total": 256
+    },
+    {
+      "accuracy": 0.48046875,
+      "arm": "source_induced",
+      "correct": 123,
+      "symbolic_commits": 63,
+      "total": 256
+    },
+    {
+      "accuracy": 0.48046875,
+      "arm": "target_written_isomorphic",
+      "correct": 123,
+      "symbolic_commits": 63,
+      "total": 256
+    }
+  ],
+  "paired_ablations": {
+    "generic_scaffold": {
+      "discordant": 21,
+      "exact_two_sided_p": 0.0783538818359375,
+      "losses": 15,
+      "wins": 6
+    },
+    "neural_only": {
+      "discordant": 24,
+      "exact_two_sided_p": 0.001543879508972168,
+      "losses": 4,
+      "wins": 20
+    },
+    "source_permuted": {
+      "discordant": 24,
+      "exact_two_sided_p": 0.001543879508972168,
+      "losses": 4,
+      "wins": 20
+    }
+  },
+  "paper_boundaries": {
+    "AGQA_official_test_claimed": false,
+    "full_AGQA_distribution_claimed": false,
+    "raw_video_QA_SOTA_claimed": false,
+    "secondary_overall_accuracy_above_55_percent": false,
+    "source_provenance_necessary_against_isomorphic_controller_claimed": false,
+    "target_native_grounding_is_frozen_off_the_shelf_engineering": true
+  },
+  "preoutcome_metrics": {
+    "source_neural_prediction_disagreement_fraction": 0.12890625,
+    "source_neural_prediction_disagreements": 33,
+    "source_permuted_commit_fraction": 0.0,
+    "source_permuted_commits": 0,
+    "source_symbolic_commit_fraction": 0.24609375,
+    "source_symbolic_commits": 63,
+    "two_or_more_event_fraction": 0.94140625,
+    "two_or_more_event_rows": 241
+  },
+  "root_breakdown": {
+    "duration_choice": {
+      "generic_correct": 74,
+      "losses": 0,
+      "neural_correct": 74,
+      "source_commits": 4,
+      "source_correct": 74,
+      "tasks": 128,
+      "wins": 0
+    },
+    "duration_extremum": {
+      "generic_correct": 58,
+      "losses": 4,
+      "neural_correct": 33,
+      "source_commits": 59,
+      "source_correct": 49,
+      "tasks": 128,
+      "wins": 20
+    }
+  },
+  "schema_version": "agqa-qwen32-compositional-formal-paper-bundle-v17",
+  "secondary_target": {
+    "is_primary_gate": false,
+    "source_overall_accuracy_strictly_above_55_percent": false
+  },
+  "semantic_roots": [
+    "duration_choice",
+    "duration_extremum"
+  ],
+  "shared_invariants": {
+    "all_arms_share_raw_frames_grounding_parser_executor_and_fallback": true,
+    "formal_outcomes_opened_after_all_five_arm_decisions": true,
+    "generic_is_reported_ceiling_not_pass_gate": true,
+    "only_symbolic_harness_varies": true,
+    "source_permuted_is_matched_control": true,
+    "target_written_isomorphic_prediction_equivalence": 1.0
+  },
+  "status": "AGQA_QWEN32_COMPOSITIONAL_V17_PAPER_BUNDLE_VALIDATED",
+  "tasks": 256,
+  "videos": 256
+}

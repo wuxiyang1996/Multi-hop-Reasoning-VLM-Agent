@@ -1,0 +1,67 @@
+{
+  "anonymous_controller_artifact_sha256": "cd48690e64392f8702e1a239afa1739c25863ce4bd6ae2efea355ac70467bfe6",
+  "artifact_file_sha256s": {
+    "docs/results/agqa_qwen32_compositional_formal_v17b.json": "4b474febb8823f94e34cc1a26070c8913f046cd10fde282d96978769dc952ced",
+    "runs/anonymous_video_harness_v1/controller.json": "698d3f377366d5cd8ae278461c2a29466d3a6f1af8885aa8fd6373139309a82e",
+    "runs/clevrer_full_raw_video_v2/anonymous_harness_substitution_v1.json": "80360826a3b7b1ccd7e73f387b419d2cc53b062818416336d12d9a23900cd250",
+    "runs/clevrer_full_raw_video_v2/formal_report.json": "9f3f017be07724d3f66db2cd0b4b662e318816914f79382943c65aef66dc7fe3"
+  },
+  "bundle_sha256": "1b86db2ea9d9605cf51c1d208e2d64b42b7d44359e17d2e24a8342be08f81066",
+  "claim": "One source-only anonymous game controller significantly improves final QA under benchmark-shared raw-video grounding on fresh CLEVRER and on a one-shot fresh AGQA duration-compositional reserve.",
+  "main_table": [
+    {
+      "benchmark": "CLEVRER",
+      "gain_percentage_points": 27.562500000000007,
+      "generic_accuracy": 0.701875,
+      "generic_correct": 1123,
+      "isomorphic_equivalence": 1.0,
+      "losses": 23,
+      "negative_transfer_fraction": 0.014375,
+      "neural_accuracy": 0.3475,
+      "neural_correct": 556,
+      "paired_p": 3.907193862591056e-108,
+      "paired_test": "one-sided exact sign/McNemar",
+      "scope": "fresh 400-video four-family selective Layer B",
+      "source_accuracy": 0.623125,
+      "source_correct": 997,
+      "tasks": 1600,
+      "wins": 464
+    },
+    {
+      "benchmark": "AGQA2",
+      "gain_percentage_points": 6.25,
+      "generic_accuracy": 0.515625,
+      "generic_correct": 132,
+      "isomorphic_equivalence": 1.0,
+      "losses": 4,
+      "negative_transfer_fraction": 0.015625,
+      "neural_accuracy": 0.41796875,
+      "neural_correct": 107,
+      "paired_p": 0.001543879508972168,
+      "paired_test": "two-sided exact McNemar",
+      "scope": "fresh 256-video duration-compositional balanced-train reserve",
+      "source_accuracy": 0.48046875,
+      "source_correct": 123,
+      "tasks": 256,
+      "wins": 20
+    }
+  ],
+  "paper_boundaries": {
+    "AGQA_official_test_claimed": false,
+    "full_AGQA_distribution_claimed": false,
+    "game_to_video_reasoning_transfer_claimed": true,
+    "raw_video_QA_SOTA_claimed": false,
+    "source_provenance_necessary_against_isomorphic_controller_claimed": false,
+    "target_native_grounder_is_off_the_shelf_and_designer_selected": true
+  },
+  "schema_version": "two-video-fresh-layer-b-transfer-bundle-v3",
+  "shared_invariants": {
+    "formal_outcomes_unavailable_until_predictions_froze": true,
+    "generic_target_native_symbolic_is_reported_as_ceiling_not_pass_gate": true,
+    "matched_source_permutation_control": true,
+    "same_anonymous_game_controller": true,
+    "target_written_isomorphic_control": true,
+    "within_benchmark_all_arms_share_frames_grounder_parser_executor_and_fallback": true
+  },
+  "status": "BOTH_VIDEO_BENCHMARKS_FRESH_LAYER_B_VALIDATED_WITH_COMPOSITIONAL_AGQA_REPLICATION"
+}
