@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "status": "ARTIFACT_AND_GATE_COVERAGE_SMOKE_NOT_TARGET_PERFORMANCE",
+  "source_collection": {
+    "episodes": 96,
+    "games": 6,
+    "receipts": 4654,
+    "raw_source_payload_sha256": "e40eeee5f126e2789b8a8b6040b53af82c718461d26b8fb7f028f427c369aabf",
+    "labelled_source_superset_sha256": "be92c808e2e0b7905710c976f7b033ad7327c638e47af709b23d94d8d7916341",
+    "outcomes": {"SUCCESS": 25, "FAILURE": 27, "UNKNOWN": 44},
+    "label_semantics": "within-game high/low skill-quality terciles; UNKNOWN is withheld from outcome-conditioned induction but retained by label-free trajectory controls"
+  },
+  "matched_controls": {
+    "shared_trajectory_items": 96,
+    "top_k": 3,
+    "maximum_memory_tokens": 1200,
+    "maximum_tokens_per_stored_trajectory": 2400,
+    "episodic_rag": {
+      "retrieval_strategy": "semantic",
+      "raw_artifact_sha256": "98b709acef2a05ed8b611bb066b912559f5161ab042d6c5c0cf54c44e64e35be"
+    },
+    "random_trajectory_icl": {
+      "retrieval_strategy": "frozen_random",
+      "random_seed": 73021,
+      "raw_artifact_sha256": "7522421a28d6e6bb4eec663069f1e7009f8d72fe85ff1de640791e546ad9182b"
+    }
+  },
+  "gated_coverage": {
+    "webshop": {"episodic_rag": "0/96", "random_trajectory_icl": "0/96"},
+    "alfworld": {"episodic_rag": "0/96", "random_trajectory_icl": "0/96"},
+    "discoveryworld": {"episodic_rag": "0/96", "random_trajectory_icl": "0/96"},
+    "tirbench": {"episodic_rag": "0/96", "random_trajectory_icl": "0/96"}
+  },
+  "audit": {
+    "artifact_suites_ready": true,
+    "formal_target_cohort_ready": false,
+    "report_sha256": "b0119d5fbcb2367da91bced7bc0456f85a40275dc2e65d253b3c9958235ce7ab"
+  },
+  "interpretation": "The two raw controls contain byte-identical source trajectory items and differ only in selection policy. Unlike outcome-conditioned induction methods, both controls retain all 96 trajectories because they do not require success/failure labels. Neither raw trajectory bank has a directly target-demonstrated unchanged trajectory under the two-shot gate, so gated coverage is zero and raw transfer remains the primary estimand."
+}

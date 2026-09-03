@@ -7,7 +7,11 @@ import json
 from pathlib import Path
 from typing import Any, Mapping
 
-from .cross_domain_memory_baselines import MemoryBaseline, validate_memory_artifact
+from .cross_domain_memory_baselines import (
+    MemoryBaseline,
+    MemoryControl,
+    validate_memory_artifact,
+)
 
 
 class FairnessProtocolError(ValueError):
@@ -16,6 +20,7 @@ class FairnessProtocolError(ValueError):
 
 @dataclass(frozen=True)
 class SuiteFairnessAudit:
+    transfer_panel: str
     target_domain: str
     methods: tuple[str, ...]
     source_superset_sha256: str
@@ -37,12 +42,29 @@ def require_nonpilot_embedding(identity: Mapping[str, Any], *, run_mode: str) ->
         raise FairnessProtocolError("formal comparison forbids a pilot-only embedding backend")
 
 
+def require_transfer_panel(artifact: Mapping[str, Any], *, transfer_panel: str) -> None:
+    """Make raw and shared-gated estimands impossible to mix silently."""
+    if transfer_panel not in {"raw", "gated"}:
+        raise FairnessProtocolError(f"unknown transfer panel: {transfer_panel!r}")
+    validate_memory_artifact(artifact)
+    binding = artifact.get("target_binding")
+    if transfer_panel == "raw" and binding is not None:
+        raise FairnessProtocolError("raw panel requires the immutable source artifact")
+    if transfer_panel == "gated" and (
+        not isinstance(binding, Mapping)
+        or binding.get("binding_mode") != "SHARED_GATE_ONLY_NO_REWRITE"
+    ):
+        raise FairnessProtocolError("gated panel requires a shared gate-only/no-rewrite artifact")
+
+
 def audit_target_bound_suite(
     artifacts: Mapping[str, Mapping[str, Any]],
     *,
     target_domain: str,
     expected_source_episodes: int = 96,
     implementation_fidelity: str = "clean_room_style",
+    transfer_panel: str = "gated",
+    expected_methods: tuple[str, ...] | None = None,
 ) -> SuiteFairnessAudit:
     """Check the invariants required before comparing the three methods.
 
@@ -50,7 +72,9 @@ def audit_target_bound_suite(
     reads successful demonstrations only), but their frozen *superset* and the
     target adaptation examples must be identical.
     """
-    expected = {row.value for row in MemoryBaseline}
+    if transfer_panel not in {"raw", "gated"}:
+        raise FairnessProtocolError(f"unknown transfer panel: {transfer_panel!r}")
+    expected = set(expected_methods or tuple(row.value for row in MemoryBaseline))
     supplied = set(map(str, artifacts))
     if supplied != expected:
         raise FairnessProtocolError(
@@ -68,24 +92,25 @@ def audit_target_bound_suite(
         validate_memory_artifact(artifact)
         if str(artifact["method"]) != method:
             raise FairnessProtocolError(f"artifact key/method mismatch for {method}")
-        binding = artifact.get("target_binding") or {}
-        if str(binding.get("target_domain")) != target_domain:
+        binding = artifact.get("target_binding")
+        require_transfer_panel(artifact, transfer_panel=transfer_panel)
+        if transfer_panel == "gated" and str(binding.get("target_domain")) != target_domain:
             raise FairnessProtocolError(f"{method} is not bound to {target_domain}")
         supersets.add(str(artifact.get("source_superset_sha256") or ""))
         ids = tuple(map(str, artifact.get("source_superset_episode_ids") or ()))
         superset_ids.add(ids)
         counts.add(len(ids))
-        adaptations.add(str(binding.get("adaptation_payload_sha256") or ""))
-        if binding.get("binding_mode") != "SHARED_GATE_ONLY_NO_REWRITE":
-            blockers.append(f"{method}: target adaptation is not shared gate-only/no-rewrite")
+        if transfer_panel == "gated":
+            adaptations.add(str(binding.get("adaptation_payload_sha256") or ""))
         if artifact.get("online_memory_updates_allowed") is not False:
             blockers.append(f"{method}: target online memory updates are not disabled")
         if artifact.get("target_actions_in_memory_allowed") is not False:
             blockers.append(f"{method}: target actions are not forbidden in memory")
-        for row in binding.get("item_bindings") or ():
-            if str(row.get("source_item_id")) != str(row.get("bound_item_id")):
-                blockers.append(f"{method}: gate changed a source memory item")
-                break
+        if transfer_panel == "gated":
+            for row in binding.get("item_bindings") or ():
+                if str(row.get("source_item_id")) != str(row.get("bound_item_id")):
+                    blockers.append(f"{method}: gate changed a source memory item")
+                    break
         if method == MemoryBaseline.EXPEL.value:
             rounds = int(artifact.get("expel_refinement_rounds") or 0)
             expected_refinements = rounds * max(0, int(artifact.get("induction_calls") or 0) - 1)
@@ -103,20 +128,39 @@ def audit_target_bound_suite(
         artifact_hashes[method] = str(artifact["artifact_sha256"])
     if "" in supersets or len(supersets) != 1 or len(superset_ids) != 1:
         raise FairnessProtocolError("methods do not share one identical source superset")
-    if "" in adaptations or len(adaptations) != 1:
+    if transfer_panel == "gated" and ("" in adaptations or len(adaptations) != 1):
         raise FairnessProtocolError("methods do not share one target adaptation payload")
     if len(counts) != 1:
         raise FairnessProtocolError("source superset episode counts differ")
     count = next(iter(counts))
     if count != int(expected_source_episodes):
         blockers.append(f"source_episode_count={count}, expected={expected_source_episodes}")
+    controls = {row.value for row in MemoryControl}
+    if controls <= expected:
+        left = artifacts[MemoryControl.EPISODIC_RAG.value]
+        right = artifacts[MemoryControl.RANDOM_TRAJECTORY_ICL.value]
+        if transfer_panel == "raw":
+            if left.get("items") != right.get("items"):
+                blockers.append("trajectory controls do not contain identical source experience")
+        else:
+            left_hash = (left.get("target_binding") or {}).get("candidate_payload_sha256")
+            right_hash = (right.get("target_binding") or {}).get("candidate_payload_sha256")
+            if not left_hash or left_hash != right_hash:
+                blockers.append("gated trajectory controls did not enter the same candidate bank")
+        if left.get("retrieval_strategy") != "semantic":
+            blockers.append("episodic_rag does not use semantic retrieval")
+        if right.get("retrieval_strategy") != "frozen_random":
+            blockers.append("random_trajectory_icl does not use frozen random retrieval")
     exact_ready = implementation_fidelity == "upstream_pinned" and not blockers
     return SuiteFairnessAudit(
+        transfer_panel=transfer_panel,
         target_domain=target_domain,
         methods=tuple(sorted(expected)),
         source_superset_sha256=next(iter(supersets)),
         source_episode_count=count,
-        adaptation_payload_sha256=next(iter(adaptations)),
+        adaptation_payload_sha256=(
+            next(iter(adaptations)) if transfer_panel == "gated" else "NOT_APPLICABLE_RAW"
+        ),
         admitted_items=admitted,
         artifact_sha256=artifact_hashes,
         implementation_fidelity=implementation_fidelity,
@@ -133,6 +177,7 @@ def require_formal_suite_audit(
     target_domain: str,
     method: str | None = None,
     artifact_sha256: str | None = None,
+    transfer_panel: str = "gated",
 ) -> None:
     """Require a hash-valid, passing suite audit before any formal target call."""
     if run_mode != "formal":
@@ -147,7 +192,12 @@ def require_formal_suite_audit(
         raise FairnessProtocolError("fairness audit hash mismatch")
     if not report.get("all_domains_formal_ready"):
         raise FairnessProtocolError("fairness audit has unresolved formal blockers")
-    domain = (report.get("domains") or {}).get(target_domain)
+    panel = (report.get("panels") or {}).get(transfer_panel)
+    domain = (
+        (panel.get("domains") or {}).get(target_domain)
+        if isinstance(panel, Mapping)
+        else (report.get("domains") or {}).get(target_domain)
+    )
     if not isinstance(domain, Mapping) or not domain.get("formal_ready"):
         raise FairnessProtocolError(f"target domain is not formal-ready: {target_domain}")
     if method is not None:
@@ -164,6 +214,7 @@ def assert_paired_target_receipts(
         "target_domain", "task_id", "seed", "decision_model",
         "maximum_steps", "max_steps", "candidate_count",
         "maximum_output_tokens", "decision_max_tokens",
+        "top_k", "maximum_memory_tokens",
     )
     for field in fields:
         left, right = target_only.get(field), memory.get(field)
@@ -180,5 +231,5 @@ def assert_paired_target_receipts(
 __all__ = [
     "FairnessProtocolError", "SuiteFairnessAudit", "assert_paired_target_receipts",
     "audit_target_bound_suite", "require_nonpilot_embedding",
-    "require_formal_suite_audit",
+    "require_formal_suite_audit", "require_transfer_panel",
 ]

@@ -33,6 +33,19 @@ class MemoryBaseline(str, Enum):
     REASONING_BANK = "reasoning_bank"
 
 
+class MemoryControl(str, Enum):
+    EPISODIC_RAG = "episodic_rag"
+    RANDOM_TRAJECTORY_ICL = "random_trajectory_icl"
+
+
+OURS_MEMORY_METHOD = "ours"
+
+
+def comparison_memory_methods(*, include_ours: bool = True) -> tuple[str, ...]:
+    rows = tuple(row.value for row in MemoryBaseline) + tuple(row.value for row in MemoryControl)
+    return rows + ((OURS_MEMORY_METHOD,) if include_ours else ())
+
+
 class TargetDomain(str, Enum):
     WEBSHOP = "webshop"
     ALFWORLD = "alfworld"
@@ -137,6 +150,12 @@ def _text(value: Any, *, limit: int = 4000) -> str:
     else:
         result = json.dumps(value, ensure_ascii=False, sort_keys=True)
     return result[:limit]
+
+
+def _token_bounded_prefix(text: str, maximum_tokens: int) -> tuple[str, int]:
+    matches = list(re.finditer(r"\w+|[^\w\s]", str(text), flags=re.UNICODE))
+    used = min(max(0, int(maximum_tokens)), len(matches))
+    return (str(text)[:matches[used - 1].end()] if used else "", used)
 
 
 def resolve_source_outcome(
@@ -576,12 +595,176 @@ def induce_memory_artifact(
     return artifact
 
 
+def build_trajectory_memory_artifact(
+    method: MemoryControl | str,
+    source_payload: Mapping[str, Any],
+    *,
+    random_seed: int = 0,
+    maximum_trajectory_tokens: int = 2400,
+    benchmark_predicate: Callable[[Mapping[str, Any]], bool | None] | None = None,
+    shared_evaluator: Callable[[Mapping[str, Any]], bool | None] | None = None,
+) -> dict[str, Any]:
+    """Build a model-free one-item-per-episode control bank.
+
+    ``episodic_rag`` and ``random_trajectory_icl`` contain identical trajectory
+    text.  They differ only in the frozen retrieval policy, isolating semantic
+    retrieval from the effect of adding source context.
+    """
+    method = MemoryControl(method)
+    if maximum_trajectory_tokens < 1:
+        raise ValueError("maximum_trajectory_tokens must be positive")
+    episodes = canonical_source_episodes(
+        source_payload,
+        benchmark_predicate=benchmark_predicate,
+        shared_evaluator=shared_evaluator,
+    )
+    # These controls do not induce outcome-conditioned lessons, so withholding
+    # the middle tercile would give them less raw experience for no algorithmic
+    # reason. UNKNOWN remains explicit inside each trajectory rather than being
+    # silently converted to success or failure.
+    eligible = episodes
+    items = []
+    for episode in eligible:
+        trajectory = {
+            "source_domain": episode.source_domain,
+            "outcome": episode.outcome,
+            "terminated": episode.terminated,
+            "truncated": episode.truncated,
+            "steps": [asdict(step) for step in episode.steps],
+        }
+        serialised, _ = _token_bounded_prefix(
+            json.dumps(trajectory, ensure_ascii=False, sort_keys=True),
+            maximum_trajectory_tokens,
+        )
+        item = MemoryItem.create(
+            title=f"Source trajectory {episode.episode_id}",
+            content=serialised,
+            applicability="Use only if the target task and visible state make this experience relevant.",
+            kind="TRAJECTORY",
+            source_episode_ids=(episode.episode_id,),
+            evidence_receipt_ids=tuple(step.receipt_id for step in episode.steps),
+        )
+        items.append(item)
+    canonical = canonical_source_payload(episodes)
+    body = {
+        "schema_version": 2,
+        "artifact_kind": "FROZEN_CROSS_DOMAIN_TRAJECTORY_CONTROL",
+        "method": method.value,
+        "retrieval_strategy": (
+            "semantic" if method is MemoryControl.EPISODIC_RAG else "frozen_random"
+        ),
+        "random_seed": int(random_seed),
+        "maximum_trajectory_tokens": int(maximum_trajectory_tokens),
+        "trajectory_serialization": "canonical JSON token-bounded prefix without summarization",
+        "source_domains": sorted({episode.source_domain for episode in eligible}),
+        "source_episode_ids": [episode.episode_id for episode in eligible],
+        "source_episode_domains": {
+            episode.episode_id: episode.source_domain for episode in eligible
+        },
+        "source_superset_sha256": stable_hash(canonical),
+        "source_superset_episode_ids": [episode.episode_id for episode in episodes],
+        "source_outcome_census": _outcome_census(episodes),
+        "source_projection": {
+            "method": method.value,
+            "eligible_outcomes": [label.value for label in OutcomeLabel],
+            "eligible_episode_ids": [episode.episode_id for episode in eligible],
+            "withheld": [],
+        },
+        "source_payload_sha256": stable_hash(canonical_source_payload(eligible)),
+        "source_receipt_ids": sorted(
+            step.receipt_id for episode in eligible for step in episode.steps
+        ),
+        "backend_identity": {"backend": "deterministic-trajectory-control"},
+        "backend_identity_sha256": stable_hash({"backend": "deterministic-trajectory-control"}),
+        "items": [asdict(item) for item in items],
+        "call_receipts": [],
+        "online_memory_updates_allowed": False,
+        "target_actions_in_memory_allowed": False,
+    }
+    artifact = body | {"artifact_sha256": stable_hash(body)}
+    validate_memory_artifact(artifact)
+    return artifact
+
+
+def build_external_memory_artifact(
+    method: str,
+    source_payload: Mapping[str, Any],
+    candidates: Sequence[Mapping[str, Any]],
+    *,
+    producer_identity: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Freeze an external method (notably Ours) into the shared runtime schema."""
+    method = str(method)
+    if method != OURS_MEMORY_METHOD:
+        raise ValueError("external artifact builder currently accepts method='ours' only")
+    episodes = canonical_source_episodes(source_payload)
+    canonical = canonical_source_payload(episodes)
+    known_episodes = {episode.episode_id for episode in episodes}
+    receipt_to_episode = {
+        step.receipt_id: episode.episode_id
+        for episode in episodes for step in episode.steps
+    }
+    items = []
+    for row in candidates:
+        receipt_ids = tuple(map(str, row.get("evidence_receipt_ids") or ()))
+        if not receipt_ids or set(receipt_ids) - set(receipt_to_episode):
+            raise ValueError("ours candidate cites missing source receipts")
+        derived_episodes = tuple(sorted({receipt_to_episode[value] for value in receipt_ids}))
+        declared_episodes = tuple(sorted(map(str, row.get("source_episode_ids") or ())))
+        if declared_episodes and declared_episodes != derived_episodes:
+            raise ValueError("ours candidate episode lineage disagrees with its receipts")
+        item = MemoryItem.create(
+            title=str(row.get("title") or ""),
+            content=str(row.get("content") or ""),
+            applicability=str(row.get("applicability") or ""),
+            kind=str(row.get("kind") or "SKILL"),
+            source_episode_ids=derived_episodes,
+            evidence_receipt_ids=receipt_ids,
+        )
+        items.append(item)
+    if not items:
+        raise ValueError("ours candidate bank is empty")
+    body = {
+        "schema_version": 2,
+        "artifact_kind": "FROZEN_EXTERNAL_CROSS_DOMAIN_MEMORY",
+        "method": method,
+        "retrieval_strategy": "semantic",
+        "source_domains": sorted({episode.source_domain for episode in episodes}),
+        "source_episode_ids": [episode.episode_id for episode in episodes],
+        "source_episode_domains": {
+            episode.episode_id: episode.source_domain for episode in episodes
+        },
+        "source_superset_sha256": stable_hash(canonical),
+        "source_superset_episode_ids": [episode.episode_id for episode in episodes],
+        "source_outcome_census": _outcome_census(episodes),
+        "source_projection": {
+            "method": method,
+            "eligible_outcomes": [label.value for label in OutcomeLabel],
+            "eligible_episode_ids": sorted(known_episodes),
+            "withheld": [],
+        },
+        "source_payload_sha256": stable_hash(canonical),
+        "source_receipt_ids": sorted(receipt_to_episode),
+        "backend_identity": dict(producer_identity),
+        "backend_identity_sha256": stable_hash(producer_identity),
+        "items": [asdict(item) for item in items],
+        "call_receipts": [],
+        "online_memory_updates_allowed": False,
+        "target_actions_in_memory_allowed": False,
+    }
+    artifact = body | {"artifact_sha256": stable_hash(body)}
+    validate_memory_artifact(artifact)
+    return artifact
+
+
 def validate_memory_artifact(artifact: Mapping[str, Any]) -> None:
     claimed = str(artifact.get("artifact_sha256") or "")
     body = {key: value for key, value in artifact.items() if key != "artifact_sha256"}
     if not claimed or stable_hash(body) != claimed:
         raise ValueError("cross-domain memory artifact hash mismatch")
-    MemoryBaseline(str(artifact.get("method")))
+    method = str(artifact.get("method") or "")
+    if method not in set(comparison_memory_methods()):
+        raise ValueError(f"unknown cross-domain memory method: {method!r}")
     known_episodes = set(map(str, artifact.get("source_episode_ids") or ()))
     known_receipts = set(map(str, artifact.get("source_receipt_ids") or ()))
     if not known_episodes or not known_receipts:
@@ -1247,6 +1430,7 @@ def retrieve_memory_items(
     embedding_backend: EmbeddingBackend,
     *,
     top_k: int = 3,
+    maximum_memory_tokens: int = 1200,
 ) -> dict[str, Any]:
     validate_memory_artifact(artifact)
     if top_k < 1:
@@ -1254,18 +1438,47 @@ def retrieve_memory_items(
     target_domain = str(target_context.get("target_domain") or "")
     if target_domain in set(map(str, artifact["source_domains"])):
         raise ValueError("cross-domain baseline cannot retrieve from the target domain")
+    if maximum_memory_tokens < 1:
+        raise ValueError("maximum_memory_tokens must be positive")
     query = json.dumps(target_context, ensure_ascii=False, sort_keys=True)
     items = list(artifact["items"])
-    vectors = list(embedding_backend.embed([query, *[_item_text(item) for item in items]]))
-    if len(vectors) != len(items) + 1:
-        raise ValueError("embedding backend returned the wrong vector count")
-    ranked = sorted(
-        [
-            {"rank_score": _cosine(vectors[0], vectors[index + 1]), "item": item}
-            for index, item in enumerate(items)
-        ],
-        key=lambda row: (-row["rank_score"], str(row["item"]["item_id"])),
-    )[:top_k]
+    strategy = str(artifact.get("retrieval_strategy") or "semantic")
+    if strategy == "semantic":
+        vectors = list(embedding_backend.embed([query, *[_item_text(item) for item in items]]))
+        if len(vectors) != len(items) + 1:
+            raise ValueError("embedding backend returned the wrong vector count")
+        ranked = sorted(
+            [{"rank_score": _cosine(vectors[0], vectors[index + 1]), "item": item}
+             for index, item in enumerate(items)],
+            key=lambda row: (-row["rank_score"], str(row["item"]["item_id"])),
+        )[:top_k]
+    elif strategy == "frozen_random":
+        seed = int(artifact.get("random_seed") or 0)
+        ranked = sorted(
+            [{
+                "rank_score": None,
+                "random_order_sha256": stable_hash({
+                    "seed": seed,
+                    "source_superset_sha256": artifact["source_superset_sha256"],
+                    "target_query_sha256": target_context.get("query_sha256") or stable_hash(target_context),
+                    "item_id": item["item_id"],
+                }),
+                "item": item,
+            } for item in items],
+            key=lambda row: (row["random_order_sha256"], str(row["item"]["item_id"])),
+        )[:top_k]
+    else:
+        raise ValueError(f"unknown memory retrieval strategy: {strategy!r}")
+    rendered_tokens = 0
+    per_item = max(1, int(maximum_memory_tokens) // max(1, len(ranked)))
+    remaining = int(maximum_memory_tokens)
+    for index, row in enumerate(ranked):
+        text = _item_text(row["item"])
+        allowance = remaining if index == len(ranked) - 1 else min(per_item, remaining)
+        row["rendered_text"], used = _token_bounded_prefix(text, allowance)
+        row["rendered_token_count"] = used
+        rendered_tokens += used
+        remaining -= used
     body = {
         "schema_version": 1,
         "method": artifact["method"],
@@ -1274,6 +1487,11 @@ def retrieve_memory_items(
         "target_query_sha256": target_context.get("query_sha256") or stable_hash(target_context),
         "embedding_identity": dict(embedding_backend.identity),
         "embedding_identity_sha256": stable_hash(embedding_backend.identity),
+        "retrieval_strategy": strategy,
+        "top_k": top_k,
+        "maximum_memory_tokens": maximum_memory_tokens,
+        "memory_token_counter": "unicode_lexical_v1",
+        "rendered_memory_tokens": rendered_tokens,
         "retrieved": ranked,
         "online_memory_updated": False,
     }
@@ -1299,9 +1517,9 @@ class CrossDomainMemoryAdvisor:
             for item in items for receipt_id in item["evidence_receipt_ids"]
         ))
         memory_text = "\n\n".join(
-            f"[{item['kind']}] {item['title']}: {item['content']} "
-            f"Applicability: {item['applicability']}"
-            for item in items
+            str(row.get("rendered_text") or "")
+            for row in self.retrieval.get("retrieved") or ()
+            if row.get("rendered_text")
         )
         return Advisory(
             AdvisoryVerdict.ADMIT,
@@ -1332,6 +1550,7 @@ class CrossDomainMemoryDecisionAgent:
         domain: TargetDomain | str,
         embedding_backend: EmbeddingBackend,
         top_k: int = 3,
+        maximum_memory_tokens: int = 1200,
     ) -> None:
         validate_memory_artifact(artifact)
         self.decision_agent = decision_agent
@@ -1342,6 +1561,7 @@ class CrossDomainMemoryDecisionAgent:
             raise ValueError("target-bound memory artifact used for the wrong target domain")
         self.embedding_backend = embedding_backend
         self.top_k = top_k
+        self.maximum_memory_tokens = maximum_memory_tokens
         self.retrieval_receipts: list[Mapping[str, Any]] = []
 
     @staticmethod
@@ -1371,6 +1591,7 @@ class CrossDomainMemoryDecisionAgent:
             target,
             self.embedding_backend,
             top_k=self.top_k,
+            maximum_memory_tokens=self.maximum_memory_tokens,
         )
         self.retrieval_receipts.append(retrieval)
         memory_advisory = (
@@ -1453,6 +1674,9 @@ __all__ = [
     "CrossDomainMemoryDecisionAgent",
     "EmbeddingBackend", "InsufficientEligibleSourceError",
     "LocalHashingEmbeddingBackend", "LocalSentenceTransformerEmbeddingBackend", "MemoryBaseline",
+    "MemoryControl", "OURS_MEMORY_METHOD", "build_external_memory_artifact",
+    "build_trajectory_memory_artifact",
+    "comparison_memory_methods",
     "MemoryItem", "OutcomeAuthority", "OutcomeLabel", "TargetBindingError", "TargetDomain",
     "adapt_target_context", "canonical_source_episodes",
     "canonical_source_payload", "bind_memory_artifact_to_target",

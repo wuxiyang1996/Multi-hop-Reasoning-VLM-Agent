@@ -1,19 +1,20 @@
 {
-  "schema_version": 2,
-  "status": "FAIRNESS_GATES_IMPLEMENTED_SOURCE_COLLECTION_INCOMPLETE",
+  "schema_version": 3,
+  "status": "SOURCE_COLLECTION_COMPLETE_METHOD_ARTIFACTS_AND_FORMAL_COHORT_INCOMPLETE",
   "claim_name": "target-adapted cross-domain textual-memory transfer",
   "claim_boundary": "This protocol compares adapted clean-room implementations of ExpeL, AWM, and ReasoningBank for cross-domain skill-memory transfer. It is not an exact execution of the upstream repositories and is not weight or policy transfer.",
   "implementation_fidelity": {
     "level": "clean_room_style",
     "exact_upstream_method_names_allowed": true,
-    "required_result_labels": ["ExpeL", "AWM", "ReasoningBank"],
-    "required_table_footnote": "All three rows are adapted clean-room implementations under one shared source/target harness, not exact upstream pipeline executions.",
+    "required_result_labels": ["ExpeL", "AWM", "ReasoningBank", "Episodic RAG", "Random trajectory ICL", "Ours"],
+    "required_table_footnote": "ExpeL, AWM, and ReasoningBank are adapted clean-room implementations under one shared source/target harness, not exact upstream pipeline executions.",
     "upgrade_to_exact_baseline_requires": [
       "pinned upstream repository commit",
       "upstream induction and retrieval path actually executed",
       "compatibility adapter tests against upstream outputs"
     ]
   },
+  "comparison_methods": ["expel", "awm", "reasoning_bank", "episodic_rag", "random_trajectory_icl", "ours"],
   "method_fidelity": {
     "expel": {
       "iterative_insight_refinement_minimum_rounds_per_new_batch": 1,
@@ -33,10 +34,24 @@
     "may_rewrite_memory": false,
     "same_gate_for_baselines_and_ours": true,
     "admission_requires_target_adaptation_evidence": true,
-    "raw_ungated_arm": "secondary fidelity ablation; never substitute for the gated primary comparison"
+    "role": "secondary safety-aware comparison"
+  },
+  "transfer_panels": {
+    "raw": {
+      "role": "primary",
+      "artifact": "immutable source memory",
+      "semantic_target_gate": false,
+      "mechanical_target_action_leakage_gate": true
+    },
+    "gated": {
+      "role": "secondary",
+      "artifact": "unchanged admitted subset of source memory",
+      "semantic_target_gate": true,
+      "gate_may_rewrite_memory": false
+    }
   },
   "estimands": {
-    "primary": "intent-to-treat paired delta in official target success versus target-only",
+    "primary": "raw-panel intent-to-treat paired delta in official target success versus target-only",
     "abstention_policy": "An empty artifact remains in the denominator and executes as a byte-equivalent target-only no-op.",
     "secondary": [
       "admission coverage",
@@ -67,12 +82,20 @@
     "one_frozen_target_only_receipt_per_pair": true,
     "online_memory_updates": false,
     "target_action_authority": "target policy only",
-    "input_token_overhead": "not artificially equalized; report it as an intrinsic method cost"
+    "input_token_overhead": "same memory-token cap for every arm; report actual injected tokens and total prompt tokens"
   },
   "retrieval": {
     "formal_backend": "Qwen/Qwen3-Embedding-0.6B",
     "hashing_backend_allowed": "pilot only",
-    "top_k": 3
+    "top_k": 3,
+    "maximum_memory_tokens": 1200,
+    "memory_token_counter": "unicode_lexical_v1 (deterministic shared budgeting unit); also report provider prompt tokens",
+    "trajectory_controls": {
+      "identical_source_trajectory_items": true,
+      "episodic_rag_selection": "semantic",
+      "random_trajectory_icl_selection": "frozen deterministic random",
+      "same_top_k_and_memory_token_cap": true
+    }
   },
   "formal_target_cohort": {
     "status": "NOT_FROZEN",
@@ -82,7 +105,7 @@
       "initial-state or media hashes recorded before outcomes",
       "binder adaptation examples excluded",
       "all prior pilot and qualification tasks excluded",
-      "identical ordered tasks and seeds across all four arms"
+      "identical ordered tasks and seeds across target-only and all six memory arms"
     ]
   },
   "reporting": {

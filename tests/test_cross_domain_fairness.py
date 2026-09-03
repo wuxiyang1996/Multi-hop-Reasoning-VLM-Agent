@@ -11,6 +11,7 @@ from motif_transfer.cross_domain_fairness import (
     audit_target_bound_suite,
     require_nonpilot_embedding,
     require_formal_suite_audit,
+    require_transfer_panel,
 )
 
 
@@ -26,6 +27,10 @@ def _artifact(method: str):
         "online_memory_updates_allowed": False,
         "target_actions_in_memory_allowed": False,
         "items": [],
+        "retrieval_strategy": {
+            "episodic_rag": "semantic",
+            "random_trajectory_icl": "frozen_random",
+        }.get(method, "semantic"),
         "artifact_kind": "FROZEN_TARGET_BOUND_CROSS_DOMAIN_MEMORY_BASELINE",
         "target_binding": {
             "target_domain": "webshop",
@@ -34,6 +39,7 @@ def _artifact(method: str):
             "source_artifact_sha256": "source",
             "adaptation_payload_sha256": "adaptation",
             "item_bindings": [],
+            "candidate_payload_sha256": "same-trajectories",
         },
     }
     return body | {"artifact_sha256": stable_hash(body)}
@@ -70,10 +76,28 @@ def test_upstream_pinned_suite_can_pass_formal_gate():
     assert audit.exact_baseline_ready
 
 
+def test_gated_suite_accepts_matched_trajectory_controls():
+    methods = ("expel", "awm", "reasoning_bank", "episodic_rag", "random_trajectory_icl")
+    suite = {method: _artifact(method) for method in methods}
+    audit = audit_target_bound_suite(
+        suite, target_domain="webshop", expected_source_episodes=1,
+        expected_methods=methods,
+    )
+    assert audit.formal_ready
+    assert audit.transfer_panel == "gated"
+
+
 def test_formal_rejects_hashing_retriever():
     with pytest.raises(FairnessProtocolError, match="pilot-only"):
         require_nonpilot_embedding({"pilot_only": True}, run_mode="formal")
     require_nonpilot_embedding({"model": "Qwen/Qwen3-Embedding-0.6B"}, run_mode="formal")
+
+
+def test_raw_and_gated_panels_cannot_be_mixed():
+    gated = _artifact("expel")
+    require_transfer_panel(gated, transfer_panel="gated")
+    with pytest.raises(FairnessProtocolError, match="raw panel"):
+        require_transfer_panel(gated, transfer_panel="raw")
 
 
 def test_paired_receipts_fail_closed_on_task_or_game_mismatch():

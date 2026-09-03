@@ -9,11 +9,14 @@ from motif_transfer.cross_domain_memory_baselines import (
     CrossDomainMemoryAdvisor,
     InsufficientEligibleSourceError,
     MemoryBaseline,
+    MemoryControl,
     OutcomeAuthority,
     OutcomeLabel,
     TargetDomain,
     adapt_target_context,
     bind_memory_artifact_to_target,
+    build_trajectory_memory_artifact,
+    build_external_memory_artifact,
     canonical_source_episodes,
     induce_memory_artifact,
     gate_candidates_to_target,
@@ -206,6 +209,47 @@ def test_all_three_methods_build_frozen_source_only_artifacts(method):
     assert artifact["source_domains"] == ["source_game"]
     assert artifact["online_memory_updates_allowed"] is False
     assert backend.calls == (2 if method == MemoryBaseline.REASONING_BANK else 1)
+
+
+def test_trajectory_controls_share_identical_experience_and_differ_only_in_retrieval():
+    semantic = build_trajectory_memory_artifact(MemoryControl.EPISODIC_RAG, SOURCE)
+    random = build_trajectory_memory_artifact(
+        MemoryControl.RANDOM_TRAJECTORY_ICL, SOURCE, random_seed=17,
+    )
+    assert semantic["items"] == random["items"]
+    assert semantic["retrieval_strategy"] == "semantic"
+    assert random["retrieval_strategy"] == "frozen_random"
+    assert semantic["source_superset_sha256"] == random["source_superset_sha256"]
+    target = adapt_target_context(
+        "webshop", task="uncertain route", observation={"observation": "choose"},
+    )
+    first = retrieve_memory_items(
+        random, target, FakeEmbedding(), top_k=2, maximum_memory_tokens=40,
+    )
+    second = retrieve_memory_items(
+        random, target, FakeEmbedding(), top_k=2, maximum_memory_tokens=40,
+    )
+    assert first == second
+    assert first["retrieval_strategy"] == "frozen_random"
+    assert first["rendered_memory_tokens"] <= 40
+    assert len(first["retrieved"]) == 2
+    assert all(row["rendered_token_count"] > 0 for row in first["retrieved"])
+
+
+def test_ours_uses_the_same_artifact_and_gate_path():
+    raw = build_external_memory_artifact(
+        "ours", SOURCE, [{
+            "title": "Check uncertainty", "content": "Inspect before committing.",
+            "applicability": "When the visible state is uncertain.", "kind": "SKILL",
+            "source_episode_ids": ["game-e0"], "evidence_receipt_ids": ["r0"],
+        }], producer_identity={"producer": "ours-test"},
+    )
+    validate_memory_artifact(raw)
+    bound = gate_memory_artifact_to_target(
+        raw, "alfworld", _alfworld_adaptation(), FakeGate(),
+    )
+    assert bound["method"] == "ours"
+    assert bound["items"] == raw["items"]
 
 
 def test_source_schema_rejects_noncontiguous_and_duplicate_receipts():

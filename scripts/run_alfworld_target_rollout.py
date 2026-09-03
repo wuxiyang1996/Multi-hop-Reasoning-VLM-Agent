@@ -21,12 +21,13 @@ from motif_transfer.cross_domain_memory_baselines import (  # noqa: E402
     CrossDomainMemoryDecisionAgent,
     LocalHashingEmbeddingBackend,
     LocalSentenceTransformerEmbeddingBackend,
-    MemoryBaseline,
+    comparison_memory_methods,
     validate_memory_artifact,
 )
 from motif_transfer.cross_domain_fairness import (  # noqa: E402
     require_formal_suite_audit,
     require_nonpilot_embedding,
+    require_transfer_panel,
 )
 from motif_transfer.frozen_motif_agent import (  # noqa: E402
     MemoizedCompletionBackend,
@@ -64,12 +65,15 @@ def main() -> None:
     parser.add_argument("--decision-model", default="qwen/qwen3.5-35b-a3b")
     parser.add_argument(
         "--arm", default="target_only",
-        choices=["target_only", *[row.value for row in MemoryBaseline]],
+        choices=["target_only", *comparison_memory_methods()],
     )
     parser.add_argument("--artifact", type=Path)
     parser.add_argument("--embedding-model", default="Qwen/Qwen3-Embedding-0.6B")
     parser.add_argument("--run-mode", choices=["pilot", "formal"], default="pilot")
     parser.add_argument("--fairness-audit", type=Path)
+    parser.add_argument("--top-k", type=int, default=3)
+    parser.add_argument("--maximum-memory-tokens", type=int, default=1200)
+    parser.add_argument("--transfer-panel", choices=["raw", "gated"], default="raw")
     args = parser.parse_args()
     if args.output.exists():
         raise SystemExit(f"refusing to overwrite {args.output}")
@@ -107,6 +111,7 @@ def main() -> None:
     if args.arm != "target_only":
         artifact = json.loads(args.artifact.read_text(encoding="utf-8"))
         validate_memory_artifact(artifact)
+        require_transfer_panel(artifact, transfer_panel=args.transfer_panel)
         if artifact["method"] != args.arm:
             raise SystemExit("memory artifact method does not match --arm")
         embedding_backend = (
@@ -117,7 +122,8 @@ def main() -> None:
         require_nonpilot_embedding(embedding_backend.identity, run_mode=args.run_mode)
         memory_decision = CrossDomainMemoryDecisionAgent(
             base_decision, artifact=artifact, domain="alfworld",
-            embedding_backend=embedding_backend, top_k=3,
+            embedding_backend=embedding_backend, top_k=args.top_k,
+            maximum_memory_tokens=args.maximum_memory_tokens,
         )
     require_formal_suite_audit(
         args.fairness_audit,
@@ -125,6 +131,7 @@ def main() -> None:
         target_domain="alfworld",
         method=None if args.arm == "target_only" else args.arm,
         artifact_sha256=artifact["artifact_sha256"] if artifact else None,
+        transfer_panel=args.transfer_panel,
     )
     decision = memory_decision or base_decision
     # Construct a one-game official batch instead of scanning the full split
@@ -172,8 +179,11 @@ def main() -> None:
         "condition": "BASE_DECISION_TARGET_ONLY" if args.arm == "target_only" else "CROSS_DOMAIN_MEMORY",
         "arm": args.arm,
         "run_mode": args.run_mode,
+        "transfer_panel": args.transfer_panel,
+        "maximum_memory_tokens": args.maximum_memory_tokens,
+        "top_k": args.top_k,
         "implementation_fidelity": "clean_room_style",
-        "result_label": "target-only" if args.arm == "target_only" else f"{args.arm}-style",
+        "result_label": "target-only" if args.arm == "target_only" else args.arm,
         "harness_used": False,
         "source_motif_used": False,
         "max_steps": args.max_steps,

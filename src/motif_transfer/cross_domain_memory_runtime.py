@@ -132,6 +132,7 @@ def retrieve_target_advisory(
     embedding_backend: EmbeddingBackend,
     *,
     top_k: int = 3,
+    maximum_memory_tokens: int = 1200,
 ) -> tuple[str, dict[str, Any]]:
     """Retrieve memory for one target step and return its advisory text.
 
@@ -155,6 +156,7 @@ def retrieve_target_advisory(
     )
     retrieval = retrieve_memory_items(
         artifact, target, embedding_backend, top_k=top_k,
+        maximum_memory_tokens=maximum_memory_tokens,
     )
     text = str(CrossDomainMemoryAdvisor(retrieval).advisory().information_need or "")
     assert_action_free(text, view.get("native_actions") or ())
@@ -179,6 +181,7 @@ class MemoryAugmentedDecisionBackend:
         domain: TargetDomain | str,
         embedding_backend: EmbeddingBackend,
         top_k: int = 3,
+        maximum_memory_tokens: int = 1200,
         decision_roles: Sequence[str] = ("decision",),
     ) -> None:
         validate_memory_artifact(artifact)
@@ -187,6 +190,7 @@ class MemoryAugmentedDecisionBackend:
         self.domain = TargetDomain(domain)
         self.embedding_backend = embedding_backend
         self.top_k = top_k
+        self.maximum_memory_tokens = maximum_memory_tokens
         self.decision_roles = frozenset(decision_roles)
         self.retrieval_receipts: list[dict[str, Any]] = []
 
@@ -198,6 +202,7 @@ class MemoryAugmentedDecisionBackend:
                 "artifact_sha256": self.artifact["artifact_sha256"],
                 "target_domain": self.domain.value,
                 "top_k": self.top_k,
+                "maximum_memory_tokens": self.maximum_memory_tokens,
                 "decision_roles": sorted(self.decision_roles),
                 "embedding": dict(self.embedding_backend.identity),
             },
@@ -212,6 +217,7 @@ class MemoryAugmentedDecisionBackend:
         return retrieve_target_advisory(
             self.artifact, self.domain, payload, self.embedding_backend,
             top_k=self.top_k,
+            maximum_memory_tokens=self.maximum_memory_tokens,
         )
 
     def complete(self, role: str, system: str, payload: Mapping[str, Any]) -> str:
@@ -238,6 +244,12 @@ class MemoryAugmentedDecisionBackend:
             "retrieved_item_ids": [
                 str(row["item"]["item_id"]) for row in retrieval["retrieved"]
             ],
+            "retrieval_strategy": retrieval.get("retrieval_strategy", "semantic"),
+            "rendered_memory_tokens": retrieval.get("rendered_memory_tokens", 0),
+            "maximum_memory_tokens": retrieval.get(
+                "maximum_memory_tokens", self.maximum_memory_tokens,
+            ),
+            "memory_token_counter": retrieval.get("memory_token_counter", "unknown"),
             "request_augmented": was_augmented,
             "augmented_request_sha256": stable_hash(
                 {"role": role, "system": system, "payload": augmented}

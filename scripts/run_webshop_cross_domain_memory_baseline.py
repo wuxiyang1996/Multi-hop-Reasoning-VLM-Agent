@@ -25,7 +25,7 @@ from motif_transfer.contracts import stable_hash  # noqa: E402
 from motif_transfer.cross_domain_memory_baselines import (  # noqa: E402
     LocalSentenceTransformerEmbeddingBackend,
     LocalHashingEmbeddingBackend,
-    MemoryBaseline,
+    comparison_memory_methods,
     validate_memory_artifact,
 )
 from motif_transfer.cross_domain_memory_runtime import (  # noqa: E402
@@ -34,6 +34,7 @@ from motif_transfer.cross_domain_memory_runtime import (  # noqa: E402
 from motif_transfer.cross_domain_fairness import (  # noqa: E402
     require_formal_suite_audit,
     require_nonpilot_embedding,
+    require_transfer_panel,
 )
 from motif_transfer.frozen_motif_agent import (  # noqa: E402
     MemoizedCompletionBackend,
@@ -54,7 +55,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--arm", required=True,
-        choices=[TARGET_ONLY, *[row.value for row in MemoryBaseline]],
+        choices=[TARGET_ONLY, *comparison_memory_methods()],
     )
     parser.add_argument(
         "--artifact", type=Path,
@@ -77,6 +78,8 @@ def main() -> int:
     parser.add_argument("--candidate-count", type=int, default=5)
     parser.add_argument("--schema-retries", type=int, default=3)
     parser.add_argument("--top-k", type=int, default=3)
+    parser.add_argument("--maximum-memory-tokens", type=int, default=1200)
+    parser.add_argument("--transfer-panel", choices=["raw", "gated"], default="raw")
     parser.add_argument("--run-id", default="webshop-xd-memory-v1")
     args = parser.parse_args()
 
@@ -131,6 +134,7 @@ def main() -> int:
     if args.arm != TARGET_ONLY:
         artifact = _load(args.artifact)
         validate_memory_artifact(artifact)
+        require_transfer_panel(artifact, transfer_panel=args.transfer_panel)
         if artifact["method"] != args.arm:
             raise SystemExit(
                 f"artifact method {artifact['method']!r} does not match arm {args.arm!r}"
@@ -149,6 +153,7 @@ def main() -> int:
             domain="webshop",
             embedding_backend=embedding_backend,
             top_k=args.top_k,
+            maximum_memory_tokens=args.maximum_memory_tokens,
         )
     require_formal_suite_audit(
         args.fairness_audit,
@@ -156,6 +161,7 @@ def main() -> int:
         target_domain="webshop",
         method=None if args.arm == TARGET_ONLY else args.arm,
         artifact_sha256=artifact["artifact_sha256"] if artifact else None,
+        transfer_panel=args.transfer_panel,
     )
     backend = memory_backend or raw_backend
 
@@ -198,9 +204,12 @@ def main() -> int:
         "run_id": args.run_id,
         "arm": args.arm,
         "run_mode": args.run_mode,
+        "transfer_panel": args.transfer_panel,
+        "maximum_memory_tokens": args.maximum_memory_tokens,
+        "top_k": args.top_k,
         "implementation_fidelity": "clean_room_style",
         "result_label": (
-            "target-only" if args.arm == TARGET_ONLY else f"{args.arm}-style"
+            "target-only" if args.arm == TARGET_ONLY else args.arm
         ),
         "target_domain": "webshop",
         "tasks": tasks,
