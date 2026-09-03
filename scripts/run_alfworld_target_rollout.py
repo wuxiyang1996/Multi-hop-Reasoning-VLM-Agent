@@ -15,8 +15,14 @@ import time
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "src"))
 
-from motif_transfer.alfworld_env import ALFWorldTextEnvironment  # noqa: E402
+from motif_transfer.alfworld_env import ALFWorldTextBatchEnvironment  # noqa: E402
 from motif_transfer.api_decision_agent import OpenAIJSONDecisionAgent  # noqa: E402
+from motif_transfer.cross_domain_memory_baselines import (  # noqa: E402
+    CrossDomainMemoryDecisionAgent,
+    LocalHashingEmbeddingBackend,
+    MemoryBaseline,
+    validate_memory_artifact,
+)
 from motif_transfer.frozen_motif_agent import (  # noqa: E402
     MemoizedCompletionBackend,
     OpenAICompatibleBackend,
@@ -51,9 +57,16 @@ def main() -> None:
     parser.add_argument("--max-steps", type=int, default=30)
     parser.add_argument("--decision-max-tokens", type=int, default=512)
     parser.add_argument("--decision-model", default="qwen/qwen3.5-35b-a3b")
+    parser.add_argument(
+        "--arm", default="target_only",
+        choices=["target_only", *[row.value for row in MemoryBaseline]],
+    )
+    parser.add_argument("--artifact", type=Path)
     args = parser.parse_args()
     if args.output.exists():
         raise SystemExit(f"refusing to overwrite {args.output}")
+    if args.arm != "target_only" and args.artifact is None:
+        raise SystemExit("--artifact is required for a memory arm")
 
     keys = runpy.run_path(str(args.keys))
     value = keys.get("OPENROUTER_API_KEY")
@@ -80,13 +93,28 @@ def main() -> None:
         ),
         cache_path=args.decision_cache,
     )
-    decision = OpenAIJSONDecisionAgent(backend)
-    environment = ALFWorldTextEnvironment(
+    base_decision = OpenAIJSONDecisionAgent(backend)
+    memory_decision = None
+    if args.arm != "target_only":
+        artifact = json.loads(args.artifact.read_text(encoding="utf-8"))
+        validate_memory_artifact(artifact)
+        if artifact["method"] != args.arm:
+            raise SystemExit("memory artifact method does not match --arm")
+        memory_decision = CrossDomainMemoryDecisionAgent(
+            base_decision, artifact=artifact, domain="alfworld",
+            embedding_backend=LocalHashingEmbeddingBackend(), top_k=3,
+        )
+    decision = memory_decision or base_decision
+    # Construct a one-game official batch instead of scanning the full split
+    # and calling ``skip``.  AlfredTWEnv shuffles on reset, so skip(index) did
+    # not reliably execute the manifest-resolved game and could silently make
+    # paired arms face different goals.
+    environment = ALFWorldTextBatchEnvironment(
         config_path=str(args.config),
         data_path=str(args.data),
         split=args.alfworld_split,
         seed=args.seed + args.task_offset,
-        game_id=task_id,
+        game_ids=[task_id],
         max_steps=args.max_steps,
     )
     started = time.monotonic()
@@ -119,7 +147,8 @@ def main() -> None:
         "seed": args.seed + args.task_offset,
         "decision_model": args.decision_model,
         "decision_backend": backend.identity,
-        "condition": "BASE_DECISION_TARGET_ONLY",
+        "condition": "BASE_DECISION_TARGET_ONLY" if args.arm == "target_only" else "CROSS_DOMAIN_MEMORY",
+        "arm": args.arm,
         "harness_used": False,
         "source_motif_used": False,
         "max_steps": args.max_steps,
@@ -130,7 +159,10 @@ def main() -> None:
         "transition_receipts": (
             [asdict(row) for row in result.receipts] if result else []
         ),
-        "decision_call_receipts": decision.call_receipts,
+        "decision_call_receipts": base_decision.call_receipts,
+        "memory_retrieval_receipts": (
+            list(memory_decision.retrieval_receipts) if memory_decision else []
+        ),
         "source_failures": list(result.source_failures) if result else [],
         "error": error,
         "terminal_failure_kind": terminal_failure_kind,

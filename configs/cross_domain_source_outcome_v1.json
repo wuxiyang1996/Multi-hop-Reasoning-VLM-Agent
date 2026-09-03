@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "status": "WITHDRAWN_DO_NOT_USE",
+  "superseded_by": "configs/cross_domain_source_outcome_v2.json",
+  "withdrawn_because": "Applied to the 36 pilot episodes on 2026-09-02 and failed. Asking an LLM judge whether a score-maximisation game's objective was achieved forced it onto a structural proxy: the verdict matched the terminated flag alone in 33/36 episodes, it produced 14 SUCCESS / 0 FAILURE / 22 UNKNOWN leaving ExpeL no contrast and ReasoningBank no pitfalls, and it ran anti-correlated with play quality (tetris episodes that terminated had median score 128 against 220 for those that survived, yet every terminated episode was labelled SUCCESS). Evidence retained at runs/cross_domain_memory_pilot_v0_provisional/source_labelled_v1_WITHDRAWN.json.",
+  "claim": "One shared outcome resolution for every cross-domain memory method",
+  "resolution_order": [
+    "OFFICIAL",
+    "BENCHMARK_PREDICATE",
+    "SHARED_EVALUATOR",
+    "UNRESOLVED"
+  ],
+  "rules": {
+    "absent_official_success_is_unknown": true,
+    "unknown_is_withheld_from_every_method": true,
+    "generic_reward_greater_than_zero_is_forbidden": true,
+    "same_evaluator_instance_for_all_methods": true
+  },
+  "official_predicate_availability": {
+    "note": "None of the six source games emit an official_success field. Every exported episode resolves to UNKNOWN at the OFFICIAL stage and falls through.",
+    "observed_on": "runs/phase1_*_long_v1/authentic_skill_loaded",
+    "episodes_checked": 36,
+    "official_success_present": 0
+  },
+  "predicates": {
+    "tetris": {
+      "kind": "ABSTAIN",
+      "justification": "Score accumulates continuously and no line-clear target is declared by the benchmark, so any threshold would be invented here rather than defined by the game."
+    },
+    "candy_crush": {
+      "kind": "ABSTAIN",
+      "justification": "The collected episodes carry no level-objective field, so a win condition cannot be read off the record."
+    },
+    "gymv_columns": {
+      "kind": "ABSTAIN",
+      "justification": "Endless mode with no declared target score; termination is stack-out, which the judge can read but a fixed predicate cannot grade."
+    },
+    "gymv_streets_of_rage_2": {
+      "kind": "ABSTAIN",
+      "justification": "Stage completion is not recorded as a structured field; only score and termination are available."
+    },
+    "gymv_strider": {
+      "kind": "ABSTAIN",
+      "justification": "Stage completion is not recorded as a structured field; only score and termination are available."
+    },
+    "gymv_thunder_force_iii": {
+      "kind": "ABSTAIN",
+      "justification": "Stage completion is not recorded as a structured field; only score and termination are available."
+    }
+  },
+  "shared_evaluator": {
+    "kind": "FROZEN_LLM_JUDGE",
+    "module": "src/motif_transfer/source_outcome_evaluator.py",
+    "role": "source_outcome_judge",
+    "temperature": 0,
+    "abstention_allowed": true,
+    "fidelity_note": "ReasoningBank natively runs a judge; ExpeL and AWM do not. The main experiment gives all methods these shared labels so no method holds supervision the others were denied. Appendix arms re-run ExpeL and AWM under native fidelity, where the absence of environment-reported success leaves AWM with an empty workflow bank; that outcome is reported, not repaired."
+  },
+  "preregistered_empty_bank_rule": {
+    "trigger": "A method resolves to fewer than 1 eligible source episode",
+    "action": "induce_memory_artifact raises InsufficientEligibleSourceError and the arm is reported as empty rather than rescued by lowering the threshold",
+    "threshold_may_be_changed_after_seeing_labels": false
+  }
+}

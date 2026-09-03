@@ -10,6 +10,17 @@ import sys
 
 
 REPO = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(REPO / "src"))
+
+from motif_transfer.cross_domain_memory_baselines import (  # noqa: E402
+    LocalHashingEmbeddingBackend,
+    MemoryBaseline,
+    validate_memory_artifact,
+)
+from motif_transfer.cross_domain_memory_runtime import (  # noqa: E402
+    advisory_prompt_block,
+    retrieve_target_advisory,
+)
 
 
 def _sha256(path: Path) -> str:
@@ -30,7 +41,14 @@ def main() -> None:
     parser.add_argument("--model", default="qwen/qwen3.5-35b-a3b")
     parser.add_argument("--base-url", default="https://openrouter.ai/api/v1")
     parser.add_argument("--max-rounds", type=int, default=4)
+    parser.add_argument(
+        "--arm", default="target_only",
+        choices=["target_only", *[row.value for row in MemoryBaseline]],
+    )
+    parser.add_argument("--artifact", type=Path)
     args = parser.parse_args()
+    if args.arm != "target_only" and args.artifact is None:
+        raise SystemExit("--artifact is required for a memory arm")
 
     sys.path.insert(0, str(args.legacy_repo))
     from PIL import Image
@@ -51,9 +69,33 @@ def main() -> None:
         raise SystemExit(f"image is missing: {image_path}")
     image = Image.open(image_path)
     image.load()
+    prompt = str(row.get("prompt") or "")
+    memory_retrieval = None
+    memory_artifact_sha256 = None
+    if args.arm != "target_only":
+        artifact = json.loads(args.artifact.read_text(encoding="utf-8"))
+        validate_memory_artifact(artifact)
+        if artifact["method"] != args.arm:
+            raise SystemExit("memory artifact method does not match --arm")
+        advisory, memory_retrieval = retrieve_target_advisory(
+            artifact,
+            "tirbench",
+            {
+                "prompt": prompt,
+                "question": prompt,
+                "tool_trace": [],
+                "available_tools": ["crop", "zoom", "object_detection"],
+            },
+            LocalHashingEmbeddingBackend(),
+            top_k=3,
+        )
+        memory_artifact_sha256 = artifact["artifact_sha256"]
+        # Empty verified memory is a strict target-only no-op.
+        if advisory:
+            prompt += advisory_prompt_block(args.arm, advisory)
     sample = TIRBenchSample(
         sample_id=str(row["id"]), task=str(row.get("task") or ""),
-        prompt=str(row.get("prompt") or ""), answer=str(row.get("answer") or ""),
+        prompt=prompt, answer=str(row.get("answer") or ""),
         image_1=str(image_path), image_2=row.get("image_2"), meta_data=row.get("meta_data") or {},
     )
     result = parse_tir_bench_sample(
@@ -69,7 +111,7 @@ def main() -> None:
     payload = {
         "schema_version": 1,
         "cell": "tir_bench",
-        "condition": "target_only",
+        "condition": args.arm,
         "executor_kind": "real_media_tool_loop",
         "official_evaluator": "exact_answer",
         "sample_id": args.sample_id,
@@ -78,6 +120,8 @@ def main() -> None:
         "image_sha256": _sha256(image_path),
         "model": args.model,
         "max_rounds": args.max_rounds,
+        "memory_artifact_sha256": memory_artifact_sha256,
+        "memory_retrieval": memory_retrieval,
         "result": result,
     }
     args.output.parent.mkdir(parents=True, exist_ok=True)
