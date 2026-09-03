@@ -33,6 +33,14 @@ balanced-train videos 中哈希选择并 range-download 180 个。Question-only 
 `BOTH_VIDEO_BENCHMARKS_FRESH_LAYER_B_VALIDATED`。AGQA fresh result 来自 official
 balanced-train，不声称 official-test SOTA。
 
+后续 Query Grounder V2 powered qualification 也已完成：320 videos / 640 query-object tasks，
+entity recall 90.16%，固定 threshold 下 169 supported、116 correct，precision 68.64%，Wilson
+lower 61.30%，coverage 26.41%，全部冻结 gates 通过。该结果只证明 answer-blind target-native
+grounding 达到预设资格，不是新的 transfer formal。严格 exposure audit 显示 AGQA official-test
+1,814/1,814 videos 已被历史 raw-video experiments 看过，因此不再声称能够分配新的 untouched
+official-test reserve；主表继续使用上述 1,790-task fresh balanced-train formal。机器摘要见
+[`results/agqa_query_grounder_v2_powered_qualification_v1.json`](results/agqa_query_grounder_v2_powered_qualification_v1.json)。
+
 ## Phase 17 V28 prospective target reserve（2026-08-20）
 
 Phase 16 的最高优先级边界已关闭。V28 从 official-Tetris fresh intervention forks 在 `K=3` 自动归纳的

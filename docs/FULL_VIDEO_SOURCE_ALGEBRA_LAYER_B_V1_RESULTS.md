@@ -21,6 +21,29 @@ target-native neural grounding 下，可以选择性提高 final video-QA accura
 source provenance 本身优于一个 extensionally identical target-written controller，也不声称
 raw-video QA SOTA。
 
+### Query Grounder V2 后续资格审查（不替换主表）
+
+为降低 AGQA `query-object` 的 grounding bottleneck，又对一个完全本地、answer-blind 的
+target-native grounder 做了独立 powered qualification。它使用 public ontology、stable entity
+tracks、typed semantic roles、跨帧 event deduplication、64-frame SGDET 与 48-frame SlowFast；
+五臂未来若使用该 grounder，必须共享完全相同的 receipts。
+
+在冻结的 320 个 balanced-train videos / 640 个 query-object tasks 上，固定 threshold `0.60`
+得到：entity inventory recall `90.16%`、169 个 supported predictions、其中 116 正确，precision
+`68.64%`、95% Wilson lower bound `61.30%`、coverage `26.41%`；role、dedup、authority 与 contract
+均为 100%，全部预注册 gates 通过。运行不调用 API。
+
+一次 outcome 打开前的数值合约故障被显式记录：两个 float32 softmax probability 为
+`1.0000001192092896`。修复只把 `1e-6` 浮点误差范围内的 probability 规范到 `[0,1]`，更大越界仍
+fail closed；样本、模型、checkpoint、帧预算、ontology、ranking 和 threshold 均未改变。
+
+这仍只是 **grounder qualification，不是新的 transfer formal**。资格审查通过后，严格 inventory
+audit 发现 official balanced-test 的 1,814/1,814 videos 都已有历史 raw-frame exposure，因而无法再
+分配满足 video-disjoint 的 untouched test reserve。不能把复用 test videos 的结果包装成 fresh。
+所以论文主表继续使用下文已冻结的 1,790-task five-strata AGQA formal；V2 只作为“grounding 可被
+更可靠地局部解决”的补充证据。机器摘要见
+[`results/agqa_query_grounder_v2_powered_qualification_v1.json`](results/agqa_query_grounder_v2_powered_qualification_v1.json)。
+
 ## Anonymous source controller（新增）
 
 旧聚合 artifact 的 29 个 `PRESENCE`、`FIRST_EVENT` 等名称不再被当作 source learner 的
@@ -249,6 +272,8 @@ targeted tests。它不重新调用 provider，也不重新采集 raw-video grou
   都可能更强）；
 - live raw-pixel NS-DR inference was rerun（CLEVRER 使用 content-bound cached off-the-shelf
   predictions）。
+- Query Grounder V2 已在新的 official-test transfer reserve 上验证（所有 1,814 个 test videos
+  都已有历史 raw-frame exposure；当前仅完成独立 qualification）。
 
 ## Canonical artifacts
 

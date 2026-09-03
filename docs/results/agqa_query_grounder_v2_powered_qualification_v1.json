@@ -1,0 +1,50 @@
+{
+  "schema_version": "agqa-query-grounder-v2-powered-qualification-paper-summary-v1",
+  "status": "QUERY_GROUNDER_V2_POWERED_QUALIFIED",
+  "scope": "target-native grounding qualification only; not transfer evidence",
+  "cohort": {
+    "split": "AGQA balanced train / Action Genome train",
+    "videos": 320,
+    "query_object_tasks": 640,
+    "video_disjoint_from_all_prior_raw_runtime_at_freeze": true
+  },
+  "frozen_operating_point": {
+    "candidate_support_threshold": 0.6,
+    "sgdet_frames": 64,
+    "slowfast_frames": 48,
+    "provider_calls": 0
+  },
+  "metrics": {
+    "provider_and_contract_success_fraction": 1.0,
+    "entity_candidate_pool_recall": 0.9015625,
+    "typed_role_binding_fidelity": 1.0,
+    "cross_frame_dedup_fidelity": 1.0,
+    "residual_duplicate_typed_event_key_count": 0,
+    "unique_supported_count": 169,
+    "unique_supported_correct": 116,
+    "unique_supported_precision": 0.6863905325443787,
+    "unique_supported_precision_wilson_95_lower": 0.6129561359666054,
+    "unique_supported_coverage_fraction": 0.2640625,
+    "authority_safe_receipt_fraction": 1.0
+  },
+  "all_preregistered_gates_passed": true,
+  "preoutcome_amendment": {
+    "reason": "float32 SGDET softmax emitted two values of 1.0000001192092896 before the grounding artifact or qualification outcomes existed",
+    "repair": "clip only finite probability output within 1e-6 numerical slack and fail closed outside that tolerance",
+    "selection_model_frames_ontology_ranking_and_threshold_changed": false,
+    "amendment_file_sha256": "da1158513ef5fa90c6cb6497430ddc66e2136bdcc1ba256cd4073ad400ffc1f6"
+  },
+  "artifact_hashes": {
+    "grounding_report_sha256": "d9a57f01c88f0eddc5adcf4eb5da77fb12dd936b1180c684635492137e8b1657",
+    "grounding_file_sha256": "e1254acaf40cf073ca875b6306dfb81fa79c92a92ae8903181ec65c0d81491fd",
+    "qualification_report_sha256": "f3cef1bd2daa2a0eeb2991c50cecfdfbd317a083c20ec2a5c9ef426b4221284e",
+    "qualification_file_sha256": "dd36a3070c1e2a5dcad7bd88ce14a1b9265eac8a5a4fe4d0e6c89cea29d8c376"
+  },
+  "fresh_formal_inventory_audit": {
+    "official_balanced_test_videos": 1814,
+    "official_test_videos_without_prior_raw_frame_exposure": 0,
+    "new_video_disjoint_formal_reserve_available": false,
+    "decision": "do not allocate or relabel a reused official-test cohort as fresh"
+  },
+  "paper_use": "Report as evidence that local answer-blind target-native grounding is qualified. Keep the existing 1790-task five-stratum fresh formal as the AGQA transfer result. Do not claim a new Query-Grounder-V2 formal transfer result."
+}
