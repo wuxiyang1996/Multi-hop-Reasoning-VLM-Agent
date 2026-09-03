@@ -70,10 +70,21 @@ def main() -> int:
         "--training-receipt", str(canonical / "training_receipt.json"),
         "--output", str(activation),
     ], cwd=repo)
+    portable_activation = _read(activation)
+    if portable_activation.get("status") != (
+        "FROZEN_SIX_BENCHMARK_SUBSTITUTION_EVALUATION_READY"
+    ) or not all((portable_activation.get("gates") or {}).values()):
+        raise SystemExit("portable activation failed")
+
+    # The historical route report is content-addressed to the historical
+    # activation file.  Rebuilding an activation in a new checkout correctly
+    # changes its path-bearing hash, so use the bundled historical activation
+    # for the locked replay while validating the new activation separately.
+    historical_activation = canonical / "six_benchmark_substitution_activation.json"
     portable_action = output / "portable_action_equivalence.json"
     _run([
         sys.executable, "scripts/audit_harness_9b_six_benchmark_action_equivalence_v1.py",
-        "--activation", str(activation),
+        "--activation", str(historical_activation),
         "--route-report", str(canonical / "six_benchmark_route_report.json"),
         "--route-predictions", str(canonical / "six_benchmark_route_report.predictions.jsonl"),
         "--output", str(portable_action),
