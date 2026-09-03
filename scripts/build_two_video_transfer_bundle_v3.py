@@ -26,6 +26,17 @@ def _sha(path: Path) -> str:
     return digest.hexdigest()
 
 
+def _artifact_label(path: Path, roots: list[Path]) -> str:
+    """Return a stable repo-relative label for artifacts stored outside code root."""
+    resolved = path.resolve()
+    for root in roots:
+        try:
+            return resolved.relative_to(root.resolve()).as_posix()
+        except ValueError:
+            continue
+    return str(path)
+
+
 def _stable(value: dict, field: str) -> None:
     claimed = value.get(field)
     body = {key: item for key, item in value.items() if key != field}
@@ -39,6 +50,7 @@ def main() -> int:
     parser.add_argument("--clevrer-substitution", type=Path, required=True)
     parser.add_argument("--agqa-bundle", type=Path, required=True)
     parser.add_argument("--anonymous-controller", type=Path, required=True)
+    parser.add_argument("--artifact-label-root", type=Path, action="append", default=[])
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--verify-existing", action="store_true")
     args = parser.parse_args()
@@ -139,7 +151,7 @@ def main() -> int:
             "source_provenance_necessary_against_isomorphic_controller_claimed": False,
         },
         "artifact_file_sha256s": {
-            str(path): _sha(path) for path in (
+            _artifact_label(path, args.artifact_label_root): _sha(path) for path in (
                 args.clevrer_formal, args.clevrer_substitution,
                 args.agqa_bundle, args.anonymous_controller,
             )

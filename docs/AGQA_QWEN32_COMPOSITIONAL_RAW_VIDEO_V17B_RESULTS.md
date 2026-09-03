@@ -158,6 +158,11 @@ broad result（44.86% -> 46.48%，`p=.00704`）仍可作为独立 broad-distribu
 bash scripts/reproduce_agqa_qwen32_compositional_v17b.sh "$PWD"
 ```
 
+参数是保存冻结 `runs/` 的 artifact root；因此 clean worktree 也可直接审核另一工作树中的
+只读 artifacts，例如
+`bash scripts/reproduce_agqa_qwen32_compositional_v17b.sh /abs/path/to/artifact-repo`。
+artifact hash 的标签会规范化为 repo-relative path，避免 checkout 绝对路径改变 bundle hash。
+
 Canonical paper artifacts：
 
 - AGQA V17b paper bundle：`docs/results/agqa_qwen32_compositional_formal_v17b.json`

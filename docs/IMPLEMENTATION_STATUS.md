@@ -1,5 +1,20 @@
 # Implementation Status
 
+## AGQA Qwen32 compositional raw-video V17b（2026-09-03）
+
+在旧 query-conditioned single-candidate V14 negative ablation 之后，新的 multi-event
+duration-compositional 路线已完成 development -> frozen protocol -> one-shot fresh formal。
+256 个 video/task-disjoint balanced-train tasks 上，shared Qwen3.5-9B neural-only 与
+matched-permuted 均为 107/256，game source-induced 为 **123/256**（`+6.25 pp`，
+`20W/4L`，two-sided exact `p=.00154388`），negative transfer 1.56%，target-written
+isomorphic 100%；generic target-native ceiling 为 132/256。五臂共享 48+96-frame
+Qwen3-VL-32B grounding、parser、executor 与 fallback，grounder 不读取 answer/STSG/program/
+source/outcome。该结果验证 selective duration-compositional transfer，不是 full AGQA test 或
+SOTA；absolute `>55%` secondary target 未达到。完整协议、失败版本、cost、taxonomy 与主表行见
+[`AGQA_QWEN32_COMPOSITIONAL_RAW_VIDEO_V17B_RESULTS.md`](AGQA_QWEN32_COMPOSITIONAL_RAW_VIDEO_V17B_RESULTS.md)，
+机器总审计见
+[`results/two_video_transfer_bundle_v3.json`](results/two_video_transfer_bundle_v3.json)。
+
 ## AGQA typed-evidence V13/V14（2026-09-03）
 
 V13 的 800-video / 1,600-task answer-blind typed-evidence grounding qualification

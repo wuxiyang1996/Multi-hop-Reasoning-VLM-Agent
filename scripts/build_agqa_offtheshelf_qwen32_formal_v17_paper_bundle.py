@@ -27,6 +27,17 @@ def _sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
+def _artifact_label(path: Path, roots: list[Path]) -> str:
+    """Return a stable repo-relative label for artifacts stored outside code root."""
+    resolved = path.resolve()
+    for root in roots:
+        try:
+            return resolved.relative_to(root.resolve()).as_posix()
+        except ValueError:
+            continue
+    return str(path)
+
+
 def _stable(value: dict, field: str) -> None:
     claimed = value.get(field)
     body = {key: item for key, item in value.items() if key != field}
@@ -50,6 +61,7 @@ def main() -> int:
     parser.add_argument("--anonymous-controller", type=Path, required=True)
     parser.add_argument("--development-evaluation", type=Path, required=True)
     parser.add_argument("--slowfast-development-evaluation", type=Path, required=True)
+    parser.add_argument("--artifact-label-root", type=Path, action="append", default=[])
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--verify-existing", action="store_true")
     args = parser.parse_args()
@@ -206,7 +218,7 @@ def main() -> int:
             "secondary_overall_accuracy_above_55_percent": formal["secondary_target"]["source_overall_accuracy_strictly_above_55_percent"],
         },
         "artifact_file_sha256s": {
-            str(path): _sha256(path) for path in (
+            _artifact_label(path, args.artifact_label_root): _sha256(path) for path in (
                 args.formal_evaluation, args.cohort, args.manifest, args.protocol,
                 args.semantic_runtime, args.download_receipt, *args.grounding_view, args.routed_grounding,
                 args.fallback, args.preoutcome, args.source_capabilities,
