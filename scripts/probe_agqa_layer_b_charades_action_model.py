@@ -16,6 +16,7 @@ from PIL import Image
 from pytorchvideo.models.slowfast import create_slowfast
 
 from motif_transfer.agqa_semantic_slots import action_anchor_obligations
+from motif_transfer.agqa_temporal_sampling import native_index_views
 from motif_transfer.contracts import stable_hash
 from scripts.collect_agqa2_frame_grounding_v2 import _sample_video
 from scripts.evaluate_agqa_layer_b_five_arm import _semantic
@@ -27,6 +28,13 @@ def _sha_file(path: Path) -> str:
         for block in iter(lambda: handle.read(1024 * 1024), b""):
             digest.update(block)
     return digest.hexdigest()
+
+
+def _sha_frame(frame: Image.Image) -> str:
+    return stable_hash({
+        "mode": frame.mode, "size": frame.size,
+        "pixels_sha256": hashlib.sha256(frame.tobytes()).hexdigest(),
+    })
 
 
 def _classes(path: Path) -> tuple[tuple[str, str], ...]:
@@ -107,6 +115,9 @@ def main() -> int:
     parser.add_argument("--classes", type=Path, required=True)
     parser.add_argument("--ontology", type=Path, required=True)
     parser.add_argument("--sampling", choices=("uniform48", "dense10x32"), default="uniform48")
+    parser.add_argument("--store-all-scores", action="store_true")
+    parser.add_argument("--shard-count", type=int, default=1)
+    parser.add_argument("--shard-index", type=int, default=0)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     if args.output.exists():
@@ -115,6 +126,14 @@ def main() -> int:
     cohort = json.loads(args.cohort.read_text())
     public = {str(row["task_id"]): row for row in cohort["rows"]}
     grounding = json.loads(args.grounding.read_text())
+    if args.shard_count < 1 or not 0 <= args.shard_index < args.shard_count:
+        raise ValueError("invalid shard configuration")
+    video_ids = sorted({str(public[str(row["task_id"])]["video_id"])
+                        for row in grounding["rows"]})
+    selected_videos = {video_id for index, video_id in enumerate(video_ids)
+                       if index % args.shard_count == args.shard_index}
+    grounding_rows = [row for row in grounding["rows"]
+                      if str(public[str(row["task_id"])]["video_id"]) in selected_videos]
     semantics = json.loads(args.semantic_runtime.read_text())
     semantic_by_id = {
         str(row["task_id"]): _semantic(row["receipt"])
@@ -132,18 +151,25 @@ def main() -> int:
     rows = []
     uniform_windows = (tuple(range(0, 32)), tuple(range(8, 40)), tuple(range(16, 48)))
     recorded_windows = None
-    for grounding_row in grounding["rows"]:
+    for grounding_row in grounding_rows:
         task_id = str(grounding_row["task_id"])
         semantic = semantic_by_id[task_id]
         if args.sampling == "uniform48":
-            frames, _, _ = _sample_video(Path(public[task_id]["video_path"]), frame_count=48, max_side=448)
+            frames, _, metadata = _sample_video(
+                Path(public[task_id]["video_path"]), frame_count=48, max_side=448)
             clip_frames = [frames, frames, frames]
-            windows = uniform_windows
             local_indices = uniform_windows
-            source_frame_count = None
+            source_frame_count = int(metadata["source_frame_count"])
+            native = tuple(int(index) for index in metadata["sampled_native_frame_indices"])
+            windows = native_index_views(native, uniform_windows)
+            presented = {int(index): frame for index, frame in zip(native, frames)}
         else:
             clip_frames, windows, source_frame_count = _dense_temporal_views(Path(public[task_id]["video_path"]))
             local_indices = (tuple(range(32)),) * len(clip_frames)
+            presented = {}
+            for one_clip, one_window in zip(clip_frames, windows):
+                for frame, native_index in zip(one_clip, one_window):
+                    presented.setdefault(int(native_index), frame)
         if recorded_windows is None:
             recorded_windows = len(windows)
         window_scores = []
@@ -174,16 +200,34 @@ def main() -> int:
                 "argmax_window": int(scores[:, index].argmax()),
             })
         top_scores, top_indices = torch.topk(scores.max(dim=0).values, k=10)
-        rows.append({
+        output_row = {
             "task_id": task_id,
+            "video_id": str(public[task_id]["video_id"]),
+            "video_sha256": _sha_file(Path(public[task_id]["video_path"])),
             "source_frame_count": source_frame_count,
             "native_frame_index_views": [list(window) for window in windows],
+            "presented_frame_receipts": [
+                {"native_frame_index": index, "frame_sha256": _sha_frame(presented[index])}
+                for index in sorted(presented)
+            ],
             "obligations": obligations,
             "top10": [
                 {"class_id": classes[int(index)][0], "phrase": classes[int(index)][1], "score": float(score)}
                 for score, index in zip(top_scores, top_indices)
             ],
-        })
+        }
+        if args.store_all_scores:
+            output_row["all_class_scores"] = [
+                {
+                    "class_id": class_id,
+                    "phrase": phrase,
+                    "window_scores": [float(value) for value in scores[:, index]],
+                    "max_score": float(scores[:, index].max()),
+                    "argmax_window": int(scores[:, index].argmax()),
+                }
+                for index, (class_id, phrase) in enumerate(classes)
+            ]
+        rows.append(output_row)
         print(json.dumps({"task_id": task_id, "obligations": len(obligations)}), flush=True)
 
     body = {
@@ -194,8 +238,15 @@ def main() -> int:
         "ontology_sha256": _sha_file(args.ontology),
         "source": "FAIR_PYTORCHVIDEO_SLOWFAST_R50_CHARADES_FROZEN",
         "sampling": args.sampling,
-        "frame_presentation_budget": 48 if args.sampling == "uniform48" else 320,
+        # ``uniform48`` decodes 48 distinct source frames, then presents three
+        # overlapping 32-frame clips to SlowFast.  Keep acquisition bandwidth
+        # separate from model compute instead of under-reporting the latter.
+        "unique_sampled_frame_budget": 48 if args.sampling == "uniform48" else 320,
+        "frame_presentation_budget": 96 if args.sampling == "uniform48" else 320,
         "temporal_views": recorded_windows,
+        "all_class_scores_stored": args.store_all_scores,
+        "shard_count": args.shard_count,
+        "shard_index": args.shard_index,
         "answers_read": False,
         "official_program_read": False,
         "official_scene_graph_read": False,

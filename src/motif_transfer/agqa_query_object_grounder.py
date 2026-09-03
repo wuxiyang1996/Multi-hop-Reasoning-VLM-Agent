@@ -35,6 +35,7 @@ _ALIASES = {
     "tv": "television",
     "doorknob handle": "doorknob",
 }
+AGQA_OBJECT_QUERY_TERMS = AGQA_OBJECT_ONTOLOGY + tuple(_ALIASES)
 
 _NON_ATOMIC_SCOPE = re.compile(
     r"\b(?:before|after|while|between|first|last)\b|"
@@ -184,7 +185,7 @@ def calibrate_query_object_execution(
 
 
 __all__ = [
-    "AGQA_OBJECT_ONTOLOGY", "AGQAObjectOntologyReceipt",
+    "AGQA_OBJECT_ONTOLOGY", "AGQA_OBJECT_QUERY_TERMS", "AGQAObjectOntologyReceipt",
     "atomic_query_object_plan", "calibrate_query_object_execution",
     "canonical_object_label", "parse_object_ontology_receipt",
 ]

@@ -212,12 +212,19 @@ def _sample_video(
     duration = total / fps
     seconds = np.linspace(0.0, max(0.0, duration - 1.0 / fps), frame_count)
     frames = []
+    sampled_native_frame_indices = []
     for second in seconds:
         capture.set(cv2.CAP_PROP_POS_MSEC, float(second) * 1000.0)
         ok, bgr = capture.read()
         if not ok or bgr is None:
             capture.release()
             raise RuntimeError(f"failed decoding {path} at {second:.3f}s")
+        # OpenCV points to the next frame after a successful read.  Persist the
+        # actual decoded source-frame coordinate instead of later treating the
+        # proxy position 0..N-1 as a native coordinate.
+        next_position = int(round(float(capture.get(cv2.CAP_PROP_POS_FRAMES))))
+        decoded_position = min(total - 1, max(0, next_position - 1))
+        sampled_native_frame_indices.append(decoded_position)
         frame = Image.fromarray(cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB))
         frame.thumbnail((max_side, max_side), Image.Resampling.LANCZOS)
         frames.append(frame)
@@ -228,6 +235,7 @@ def _sample_video(
         "source_frame_count": total,
         "duration_seconds": duration,
         "proxy_sample_seconds": rounded,
+        "sampled_native_frame_indices": sampled_native_frame_indices,
     }
 
 

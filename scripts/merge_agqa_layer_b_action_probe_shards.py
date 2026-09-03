@@ -13,6 +13,7 @@ from motif_transfer.contracts import stable_hash
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--cohort", type=Path, required=True)
+    parser.add_argument("--expected-grounding", type=Path)
     parser.add_argument("--shard", type=Path, action="append", required=True)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
@@ -22,6 +23,7 @@ def main() -> int:
     keys = (
         "schema_version", "status", "source", "checkpoint_sha256", "classes_sha256",
         "ontology_sha256", "sampling", "temporal_views", "frame_presentation_budget",
+        "unique_sampled_frame_budget",
         "answers_read", "official_program_read", "official_scene_graph_read",
     )
     reference = {key: shards[0].get(key) for key in keys}
@@ -34,10 +36,14 @@ def main() -> int:
             if task_id in by_task:
                 raise ValueError(f"duplicate action-probe task {task_id}")
             by_task[task_id] = row
-    expected = [str(row["task_id"]) for row in cohort["rows"]]
+    expected = ([str(row["task_id"]) for row in
+                 json.loads(args.expected_grounding.read_text())["rows"]]
+                if args.expected_grounding else
+                [str(row["task_id"]) for row in cohort["rows"]])
     if set(by_task) != set(expected):
         raise ValueError("action-probe shards do not exactly cover cohort")
-    body = {key: value for key, value in shards[0].items() if key not in {"rows", "report_sha256"}}
+    body = {key: value for key, value in shards[0].items()
+            if key not in {"rows", "report_sha256", "shard_count", "shard_index"}}
     body.update({
         "rows": [by_task[task_id] for task_id in expected],
         "merged_shard_paths": [str(path) for path in args.shard],

@@ -1,5 +1,19 @@
 # Implementation Status
 
+## AGQA typed-evidence V13/V14（2026-09-03）
+
+V13 的 800-video / 1,600-task answer-blind typed-evidence grounding qualification
+已通过：460 个 supported candidates，precision 67.61%，Wilson lower 63.20%，coverage
+28.75%。随后一次性运行的 V14 512-video / 1,024-task untouched formal 没有验证增量
+transfer：source 246/1024、neural/permuted 245/1024，仅 1W/0L，`p=1.0`。285 次
+source commits 中 283 次直接复现 shared 9B fallback；query-conditioned grounder 已基本把
+single-hop answer 做完，Harness 没有非平凡的组合决策空间。
+
+V14 保留为 negative ablation，不在该 cohort 上调参。未来 formal 已新增 outcome-blind
+prediction-disagreement opportunity gate；下一条 AGQA 路线必须使用 question-blind multi-event
+graph 与 compositional/temporal task。详见
+[`AGQA_QUERY_GROUNDER_V2_TYPED_EVIDENCE_V13_V14_RESULTS.md`](AGQA_QUERY_GROUNDER_V2_TYPED_EVIDENCE_V13_V14_RESULTS.md)。
+
 ## Full video source algebra + CLEVRER/AGQA2 Layer B（2026-09-02）
 
 Anonymous controller gap 已关闭：六个 source-game `(state, action, effect, next_state)` lineage

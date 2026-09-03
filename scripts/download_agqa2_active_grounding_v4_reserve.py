@@ -59,6 +59,10 @@ def main() -> None:
         "--selection", type=Path, required=True,
     )
     parser.add_argument("--receipt", type=Path, required=True)
+    parser.add_argument(
+        "--archive-url",
+        help="Transport-only mirror override; does not alter the frozen selection.",
+    )
     args = parser.parse_args()
     selection = json.loads(args.selection.read_text())
     body = dict(selection)
@@ -66,9 +70,21 @@ def main() -> None:
     if _stable_hash(body) != claimed:
         raise ValueError("AGQA V4 reserve selection hash mismatch")
     selection_status = str(selection.get("status", ""))
-    if not re.fullmatch(
-        r"FROZEN_V\d+_SELECTION_BEFORE_VIDEO_DOWNLOAD_OR_V\d+_CALLS",
-        selection_status,
+    if not (
+        re.fullmatch(
+            r"FROZEN_V\d+_SELECTION_BEFORE_VIDEO_DOWNLOAD_OR_V\d+_CALLS",
+            selection_status,
+        )
+        or re.fullmatch(
+            r"FROZEN_V\d+_SELECTION_BEFORE_VIDEO_DOWNLOAD_PROVIDER_OR_FORMAL_LABEL_ACCESS",
+            selection_status,
+        )
+        or re.fullmatch(
+            r"FROZEN_V\d+_(?:DEVELOPMENT|QUALIFICATION)_BEFORE_VIDEO_DOWNLOAD_PROVIDER_OR_OUTCOME_ACCESS",
+            selection_status,
+        )
+        or selection_status
+        == "FROZEN_BEFORE_VIDEO_DOWNLOAD_GROUNDING_OR_OUTCOMES"
     ):
         raise ValueError("AGQA reserve selection is not frozen")
     archive = selection["raw_video_archive"]
@@ -81,8 +97,9 @@ def main() -> None:
             raise ValueError("download receipt belongs to another selection")
         receipts = {str(row["video_id"]): row for row in cached.get("videos", [])}
 
+    archive_url = str(args.archive_url or archive["url"])
     with fsspec.open(
-        str(archive["url"]), "rb", block_size=1024 * 1024,
+        archive_url, "rb", block_size=1024 * 1024,
         cache_type="readahead",
     ) as remote, zipfile.ZipFile(remote) as bundle:
         names = set(bundle.namelist())
@@ -130,7 +147,8 @@ def main() -> None:
                 "schema_version": "agqa2-v4-reserve-download-v1",
                 "status": "IN_PROGRESS",
                 "selection_manifest_sha256": claimed,
-                "archive_url": archive["url"],
+                "archive_url": archive_url,
+                "frozen_archive_url": archive["url"],
                 "videos": [receipts[key] for key in sorted(receipts)],
             }, indent=2, sort_keys=True) + "\n")
             print(json.dumps({
@@ -141,7 +159,8 @@ def main() -> None:
         "schema_version": "agqa2-v4-reserve-download-v1",
         "status": "COMPLETE",
         "selection_manifest_sha256": claimed,
-        "archive_url": archive["url"],
+        "archive_url": archive_url,
+        "frozen_archive_url": archive["url"],
         "videos": [receipts[key] for key in sorted(receipts)],
     }
     args.receipt.write_text(json.dumps(complete, indent=2, sort_keys=True) + "\n")

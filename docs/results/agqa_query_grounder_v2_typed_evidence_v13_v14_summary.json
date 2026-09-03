@@ -1,0 +1,48 @@
+{
+  "claim_boundary": "V13 is grounding qualification only. V14 is an untouched balanced-train query-object formal and is a preserved negative single-hop grounder ablation, not official-test or SOTA evidence.",
+  "formal": {
+    "comparisons": {
+      "source_vs_neural": {"exact_two_sided_p": 1.0, "losses": 0, "wins": 1},
+      "source_vs_source_permuted": {"exact_two_sided_p": 1.0, "losses": 0, "wins": 1}
+    },
+    "formal_report_file_sha256": "9c531b6368263f66056b9e6ac566650f611493064870b685bac0c1f7f6ddf26a",
+    "formal_report_sha256": "03630cb9c86f63d772671fb275b1d66fb418adfe24db4358cf428f2341c5754c",
+    "gates_passed": false,
+    "negative_transfer_losses": 0,
+    "source_neural_prediction_disagreements": 2,
+    "summaries": {
+      "generic_scaffold": {"accuracy": 0.240234375, "correct": 246, "symbolic_commits": 285, "total": 1024},
+      "neural_only": {"accuracy": 0.2392578125, "correct": 245, "symbolic_commits": 0, "total": 1024},
+      "source_induced": {"accuracy": 0.240234375, "correct": 246, "symbolic_commits": 285, "total": 1024},
+      "source_permuted": {"accuracy": 0.2392578125, "correct": 245, "symbolic_commits": 0, "total": 1024},
+      "target_written_isomorphic": {"accuracy": 0.240234375, "correct": 246, "symbolic_commits": 285, "total": 1024}
+    },
+    "tasks": 1024,
+    "videos": 512
+  },
+  "qualification": {
+    "entity_candidate_pool_recall": 0.90625,
+    "preoutcome_source_commit_fraction": 0.250625,
+    "preoutcome_source_permuted_commit_fraction": 0.0,
+    "qualification_report_file_sha256": "af5418b42015c1c329fc9896e2a75062813f500c09f0582ff29996a50a622d40",
+    "qualification_report_sha256": "bb7e94f6a7a332bb1bbcbea1c749e2312f21724f8fcfda5e080618094cf9ae7d",
+    "supported_count": 460,
+    "supported_coverage_fraction": 0.2875,
+    "supported_precision": 0.6760869565217391,
+    "supported_precision_wilson_95_lower": 0.6320164992728301,
+    "tasks": 1600,
+    "typed_role_binding_fidelity": 0.8476868327402135,
+    "videos": 800
+  },
+  "resource_receipt": {
+    "gpu_seconds_by_type": {"rtxa4000": 1777, "rtxa5000": 1770, "rtxa6000": 275},
+    "provider_calls": 0,
+    "provider_cost_usd": 0.0,
+    "report_sha256": "749996ef4d70adf8fe1c3b8488ffbb6383db713184d0c32b68a6c711a842ff3e",
+    "total_gpu_seconds": 3822
+  },
+  "schema_version": "agqa-query-grounder-v2-typed-evidence-v13-v14-summary-v1",
+  "status": "GROUNDING_QUALIFIED_FORMAL_TRANSFER_NOT_VALIDATED",
+  "v14_paper_bundle_sha256": "2d408d664fde3ffdee28cb4f2849fe70879d2adc0ad3c471a6d8eece26b2bea1"
+}
+

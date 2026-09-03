@@ -11,6 +11,7 @@ from pathlib import Path
 import torch
 from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
 
+from motif_transfer.agqa_layer_b_authority import cohort_crossed_authority
 from motif_transfer.agqa_semantic_slots import parse_compact_semantic_target
 from motif_transfer.contracts import stable_hash
 
@@ -33,19 +34,7 @@ def main() -> int:
     # Accept both the legacy runtime schema and the newer projection schema.
     # Missing authority fields are not silently accepted: the V1 projection
     # must explicitly say that evaluator-only values were not projected.
-    if cohort.get("schema_version") == "agqa-full-train-broad-public-v1":
-        crossed_authority = not (
-            cohort.get("answers_projected") is False
-            and cohort.get("functional_programs_projected") is False
-            and cohort.get("scene_graph_grounding_projected") is False
-        )
-    else:
-        crossed_authority = (
-            cohort.get("answers_read") is not False
-            or cohort.get("scene_graphs_read") is not False
-            or cohort.get("functional_program_visible_at_runtime") is not False
-        )
-    if crossed_authority:
+    if cohort_crossed_authority(cohort):
         raise ValueError("semantic runtime cohort crossed target authority boundary")
     parser_sha=stable_hash({"model_dir":str(args.model_dir),"qualification":qualification["report_sha256"]})
     tokenizer=AutoTokenizer.from_pretrained(args.model_dir)
