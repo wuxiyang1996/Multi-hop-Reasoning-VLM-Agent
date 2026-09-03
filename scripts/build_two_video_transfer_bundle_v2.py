@@ -27,6 +27,15 @@ def file_sha(path: Path) -> str:
     return digest.hexdigest()
 
 
+def artifact_key(path: Path) -> str:
+    """Keep bundle keys stable when portable artifacts are unpacked elsewhere."""
+    parts = path.parts
+    for root in ("runs", "configs"):
+        if root in parts:
+            return str(Path(*parts[parts.index(root):]))
+    return str(path)
+
+
 def verify_stable(value: dict, key: str) -> None:
     claimed = value[key]
     body = {name: item for name, item in value.items() if name != key}
@@ -178,7 +187,7 @@ def main() -> int:
             "agqa_official_test_claimed": False,
         },
         "artifact_file_sha256s": {
-            str(path): file_sha(path) for path in (
+            artifact_key(path): file_sha(path) for path in (
                 args.clevrer_formal, args.clevrer_substitution, args.clevrer_taxonomy,
                 args.agqa_formal, args.agqa_cohort, args.agqa_manifest,
                 args.agqa_grounding, args.agqa_claims, args.agqa_fallback,

@@ -225,8 +225,11 @@ taxonomy、bundle hash audit 与相关测试：
 bash scripts/reproduce_two_video_transfer_v2.sh "$PWD"
 ```
 
-该命令不重新调用 provider，也不重新采集 raw-video grounding；它审核冻结 artifacts。完整的
-raw collection 依赖已记录的 off-the-shelf grounder outputs 与历史 provider calls。
+该命令可在 fresh checkout 中运行：若本地不存在被 `.gitignore` 排除的完整 AGQA run
+目录，它会校验并解压 tracked 的 4.9 MiB portable audit archive，精确重建 bundle 后运行
+targeted tests。它不重新调用 provider，也不重新采集 raw-video grounding；portable archive
+包含冻结 JSON receipts/predictions，但不包含 raw videos 或 checkpoints。完整 raw collection
+仍依赖已记录的 off-the-shelf grounder outputs 与历史 provider calls。
 
 ## Paper-safe claim
 
