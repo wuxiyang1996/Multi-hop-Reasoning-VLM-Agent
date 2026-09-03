@@ -1,0 +1,72 @@
+{
+  "schema_version": 2,
+  "status": "FAIRNESS_GATES_IMPLEMENTED_SOURCE_COLLECTION_INCOMPLETE",
+  "claim_name": "target-adapted cross-domain textual-memory transfer",
+  "claim_boundary": "This protocol compares clean-room ExpeL-style, AWM-style, and ReasoningBank-style memory mechanisms. It is not an exact reproduction of the upstream repositories and is not weight, policy, or action-skill transfer.",
+  "implementation_fidelity": {
+    "level": "clean_room_style",
+    "exact_upstream_method_names_allowed": false,
+    "required_result_labels": ["ExpeL-style", "AWM-style", "ReasoningBank-style"],
+    "upgrade_to_exact_baseline_requires": [
+      "pinned upstream repository commit",
+      "upstream induction and retrieval path actually executed",
+      "compatibility adapter tests against upstream outputs"
+    ]
+  },
+  "estimands": {
+    "primary": "intent-to-treat paired delta in official target success versus target-only",
+    "abstention_policy": "An empty artifact remains in the denominator and executes as a byte-equivalent target-only no-op.",
+    "secondary": [
+      "admission coverage",
+      "paired step-count delta",
+      "paired repeated-action delta",
+      "input/output tokens and model calls",
+      "conditional utility among episodes with at least one retrieved item (descriptive only)"
+    ],
+    "forbidden": "Selecting tasks, methods, memories, or seeds using qualification/formal outcomes"
+  },
+  "shared_inputs": {
+    "source_episode_count": 96,
+    "source_games": 6,
+    "episodes_per_game": 16,
+    "same_source_superset_sha256": true,
+    "same_outcome_labels": true,
+    "same_target_adaptation_payload_sha256_within_domain": true,
+    "target_adaptation_examples_per_domain": 2,
+    "held_out_target_outcomes_visible_before_freeze": false
+  },
+  "paired_target_execution": {
+    "same_task_id": true,
+    "same_initial_state_or_game_file": true,
+    "same_seed": true,
+    "same_target_model": true,
+    "same_output_token_cap": true,
+    "same_environment_step_and_tool_budget": true,
+    "one_frozen_target_only_receipt_per_pair": true,
+    "online_memory_updates": false,
+    "target_action_authority": "target policy only",
+    "input_token_overhead": "not artificially equalized; report it as an intrinsic method cost"
+  },
+  "retrieval": {
+    "formal_backend": "Qwen/Qwen3-Embedding-0.6B",
+    "hashing_backend_allowed": "pilot only",
+    "top_k": 3
+  },
+  "formal_target_cohort": {
+    "status": "NOT_FROZEN",
+    "required_before_formal_calls": true,
+    "requirements": [
+      "one immutable task-ID list per target domain",
+      "initial-state or media hashes recorded before outcomes",
+      "binder adaptation examples excluded",
+      "all prior pilot and qualification tasks excluded",
+      "identical ordered tasks and seeds across all four arms"
+    ]
+  },
+  "reporting": {
+    "coverage_and_utility_must_be_separate": true,
+    "invalid_pairs_must_be_excluded_with_reason": true,
+    "pilot_results_cannot_support_powered_claims": true,
+    "induction_binding_retrieval_and_decision_costs_reported_separately": true
+  }
+}

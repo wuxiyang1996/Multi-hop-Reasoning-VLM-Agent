@@ -73,14 +73,25 @@ def _alfworld(payload: Mapping[str, Any]) -> dict[str, Any]:
 
 
 def _discoveryworld(payload: Mapping[str, Any]) -> dict[str, Any]:
+    facts = payload.get("target_native_facts") or {}
+    policy = payload.get("policy_observation") or {}
+    progress = facts.get("task_progress") or () if isinstance(facts, Mapping) else ()
+    task = "\n".join(
+        str(row.get("description") or row.get("taskDescription") or "")
+        for row in progress if isinstance(row, Mapping)
+    ).strip()
+    known = policy.get("known_actions") or {}
     return {
-        "task": str(payload.get("task") or payload.get("goal") or ""),
+        "task": task or str(payload.get("task") or payload.get("goal") or ""),
         "observation": {
-            "observation": payload.get("ui") or payload.get("observation"),
-            "observable_state": payload.get("observable_state"),
+            # target_native_facts is the policy-visible, oracle-free projection
+            # already used by the native DiscoveryWorld decision prompt.
+            "observable_state": facts,
         },
-        "native_actions": list(map(str, payload.get("known_actions") or ())),
-        "history": _history_without_outcomes(payload.get("history") or ()),
+        "native_actions": sorted(map(str, known)),
+        "history": _history_without_outcomes(
+            payload.get("recent_decisions") or payload.get("history") or ()
+        ),
     }
 
 

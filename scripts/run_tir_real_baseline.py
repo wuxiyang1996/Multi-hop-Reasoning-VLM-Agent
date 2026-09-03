@@ -14,8 +14,13 @@ sys.path.insert(0, str(REPO / "src"))
 
 from motif_transfer.cross_domain_memory_baselines import (  # noqa: E402
     LocalHashingEmbeddingBackend,
+    LocalSentenceTransformerEmbeddingBackend,
     MemoryBaseline,
     validate_memory_artifact,
+)
+from motif_transfer.cross_domain_fairness import (  # noqa: E402
+    require_formal_suite_audit,
+    require_nonpilot_embedding,
 )
 from motif_transfer.cross_domain_memory_runtime import (  # noqa: E402
     advisory_prompt_block,
@@ -46,6 +51,9 @@ def main() -> None:
         choices=["target_only", *[row.value for row in MemoryBaseline]],
     )
     parser.add_argument("--artifact", type=Path)
+    parser.add_argument("--embedding-model", default="Qwen/Qwen3-Embedding-0.6B")
+    parser.add_argument("--run-mode", choices=["pilot", "formal"], default="pilot")
+    parser.add_argument("--fairness-audit", type=Path)
     args = parser.parse_args()
     if args.arm != "target_only" and args.artifact is None:
         raise SystemExit("--artifact is required for a memory arm")
@@ -72,11 +80,18 @@ def main() -> None:
     prompt = str(row.get("prompt") or "")
     memory_retrieval = None
     memory_artifact_sha256 = None
+    artifact = None
     if args.arm != "target_only":
         artifact = json.loads(args.artifact.read_text(encoding="utf-8"))
         validate_memory_artifact(artifact)
         if artifact["method"] != args.arm:
             raise SystemExit("memory artifact method does not match --arm")
+        embedding_backend = (
+            LocalHashingEmbeddingBackend()
+            if args.embedding_model == "hashing-pilot"
+            else LocalSentenceTransformerEmbeddingBackend(args.embedding_model)
+        )
+        require_nonpilot_embedding(embedding_backend.identity, run_mode=args.run_mode)
         advisory, memory_retrieval = retrieve_target_advisory(
             artifact,
             "tirbench",
@@ -86,13 +101,20 @@ def main() -> None:
                 "tool_trace": [],
                 "available_tools": ["crop", "zoom", "object_detection"],
             },
-            LocalHashingEmbeddingBackend(),
+            embedding_backend,
             top_k=3,
         )
         memory_artifact_sha256 = artifact["artifact_sha256"]
         # Empty verified memory is a strict target-only no-op.
         if advisory:
             prompt += advisory_prompt_block(args.arm, advisory)
+    require_formal_suite_audit(
+        args.fairness_audit,
+        run_mode=args.run_mode,
+        target_domain="tirbench",
+        method=None if args.arm == "target_only" else args.arm,
+        artifact_sha256=artifact["artifact_sha256"] if artifact else None,
+    )
     sample = TIRBenchSample(
         sample_id=str(row["id"]), task=str(row.get("task") or ""),
         prompt=prompt, answer=str(row.get("answer") or ""),
@@ -112,6 +134,9 @@ def main() -> None:
         "schema_version": 1,
         "cell": "tir_bench",
         "condition": args.arm,
+        "run_mode": args.run_mode,
+        "implementation_fidelity": "clean_room_style",
+        "result_label": "target-only" if args.arm == "target_only" else f"{args.arm}-style",
         "executor_kind": "real_media_tool_loop",
         "official_evaluator": "exact_answer",
         "sample_id": args.sample_id,

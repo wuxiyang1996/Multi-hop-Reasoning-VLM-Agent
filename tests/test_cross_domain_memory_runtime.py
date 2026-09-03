@@ -173,6 +173,21 @@ TIRBENCH_PAYLOAD = {
 }
 
 
+DISCOVERYWORLD_PAYLOAD = {
+    "policy_observation": {
+        "known_actions": {
+            "MOVE_DIRECTION": {"args": ["arg1"]},
+            "PICKUP": {"args": ["arg1"]},
+        }
+    },
+    "target_native_facts": {
+        "agent_location": {"x": 2, "y": 3},
+        "task_progress": [{"description": "Inspect three samples."}],
+    },
+    "recent_decisions": [{"action": {"action": "MOVE_DIRECTION"}}],
+}
+
+
 def test_direct_client_domains_get_the_same_advisory_without_a_backend():
     """TIRBench is multimodal and calls the OpenAI SDK directly.
 
@@ -205,3 +220,11 @@ def test_direct_client_path_still_fails_closed_on_action_leakage():
     leaky = dict(TIRBENCH_PAYLOAD, available_tools=["Confirm the uncertain part"])
     with pytest.raises(TargetActionLeakError):
         retrieve_target_advisory(_artifact(), "tirbench", leaky, FakeEmbedding())
+
+
+def test_discoveryworld_uses_oracle_free_native_facts_for_retrieval():
+    text, retrieval = retrieve_target_advisory(
+        _artifact(), "discoveryworld", DISCOVERYWORLD_PAYLOAD, FakeEmbedding(),
+    )
+    assert "irreversible" in text
+    assert retrieval["target_domain"] == "discoveryworld"

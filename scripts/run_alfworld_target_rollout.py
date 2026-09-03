@@ -20,8 +20,13 @@ from motif_transfer.api_decision_agent import OpenAIJSONDecisionAgent  # noqa: E
 from motif_transfer.cross_domain_memory_baselines import (  # noqa: E402
     CrossDomainMemoryDecisionAgent,
     LocalHashingEmbeddingBackend,
+    LocalSentenceTransformerEmbeddingBackend,
     MemoryBaseline,
     validate_memory_artifact,
+)
+from motif_transfer.cross_domain_fairness import (  # noqa: E402
+    require_formal_suite_audit,
+    require_nonpilot_embedding,
 )
 from motif_transfer.frozen_motif_agent import (  # noqa: E402
     MemoizedCompletionBackend,
@@ -62,6 +67,9 @@ def main() -> None:
         choices=["target_only", *[row.value for row in MemoryBaseline]],
     )
     parser.add_argument("--artifact", type=Path)
+    parser.add_argument("--embedding-model", default="Qwen/Qwen3-Embedding-0.6B")
+    parser.add_argument("--run-mode", choices=["pilot", "formal"], default="pilot")
+    parser.add_argument("--fairness-audit", type=Path)
     args = parser.parse_args()
     if args.output.exists():
         raise SystemExit(f"refusing to overwrite {args.output}")
@@ -95,15 +103,29 @@ def main() -> None:
     )
     base_decision = OpenAIJSONDecisionAgent(backend)
     memory_decision = None
+    artifact = None
     if args.arm != "target_only":
         artifact = json.loads(args.artifact.read_text(encoding="utf-8"))
         validate_memory_artifact(artifact)
         if artifact["method"] != args.arm:
             raise SystemExit("memory artifact method does not match --arm")
+        embedding_backend = (
+            LocalHashingEmbeddingBackend()
+            if args.embedding_model == "hashing-pilot"
+            else LocalSentenceTransformerEmbeddingBackend(args.embedding_model)
+        )
+        require_nonpilot_embedding(embedding_backend.identity, run_mode=args.run_mode)
         memory_decision = CrossDomainMemoryDecisionAgent(
             base_decision, artifact=artifact, domain="alfworld",
-            embedding_backend=LocalHashingEmbeddingBackend(), top_k=3,
+            embedding_backend=embedding_backend, top_k=3,
         )
+    require_formal_suite_audit(
+        args.fairness_audit,
+        run_mode=args.run_mode,
+        target_domain="alfworld",
+        method=None if args.arm == "target_only" else args.arm,
+        artifact_sha256=artifact["artifact_sha256"] if artifact else None,
+    )
     decision = memory_decision or base_decision
     # Construct a one-game official batch instead of scanning the full split
     # and calling ``skip``.  AlfredTWEnv shuffles on reset, so skip(index) did
@@ -149,6 +171,9 @@ def main() -> None:
         "decision_backend": backend.identity,
         "condition": "BASE_DECISION_TARGET_ONLY" if args.arm == "target_only" else "CROSS_DOMAIN_MEMORY",
         "arm": args.arm,
+        "run_mode": args.run_mode,
+        "implementation_fidelity": "clean_room_style",
+        "result_label": "target-only" if args.arm == "target_only" else f"{args.arm}-style",
         "harness_used": False,
         "source_motif_used": False,
         "max_steps": args.max_steps,

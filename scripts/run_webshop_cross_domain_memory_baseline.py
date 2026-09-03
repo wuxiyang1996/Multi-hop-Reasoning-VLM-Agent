@@ -31,6 +31,10 @@ from motif_transfer.cross_domain_memory_baselines import (  # noqa: E402
 from motif_transfer.cross_domain_memory_runtime import (  # noqa: E402
     MemoryAugmentedDecisionBackend,
 )
+from motif_transfer.cross_domain_fairness import (  # noqa: E402
+    require_formal_suite_audit,
+    require_nonpilot_embedding,
+)
 from motif_transfer.frozen_motif_agent import (  # noqa: E402
     MemoizedCompletionBackend,
     OpenAICompatibleBackend,
@@ -66,6 +70,8 @@ def main() -> int:
     parser.add_argument("--api-key-env", default="V17_WEBSHOP_OPENROUTER_KEY")
     parser.add_argument("--keys", type=Path, default=Path("/fs/gamma-projects/vlm-robot/keys.py"))
     parser.add_argument("--embedding-model", default="Qwen/Qwen3-Embedding-0.6B")
+    parser.add_argument("--run-mode", choices=["pilot", "formal"], default="pilot")
+    parser.add_argument("--fairness-audit", type=Path)
     parser.add_argument("--maximum-output-tokens", type=int, default=1200)
     parser.add_argument("--maximum-steps", type=int, default=12)
     parser.add_argument("--candidate-count", type=int, default=5)
@@ -121,6 +127,7 @@ def main() -> int:
     )
 
     memory_backend = None
+    artifact = None
     if args.arm != TARGET_ONLY:
         artifact = _load(args.artifact)
         validate_memory_artifact(artifact)
@@ -130,17 +137,26 @@ def main() -> int:
             )
         if "webshop" in set(map(str, artifact["source_domains"])):
             raise SystemExit("artifact was induced from the target domain")
+        embedding_backend = (
+            LocalHashingEmbeddingBackend()
+            if args.embedding_model == "hashing-pilot"
+            else LocalSentenceTransformerEmbeddingBackend(args.embedding_model)
+        )
+        require_nonpilot_embedding(embedding_backend.identity, run_mode=args.run_mode)
         memory_backend = MemoryAugmentedDecisionBackend(
             raw_backend,
             artifact=artifact,
             domain="webshop",
-            embedding_backend=(
-                LocalHashingEmbeddingBackend()
-                if args.embedding_model == "hashing-pilot"
-                else LocalSentenceTransformerEmbeddingBackend(args.embedding_model)
-            ),
+            embedding_backend=embedding_backend,
             top_k=args.top_k,
         )
+    require_formal_suite_audit(
+        args.fairness_audit,
+        run_mode=args.run_mode,
+        target_domain="webshop",
+        method=None if args.arm == TARGET_ONLY else args.arm,
+        artifact_sha256=artifact["artifact_sha256"] if artifact else None,
+    )
     backend = memory_backend or raw_backend
 
     grounder_artifact = _load(args.target_grounder)
@@ -181,6 +197,11 @@ def main() -> int:
         "schema_version": 1,
         "run_id": args.run_id,
         "arm": args.arm,
+        "run_mode": args.run_mode,
+        "implementation_fidelity": "clean_room_style",
+        "result_label": (
+            "target-only" if args.arm == TARGET_ONLY else f"{args.arm}-style"
+        ),
         "target_domain": "webshop",
         "tasks": tasks,
         "decision_model": args.model,

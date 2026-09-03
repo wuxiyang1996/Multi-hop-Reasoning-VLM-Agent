@@ -35,6 +35,17 @@ from motif_transfer.frozen_motif_agent import (  # noqa: E402
     MemoizedCompletionBackend,
     OpenAICompatibleBackend,
 )
+from motif_transfer.cross_domain_fairness import (  # noqa: E402
+    require_formal_suite_audit,
+    require_nonpilot_embedding,
+)
+from motif_transfer.cross_domain_memory_baselines import (  # noqa: E402
+    LocalHashingEmbeddingBackend,
+    LocalSentenceTransformerEmbeddingBackend,
+    MemoryBaseline,
+    validate_memory_artifact,
+)
+from motif_transfer.cross_domain_memory_runtime import MemoryAugmentedDecisionBackend  # noqa: E402
 
 
 def file_sha256(path: Path) -> str:
@@ -106,12 +117,15 @@ def _write(path: Path, payload: Mapping[str, Any]) -> None:
 def run_episode(
     *, task: Mapping[str, Any], config: Mapping[str, Any], backend,
     output_dir: Path, runtime_hashes: Mapping[str, str], thread_id: int,
+    arm: str = "target_only",
 ) -> dict[str, Any]:
     task_id = _task_id(task)
     output_path = output_dir / f"{task_id}.json"
     if output_path.exists():
         existing = json.loads(output_path.read_text())
-        if existing.get("status") == "TARGET_ONLY_EPISODE_COMPLETE":
+        if existing.get("status") in {
+            "TARGET_ONLY_EPISODE_COMPLETE", "CROSS_DOMAIN_MEMORY_EPISODE_COMPLETE",
+        }:
             if existing.get("runtime_hashes") != dict(runtime_hashes):
                 raise RuntimeError(
                     f"refusing to reuse {output_path}: frozen runtime hashes differ"
@@ -188,7 +202,11 @@ def run_episode(
         observation = after
         partial = {
             "schema_version": "discoveryworld-target-only-episode-v1",
-            "status": "TARGET_ONLY_EPISODE_RUNNING",
+            "status": (
+                "TARGET_ONLY_EPISODE_RUNNING" if arm == "target_only"
+                else "CROSS_DOMAIN_MEMORY_EPISODE_RUNNING"
+            ),
+            "arm": arm,
             "claim_boundary": config["claim_boundary"],
             "task_id": task_id,
             "task": dict(task),
@@ -211,7 +229,11 @@ def run_episode(
     evaluation = env.finalize_evaluation()
     payload = {
         "schema_version": "discoveryworld-target-only-episode-v1",
-        "status": "TARGET_ONLY_EPISODE_COMPLETE",
+        "status": (
+            "TARGET_ONLY_EPISODE_COMPLETE" if arm == "target_only"
+            else "CROSS_DOMAIN_MEMORY_EPISODE_COMPLETE"
+        ),
+        "arm": arm,
         "claim_boundary": config["claim_boundary"],
         "task_id": task_id,
         "task": dict(task),
@@ -246,7 +268,17 @@ def main() -> None:
     )
     parser.add_argument("--task-index", type=int, action="append")
     parser.add_argument("--maximum-tasks", type=int)
+    parser.add_argument(
+        "--arm", default="target_only",
+        choices=["target_only", *[row.value for row in MemoryBaseline]],
+    )
+    parser.add_argument("--artifact", type=Path)
+    parser.add_argument("--embedding-model", default="Qwen/Qwen3-Embedding-0.6B")
+    parser.add_argument("--run-mode", choices=["pilot", "formal"], default="pilot")
+    parser.add_argument("--fairness-audit", type=Path)
     args = parser.parse_args()
+    if args.arm != "target_only" and args.artifact is None:
+        raise SystemExit("--artifact is required for a memory arm")
     config = json.loads(args.config.read_text())
     manifest_path = REPO / str(config["manifest"])
     manifest = json.loads(manifest_path.read_text())
@@ -273,7 +305,7 @@ def main() -> None:
     if not key:
         raise SystemExit("configured OpenRouter key is missing")
     os.environ["DISCOVERYWORLD_OPENROUTER_KEY"] = str(key)
-    backend = MemoizedCompletionBackend(
+    base_backend = MemoizedCompletionBackend(
         OpenAICompatibleBackend(
             str(config["model"]["base_url"]),
             {"decision": str(config["model"]["model"])},
@@ -286,6 +318,31 @@ def main() -> None:
         ),
         cache_path=args.output_dir / "decision_cache.json",
     )
+    memory_backend = None
+    artifact = None
+    if args.arm != "target_only":
+        artifact = json.loads(args.artifact.read_text(encoding="utf-8"))
+        validate_memory_artifact(artifact)
+        if artifact["method"] != args.arm:
+            raise SystemExit("memory artifact method does not match --arm")
+        embedding_backend = (
+            LocalHashingEmbeddingBackend()
+            if args.embedding_model == "hashing-pilot"
+            else LocalSentenceTransformerEmbeddingBackend(args.embedding_model)
+        )
+        require_nonpilot_embedding(embedding_backend.identity, run_mode=args.run_mode)
+        memory_backend = MemoryAugmentedDecisionBackend(
+            base_backend, artifact=artifact, domain="discoveryworld",
+            embedding_backend=embedding_backend, top_k=3,
+        )
+    require_formal_suite_audit(
+        args.fairness_audit,
+        run_mode=args.run_mode,
+        target_domain="discoveryworld",
+        method=None if args.arm == "target_only" else args.arm,
+        artifact_sha256=artifact["artifact_sha256"] if artifact else None,
+    )
+    backend = memory_backend or base_backend
     runtime_hashes = {
         "config": file_sha256(args.config),
         "manifest": file_sha256(manifest_path),
@@ -294,12 +351,14 @@ def main() -> None:
         "policy": file_sha256(REPO / "src/motif_transfer/discoveryworld_policy.py"),
         "official_environment_commit": str(manifest["official_environment_commit"]),
     }
+    if args.artifact is not None:
+        runtime_hashes["memory_artifact"] = file_sha256(args.artifact)
     receipts = []
     for index, task in enumerate(tasks):
         receipt = run_episode(
             task=task, config=config, backend=backend,
             output_dir=args.output_dir, runtime_hashes=runtime_hashes,
-            thread_id=96000 + index,
+            thread_id=96000 + index, arm=args.arm,
         )
         receipts.append(receipt)
         scorecards = receipt["evaluation"]["scorecard"] or []
@@ -324,6 +383,10 @@ def main() -> None:
             "consumed_adaptation": "TARGET_ONLY_CONSUMED_ADAPTATION_COMPLETE",
         }[args.role],
         "role": args.role,
+        "arm": args.arm,
+        "run_mode": args.run_mode,
+        "implementation_fidelity": "clean_room_style",
+        "result_label": "target-only" if args.arm == "target_only" else f"{args.arm}-style",
         "claim_boundary": config["claim_boundary"],
         "tasks": len(receipts),
         "successes": sum(receipt["evaluation"]["official_success"] for receipt in receipts),
@@ -337,6 +400,7 @@ def main() -> None:
         "runtime_hashes": runtime_hashes,
         "determinism_protocol": DETERMINISM_PROTOCOL,
         "episode_sha256": [receipt["episode_sha256"] for receipt in receipts],
+        "memory_receipt": memory_backend.receipt() if memory_backend else None,
     }
     summary["summary_sha256"] = stable_hash(summary)
     _write(args.output_dir / "summary.json", summary)
