@@ -30,14 +30,16 @@
     "11-target-adapted-baseline.tar.zst",
     "13-six-benchmark-portable-dependencies.tar.zst"
   ],
+  "reproducible_workspace_config": "configs/reproducible_workspace_v1.json",
   "pytest_targets": [
     "tests/test_portable_paths.py",
     "tests/test_server_bundle_six_benchmark_v2.py",
+    "tests/test_reproducible_workspace_v1.py",
     "tests/test_harness_six_benchmark_substitution.py",
     "tests/test_harness_controller_v4_cardinality.py",
     "tests/test_harness_controller_training.py"
   ],
-  "expected_pytest_passes": 22,
+  "expected_pytest_passes": 24,
   "expected_report_status": "PAPER_TABLE_READY_SIX_BENCHMARK_9B_SUBSTITUTION_VALIDATED",
   "claim_boundary": "Portable reproduction of the historical frozen-cohort six-benchmark controller-substitution and action-equivalence result. It is not a full official-benchmark outcome rerun."
 }

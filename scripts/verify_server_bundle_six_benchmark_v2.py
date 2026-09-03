@@ -9,6 +9,7 @@ import json
 from pathlib import Path
 import subprocess
 import sys
+import tempfile
 from typing import Any
 
 
@@ -38,6 +39,10 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--workspace", type=Path, required=True)
     parser.add_argument("--package", type=Path, required=True)
+    parser.add_argument(
+        "--output-dir", type=Path,
+        help="Optional persistent verification output; must not already exist",
+    )
     args = parser.parse_args()
     workspace = args.workspace.resolve()
     package = args.package.resolve()
@@ -57,8 +62,15 @@ def main() -> int:
             raise SystemExit(f"dependency hash mismatch: {row['path']}")
 
     _run([sys.executable, "-m", "pytest", "-q", *config["pytest_targets"]], cwd=repo)
-    output = workspace / "verification-output"
-    output.mkdir(exist_ok=False)
+    temporary_output = None
+    if args.output_dir is None:
+        temporary_output = tempfile.TemporaryDirectory(
+            prefix="six-benchmark-bundle-verify-",
+        )
+        output = Path(temporary_output.name)
+    else:
+        output = args.output_dir.resolve()
+        output.mkdir(parents=True, exist_ok=False)
     canonical = repo / "runs/harness_controller_qwen35_9b_mixed_v3/source_only_sft_seed20260901"
     protocol = repo / "runs/harness_controller_qwen35_9b_mixed_v3_protocol/protocol.json"
     activation = output / "portable_activation.json"
@@ -119,6 +131,8 @@ def main() -> int:
         json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8",
     )
     print(json.dumps(result, indent=2, sort_keys=True))
+    if temporary_output is not None:
+        temporary_output.cleanup()
     return 0
 
 

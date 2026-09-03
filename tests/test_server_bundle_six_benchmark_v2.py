@@ -34,4 +34,4 @@ def test_clean_room_contract_requires_all_three_data_archives() -> None:
         "11-target-adapted-baseline.tar.zst",
         "13-six-benchmark-portable-dependencies.tar.zst",
     ]
-    assert config["expected_pytest_passes"] == 22
+    assert config["expected_pytest_passes"] == 24

@@ -69,10 +69,12 @@ def _write_git_archive(repo: Path, output: Path, prefix: str) -> None:
 
 def build(
     *, repo: Path, config_path: Path, base_bundle: Path, output_dir: Path,
+    legacy_repo: Path,
 ) -> dict[str, Any]:
     repo = repo.resolve()
     base_bundle = base_bundle.resolve()
     config = _read(config_path)
+    workspace_config = _read(repo / config["reproducible_workspace_config"])
     if config.get("status") != "PORTABLE_DEPENDENCY_CLOSURE_DECLARED":
         raise ValueError("bundle config is not frozen")
     if output_dir.exists():
@@ -99,6 +101,25 @@ def build(
 
     repository_bundle = output_dir / "00a-two-agent-clean-repository.bundle"
     _run(["git", "bundle", "create", str(repository_bundle), branch], cwd=repo)
+    legacy_bundle = output_dir / workspace_config["package_files"]["four_worktree_bundle"]
+    legacy_components = [
+        row for row in workspace_config["components"]
+        if not row.get("commit_from_active_bundle")
+    ]
+    for component in legacy_components:
+        actual = subprocess.check_output(
+            ["git", "rev-parse", component["branch"]],
+            cwd=legacy_repo, text=True,
+        ).strip()
+        if actual != component["commit"]:
+            raise ValueError(
+                f"legacy ref mismatch for {component['branch']}: "
+                f"expected {component['commit']}, got {actual}"
+            )
+    _run([
+        "git", "bundle", "create", str(legacy_bundle),
+        *[component["branch"] for component in legacy_components],
+    ], cwd=legacy_repo)
     code_archive = output_dir / f"01-code-two-agent-clean-{head[:7]}.tar.zst"
     _write_git_archive(repo, code_archive, repo.name)
     for source in reused:
@@ -128,6 +149,12 @@ def build(
         "config_sha256": _sha256(config_path),
         "dependency_archive": dependency_archive.name,
         "dependency_files": dependency_files,
+        "workspace": {
+            "config": config["reproducible_workspace_config"],
+            "config_sha256": _sha256(repo / config["reproducible_workspace_config"]),
+            "legacy_repository_bundle": legacy_bundle.name,
+            "components": workspace_config["components"],
+        },
         "claim_boundary": config["claim_boundary"],
     }
     (output_dir / "ARTIFACTS.json").write_text(
@@ -143,17 +170,19 @@ package.  It reproduces the historical frozen-cohort Qwen3.5-9B controller
 substitution and native-action equivalence result.  It does **not** run the
 full official benchmark sizes.
 
-Verify and extract:
+Create and verify the complete five-worktree workspace:
 
 ```bash
 sha256sum -c SHA256SUMS
-git clone -b {branch} 00a-two-agent-clean-repository.bundle workspace/{repo.name}
-git clone -b agent/agent-native-skill-harness-v2 00b-source-runtime-repository.bundle workspace/Multi-hop-Reasoning-VLM-Agent-github-main
-for f in 10-harness-source-only-core.tar.zst 11-target-adapted-baseline.tar.zst 13-six-benchmark-portable-dependencies.tar.zst; do
-  tar --zstd -xf "$f" -C workspace
-done
-python workspace/{repo.name}/scripts/verify_server_bundle_six_benchmark_v2.py --workspace workspace --package .
+git clone -b {branch} 00a-two-agent-clean-repository.bundle bootstrap
+python bootstrap/scripts/bootstrap_reproducible_workspace_v1.py \
+  --package "$PWD" --workspace "$PWD/workspace"
+python workspace/{repo.name}/scripts/verify_reproducible_workspace_v1.py \
+  --workspace "$PWD/workspace" --package "$PWD"
 ```
+
+Add `--include-model-cache` to bootstrap only when the local 15 GB Qwen cache
+is needed.  The default workspace is lightweight and can use a shared cache.
 
 Historical absolute paths retained inside signed receipts are provenance only.
 Runtime readers remap repository-anchored paths into the active checkout.
@@ -183,11 +212,16 @@ def main() -> int:
     parser.add_argument("--repo", type=Path, default=REPO)
     parser.add_argument("--config", type=Path, default=DEFAULT_CONFIG)
     parser.add_argument("--base-bundle", type=Path, required=True)
+    parser.add_argument(
+        "--legacy-repo", type=Path, required=True,
+        help="Repository containing the four frozen legacy/runtime branch refs",
+    )
     parser.add_argument("--output-dir", type=Path, required=True)
     args = parser.parse_args()
     result = build(
         repo=args.repo, config_path=args.config.resolve(),
         base_bundle=args.base_bundle, output_dir=args.output_dir.resolve(),
+        legacy_repo=args.legacy_repo.resolve(),
     )
     print(json.dumps(result, indent=2, sort_keys=True))
     return 0
