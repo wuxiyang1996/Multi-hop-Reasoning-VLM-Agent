@@ -1,0 +1,79 @@
+{
+  "schema_version": "agqa-query-grounder-v2-powered-qualification-protocol-v1",
+  "status": "FROZEN_BEFORE_QUALIFICATION_SELECTION_VIDEO_ACQUISITION_GROUNDING_OR_OUTCOMES",
+  "purpose": "Independent powered confirmation of the fixed coordinate-corrected Query Grounder V2 operating point before any new five-arm broad reserve",
+  "development_basis": {
+    "report": "runs/agqa2_query_grounder_v5_coordinate_corrected_development/stage_a_development_evaluation.json",
+    "report_file_sha256": "ba806630c2461f9857cd6e9fa86f31ff554e3f09eb088fd35d46a15240ba33e3",
+    "consumed_tasks": 240,
+    "fixed_threshold_row": {
+      "threshold": 0.6,
+      "supported": 55,
+      "correct": 38,
+      "precision": 0.6909090909090909,
+      "precision_wilson_95_lower": 0.5597140984246408,
+      "coverage": 0.22916666666666666
+    },
+    "reason_for_powered_confirmation": "The point precision and coverage met their numerical targets, but 55 supported examples were insufficient for the frozen Wilson lower-bound gate. No grounder component or threshold is changed."
+  },
+  "qualification_cohort": {
+    "source_split": "AGQA balanced train / Action Genome train",
+    "structural_type": "query",
+    "semantic_type": "object",
+    "videos": 320,
+    "tasks_per_video": 2,
+    "query_tasks": 640,
+    "selection_salt": "agqa-query-grounder-v2-powered-qualification-v1-20260902",
+    "video_disjoint_from_all_prior_raw_runtime": true,
+    "task_outcomes_unavailable_until_grounding_is_immutable": true,
+    "transfer_evidence": false,
+    "checkpoint_overlap_boundary": "This qualifies an off-the-shelf target-native grounder; Action Genome training overlap is permitted here but this cohort is never transfer evidence."
+  },
+  "frozen_grounder": {
+    "public_ontology": "configs/agqa2_action_genome_sgdet_ontology_v1.json",
+    "public_ontology_sha256": "3459d6bdeb642e8b6d49a80fcb020d751a1079c5042ed0fee7369206cff186de",
+    "frame_budget_sgdet": 64,
+    "frame_budget_slowfast": 48,
+    "candidate_generation_threshold": 0.0,
+    "candidate_support_threshold": 0.6,
+    "minimum_object_score": 0.05,
+    "sgdet_rank_weight": 0.6,
+    "typed_event_dedup_minimum_interval_iou": 0.5,
+    "detector_checkpoint_sha256": "41584fb2e53013cc68db617333efcf4bb4e18d812f71670516414b14002e6222",
+    "relation_checkpoint_sha256": "81b8b19d88f2b73ca03549cb4febb0fc511cd0deca2750caf83aceaddbe5d7ee",
+    "slowfast_checkpoint_sha256": "7bc14aea79ce29e5292c412fac729aef4e7d0f20ea93e559392861d0ad8754b0",
+    "component_sha256s": {
+      "sgdet_collector": "b0be450129a8562f52388fc3de3956a6496a43777e8124d59af8ffcc33d3055e",
+      "slowfast_probe": "083f5e3387c82466f2f2c2fc51d295f0ea314b312e582e13ea8c1eaf58661f14",
+      "query_grounder_compiler": "1b976360fe78b2aefb8749c0f8dbe6ded9ba038ba35a16f4112796b9cd128e6f"
+    }
+  },
+  "qualification_gates": {
+    "provider_and_contract_success_fraction_minimum": 0.95,
+    "entity_candidate_pool_recall_minimum": 0.75,
+    "typed_role_binding_fidelity_minimum": 0.8,
+    "cross_frame_dedup_fidelity_minimum": 0.9,
+    "unique_supported_count_minimum": 128,
+    "unique_supported_precision_wilson_95_lower_bound_minimum": 0.6,
+    "unique_supported_coverage_fraction_minimum": 0.2,
+    "residual_duplicate_typed_event_key_count_maximum": 0,
+    "authority_safe_receipt_fraction": 1.0,
+    "full_preregistered_query_cohort_required": true,
+    "one_fixed_global_threshold_required": true
+  },
+  "forbidden_grounder_inputs": [
+    "task_answer",
+    "official_stsg",
+    "functional_program",
+    "source_controller",
+    "target_outcome"
+  ],
+  "decision": {
+    "if_all_gates_pass": "Freeze this exact grounder and allocate one new video/task-disjoint five-arm AGQA broad reserve.",
+    "if_any_gate_fails": "Do not allocate a new formal reserve and do not select another threshold from qualification outcomes."
+  },
+  "formal_secondary_target": {
+    "overall_source_induced_accuracy_strictly_above": 0.55,
+    "is_a_qualification_gate": false
+  }
+}

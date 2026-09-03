@@ -1,0 +1,50 @@
+{
+  "baseline_model_id": "qwen/qwen3-vl-32b-instruct",
+  "claim_boundary": "FRESH_VIDEO_DISJOINT_TARGET_ACTOR_QUALIFICATION;NO_SOURCE_TRANSFER_CLAIM;NO_FORMAL_RESULT_CHANGE;WINNER_MUST_BE_FROZEN_BEFORE_A_SEPARATE_FORMAL SAMPLE",
+  "dataset": {
+    "archive_path": "/fs/gamma-projects/vlm-robot/datasets/AGQA2-official/AGQA_balanced.zip",
+    "archive_sha256": "3cd4cc741864ac4bb875e3c1dc41d0ddea559259059b01d229527b08323bea0d",
+    "entry": "AGQA_balanced/test_balanced.txt"
+  },
+  "manifest": "configs/agqa2_target_actor_v64_qualification_manifest.json",
+  "manifest_file_sha256": "4dec61724aba5a014adfa10d063722879b0239531dbe47228e1e91ae86d6c264",
+  "media": {
+    "frame_count": 48,
+    "frame_max_side": 512,
+    "frames_per_panel": 6,
+    "jpeg_quality": 80,
+    "panel_frame_width": 192
+  },
+  "models": [
+    {
+      "api_key_name": "OPENROUTER_API_KEY",
+      "base_url": "https://openrouter.ai/api/v1",
+      "id": "qwen/qwen3-vl-32b-instruct",
+      "max_direct_tokens": 80,
+      "max_retries": 2,
+      "provider": "openrouter",
+      "schema_retries": 2,
+      "temperature": 0,
+      "timeout_seconds": 240
+    },
+    {
+      "api_key_name": "OPENROUTER_API_KEY",
+      "base_url": "https://openrouter.ai/api/v1",
+      "id": "google/gemini-3-flash-preview",
+      "max_direct_tokens": 80,
+      "max_retries": 2,
+      "provider": "openrouter",
+      "schema_retries": 2,
+      "temperature": 0,
+      "timeout_seconds": 240
+    }
+  ],
+  "schema_version": "agqa2-target-actor-qualification-v64",
+  "selection_gates": {
+    "maximum_reported_provider_cost_usd": 1.0,
+    "minimum_accuracy_gain_over_baseline": 0.05,
+    "minimum_net_paired_wins": 5,
+    "required_rows_per_model": 90
+  },
+  "status": "FROZEN_BEFORE_ANY_V64_PROVIDER_OR_OUTCOME_CALL"
+}

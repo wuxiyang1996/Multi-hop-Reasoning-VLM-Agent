@@ -181,8 +181,12 @@ def test_query_object_parser_accepts_equivalent_relation_inflection():
         "floor", "table",
     ),
     (
-        "Was the person throwing a pillow but not a blanket?", "EXISTS",
-        "throwing a pillow but not a blanket", "",
+        "In the video, did they put down some clothes or a dish?",
+        "CHOOSE_OBJECT", "clothes", "dish",
+    ),
+    (
+        "Did they put down a box or some clothes?",
+        "CHOOSE_OBJECT", "box", "clothes",
     ),
 ])
 def test_public_question_grammar_keeps_explicit_operands(
@@ -198,6 +202,12 @@ def test_public_question_grammar_keeps_explicit_operands(
 def test_public_question_grammar_abstains_without_explicit_operands():
     assert parse_public_question_plan(
         "What were they doing for the most time?"
+    ) is None
+
+
+def test_public_question_grammar_abstains_on_unsupported_boolean_composition():
+    assert parse_public_question_plan(
+        "Was the person throwing a pillow but not a blanket?"
     ) is None
 
 

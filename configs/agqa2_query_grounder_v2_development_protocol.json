@@ -1,0 +1,44 @@
+{
+  "schema_version": "agqa-query-grounder-v2-development-protocol-v1",
+  "status": "FROZEN_BEFORE_DEVELOPMENT_OUTCOME_ACCESS",
+  "purpose": "Qualify target-native typed entity/role grounding before any fresh AGQA formal reserve",
+  "authority": {
+    "public_object_ontology": "STAR/Charades 36-class object taxonomy already frozen in src/motif_transfer/agqa_query_object_grounder.py",
+    "development_answers_available_only_to_post-grounding_evaluator": true,
+    "functional_program_available_to_grounder": false,
+    "official_scene_graph_available_to_grounder": false,
+    "source_controller_available_to_grounder": false,
+    "target_outcome_available_to_grounder": false
+  },
+  "cohort": {
+    "selection_manifest_sha256": "84e57aecd29e64e9dbc199ae2075a0bf5bf84e30d66dd561fe4685bd119b7f5e",
+    "videos": 40,
+    "all_structural_tasks": 400,
+    "query_tasks": 80,
+    "video_disjoint_from_prior_raw_runtime": true
+  },
+  "grounder": {
+    "model": "qwen/qwen3-vl-32b-instruct",
+    "frame_budget": 96,
+    "inventory_max_tracks": 12,
+    "inventory_max_events": 24,
+    "candidate_views": "one track per call; no competing candidates",
+    "minimum_candidate_confidence": 0.7,
+    "typed_event_dedup_minimum_interval_iou": 0.5
+  },
+  "qualification_gates": {
+    "provider_and_contract_success_fraction_minimum": 0.95,
+    "gold_entity_present_in_inventory_fraction_minimum": 0.45,
+    "unique_supported_requested_role_precision_minimum": 0.6,
+    "residual_duplicate_typed_event_key_count_maximum": 0,
+    "authority_safe_receipt_fraction": 1.0
+  },
+  "decision": {
+    "if_all_gates_pass": "freeze implementation/model/prompts/budget/threshold and allocate a new video/task-disjoint broad formal reserve",
+    "if_any_gate_fails": "do not consume a formal reserve; grounding may be revised only on development evidence"
+  },
+  "formal_secondary_target": {
+    "overall_source_induced_accuracy_strictly_above": 0.55,
+    "not_a_development_qualification_gate": true
+  }
+}

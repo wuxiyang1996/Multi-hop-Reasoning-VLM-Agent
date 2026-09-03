@@ -1,0 +1,31 @@
+{
+  "schema_version": "agqa-full-train-broad-v3-evaluator-path-amendment-v1",
+  "status": "FROZEN_AFTER_PREOUTCOME_GATE_AND_BEFORE_FIRST_OUTCOME_ACCESS",
+  "preregistration_sha256": "73cba1a89790e9f078ddc6b206b54a445798f2281ce38b92c9d2de25956f8026",
+  "preoutcome_receipt_file_sha256": "18a3707384786fb29f0d5d0339c81ef8ec6cdc9869844bb3b1fa1ab4f68a036c",
+  "failed_attempt": {
+    "slurm_job_id": "7421910",
+    "state": "FAILED",
+    "exit_code": "1:0",
+    "log_sha256": "b580ebf969931e2b34aae42b03dd856a4171a44a75a7ad342502608a9d9be010",
+    "reason": "FileNotFoundError from implicit cohort-parent semantic-runtime path",
+    "failed_before_gold_archive_open": true,
+    "outcome_rows_read": 0,
+    "evaluation_report_created": false
+  },
+  "compatibility_change": {
+    "file": "scripts/evaluate_agqa_layer_b_epistemic_five_arm.py",
+    "replacement_sha256": "6a0fcd90ccf8f9735da83e5e90ea7564b80b5e67f0d9d8a3586acf010515f43f",
+    "scope": "Add explicit --semantic-runtime path and verify its cohort hash before opening evaluator-only gold.",
+    "changes_predictions": false,
+    "changes_arms_or_gates": false,
+    "changes_source_controller": false,
+    "changes_grounding_or_fallback": false
+  },
+  "authority": {
+    "reserve_answers_read": false,
+    "reserve_functional_programs_read": false,
+    "reserve_scene_graphs_read": false,
+    "formal_outcomes_read": false
+  }
+}

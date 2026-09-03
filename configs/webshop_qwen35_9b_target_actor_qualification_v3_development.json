@@ -1,0 +1,126 @@
+{
+  "schema_version": "webshop-qwen35-9b-target-actor-qualification-v3",
+  "status": "FROZEN_AFTER_EXCLUDED_SCHEMA_PREFLIGHT_BEFORE_ANY_VALID_V3_TARGET_EPISODE",
+  "claim_boundary": "Consumed WebShop development qualification only. V3 changes only the Qwen chat-template interface by disabling hidden thinking for JSON target-action generation. It does not change model weights, prompt, tasks, source IR, target grounder, controller, executor, conditions, or the sealed formal reserve.",
+  "excluded_parent_preflight": {
+    "job_id": "7381906",
+    "output_path": "runs/webshop_qwen35_9b_target_actor_qualification_v2/smoke",
+    "decision_cache_file_sha256": "27992528a9448a50acd0acfba31a864e54f1fe83541f356541c60181eb34e02d",
+    "observed_requests": 3,
+    "observed_completion": "None",
+    "observed_completion_tokens_per_request": 3200,
+    "reason": "Three consecutive structured-action calls exhausted the full output budget in Qwen hidden reasoning and exposed no message content. The job was cancelled before an environment action. This is an excluded decoding-interface preflight, not a target capability result.",
+    "formal_target_opened": false
+  },
+  "model": {
+    "id": "Qwen/Qwen3.5-9B",
+    "hf_snapshot": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+    "role": "target_native_candidate_generator",
+    "weights": "base",
+    "source_game_lora_loaded": false,
+    "harness_lora_loaded": false
+  },
+  "frozen_components": {
+    "goal_manifest": {
+      "path": "configs/webshop_synthetic_unique_v14_frozen.json",
+      "sha256": "fc5d8a8ea2c5b9cfe6296fab6d36d623bdf8c539e31b45cd3c0bc7e2601705ee"
+    },
+    "source_program": {
+      "path": "runs/sokoban_search_automaton_v16/artifact.json",
+      "sha256": "261847ec1825dac50f87da013c3967d939e593f2c204abcd046d1886eb7f6a54"
+    },
+    "target_grounder": {
+      "path": "docs/results/webshop_neural_symbolic_v9_frozen_grounder.json",
+      "sha256": "bbf8a22ebec8e7ab6d55e570f230ba4fcb2b8630d1dc81bd24ba103f68701782"
+    },
+    "runner": {
+      "path": "scripts/run_webshop_search_automaton_v16.py",
+      "sha256": "af0f5364e4240dc5ed92bfa62be21732599fd1483015eec4daaf95376eda8bdf"
+    },
+    "controller": {
+      "path": "src/motif_transfer/webshop_search_automaton_v16.py",
+      "sha256": "478994c5da56ee783e59823a79f026dfa2f7185d0f733a835bfe11e5cdd46c38"
+    },
+    "server": {
+      "path": "scripts/run_webshop_direct_server_v4.py",
+      "sha256": "b4193345c656a381e74f760df105c76b77aed3cc2dcbcc917449df313808ea78"
+    },
+    "launcher": {
+      "path": "cluster/run_webshop_qwen35_9b_scale_v1.sbatch",
+      "sha256": "bc2bf8bbdc93d0ef529c54c134069e1868f069aceaadf223d7d9ee1425e768e0"
+    }
+  },
+  "conditions": [
+    "raw_target_only",
+    "authentic_search_automaton_plus_target",
+    "event_binding_permuted_control",
+    "ledger_blind_control",
+    "target_native_search_ceiling"
+  ],
+  "task_policy": {
+    "role": "development",
+    "selection": "all_preexisting_development_tasks_in_frozen_manifest",
+    "smoke_tasks": [
+      "webshop.0"
+    ],
+    "qualification_tasks": [
+      "webshop.0",
+      "webshop.1",
+      "webshop.2",
+      "webshop.3",
+      "webshop.4",
+      "webshop.5",
+      "webshop.6",
+      "webshop.7",
+      "webshop.8",
+      "webshop.9",
+      "webshop.10",
+      "webshop.11",
+      "webshop.12",
+      "webshop.13",
+      "webshop.14",
+      "webshop.15",
+      "webshop.17",
+      "webshop.19",
+      "webshop.21",
+      "webshop.22",
+      "webshop.23",
+      "webshop.26",
+      "webshop.27",
+      "webshop.30"
+    ],
+    "formal_reserve_opened": false
+  },
+  "runtime": {
+    "goal_seed": 233,
+    "maximum_output_tokens": 3200,
+    "maximum_steps": 12,
+    "schema_retries": 3,
+    "candidate_count": 5,
+    "temperature": 0,
+    "model_context_length": 8192,
+    "gpu_memory_utilization": 0.82,
+    "enable_thinking": false,
+    "decision_cache_seeded": false
+  },
+  "gates": {
+    "transport": [
+      "served_model_identity_exact",
+      "all_receipts_complete",
+      "matched_initial_state_hashes",
+      "zero_non_native_action_failures"
+    ],
+    "target_actor": [
+      "raw_policy_executes_native_actions",
+      "target_native_search_ceiling_executes_without_failure",
+      "ceiling_success_exceeds_raw_or_raw_success_leaves_headroom"
+    ],
+    "transfer": [
+      "authentic_success_gain_over_raw",
+      "zero_negative_transfer_vs_raw",
+      "strictly_beats_destructive_controls",
+      "matches_isomorphic_target_search_ceiling"
+    ]
+  },
+  "formal_reserve_opened": false
+}

@@ -1,0 +1,40 @@
+{
+  "schema_version": "agqa2-oracle-query-mdp-v3-transfer-preregistration",
+  "status": "FROZEN_BEFORE_V3_SELECTION_OR_OUTCOMES",
+  "selection": {
+    "source_split": "official AGQA2 balanced train",
+    "exclude_all_v62_and_v2_video_ids": true,
+    "selection_nonce": "AGQA2_ORACLE_QUERY_MDP_V3_TRANSFER_20260831",
+    "selection_fields": ["task_id", "video_id", "question", "semantic", "structural"],
+    "forbidden_selection_fields": ["answer", "program", "sg_grounding"],
+    "unique_videos": 300,
+    "questions_per_video": 3,
+    "tasks": 900
+  },
+  "runtime_authority": {
+    "public_question_read": true,
+    "official_stsg_read": true,
+    "official_public_ontology_read": true,
+    "answer_read_before_prediction_freeze": false,
+    "functional_program_read": false,
+    "program_derived_sg_grounding_read": false
+  },
+  "matched_arms": {
+    "source_induced": "localized source operator, then generic target-native fallback",
+    "source_permuted": "permuted temporal operator, then identical generic fallback",
+    "generic_scaffold": "unlocalized target-native query only",
+    "isomorphic_target_controller": "target-written copy of source-induced policy, disclosed ceiling",
+    "same_backend": true,
+    "maximum_tool_calls_per_task_per_arm": 5
+  },
+  "frozen_gates": {
+    "all_videos_unseen_in_v62_and_v2": true,
+    "zero_runtime_answer_program_grounding_read": true,
+    "minimum_public_compiler_coverage": 0.40,
+    "minimum_localized_committed_accuracy": 0.95,
+    "source_correct_strictly_above_generic": true,
+    "source_correct_strictly_above_temporal_permutation": true,
+    "isomorphic_target_equivalence_disclosed": true
+  },
+  "claim_boundary": "Fresh source-structure policy qualification with official target-native STSG tools. It isolates controller transfer from visual perception and does not claim raw-pixel AGQA accuracy or uniqueness over a hand-written isomorphic target controller."
+}

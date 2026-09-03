@@ -1,0 +1,14 @@
+{
+  "schema_version": "agqa2-gemini-grounder-transport-abort-v1",
+  "status": "ABORTED_BEFORE_VALID_EVALUATION",
+  "experiment": "V75_POST_V74_EXPLORATORY_GEMINI_DEVELOPMENT",
+  "attempted_tasks_before_interrupt": 8,
+  "completed_runtime_receipts": 0,
+  "cached_valid_provider_subcalls": 1,
+  "observed_failure": "GEMINI_REASONING_EXHAUSTED_RESPONSE_BUDGET_AND_RETURNED_EMPTY_CONTENT",
+  "predictions_or_answers_used": false,
+  "gate_evaluated": false,
+  "scientific_result": false,
+  "repair_boundary": "TRANSPORT_ONLY_ADD_PROVIDER_MINIMUM_REASONING_AND_EXCLUDE_HIDDEN_REASONING_WITHOUT_CHANGING_PROMPTS_GROUNDER_IR_OR_GATES",
+  "note": "Provider billing for empty uncached responses is unavailable; the one cached accepted subcall reported $0.024478."
+}

@@ -1,0 +1,29 @@
+{
+  "schema_version": "agqa2-qwen235-override-verifier-development-v1",
+  "status": "FROZEN_ON_CONSUMED_V65_BEFORE_ANY_VERIFIER_CALL",
+  "claim_boundary": "CONSUMED_V65_DEVELOPMENT_ONLY;NO_FORMAL_TRANSFER_CLAIM;NO_TRAINING",
+  "base_report": "runs/agqa2_qwen235_fresh_reserve_v1/base_report.json",
+  "base_report_file_sha256": "9406a09b9ab34b906173a2b7c4c02d898fada015565441b2bcb1ca8fda9e11de",
+  "manifest": "configs/agqa2_qwen235_fresh_reserve_v1_manifest.json",
+  "manifest_file_sha256": "ba152b8aa35a7f83e3ffe3f6dfa8380b787afbc7c677b6f922853a276faeb201",
+  "collector": "scripts/collect_agqa2_qwen235_override_verifier_v1.py",
+  "collector_file_sha256": "49479d3f869e7fee4594be7ed9c2c8bcb19dbbf169a4cdcdcc7655246d8492cd",
+  "wrapper_root": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent",
+  "tool": "sample_frames",
+  "tool_frame_budget": 12,
+  "authorization_threshold": {
+    "supported": true,
+    "minimum_confidence": 0.9
+  },
+  "model": {
+    "provider": "openrouter",
+    "base_url": "https://openrouter.ai/api/v1",
+    "api_key_name": "OPENROUTER_API_KEY",
+    "id": "qwen/qwen3-vl-235b-a22b-instruct",
+    "temperature": 0,
+    "schema_retries": 2,
+    "timeout_seconds": 240
+  },
+  "runtime_forbidden": ["question", "answer", "functional_program", "scene_graph", "source_identity"],
+  "development_gate": {"minimum_wins": 1, "maximum_losses": 0, "minimum_net_gain": 1, "maximum_cost_usd": 0.1}
+}

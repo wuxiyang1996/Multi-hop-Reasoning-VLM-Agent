@@ -1,0 +1,774 @@
+{
+  "schema_version": 15,
+  "status": "FROZEN_BEFORE_NATURAL_VIDEO_RECOVERY_DEVELOPMENT_OUTCOMES",
+  "selection_rule": "Exclude every prior sample; historical videos may be reused because the local media subset is exhausted. Allocate available videos to mutually disjoint new roles, prioritizing scarce public families, then sort eligible questions by sha256(salt|family|sample_id).",
+  "selection_fields": [
+    "sample_id",
+    "video_id",
+    "question_type_or_family",
+    "video_path_exists"
+  ],
+  "forbidden_selection_fields": [
+    "answer",
+    "options",
+    "question",
+    "functional_program",
+    "situation_graph",
+    "relation_annotation"
+  ],
+  "outcomes_or_answers_read_by_selector": false,
+  "video_disjoint_across_prior_and_new_roles": false,
+  "video_disjoint_across_new_development_formal_reserve_roles": true,
+  "historical_video_reuse_disclosed": true,
+  "salt_sha256": "a7398b5ba8cafc54916d5d92378a913ef07673ce213ffa382bdf104f6eddd5aa",
+  "excluded_manifest_sha256": {
+    "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/configs/three_video_benchmark_splits_v1.json": "578086b9829b095483e470f0fbe67972de6edc29a3726492fc6ef2fbdd37439d",
+    "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/configs/three_video_v7_confirmation_splits.json": "fc1419db7657187990f383ea045417910319da83f95cc23035af16d93ae51417",
+    "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/structured_nextqa_v1/receipts.json": "655062f8cdc6dd5e56778e6c015afc4ab18e81f96dc6cc965e9bfde9eb846e96",
+    "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/structured_nextqa_v2/receipts.json": "3fcc2b29da9164959251c5fd0f7b8b92d82bf5e73bfcf8adf935b1d2eb6e7250",
+    "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/structured_nextqa_v3/receipts.json": "f26ffcd8f61853d26d891be860133f152af9523290a60c6fc8e95d74cb14a6ae",
+    "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/structured_nextqa_v4_answer_complete/receipts.json": "464549d63816f5e64ea62c4f224d87678420baf3777322159d45f1d882b4fdc2",
+    "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/structured_nextqa_v5_gpt54_dynamics/receipts.json": "2aa6899bc4639e715604d63c57c5621683e085332ad5afc6bd0e9829e6ca4d5f",
+    "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/structured_star_v1/receipts.json": "76f62466fd87029964d3a3024f2c1b320e6af4b6876f7bb654aa321d2ec41217",
+    "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/structured_star_v2/receipts.json": "be90c046702d9c2da80aadb821c4932e16064dfa41fb5bb2c7cb427c608af7e1",
+    "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/structured_star_v3_answer_complete/receipts.json": "36a7430880f3119671e5162eacdcf14ef21e9a97d4b249902b02e3422e5a1d3a",
+    "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/structured_star_v4_gpt54_dynamics/receipts.json": "f43b64dd8f19f9a2b3bba2d6c9facd27d23f2f3542bbdd592bb73afd4b93822c",
+    "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/typed_nextqa_v4_gpt54/receipts.json": "98a5c76f3713107fc83e2d71232a7d6913894100c6d2373d1af257d70fbad779",
+    "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/typed_nextqa_v4b_gpt54/receipts.json": "32e9b2907a6d65f9d0648574bd3d24ef51725f189291100091b83eb946d70333",
+    "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/typed_nextqa_v6_qualification/receipts.json": "fe357faf86b41c19d7f0a70e7016b7e0111f66232a731f9c4c164719218fdea8",
+    "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/typed_star_v4_gpt54/receipts.json": "8c6cefd38742c2cd62c382fbc7d9307293fe588147de9ead36be855be01c9f27",
+    "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/typed_star_v4b_gpt54/receipts.json": "3cc9d6f7ba0a7625443d2ef745b3498761c1578af6dfc2c4a8d4768dee437277"
+  },
+  "excluded_id_count": 201,
+  "historically_consumed_video_count": 140,
+  "excluded_video_count": 0,
+  "benchmarks": {
+    "star": {
+      "families": [
+        "Interaction",
+        "Sequence",
+        "Prediction",
+        "Feasibility"
+      ],
+      "anchor_family_roles": {
+        "Feasibility": {
+          "development": [
+            "Feasibility_T6_1456",
+            "Feasibility_T2_1166",
+            "Feasibility_T5_226",
+            "Feasibility_T3_75"
+          ],
+          "formal": [
+            "Feasibility_T6_323",
+            "Feasibility_T5_466",
+            "Feasibility_T2_534",
+            "Feasibility_T5_906"
+          ],
+          "reserve": [
+            "Feasibility_T6_1405",
+            "Feasibility_T6_1063"
+          ]
+        },
+        "Prediction": {
+          "development": [
+            "Prediction_T2_59",
+            "Prediction_T3_36",
+            "Prediction_T1_2030",
+            "Prediction_T1_721"
+          ],
+          "formal": [
+            "Prediction_T2_509",
+            "Prediction_T3_543",
+            "Prediction_T1_205",
+            "Prediction_T4_719"
+          ],
+          "reserve": [
+            "Prediction_T4_1396",
+            "Prediction_T3_810"
+          ]
+        },
+        "Sequence": {
+          "development": [
+            "Sequence_T4_1238",
+            "Sequence_T1_3959",
+            "Sequence_T3_4418",
+            "Sequence_T5_4724"
+          ],
+          "formal": [
+            "Sequence_T3_2074",
+            "Sequence_T5_2370",
+            "Sequence_T2_4034",
+            "Sequence_T5_6349"
+          ],
+          "reserve": [
+            "Sequence_T4_4459",
+            "Sequence_T4_1342"
+          ]
+        },
+        "Interaction": {
+          "development": [
+            "Interaction_T2_5368",
+            "Interaction_T1_6788",
+            "Interaction_T2_5492",
+            "Interaction_T3_4069"
+          ],
+          "formal": [
+            "Interaction_T4_3363",
+            "Interaction_T1_3499",
+            "Interaction_T3_2274",
+            "Interaction_T1_4150"
+          ],
+          "reserve": [
+            "Interaction_T1_2964",
+            "Interaction_T1_7016"
+          ]
+        }
+      },
+      "role_video_ids": {
+        "development": [
+          "2GQDN",
+          "35ZZP",
+          "75RPN",
+          "86GSE",
+          "9J166",
+          "ATV2F",
+          "CII5H",
+          "D1WYU",
+          "FQS7O",
+          "IBX56",
+          "KFC28",
+          "L9ANI",
+          "M2XIS",
+          "NYHD7",
+          "VKXLL",
+          "WN7T3"
+        ],
+        "formal": [
+          "0PVKV",
+          "5MF9Y",
+          "727IZ",
+          "A3OWG",
+          "CF9QP",
+          "D6D85",
+          "IO712",
+          "IUOC0",
+          "MX9XB",
+          "NEM29",
+          "P2UBC",
+          "P4HXN",
+          "S3TZ1",
+          "XAX61",
+          "YHXU9",
+          "Z7QTA"
+        ],
+        "reserve": [
+          "2PREF",
+          "5OIQ7",
+          "80E3X",
+          "9A58F",
+          "J4RPL",
+          "M1GW9",
+          "UIERL",
+          "V54TI"
+        ]
+      },
+      "family_roles": {
+        "Interaction": {
+          "development": [
+            "Interaction_T1_287",
+            "Interaction_T2_5874",
+            "Interaction_T2_6253",
+            "Interaction_T2_5492",
+            "Interaction_T2_5367",
+            "Interaction_T2_5598",
+            "Interaction_T1_6161",
+            "Interaction_T4_328",
+            "Interaction_T1_288",
+            "Interaction_T2_5368",
+            "Interaction_T3_4359",
+            "Interaction_T1_6337"
+          ],
+          "formal": [
+            "Interaction_T4_2020",
+            "Interaction_T2_2514",
+            "Interaction_T4_460",
+            "Interaction_T4_3363",
+            "Interaction_T3_2962",
+            "Interaction_T3_2274",
+            "Interaction_T2_2515",
+            "Interaction_T3_1857",
+            "Interaction_T4_2018",
+            "Interaction_T1_1477",
+            "Interaction_T2_1398",
+            "Interaction_T2_2853"
+          ],
+          "reserve": [
+            "Interaction_T3_4283",
+            "Interaction_T1_6591",
+            "Interaction_T3_4282",
+            "Interaction_T1_2964",
+            "Interaction_T1_7974",
+            "Interaction_T1_6342"
+          ]
+        },
+        "Sequence": {
+          "development": [
+            "Sequence_T3_3360",
+            "Sequence_T5_4532",
+            "Sequence_T1_5393",
+            "Sequence_T2_3993",
+            "Sequence_T6_3309",
+            "Sequence_T2_5547",
+            "Sequence_T1_370",
+            "Sequence_T3_1568",
+            "Sequence_T1_3960",
+            "Sequence_T5_4642",
+            "Sequence_T5_4533",
+            "Sequence_T3_4865"
+          ],
+          "formal": [
+            "Sequence_T3_2396",
+            "Sequence_T3_4584",
+            "Sequence_T6_1636",
+            "Sequence_T1_5364",
+            "Sequence_T4_3552",
+            "Sequence_T3_1886",
+            "Sequence_T1_2709",
+            "Sequence_T5_2370",
+            "Sequence_T5_6349",
+            "Sequence_T2_4034",
+            "Sequence_T5_432",
+            "Sequence_T6_4836"
+          ],
+          "reserve": [
+            "Sequence_T4_1342",
+            "Sequence_T6_3629",
+            "Sequence_T4_3652",
+            "Sequence_T3_6392",
+            "Sequence_T3_4534",
+            "Sequence_T2_5645"
+          ]
+        },
+        "Prediction": {
+          "development": [
+            "Prediction_T2_59",
+            "Prediction_T4_1756",
+            "Prediction_T3_70",
+            "Prediction_T2_1174",
+            "Prediction_T4_1821",
+            "Prediction_T1_110",
+            "Prediction_T3_36",
+            "Prediction_T1_111",
+            "Prediction_T1_2030",
+            "Prediction_T4_62",
+            "Prediction_T4_1335",
+            "Prediction_T3_1171"
+          ],
+          "formal": [
+            "Prediction_T4_1317",
+            "Prediction_T2_509",
+            "Prediction_T1_542",
+            "Prediction_T4_719",
+            "Prediction_T3_819",
+            "Prediction_T4_634",
+            "Prediction_T3_332",
+            "Prediction_T3_369",
+            "Prediction_T4_347",
+            "Prediction_T1_541",
+            "Prediction_T1_2012",
+            "Prediction_T3_406"
+          ],
+          "reserve": [
+            "Prediction_T4_1301",
+            "Prediction_T1_807",
+            "Prediction_T4_1452",
+            "Prediction_T3_848",
+            "Prediction_T3_810",
+            "Prediction_T4_1359"
+          ]
+        },
+        "Feasibility": {
+          "development": [
+            "Feasibility_T5_102",
+            "Feasibility_T6_1370",
+            "Feasibility_T6_1158",
+            "Feasibility_T2_1166",
+            "Feasibility_T5_226",
+            "Feasibility_T5_2407",
+            "Feasibility_T5_2278",
+            "Feasibility_T5_227",
+            "Feasibility_T6_1159",
+            "Feasibility_T5_1965",
+            "Feasibility_T5_2405",
+            "Feasibility_T5_2279"
+          ],
+          "formal": [
+            "Feasibility_T5_1039",
+            "Feasibility_T6_241",
+            "Feasibility_T6_323",
+            "Feasibility_T5_982",
+            "Feasibility_T5_613",
+            "Feasibility_T5_466",
+            "Feasibility_T5_906",
+            "Feasibility_T5_981",
+            "Feasibility_T6_986",
+            "Feasibility_T6_672",
+            "Feasibility_T5_462",
+            "Feasibility_T5_1783"
+          ],
+          "reserve": [
+            "Feasibility_T5_1826",
+            "Feasibility_T6_1065",
+            "Feasibility_T5_2327",
+            "Feasibility_T6_1141",
+            "Feasibility_T5_1935",
+            "Feasibility_T5_1824"
+          ]
+        }
+      },
+      "splits": {
+        "development": [
+          "Interaction_T1_287",
+          "Interaction_T2_5874",
+          "Interaction_T2_6253",
+          "Interaction_T2_5492",
+          "Interaction_T2_5367",
+          "Interaction_T2_5598",
+          "Interaction_T1_6161",
+          "Interaction_T4_328",
+          "Interaction_T1_288",
+          "Interaction_T2_5368",
+          "Interaction_T3_4359",
+          "Interaction_T1_6337",
+          "Sequence_T3_3360",
+          "Sequence_T5_4532",
+          "Sequence_T1_5393",
+          "Sequence_T2_3993",
+          "Sequence_T6_3309",
+          "Sequence_T2_5547",
+          "Sequence_T1_370",
+          "Sequence_T3_1568",
+          "Sequence_T1_3960",
+          "Sequence_T5_4642",
+          "Sequence_T5_4533",
+          "Sequence_T3_4865",
+          "Prediction_T2_59",
+          "Prediction_T4_1756",
+          "Prediction_T3_70",
+          "Prediction_T2_1174",
+          "Prediction_T4_1821",
+          "Prediction_T1_110",
+          "Prediction_T3_36",
+          "Prediction_T1_111",
+          "Prediction_T1_2030",
+          "Prediction_T4_62",
+          "Prediction_T4_1335",
+          "Prediction_T3_1171",
+          "Feasibility_T5_102",
+          "Feasibility_T6_1370",
+          "Feasibility_T6_1158",
+          "Feasibility_T2_1166",
+          "Feasibility_T5_226",
+          "Feasibility_T5_2407",
+          "Feasibility_T5_2278",
+          "Feasibility_T5_227",
+          "Feasibility_T6_1159",
+          "Feasibility_T5_1965",
+          "Feasibility_T5_2405",
+          "Feasibility_T5_2279"
+        ],
+        "formal": [
+          "Interaction_T4_2020",
+          "Interaction_T2_2514",
+          "Interaction_T4_460",
+          "Interaction_T4_3363",
+          "Interaction_T3_2962",
+          "Interaction_T3_2274",
+          "Interaction_T2_2515",
+          "Interaction_T3_1857",
+          "Interaction_T4_2018",
+          "Interaction_T1_1477",
+          "Interaction_T2_1398",
+          "Interaction_T2_2853",
+          "Sequence_T3_2396",
+          "Sequence_T3_4584",
+          "Sequence_T6_1636",
+          "Sequence_T1_5364",
+          "Sequence_T4_3552",
+          "Sequence_T3_1886",
+          "Sequence_T1_2709",
+          "Sequence_T5_2370",
+          "Sequence_T5_6349",
+          "Sequence_T2_4034",
+          "Sequence_T5_432",
+          "Sequence_T6_4836",
+          "Prediction_T4_1317",
+          "Prediction_T2_509",
+          "Prediction_T1_542",
+          "Prediction_T4_719",
+          "Prediction_T3_819",
+          "Prediction_T4_634",
+          "Prediction_T3_332",
+          "Prediction_T3_369",
+          "Prediction_T4_347",
+          "Prediction_T1_541",
+          "Prediction_T1_2012",
+          "Prediction_T3_406",
+          "Feasibility_T5_1039",
+          "Feasibility_T6_241",
+          "Feasibility_T6_323",
+          "Feasibility_T5_982",
+          "Feasibility_T5_613",
+          "Feasibility_T5_466",
+          "Feasibility_T5_906",
+          "Feasibility_T5_981",
+          "Feasibility_T6_986",
+          "Feasibility_T6_672",
+          "Feasibility_T5_462",
+          "Feasibility_T5_1783"
+        ],
+        "reserve": [
+          "Interaction_T3_4283",
+          "Interaction_T1_6591",
+          "Interaction_T3_4282",
+          "Interaction_T1_2964",
+          "Interaction_T1_7974",
+          "Interaction_T1_6342",
+          "Sequence_T4_1342",
+          "Sequence_T6_3629",
+          "Sequence_T4_3652",
+          "Sequence_T3_6392",
+          "Sequence_T3_4534",
+          "Sequence_T2_5645",
+          "Prediction_T4_1301",
+          "Prediction_T1_807",
+          "Prediction_T4_1452",
+          "Prediction_T3_848",
+          "Prediction_T3_810",
+          "Prediction_T4_1359",
+          "Feasibility_T5_1826",
+          "Feasibility_T6_1065",
+          "Feasibility_T5_2327",
+          "Feasibility_T6_1141",
+          "Feasibility_T5_1935",
+          "Feasibility_T5_1824"
+        ]
+      }
+    },
+    "nextqa": {
+      "families": [
+        "Causal",
+        "Temporal",
+        "Descriptive"
+      ],
+      "anchor_family_roles": {
+        "Descriptive": {
+          "development": [
+            "2735019707.Q9",
+            "5889898795.Q5",
+            "3524939594.Q10",
+            "8132842161.Q7"
+          ],
+          "formal": [
+            "2552130183.Q7",
+            "7001078933.Q6",
+            "4889681401.Q0",
+            "3508407941.Q6"
+          ],
+          "reserve": [
+            "6244382586.Q9",
+            "2712662377.Q4"
+          ]
+        },
+        "Temporal": {
+          "development": [
+            "7786283208.Q8",
+            "8752043000.Q5",
+            "6988748711.Q8",
+            "4626535366.Q10"
+          ],
+          "formal": [
+            "4968805923.Q1",
+            "4123915842.Q1",
+            "4272084125.Q2",
+            "9217939684.Q6"
+          ],
+          "reserve": [
+            "3026084730.Q8",
+            "3164519967.Q5"
+          ]
+        },
+        "Causal": {
+          "development": [
+            "8797589693.Q3",
+            "4249756405.Q8",
+            "5017166671.Q6",
+            "11681746823.Q3"
+          ],
+          "formal": [
+            "4443526735.Q0",
+            "5026660202.Q9",
+            "6895608152.Q2",
+            "8563398032.Q6"
+          ],
+          "reserve": [
+            "7364407194.Q4",
+            "3526597179.Q5"
+          ]
+        }
+      },
+      "role_video_ids": {
+        "development": [
+          "11681746823",
+          "2735019707",
+          "3524939594",
+          "4249756405",
+          "4626535366",
+          "5017166671",
+          "5889898795",
+          "6988748711",
+          "7786283208",
+          "8132842161",
+          "8752043000",
+          "8797589693"
+        ],
+        "formal": [
+          "2552130183",
+          "3508407941",
+          "4123915842",
+          "4272084125",
+          "4443526735",
+          "4889681401",
+          "4968805923",
+          "5026660202",
+          "6895608152",
+          "7001078933",
+          "8563398032",
+          "9217939684"
+        ],
+        "reserve": [
+          "2712662377",
+          "3026084730",
+          "3164519967",
+          "3526597179",
+          "6244382586",
+          "7364407194"
+        ]
+      },
+      "family_roles": {
+        "Causal": {
+          "development": [
+            "6988748711.Q1",
+            "8132842161.Q5",
+            "7786283208.Q2",
+            "8797589693.Q6",
+            "6988748711.Q7",
+            "2735019707.Q1",
+            "4626535366.Q1",
+            "5017166671.Q2",
+            "5017166671.Q4",
+            "8797589693.Q3",
+            "4626535366.Q2",
+            "3524939594.Q6"
+          ],
+          "formal": [
+            "8563398032.Q1",
+            "6895608152.Q3",
+            "6895608152.Q1",
+            "2552130183.Q1",
+            "3508407941.Q1",
+            "4968805923.Q5",
+            "3508407941.Q4",
+            "9217939684.Q2",
+            "4443526735.Q2",
+            "5026660202.Q9",
+            "7001078933.Q2",
+            "3508407941.Q0"
+          ],
+          "reserve": [
+            "6244382586.Q5",
+            "3026084730.Q6",
+            "3526597179.Q5",
+            "7364407194.Q0",
+            "3164519967.Q10",
+            "2712662377.Q1"
+          ]
+        },
+        "Temporal": {
+          "development": [
+            "3524939594.Q4",
+            "4626535366.Q9",
+            "11681746823.Q1",
+            "5017166671.Q7",
+            "5017166671.Q1",
+            "2735019707.Q8",
+            "6988748711.Q5",
+            "11681746823.Q8",
+            "3524939594.Q2",
+            "11681746823.Q7",
+            "7786283208.Q8",
+            "8132842161.Q1"
+          ],
+          "formal": [
+            "2552130183.Q10",
+            "2552130183.Q9",
+            "4123915842.Q6",
+            "6895608152.Q0",
+            "5026660202.Q4",
+            "9217939684.Q6",
+            "4443526735.Q4",
+            "6895608152.Q7",
+            "7001078933.Q0",
+            "3508407941.Q5",
+            "7001078933.Q5",
+            "3508407941.Q7"
+          ],
+          "reserve": [
+            "3526597179.Q4",
+            "3164519967.Q5",
+            "2712662377.Q2",
+            "7364407194.Q3",
+            "3026084730.Q9",
+            "3526597179.Q6"
+          ]
+        },
+        "Descriptive": {
+          "development": [
+            "3524939594.Q9",
+            "8132842161.Q7",
+            "2735019707.Q10",
+            "4249756405.Q9",
+            "5889898795.Q5",
+            "3524939594.Q10",
+            "4249756405.Q7",
+            "8797589693.Q9",
+            "2735019707.Q9",
+            "5889898795.Q9",
+            "4626535366.Q8",
+            "7786283208.Q9"
+          ],
+          "formal": [
+            "4889681401.Q5",
+            "7001078933.Q6",
+            "8563398032.Q2",
+            "4968805923.Q9",
+            "6895608152.Q5",
+            "2552130183.Q6",
+            "2552130183.Q7",
+            "4889681401.Q0",
+            "9217939684.Q9",
+            "6895608152.Q9",
+            "3508407941.Q6",
+            "7001078933.Q4"
+          ],
+          "reserve": [
+            "3526597179.Q1",
+            "2712662377.Q4",
+            "3526597179.Q2",
+            "3164519967.Q11",
+            "6244382586.Q9",
+            "3164519967.Q8"
+          ]
+        }
+      },
+      "splits": {
+        "development": [
+          "6988748711.Q1",
+          "8132842161.Q5",
+          "7786283208.Q2",
+          "8797589693.Q6",
+          "6988748711.Q7",
+          "2735019707.Q1",
+          "4626535366.Q1",
+          "5017166671.Q2",
+          "5017166671.Q4",
+          "8797589693.Q3",
+          "4626535366.Q2",
+          "3524939594.Q6",
+          "3524939594.Q4",
+          "4626535366.Q9",
+          "11681746823.Q1",
+          "5017166671.Q7",
+          "5017166671.Q1",
+          "2735019707.Q8",
+          "6988748711.Q5",
+          "11681746823.Q8",
+          "3524939594.Q2",
+          "11681746823.Q7",
+          "7786283208.Q8",
+          "8132842161.Q1",
+          "3524939594.Q9",
+          "8132842161.Q7",
+          "2735019707.Q10",
+          "4249756405.Q9",
+          "5889898795.Q5",
+          "3524939594.Q10",
+          "4249756405.Q7",
+          "8797589693.Q9",
+          "2735019707.Q9",
+          "5889898795.Q9",
+          "4626535366.Q8",
+          "7786283208.Q9"
+        ],
+        "formal": [
+          "8563398032.Q1",
+          "6895608152.Q3",
+          "6895608152.Q1",
+          "2552130183.Q1",
+          "3508407941.Q1",
+          "4968805923.Q5",
+          "3508407941.Q4",
+          "9217939684.Q2",
+          "4443526735.Q2",
+          "5026660202.Q9",
+          "7001078933.Q2",
+          "3508407941.Q0",
+          "2552130183.Q10",
+          "2552130183.Q9",
+          "4123915842.Q6",
+          "6895608152.Q0",
+          "5026660202.Q4",
+          "9217939684.Q6",
+          "4443526735.Q4",
+          "6895608152.Q7",
+          "7001078933.Q0",
+          "3508407941.Q5",
+          "7001078933.Q5",
+          "3508407941.Q7",
+          "4889681401.Q5",
+          "7001078933.Q6",
+          "8563398032.Q2",
+          "4968805923.Q9",
+          "6895608152.Q5",
+          "2552130183.Q6",
+          "2552130183.Q7",
+          "4889681401.Q0",
+          "9217939684.Q9",
+          "6895608152.Q9",
+          "3508407941.Q6",
+          "7001078933.Q4"
+        ],
+        "reserve": [
+          "6244382586.Q5",
+          "3026084730.Q6",
+          "3526597179.Q5",
+          "7364407194.Q0",
+          "3164519967.Q10",
+          "2712662377.Q1",
+          "3526597179.Q4",
+          "3164519967.Q5",
+          "2712662377.Q2",
+          "7364407194.Q3",
+          "3026084730.Q9",
+          "3526597179.Q6",
+          "3526597179.Q1",
+          "2712662377.Q4",
+          "3526597179.Q2",
+          "3164519967.Q11",
+          "6244382586.Q9",
+          "3164519967.Q8"
+        ]
+      }
+    }
+  }
+}

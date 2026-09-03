@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "status": "CURRENT_GROUNDING_TOOLS_NOT_QUALIFIED_FOR_TRANSFER",
+  "source_transfer_enabled": false,
+  "fresh_confirmation_data_opened": false,
+  "v28": {
+    "model": "openai/gpt-4.1-mini",
+    "samples": 12,
+    "calls": 72,
+    "reported_cost_usd": 0.045256,
+    "uniform_direct_correct": 8,
+    "localized_direct_correct": 8,
+    "localized_receipt_correct": 5,
+    "shifted_receipt_correct": 6,
+    "combined_delta_correct": -3,
+    "failure": "candidate-conditioned option hallucination"
+  },
+  "v29": {
+    "model": "openai/gpt-4.1",
+    "samples": 12,
+    "calls": 72,
+    "reported_cost_usd": 0.270794,
+    "uniform_direct_correct": 7,
+    "localized_direct_correct": 7,
+    "localized_receipt_correct": 4,
+    "shifted_receipt_correct": 3,
+    "combined_delta_correct": -3,
+    "evidence_necessity_delta_correct": 1,
+    "star_semantic_action_hits": 1,
+    "star_samples": 4,
+    "failure": "candidate-blind free-text ledger still confuses identity, action class, and direction"
+  },
+  "strict_conclusion": "Wrapper pixel-transition tools are useful temporal proposal mechanisms, but neither candidate-conditioned single-event receipts nor candidate-blind multi-event free-text ledgers are sufficiently faithful semantic grounding for cross-domain symbolic transfer.",
+  "next_gate": "STAR target-ontology typed BIND->BEFORE_AFTER->ACTION grounder, followed by CLEVRER typed event grounding and only then NExT-QA evidence-intervention utility."
+}

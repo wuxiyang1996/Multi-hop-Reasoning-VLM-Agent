@@ -1,0 +1,45 @@
+{
+  "schema_version": "agqa-evidence-graph-query-binding-v1-development-protocol-v1",
+  "status": "FROZEN_ON_CONSUMED_DEVELOPMENT_NOT_TRANSFER_EVIDENCE",
+  "claim_boundary": "Answer-blind query-to-event binding on an already consumed AGQA balanced-train development cohort only. This recall-only proposal stage cannot authorize the Harness and is not transfer evidence.",
+  "repair_hypothesis": "Reuse the already acquired question-blind typed event graph and bind the public query to an event-supported outer-role entity. This directly tests whether the remaining error is query/event binding rather than raw entity visibility.",
+  "immutable_inputs": {
+    "cohort_file_sha256": "4a41e3389aa146ce3d39b88402e94c08c05c144aaa7ffe7426c35f635cf861eb",
+    "event_inventory_file_sha256": "f47576566ba3fb986b6e068556c4f331e7b5d61964760e7225b4abb7dcd67a84",
+    "query_grounding_file_sha256": "efaf584c3f272d869121a68505d8ef249018c2e15d6f782621812a1114cbedca",
+    "collector_sha256": "5a2e1fa04c13675c5f62dfef5234d64822452b2e91a0a2a2b72893c8b6bbfa1f"
+  },
+  "evidence_graph_query_binding": {
+    "model": "qwen/qwen3-vl-235b-a22b-instruct",
+    "provider": "parasail",
+    "provider_allow_fallbacks": false,
+    "seed": 0,
+    "max_tokens": 256,
+    "maximum_contract_attempts": 2,
+    "temperature": 0,
+    "thinking": false,
+    "candidate_source": "label-unique stable tracks from the frozen question-blind event inventory",
+    "evidence_source": "frozen question-blind public-ontology typed event graph",
+    "proposal_stage_may_authorize_harness": false,
+    "independent_raw_pixel_verification_required": true
+  },
+  "authority": {
+    "public_question_read": true,
+    "parser_derived_predicate_role_temporal_operator_read": true,
+    "answer_blind_anchor_intervals_read": true,
+    "question_blind_typed_event_graph_read": true,
+    "agqa_answer_read": false,
+    "agqa_answer_alternatives_read": false,
+    "official_scene_graph_read": false,
+    "official_stsg_read": false,
+    "functional_program_read": false,
+    "source_controller_read": false,
+    "target_outcome_read": false
+  },
+  "development_policy": {
+    "this_cohort_is_permanently_consumed": true,
+    "provider_or_prompt_selection_from_fresh_outcomes_forbidden": true,
+    "fresh_video_and_task_disjoint_qualification_required_after_development": true,
+    "all_harness_arms_must_share_exact_final_grounding_receipts": true
+  }
+}

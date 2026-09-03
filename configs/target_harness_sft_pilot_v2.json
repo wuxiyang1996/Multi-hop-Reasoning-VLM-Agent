@@ -1,0 +1,52 @@
+{
+  "schema_version": "target-harness-sft-pilot-config-v2",
+  "status": "FROZEN_BEFORE_TARGET_DATASET_BUILD",
+  "supersedes": "configs/target_harness_sft_pilot_v1.json",
+  "supersession_reason": "V1 exact Qwen3.5-9B audit found 682/2400 sequences above the frozen 2048-token training limit; V2 changes only probability serialization precision and preserves candidates, labels, quotas, partitions, and gates.",
+  "source_program_root": "configs/phase3_source_function_v4/frozen_reserve/programs",
+  "source_families": [
+    "candy_crush",
+    "gymv_columns",
+    "gymv_streets_of_rage_2",
+    "gymv_strider",
+    "gymv_thunder_force_iii",
+    "tetris"
+  ],
+  "webshop": {
+    "partition_manifest": "configs/real_game_multitarget_v5_manifest.json",
+    "episode_index_artifact": "runs/real_game_multitarget_neurosymbolic_v5/webshop_grounder/frozen_grounder.json",
+    "grounder": {
+      "feature_bins": 0,
+      "hidden_units": 24,
+      "alpha": 0.01,
+      "maximum_iterations": 600,
+      "seed": 20260831,
+      "maximum_candidates": 12,
+      "minimum_per_head_validation_auc": 0.55,
+      "minimum_macro_validation_auc": 0.65
+    }
+  },
+  "alfworld": {
+    "grounder_artifact": "runs/phase3_alfworld_typed_grounder_v8/artifact.json",
+    "maximum_candidates": 12
+  },
+  "quota_per_domain": {
+    "train_authentic": 450,
+    "validation_authentic": 150,
+    "matched_controls_per_authentic": 1
+  },
+  "controller_training": {
+    "model": "Qwen/Qwen3.5-9B",
+    "maximum_sequence_length": 2048,
+    "probability_decimal_places": 6
+  },
+  "prompt_policy": {
+    "domain_identity_exposed": false,
+    "native_actions_exposed": false,
+    "reward_or_success_exposed": false,
+    "control_variant_exposed": false,
+    "reasoning_trace_requested": false,
+    "json_only": true
+  },
+  "claim_boundary": "TARGET_DEVELOPMENT_SFT_ONLY;NOT_TARGET_TRANSFER_EVALUATION;FORMAL_AND_QUALIFICATION_TARGETS_EXCLUDED"
+}

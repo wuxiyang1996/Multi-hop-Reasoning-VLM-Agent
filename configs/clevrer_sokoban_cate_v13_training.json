@@ -1,0 +1,41 @@
+{
+  "schema_version": 13,
+  "status": "FROZEN_CONSUMED_DEVELOPMENT_TRAINING",
+  "claim_boundary": "Train only a target-native paired recovery-uplift grounder on two consumed CLEVRER batches. The real Sokoban source supplies the already-confirmed VERIFY/REFUTED/REPLAN symbolic contract. The independently frozen V13 formal and reserve splits remain unopened.",
+  "input_reports": [
+    {
+      "name": "v11_development",
+      "path": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/sokoban_clevrer_recovery_v11_development/development_report.json",
+      "sha256": "2473f0c98759fd96e4d4d2beec2749cecf5439c2eda388e9946db8cb12d2c6d6"
+    },
+    {
+      "name": "v12_consumed_formal",
+      "path": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/sokoban_clevrer_recovery_v12_formal/formal_report.json",
+      "sha256": "961366c34120be552055997d07eed74b0842d865c6df6f7396db468f0b50e6a0"
+    }
+  ],
+  "cross_fit_folds": 5,
+  "decision_threshold": 0.2,
+  "control_seed": 291,
+  "model": {
+    "kind": "ONE_HIDDEN_LAYER_TANH_MLP_REGRESSOR",
+    "hidden_units": 12,
+    "alpha": 3.0,
+    "max_iter": 3000,
+    "seed": 13
+  },
+  "gates": {
+    "minimum_selected": 20,
+    "minimum_net_wins": 8,
+    "maximum_exact_p": 0.05,
+    "minimum_net_wins_per_batch": 3,
+    "require_authentic_above_permuted": true
+  },
+  "frozen_split_manifest": {
+    "path": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/configs/clevrer_sokoban_cate_v13_splits.json",
+    "sha256": "130ae9d7adf2356070947b460109bb83d2d541d958153f364543c6b349c29f82",
+    "formal_samples": 144,
+    "reserve_samples": 72,
+    "outcomes_read": false
+  }
+}

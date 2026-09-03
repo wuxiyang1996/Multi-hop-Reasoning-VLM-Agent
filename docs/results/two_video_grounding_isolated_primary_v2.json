@@ -1,0 +1,138 @@
+{
+  "claim_boundary": "GROUNDING_CANNOT_CAUSE_THE_MATCHED_ARM_DELTA;ABSOLUTE_ACCURACY_REMAINS_CONDITIONAL_ON_TARGET_NATIVE_STRUCTURED_GROUNDING;NO_RAW_PIXEL_VIDEO_QA_OR_SOTA_CLAIM",
+  "gates": {
+    "agqa_primary_uses_one_shared_official_stsg_backend": true,
+    "clevrer_primary_uses_one_shared_receipt_per_task": true,
+    "grounding_isolated_primary_recomputes_and_passes": true,
+    "no_answer_or_functional_program_available_to_primary_runtime": true,
+    "post_v74_runs_cannot_overturn_negative_raw_video_verdict": true,
+    "primary_paired_gains_are_significant": true,
+    "raw_qwen_v1_retained_as_failed_secondary": true,
+    "raw_qwen_v2_retained_as_failed_secondary": true,
+    "v2_route_failure_measured_after_receipt_freeze": true
+  },
+  "lineage": {
+    "primary_v1_audit_file_sha256": "01a1ae908fb154ed6440bd6dd95b13bd5f4de7ea665917df0138f1d47c5a36bc",
+    "raw_v1_audit_file_sha256": "1d4026ebbbfbacf0c3703def26443b3a9d20b5a6184aecd09f11c8044fcc416b",
+    "raw_v2_evaluation_file_sha256": "a6fd07509cfef3f7e7c4a793d6bc4548d6bd849214b1fb7ff6052041c1d7c8bd",
+    "raw_v2_protocol_file_sha256": "8320224dc5083c97b32f70e1c3e5f9de5e6201010b683e3a3c65772a16599a22",
+    "raw_v2_report_file_sha256": "e385ea501a3e159df886319e578559c110ec3e4f36670f4728d8c70b2e71c704",
+    "v74_final_summary_file_sha256": "07cf2af52729621db73534ead93c7a1f5a29d5ddc8f29a64096486a94c2a40ba"
+  },
+  "paper_primary_estimand": "PAIRED_CONTROLLER_SKILL_TRANSFER_CONDITIONAL_ON_SHARED_BENCHMARK_NATIVE_STRUCTURED_GROUNDING",
+  "primary": {
+    "agqa2": {
+      "external_provider_calls": 0,
+      "generic_scaffold": {
+        "accuracy": 0.35777777777777775,
+        "committed": 322,
+        "conditional_accuracy": 1.0,
+        "correct": 322,
+        "coverage": 0.35777777777777775
+      },
+      "grounding": "OFFICIAL_STSG_HIDDEN_BEHIND_BUDGETED_TYPED_TOOLS",
+      "grounding_induced_source_losses": 0,
+      "source_induced": {
+        "accuracy": 0.4288888888888889,
+        "committed": 386,
+        "conditional_accuracy": 1.0,
+        "correct": 386,
+        "coverage": 0.4288888888888889
+      },
+      "source_permuted": {
+        "accuracy": 0.36777777777777776,
+        "committed": 335,
+        "conditional_accuracy": 0.9880597014925373,
+        "correct": 331,
+        "coverage": 0.37222222222222223
+      },
+      "source_vs_generic": {
+        "losses": 0,
+        "net_wins": 64,
+        "ties": 836,
+        "wins": 64
+      },
+      "source_vs_permuted": {
+        "losses": 0,
+        "net_wins": 55,
+        "ties": 845,
+        "wins": 55
+      },
+      "tasks": 900,
+      "unique_videos": 300
+    },
+    "audit_sha256": "835a65c49d876b6a0a2621a25c8a524cf61294f704f5a289cc849030bc95f3cf",
+    "clevrer": {
+      "external_provider_calls": 0,
+      "generic_scaffold_correct": 245,
+      "grounding": "LOCAL_PAIRED_STRUCTURED_EVENT_GRAPH_PROOF_RECEIPTS",
+      "grounding_induced_source_losses_vs_neural": 0,
+      "neural_only_correct": 236,
+      "source_induced_correct": 252,
+      "source_permuted_correct": 240,
+      "source_vs_generic": {
+        "losses": 6,
+        "net_wins": 7,
+        "ties": 341,
+        "wins": 13
+      },
+      "source_vs_neural": {
+        "losses": 0,
+        "net_wins": 16,
+        "ties": 344,
+        "wins": 16
+      },
+      "source_vs_permuted": {
+        "losses": 4,
+        "net_wins": 12,
+        "ties": 340,
+        "wins": 16
+      },
+      "tasks": 360
+    },
+    "grounding_policy": {
+      "answers_or_official_functional_programs_available_to_runtime": false,
+      "generative_caption_used": false,
+      "raw_video_results_role": "SECONDARY_ROBUSTNESS_ONLY",
+      "same_grounding_receipt_or_backend_for_all_matched_arms": true,
+      "vlm_grounder_used_in_primary_arm_delta": false
+    },
+    "paired_significance": {
+      "agqa2_source_vs_generic_one_sided_exact_pvalue": 5.421010862427522e-20,
+      "clevrer_source_vs_neural_one_sided_exact_pvalue": 1.52587890625e-05
+    }
+  },
+  "report_sha256": "9f6046bb6be5d2ddc9b6f2df9a83211c9c79ecc7a056b93ec512b22212e51472",
+  "schema_version": "two-video-grounding-isolated-primary-audit-v2",
+  "secondary_raw_video": {
+    "agqa2_qwen235_multiclass_v2": {
+      "arm_correct": {
+        "neural_only": 20,
+        "source_induced": 20,
+        "source_permuted": 20,
+        "target_written_equivalent": 20
+      },
+      "failure": "QUESTION_ONLY_ROUTE_SHIFT_TRIGGERED_GLOBAL_FAIL_CLOSED",
+      "protocol_status": "FROZEN_BEFORE_VIDEO_DOWNLOAD_PROVIDER_OR_FORMAL_LABEL_ACCESS",
+      "provider_cost_usd": 0.14929539,
+      "route_accuracy": 0.8571428571428571,
+      "route_correct": 78,
+      "route_total": 91,
+      "source_authorizations": 0,
+      "status": "POST_V74_EXPLORATORY_FAILED"
+    },
+    "agqa2_qwen235_v1": {
+      "note": "POSITIVE_POINT_ESTIMATE_BUT_FAILED_PREREGISTERED_GATES",
+      "source_vs_neural": {
+        "losses": 6,
+        "net_gain": 8,
+        "one_sided_exact_binomial_pvalue": 0.057659149169921875,
+        "ties": 60,
+        "wins": 14
+      },
+      "status": "V1_CONFIRMATORY_FAILED_AND_NO_SECOND_UNTOUCHED_COMPATIBLE_COHORT"
+    },
+    "role": "ROBUSTNESS_DIAGNOSTIC_ONLY_NOT_PAPER_PRIMARY"
+  },
+  "status": "PASSED"
+}

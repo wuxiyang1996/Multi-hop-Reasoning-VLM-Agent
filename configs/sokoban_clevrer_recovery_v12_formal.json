@@ -1,0 +1,37 @@
+{
+  "schema_version": 12,
+  "status": "FROZEN_BEFORE_FORMAL_OUTCOMES",
+  "claim_boundary": "Prospective real-Sokoban-to-CLEVRER transfer of the confirmed VERIFY/EXPECTED_EFFECT_REFUTED/REPLAN contract. Target-native neural dynamics produce explicit-relation and trajectory representations; source sees only the typed observed/refuted executor effect. No source coordinates, action tokens, video tokens, question family, answers, or gold cross the boundary. This validates only recovery-structure transfer in this local CLEVRER setup.",
+  "development_report": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/sokoban_clevrer_recovery_v11_development/development_report.json",
+  "source": {
+    "receipt": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/docs/results/sokoban_effect_program_v2_compact_receipt.json",
+    "required_artifact_version": "SOKOBAN_EFFECT_PROGRAM_V2",
+    "transferred_contract": "COMMIT -> VERIFY_EXPECTED_EFFECT; EXPECTED_EFFECT_REFUTED -> REPLAN_OR_ABSTAIN"
+  },
+  "target": {
+    "split_manifest": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/configs/clevrer_causal_query_transfer_v9_splits.json",
+    "official_root": "/fs/gamma-projects/vlm-robot/datasets/CLEVRER-official",
+    "split": "formal",
+    "explicit_relation_prediction_directory": "with_edge_supervision_old",
+    "trajectory_prediction_directory": "without_edge_supervision",
+    "effect_observed_values": ["yes", "no"],
+    "effect_refuted_value": "error",
+    "recovery_realization": "DERIVE_RELATIONS_FROM_TARGET_NATIVE_TRAJECTORY"
+  },
+  "gates": {
+    "minimum_authentic_recoveries": 20,
+    "minimum_primary_net_wins": 5,
+    "maximum_primary_exact_p": 0.05,
+    "require_authentic_strictly_above_all_controls": true,
+    "require_positive_paired_direction_vs_shuffled_and_marginal": true,
+    "reserve_must_remain_unread": true
+  },
+  "frozen_lineage": {
+    "source_receipt_sha256": "8f175c0edda951eba2064e9c53a8db6a25cdfa9fb0de8049d371dbf5335c9e80",
+    "split_manifest_sha256": "45ea9949e1c0a4144bcd0a9fed169cef40651fa12563b62ed60e520b2b9c2446",
+    "development_report_sha256": "2473f0c98759fd96e4d4d2beec2749cecf5439c2eda388e9946db8cb12d2c6d6",
+    "runner_sha256": "33fb10a6d9dcbeeb4d864bc9079af9eb0c6271ef556402b6ab89fdec226654cd",
+    "recovery_module_sha256": "55776f55966a4c982e718701e15474442a4998769ee5a1a7aebbebb7fd7c5bae",
+    "target_compiler_sha256": "49be363fac3603213ba5621855f7f6cdd6f5d17804961acb57ea6f3699b8ff5c"
+  }
+}

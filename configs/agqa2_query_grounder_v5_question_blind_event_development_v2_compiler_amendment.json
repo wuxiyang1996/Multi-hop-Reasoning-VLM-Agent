@@ -1,0 +1,21 @@
+{
+  "schema_version": "agqa-query-grounder-v5-question-blind-event-development-v2-runtime-amendment-v2",
+  "status": "FROZEN_AFTER_ACQUISITION_LAUNCH_BEFORE_DEVELOPMENT_OR_TARGET_OUTCOMES",
+  "parent_acquisition_protocol": "configs/agqa2_query_grounder_v5_question_blind_event_development_v2.json",
+  "parent_acquisition_protocol_file_sha256": "f7dfbcfe558cdc2f9d8a0fae0e81ba6db6d0039751170ee6b9d55f495feab77f",
+  "replaced_query_compiler_sha256": "717985441af6014d2fa7497a73a0969b7ca1180ff12b4efdb801d1246660506e",
+  "replacement_query_compiler_sha256": "124a37c3735f7a8d0949fc5159b0392f75d31db5fd4e6fce4f41723f9abebfb1",
+  "scope": "COUNT_ANCHOR_AND_EVENT_PROVIDER_SUCCESS_IN_ONE_DENOMINATOR",
+  "replaced_anchor_collector_sha256": "3a3a0e88b9242989d12f166ed99acd982167ced0a7651c5808f24a96f4fbe052",
+  "replacement_anchor_collector_sha256": "1db30083ee4dc335ed233c2da678a7f9166bbfe1d20a142474d26dbdbff8db8e",
+  "anchor_scope": "CANONICALIZE_UNKNOWN_ANCHOR_TO_EMPTY_EVIDENCE",
+  "replaced_anchor_merger_sha256": "97348e1551589eff12caf6b78f1dc61c5a360f33d8362c830fb17d7d8a56e6f8",
+  "replacement_anchor_merger_sha256": "72788780924f6bb7551061220ac13050ef63241905d7a46ebd6bbed43880c0aa",
+  "reason": "The frozen compiler omitted actual anchor calls from the provider-success denominator, and Qwen encoded inspected frames beside UNKNOWN even though UNKNOWN must carry no positive evidence. The amendment counts both providers and deterministically deletes evidence only from UNKNOWN anchors.",
+  "acquisition_model_prompt_provider_frame_budget_or_outputs_changed": false,
+  "candidate_ranking_executor_harness_or_threshold_changed": false,
+  "unknown_anchor_upgraded_to_supported": false,
+  "development_outcomes_opened_before_amendment": false,
+  "target_outcomes_read_before_amendment": false,
+  "formal_reserve_opened_before_amendment": false
+}

@@ -1,0 +1,20 @@
+{
+  "actions_per_snapshot": 8,
+  "fresh_seeds": [
+    8601, 8602, 8603, 8604, 8605, 8606, 8607, 8608, 8609, 8610,
+    8611, 8612, 8613, 8614, 8615, 8616, 8617, 8618, 8619, 8620,
+    8621, 8622, 8623, 8624, 8625, 8626, 8627, 8628, 8629, 8630
+  ],
+  "game": "candy_crush",
+  "gate_report_path": "runs/real_game_to_alfworld_intervention_v1_expanded/source_gate.json",
+  "grounder_report_path": "runs/real_game_to_alfworld_intervention_v1_expanded/source_grounder_gate.json",
+  "max_steps": 50,
+  "minimum_step": 2,
+  "namespace": "real-game-to-alfworld-intervention-v1-expanded-frozen-2026-08-10",
+  "plan_path": "runs/real_game_to_alfworld_intervention_v1_expanded/source_plan.json",
+  "receipts_path": "runs/real_game_to_alfworld_intervention_v1_expanded/source_receipts.jsonl",
+  "rollout_steps": 32,
+  "snapshots_per_episode": 4,
+  "source_runtime_script": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-source-fresh-v1/scripts/run_instrumented_source_smoke.py",
+  "transfer_gate_report_path": "runs/real_game_to_alfworld_intervention_v1_expanded/transfer_gate.json"
+}

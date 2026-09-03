@@ -1,0 +1,721 @@
+{
+  "answer_read_during_selection_or_freeze": false,
+  "archive_path": "/fs/gamma-projects/vlm-robot/datasets/AGQA2-official/AGQA_balanced.zip",
+  "archive_sha256": "3cd4cc741864ac4bb875e3c1dc41d0ddea559259059b01d229527b08323bea0d",
+  "claim": "powered replication of the unchanged anonymous game-to-AGQA Layer-B harness",
+  "eligible_video_count": 1399,
+  "entry": "AGQA_balanced/train_balanced.txt",
+  "explicit_pre_video_excluded_videos": [],
+  "functional_program_read_during_selection_or_freeze": false,
+  "manifest_sha256": "84e57aecd29e64e9dbc199ae2075a0bf5bf84e30d66dd561fe4685bd119b7f5e",
+  "power_basis": {
+    "consumed_diagnostic_tasks": 240,
+    "method_changed_after_diagnostic": false,
+    "observed_accuracy_gain_pp": 1.25,
+    "source_vs_neural_losses": 3,
+    "source_vs_neural_wins": 6
+  },
+  "prior_raw_runtime_exposure": {
+    "runtime_receipt_video_count": 4508,
+    "sampled_frame_artifact_files": 207,
+    "sampled_frame_artifact_video_count": 1868,
+    "union_video_count": 4967
+  },
+  "prior_raw_runtime_video_ids_sha256": "7e2b2c138523bce687d2082841639c3411b4f23c80da9f4a2c1d621d659ebf0b",
+  "projected_task_count": 400,
+  "raw_video_archive": {
+    "archive_prefix": "Charades_v1_480/",
+    "url": "https://archive.org/download/charades/Charades_v1_480.zip"
+  },
+  "sample_count": 40,
+  "samples": [
+    {
+      "rank_sha256": "001fbfa9698613c74139f7220113dc83062c83cb64b3ce41e2265ddda25ec8ec",
+      "selected_task_ids": [
+        "QNKDI-1855",
+        "QNKDI-1832",
+        "QNKDI-2045",
+        "QNKDI-2036",
+        "QNKDI-1343",
+        "QNKDI-1614",
+        "QNKDI-1778",
+        "QNKDI-1952",
+        "QNKDI-796",
+        "QNKDI-1966"
+      ],
+      "video_id": "QNKDI",
+      "video_path": "/fs/gamma-projects/vlm-robot/datasets/AGQA2-charades-selected/QNKDI.mp4"
+    },
+    {
+      "rank_sha256": "00263e6e73e6db0e5144b08ab181380edbcf405c19eef6203f7bd595506e58f5",
+      "selected_task_ids": [
+        "SXFG6-6430",
+        "SXFG6-6429",
+        "SXFG6-4651",
+        "SXFG6-4635",
+        "SXFG6-3697",
+        "SXFG6-4255",
+        "SXFG6-4268",
+        "SXFG6-4278",
+        "SXFG6-465",
+        "SXFG6-5211"
+      ],
+      "video_id": "SXFG6",
+      "video_path": "/fs/gamma-projects/vlm-robot/datasets/AGQA2-charades-selected/SXFG6.mp4"
+    },
+    {
+      "rank_sha256": "0034cc0df9720cb35b84e43aed1e416357771aa4a0a17fcbf1a65a5d632433f2",
+      "selected_task_ids": [
+        "ZL55N-8252",
+        "ZL55N-8343",
+        "ZL55N-20732",
+        "ZL55N-20610",
+        "ZL55N-5497",
+        "ZL55N-7512",
+        "ZL55N-7962",
+        "ZL55N-7942",
+        "ZL55N-11386",
+        "ZL55N-71"
+      ],
+      "video_id": "ZL55N",
+      "video_path": "/fs/gamma-projects/vlm-robot/datasets/AGQA2-charades-selected/ZL55N.mp4"
+    },
+    {
+      "rank_sha256": "004b5fc22413ca87ddad8cc813f52c443ae9ff0561752ed98c4298b1d6a5a5d6",
+      "selected_task_ids": [
+        "23YS1-1615",
+        "23YS1-1638",
+        "23YS1-1739",
+        "23YS1-1743",
+        "23YS1-1259",
+        "23YS1-989",
+        "23YS1-1577",
+        "23YS1-1600",
+        "23YS1-353",
+        "23YS1-514"
+      ],
+      "video_id": "23YS1",
+      "video_path": "/fs/gamma-projects/vlm-robot/datasets/AGQA2-charades-selected/23YS1.mp4"
+    },
+    {
+      "rank_sha256": "00892d1ab9f1f87016228d380d9cf69b92caf94d920e116852847dd76aa0e216",
+      "selected_task_ids": [
+        "ETQYM-7931",
+        "ETQYM-7942",
+        "ETQYM-11896",
+        "ETQYM-8126",
+        "ETQYM-6655",
+        "ETQYM-4356",
+        "ETQYM-7880",
+        "ETQYM-7794",
+        "ETQYM-9942",
+        "ETQYM-9007"
+      ],
+      "video_id": "ETQYM",
+      "video_path": "/fs/gamma-projects/vlm-robot/datasets/AGQA2-charades-selected/ETQYM.mp4"
+    },
+    {
+      "rank_sha256": "00e4f58a3041507db111b520cc5c8c91ddcd7de91b829b9aaf1c089aea3aa88a",
+      "selected_task_ids": [
+        "S47DI-4302",
+        "S47DI-4267",
+        "S47DI-8650",
+        "S47DI-8467",
+        "S47DI-7151",
+        "S47DI-3189",
+        "S47DI-7987",
+        "S47DI-7970",
+        "S47DI-56",
+        "S47DI-2905"
+      ],
+      "video_id": "S47DI",
+      "video_path": "/fs/gamma-projects/vlm-robot/datasets/AGQA2-charades-selected/S47DI.mp4"
+    },
+    {
+      "rank_sha256": "00fc98975719811196d2018d68add38d40c83c9245979066ca00a48ecbe305c6",
+      "selected_task_ids": [
+        "J8JOQ-4217",
+        "J8JOQ-4206",
+        "J8JOQ-4427",
+        "J8JOQ-4432",
+        "J8JOQ-3568",
+        "J8JOQ-2949",
+        "J8JOQ-4149",
+        "J8JOQ-4138",
+        "J8JOQ-4290",
+        "J8JOQ-1170"
+      ],
+      "video_id": "J8JOQ",
+      "video_path": "/fs/gamma-projects/vlm-robot/datasets/AGQA2-charades-selected/J8JOQ.mp4"
+    },
+    {
+      "rank_sha256": "012b36486dee523c5554f98fdc40b28aa403eba79a96dcbc6fc7267655fe3bb5",
+      "selected_task_ids": [
+        "N3OKQ-11468",
+        "N3OKQ-11608",
+        "N3OKQ-11945",
+        "N3OKQ-15447",
+        "N3OKQ-4009",
+        "N3OKQ-5913",
+        "N3OKQ-11131",
+        "N3OKQ-11163",
+        "N3OKQ-2",
+        "N3OKQ-11786"
+      ],
+      "video_id": "N3OKQ",
+      "video_path": "/fs/gamma-projects/vlm-robot/datasets/AGQA2-charades-selected/N3OKQ.mp4"
+    },
+    {
+      "rank_sha256": "0134d9620a1f8b1d61a36b3617cba291fc19e4541479e482432291aa4e5939cf",
+      "selected_task_ids": [
+        "F9J4H-1257",
+        "F9J4H-2301",
+        "F9J4H-1382",
+        "F9J4H-1383",
+        "F9J4H-807",
+        "F9J4H-811",
+        "F9J4H-2257",
+        "F9J4H-1223",
+        "F9J4H-2360",
+        "F9J4H-2352"
+      ],
+      "video_id": "F9J4H",
+      "video_path": "/fs/gamma-projects/vlm-robot/datasets/AGQA2-charades-selected/F9J4H.mp4"
+    },
+    {
+      "rank_sha256": "0142e0c56256ca3328103bf7b63f4466c6826b6551ae618aefe78e8ee28e0746",
+      "selected_task_ids": [
+        "0M2DO-4147",
+        "0M2DO-4018",
+        "0M2DO-4125",
+        "0M2DO-4143",
+        "0M2DO-1526",
+        "0M2DO-1720",
+        "0M2DO-1733",
+        "0M2DO-3974",
+        "0M2DO-2670",
+        "0M2DO-3065"
+      ],
+      "video_id": "0M2DO",
+      "video_path": "/fs/gamma-projects/vlm-robot/datasets/AGQA2-charades-selected/0M2DO.mp4"
+    },
+    {
+      "rank_sha256": "015d16161042c0d7f94cda3c9c213295bd4da6eee357e85b5119c031775fe387",
+      "selected_task_ids": [
+        "0BH84-2736",
+        "0BH84-2771",
+        "0BH84-2875",
+        "0BH84-2884",
+        "0BH84-2229",
+        "0BH84-2255",
+        "0BH84-2699",
+        "0BH84-2676",
+        "0BH84-2850",
+        "0BH84-15"
+      ],
+      "video_id": "0BH84",
+      "video_path": "/fs/gamma-projects/vlm-robot/datasets/AGQA2-charades-selected/0BH84.mp4"
+    },
+    {
+      "rank_sha256": "016443d7704c9580a2658bde3c6ec72bb7f2275f1d94e9daef3db88a62dfe3f9",
+      "selected_task_ids": [
+        "XTC0F-2017",
+        "XTC0F-4599",
+        "XTC0F-4782",
+        "XTC0F-4771",
+        "XTC0F-1438",
+        "XTC0F-1394",
+        "XTC0F-4519",
+        "XTC0F-1963",
+        "XTC0F-24",
+        "XTC0F-4752"
+      ],
+      "video_id": "XTC0F",
+      "video_path": "/fs/gamma-projects/vlm-robot/datasets/AGQA2-charades-selected/XTC0F.mp4"
+    },
+    {
+      "rank_sha256": "01c296c3cd1ab2be39f9492e90ccec9b24e35b664f5732b586a6b7d8cdf048b0",
+      "selected_task_ids": [
+        "SUYMQ-7708",
+        "SUYMQ-7641",
+        "SUYMQ-8392",
+        "SUYMQ-8369",
+        "SUYMQ-3651",
+        "SUYMQ-6888",
+        "SUYMQ-14706",
+        "SUYMQ-7519",
+        "SUYMQ-14957",
+        "SUYMQ-8165"
+      ],
+      "video_id": "SUYMQ",
+      "video_path": "/fs/gamma-projects/vlm-robot/datasets/AGQA2-charades-selected/SUYMQ.mp4"
+    },
+    {
+      "rank_sha256": "01c8d3bbdc02b6c604b869a4a721b460d79f226edc70af55568d6612d4e6729f",
+      "selected_task_ids": [
+        "8AZRX-17089",
+        "8AZRX-17023",
+        "8AZRX-11429",
+        "8AZRX-11423",
+        "8AZRX-14227",
+        "8AZRX-4496",
+        "8AZRX-10728",
+        "8AZRX-10804",
+        "8AZRX-11231",
+        "8AZRX-17150"
+      ],
+      "video_id": "8AZRX",
+      "video_path": "/fs/gamma-projects/vlm-robot/datasets/AGQA2-charades-selected/8AZRX.mp4"
+    },
+    {
+      "rank_sha256": "01cc972a91f9acda947f89d0bb635343aa2dd86b2c32740c4e938878c0d9ec98",
+      "selected_task_ids": [
+        "5O281-1229",
+        "5O281-1223",
+        "5O281-1288",
+        "5O281-1286",
+        "5O281-1625",
+        "5O281-1040",
+        "5O281-1202",
+        "5O281-1700",
+        "5O281-370",
+        "5O281-477"
+      ],
+      "video_id": "5O281",
+      "video_path": "/fs/gamma-projects/vlm-robot/datasets/AGQA2-charades-selected/5O281.mp4"
+    },
+    {
+      "rank_sha256": "01d15b481c9b11ad534fc8324736a08b17b2668f1a56a82bf598f0d2b85dc2ca",
+      "selected_task_ids": [
+        "5Q3QB-1352",
+        "5Q3QB-1737",
+        "5Q3QB-1497",
+        "5Q3QB-1495",
+        "5Q3QB-1302",
+        "5Q3QB-1220",
+        "5Q3QB-1330",
+        "5Q3QB-1726",
+        "5Q3QB-1745",
+        "5Q3QB-1444"
+      ],
+      "video_id": "5Q3QB",
+      "video_path": "/fs/gamma-projects/vlm-robot/datasets/AGQA2-charades-selected/5Q3QB.mp4"
+    },
+    {
+      "rank_sha256": "022b3eefd893507d9f0e2523d79424b4e0a0356b1534ac4597a760ec6cc2509b",
+      "selected_task_ids": [
+        "759UE-4276",
+        "759UE-9113",
+        "759UE-4940",
+        "759UE-4927",
+        "759UE-3393",
+        "759UE-3292",
+        "759UE-8540",
+        "759UE-8544",
+        "759UE-4910",
+        "759UE-4535"
+      ],
+      "video_id": "759UE",
+      "video_path": "/fs/gamma-projects/vlm-robot/datasets/AGQA2-charades-selected/759UE.mp4"
+    },
+    {
+      "rank_sha256": "0247789c28e3329470b051c902435a10877d2211939f2e7bea3d83be80f54aea",
+      "selected_task_ids": [
+        "DP7KP-3239",
+        "DP7KP-3234",
+        "DP7KP-3366",
+        "DP7KP-3374",
+        "DP7KP-2817",
+        "DP7KP-3066",
+        "DP7KP-3175",
+        "DP7KP-3161",
+        "DP7KP-2429",
+        "DP7KP-2037"
+      ],
+      "video_id": "DP7KP",
+      "video_path": "/fs/gamma-projects/vlm-robot/datasets/AGQA2-charades-selected/DP7KP.mp4"
+    },
+    {
+      "rank_sha256": "0250f3fe1d2133357f4af4e2355078349989cfb55f811380ededf03d8efe5ac3",
+      "selected_task_ids": [
+        "PP2FF-16741",
+        "PP2FF-9229",
+        "PP2FF-17207",
+        "PP2FF-9678",
+        "PP2FF-5153",
+        "PP2FF-13424",
+        "PP2FF-8953",
+        "PP2FF-8935",
+        "PP2FF-9910",
+        "PP2FF-2200"
+      ],
+      "video_id": "PP2FF",
+      "video_path": "/fs/gamma-projects/vlm-robot/datasets/AGQA2-charades-selected/PP2FF.mp4"
+    },
+    {
+      "rank_sha256": "028e1fcfa2954e9187595e271bb654e8a6a33df56031758fd10a17f7ac8572e6",
+      "selected_task_ids": [
+        "KZ746-11211",
+        "KZ746-8970",
+        "KZ746-9499",
+        "KZ746-9495",
+        "KZ746-6736",
+        "KZ746-5130",
+        "KZ746-8762",
+        "KZ746-8791",
+        "KZ746-9427",
+        "KZ746-15"
+      ],
+      "video_id": "KZ746",
+      "video_path": "/fs/gamma-projects/vlm-robot/datasets/AGQA2-charades-selected/KZ746.mp4"
+    },
+    {
+      "rank_sha256": "02de9d648fdd1cef2418bb07af7382114dfc08d83e902e20d4f538d6de5ce201",
+      "selected_task_ids": [
+        "IG1YT-63867",
+        "IG1YT-65961",
+        "IG1YT-33512",
+        "IG1YT-65812",
+        "IG1YT-16581",
+        "IG1YT-19573",
+        "IG1YT-65259",
+        "IG1YT-30693",
+        "IG1YT-32044",
+        "IG1YT-180"
+      ],
+      "video_id": "IG1YT",
+      "video_path": "/fs/gamma-projects/vlm-robot/datasets/AGQA2-charades-selected/IG1YT.mp4"
+    },
+    {
+      "rank_sha256": "02e6ff043125dfb6f685a236f0a47e5234adeae7b26643c58429d260d9e46909",
+      "selected_task_ids": [
+        "M8PXK-8369",
+        "M8PXK-4242",
+        "M8PXK-4555",
+        "M8PXK-4567",
+        "M8PXK-3967",
+        "M8PXK-1795",
+        "M8PXK-4095",
+        "M8PXK-4096",
+        "M8PXK-46",
+        "M8PXK-45"
+      ],
+      "video_id": "M8PXK",
+      "video_path": "/fs/gamma-projects/vlm-robot/datasets/AGQA2-charades-selected/M8PXK.mp4"
+    },
+    {
+      "rank_sha256": "02fcbd6b374a28d860a8265a8453ef6ac944a9d88877215f854e025e6a2d08f8",
+      "selected_task_ids": [
+        "GQCUX-1263",
+        "GQCUX-1239",
+        "GQCUX-1377",
+        "GQCUX-1380",
+        "GQCUX-771",
+        "GQCUX-879",
+        "GQCUX-1176",
+        "GQCUX-1187",
+        "GQCUX-290",
+        "GQCUX-1347"
+      ],
+      "video_id": "GQCUX",
+      "video_path": "/fs/gamma-projects/vlm-robot/datasets/AGQA2-charades-selected/GQCUX.mp4"
+    },
+    {
+      "rank_sha256": "0305a489a137969d6c7cdb607a9ee1324f2d6eb34f00c3dcd54fb666005c3135",
+      "selected_task_ids": [
+        "0X49F-3537",
+        "0X49F-10438",
+        "0X49F-3960",
+        "0X49F-3951",
+        "0X49F-3235",
+        "0X49F-2529",
+        "0X49F-3734",
+        "0X49F-3437",
+        "0X49F-3826",
+        "0X49F-0"
+      ],
+      "video_id": "0X49F",
+      "video_path": "/fs/gamma-projects/vlm-robot/datasets/AGQA2-charades-selected/0X49F.mp4"
+    },
+    {
+      "rank_sha256": "030ea4d20822a9a9f7be988770d6b21c786cd93026d0722cf877f4bf550f7186",
+      "selected_task_ids": [
+        "KW4Y1-3689",
+        "KW4Y1-9443",
+        "KW4Y1-9400",
+        "KW4Y1-4006",
+        "KW4Y1-2847",
+        "KW4Y1-2571",
+        "KW4Y1-8820",
+        "KW4Y1-3566",
+        "KW4Y1-1692",
+        "KW4Y1-5006"
+      ],
+      "video_id": "KW4Y1",
+      "video_path": "/fs/gamma-projects/vlm-robot/datasets/AGQA2-charades-selected/KW4Y1.mp4"
+    },
+    {
+      "rank_sha256": "035e55f30f9cd5e98bf6d79529652b7ebd33def118fe6f669a9e2da63e16359f",
+      "selected_task_ids": [
+        "EBTD6-13006",
+        "EBTD6-13071",
+        "EBTD6-13771",
+        "EBTD6-8744",
+        "EBTD6-4351",
+        "EBTD6-6956",
+        "EBTD6-7438",
+        "EBTD6-8330",
+        "EBTD6-1",
+        "EBTD6-8059"
+      ],
+      "video_id": "EBTD6",
+      "video_path": "/fs/gamma-projects/vlm-robot/datasets/AGQA2-charades-selected/EBTD6.mp4"
+    },
+    {
+      "rank_sha256": "039c038e48fba1a8382a8ad2b41b8e8abb01106815a1cf7cf8239cc3a3190339",
+      "selected_task_ids": [
+        "H5DQ6-2498",
+        "H5DQ6-2495",
+        "H5DQ6-4231",
+        "H5DQ6-4220",
+        "H5DQ6-2358",
+        "H5DQ6-2411",
+        "H5DQ6-4102",
+        "H5DQ6-4107",
+        "H5DQ6-1234",
+        "H5DQ6-1141"
+      ],
+      "video_id": "H5DQ6",
+      "video_path": "/fs/gamma-projects/vlm-robot/datasets/AGQA2-charades-selected/H5DQ6.mp4"
+    },
+    {
+      "rank_sha256": "03bc1ea6015356e533f567dd3bd3579c193ceee30487ced10399a319308ef765",
+      "selected_task_ids": [
+        "GN4SJ-9877",
+        "GN4SJ-9740",
+        "GN4SJ-10332",
+        "GN4SJ-17301",
+        "GN4SJ-8142",
+        "GN4SJ-4578",
+        "GN4SJ-17198",
+        "GN4SJ-16667",
+        "GN4SJ-3749",
+        "GN4SJ-10205"
+      ],
+      "video_id": "GN4SJ",
+      "video_path": "/fs/gamma-projects/vlm-robot/datasets/AGQA2-charades-selected/GN4SJ.mp4"
+    },
+    {
+      "rank_sha256": "03c28e8c9c8ce4e8b994a43c3d056bbc1d826c5a496cde781fa19a6bf9fd70d3",
+      "selected_task_ids": [
+        "JIWY2-7293",
+        "JIWY2-7332",
+        "JIWY2-3924",
+        "JIWY2-3920",
+        "JIWY2-2491",
+        "JIWY2-2497",
+        "JIWY2-7156",
+        "JIWY2-3508",
+        "JIWY2-5000",
+        "JIWY2-3873"
+      ],
+      "video_id": "JIWY2",
+      "video_path": "/fs/gamma-projects/vlm-robot/datasets/AGQA2-charades-selected/JIWY2.mp4"
+    },
+    {
+      "rank_sha256": "03d42e0b83787b56f8154e9919945ba8a9f2261cde2d16888573bc4806ba754a",
+      "selected_task_ids": [
+        "VWAEL-3914",
+        "VWAEL-3936",
+        "VWAEL-6499",
+        "VWAEL-4049",
+        "VWAEL-3295",
+        "VWAEL-2912",
+        "VWAEL-3872",
+        "VWAEL-6348",
+        "VWAEL-1763",
+        "VWAEL-3977"
+      ],
+      "video_id": "VWAEL",
+      "video_path": "/fs/gamma-projects/vlm-robot/datasets/AGQA2-charades-selected/VWAEL.mp4"
+    },
+    {
+      "rank_sha256": "0409db9039f9faba470e3431ffd80c1a0c90bdeabf9faaad9da3f8b3637b1469",
+      "selected_task_ids": [
+        "RHCFX-3900",
+        "RHCFX-5095",
+        "RHCFX-4138",
+        "RHCFX-4105",
+        "RHCFX-1862",
+        "RHCFX-4760",
+        "RHCFX-5051",
+        "RHCFX-3774",
+        "RHCFX-648",
+        "RHCFX-3990"
+      ],
+      "video_id": "RHCFX",
+      "video_path": "/fs/gamma-projects/vlm-robot/datasets/AGQA2-charades-selected/RHCFX.mp4"
+    },
+    {
+      "rank_sha256": "041ba46c835e1cf6a94f82d4f4d4e98625e9f3f611208eafaeb023a75f706cce",
+      "selected_task_ids": [
+        "X3KFE-9656",
+        "X3KFE-14047",
+        "X3KFE-14302",
+        "X3KFE-14294",
+        "X3KFE-7810",
+        "X3KFE-6085",
+        "X3KFE-9510",
+        "X3KFE-14120",
+        "X3KFE-2379",
+        "X3KFE-3055"
+      ],
+      "video_id": "X3KFE",
+      "video_path": "/fs/gamma-projects/vlm-robot/datasets/AGQA2-charades-selected/X3KFE.mp4"
+    },
+    {
+      "rank_sha256": "042f28210f15a9d4609a364c4829663ba3ecba3b911bf378c416c1be6d4cd32b",
+      "selected_task_ids": [
+        "BMPEV-6881",
+        "BMPEV-12067",
+        "BMPEV-7741",
+        "BMPEV-12533",
+        "BMPEV-11408",
+        "BMPEV-4960",
+        "BMPEV-11809",
+        "BMPEV-11808",
+        "BMPEV-1233",
+        "BMPEV-12257"
+      ],
+      "video_id": "BMPEV",
+      "video_path": "/fs/gamma-projects/vlm-robot/datasets/AGQA2-charades-selected/BMPEV.mp4"
+    },
+    {
+      "rank_sha256": "045ad7c9d18e5b1a33d176e9f9c506315663d33f85e30a5f775a36a5e48f3226",
+      "selected_task_ids": [
+        "LBGFT-20104",
+        "LBGFT-19351",
+        "LBGFT-10217",
+        "LBGFT-20084",
+        "LBGFT-18879",
+        "LBGFT-8605",
+        "LBGFT-9461",
+        "LBGFT-9432",
+        "LBGFT-11586",
+        "LBGFT-11105"
+      ],
+      "video_id": "LBGFT",
+      "video_path": "/fs/gamma-projects/vlm-robot/datasets/AGQA2-charades-selected/LBGFT.mp4"
+    },
+    {
+      "rank_sha256": "048741ff429fb58516f42dbc5ab5e4084269ab084a5b68bd48937fb8998af281",
+      "selected_task_ids": [
+        "HKBKA-10103",
+        "HKBKA-5309",
+        "HKBKA-5716",
+        "HKBKA-5694",
+        "HKBKA-2905",
+        "HKBKA-3353",
+        "HKBKA-5216",
+        "HKBKA-10084",
+        "HKBKA-1485",
+        "HKBKA-1251"
+      ],
+      "video_id": "HKBKA",
+      "video_path": "/fs/gamma-projects/vlm-robot/datasets/AGQA2-charades-selected/HKBKA.mp4"
+    },
+    {
+      "rank_sha256": "04b159f230018e172ef7496053836bdf33b83e82224263309879f34e3d2981ab",
+      "selected_task_ids": [
+        "LKYCT-18998",
+        "LKYCT-9780",
+        "LKYCT-10416",
+        "LKYCT-19530",
+        "LKYCT-8822",
+        "LKYCT-14886",
+        "LKYCT-10073",
+        "LKYCT-9564",
+        "LKYCT-10261",
+        "LKYCT-9965"
+      ],
+      "video_id": "LKYCT",
+      "video_path": "/fs/gamma-projects/vlm-robot/datasets/AGQA2-charades-selected/LKYCT.mp4"
+    },
+    {
+      "rank_sha256": "04dcfbb91e0d4859eb3380b35612895af494ef5b5b527b2e437732eec56aaa0c",
+      "selected_task_ids": [
+        "4986V-2117",
+        "4986V-2084",
+        "4986V-2261",
+        "4986V-2250",
+        "4986V-1024",
+        "4986V-1089",
+        "4986V-2021",
+        "4986V-2030",
+        "4986V-634",
+        "4986V-699"
+      ],
+      "video_id": "4986V",
+      "video_path": "/fs/gamma-projects/vlm-robot/datasets/AGQA2-charades-selected/4986V.mp4"
+    },
+    {
+      "rank_sha256": "04e73d41de6b3ca2c7de95f3c9d17e9205d7bf7860f066f8ae0797484ca51272",
+      "selected_task_ids": [
+        "A75XI-4075",
+        "A75XI-4090",
+        "A75XI-4211",
+        "A75XI-4187",
+        "A75XI-2562",
+        "A75XI-2597",
+        "A75XI-4694",
+        "A75XI-4021",
+        "A75XI-1258",
+        "A75XI-4143"
+      ],
+      "video_id": "A75XI",
+      "video_path": "/fs/gamma-projects/vlm-robot/datasets/AGQA2-charades-selected/A75XI.mp4"
+    },
+    {
+      "rank_sha256": "0516fbeb0b62423f2e74f95916fc82dcb05b35b3c8ce3334aec974135ca72d24",
+      "selected_task_ids": [
+        "PQH3Q-5438",
+        "PQH3Q-3193",
+        "PQH3Q-3527",
+        "PQH3Q-3532",
+        "PQH3Q-1632",
+        "PQH3Q-2886",
+        "PQH3Q-3113",
+        "PQH3Q-3094",
+        "PQH3Q-822",
+        "PQH3Q-3322"
+      ],
+      "video_id": "PQH3Q",
+      "video_path": "/fs/gamma-projects/vlm-robot/datasets/AGQA2-charades-selected/PQH3Q.mp4"
+    },
+    {
+      "rank_sha256": "0539627795f4d0059f158bd4a071bc48f9eab1a049dc6cea3ccc2bd24375a85d",
+      "selected_task_ids": [
+        "J18JX-1659",
+        "J18JX-2506",
+        "J18JX-1737",
+        "J18JX-1731",
+        "J18JX-1171",
+        "J18JX-1524",
+        "J18JX-2469",
+        "J18JX-1627",
+        "J18JX-1696",
+        "J18JX-1002"
+      ],
+      "video_id": "J18JX",
+      "video_path": "/fs/gamma-projects/vlm-robot/datasets/AGQA2-charades-selected/J18JX.mp4"
+    }
+  ],
+  "scene_graph_read_during_selection_or_freeze": false,
+  "schema_version": "agqa-full-train-broad-powered-download-selection-v4",
+  "selection_rule": "HASH_RANK_UNTOUCHED_VIDEOS_WITH_TWO_TASKS_IN_EACH_OF_FIVE_PUBLIC_STRUCTURAL_STRATA",
+  "selection_salt": "agqa-query-grounder-v2-development-20260902",
+  "source_controller_read_during_selection_or_freeze": false,
+  "status": "FROZEN_V4_SELECTION_BEFORE_VIDEO_DOWNLOAD_OR_V4_CALLS",
+  "tasks_per_video": 10,
+  "unique_video_count": 40
+}

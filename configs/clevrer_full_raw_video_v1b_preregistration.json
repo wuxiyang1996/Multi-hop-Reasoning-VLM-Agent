@@ -1,0 +1,41 @@
+{
+  "schema_version": "clevrer-full-raw-video-transfer-preregistration-v1b",
+  "status": "FROZEN_BEFORE_V1B_COHORT_SELECTION_OR_ANY_NEW_OUTCOME_READ",
+  "parent_preregistration_path": "configs/clevrer_full_raw_video_v1_preregistration.json",
+  "parent_failed_public_freeze_path": "configs/clevrer_full_raw_video_v1_public_cohorts.json",
+  "amendment_authority": "PUBLIC_QUESTION_TYPE_COVERAGE_ONLY;NO_ANSWER_OR_PROGRAM_READ",
+  "amendment_reason": "V1 assumed every video contained all four public families; V1 public projection disproved that assumption.",
+  "claim": "Game-induced typed operator algebra transfers to CLEVRER raw-video QA under a shared frozen off-the-shelf grounder.",
+  "source_algebra_path": "runs/full_video_source_algebra_v1/source_algebra.json",
+  "source_algebra_sha256": "c442412f9e4739bfb885d33337e0c8c31ab4bfe94ed495e7ec830d821d2246c3",
+  "signature_binding_path": "configs/video_target_signature_bindings_v1.json",
+  "grounder_config_path": "configs/clevrer_nsdr_tool_grounder_v1.json",
+  "selection_nonce": "clevrer-full-raw-video-v1-20260902-before-outcomes",
+  "require_all_families_per_video": true,
+  "development_video_count": 40,
+  "reserve_video_count": 400,
+  "question_families": ["descriptive", "explanatory", "predictive", "counterfactual"],
+  "maximum_questions_per_family_per_video": 1,
+  "disjointness": ["prior-runtime-video-disjoint", "development-reserve-video-disjoint"],
+  "grounder_qualification_gates": {
+    "object_inventory_exact_video_fraction_minimum": 0.90,
+    "object_attribute_micro_accuracy_minimum": 0.95,
+    "observed_collision_precision_minimum": 0.80,
+    "observed_collision_recall_minimum": 0.80,
+    "counterfactual_world_completeness": 1.0
+  },
+  "formal_gates": {
+    "source_vs_neural_one_sided_exact_p_maximum": 0.05,
+    "source_vs_permuted_one_sided_exact_p_maximum": 0.05,
+    "source_vs_neural_net_wins_minimum": 1,
+    "source_vs_permuted_net_wins_minimum": 1,
+    "negative_transfer_loss_fraction_maximum": 0.05,
+    "target_written_isomorphic_prediction_equivalence": 1.0,
+    "shared_grounder_receipt_fraction": 1.0,
+    "minimum_source_symbolic_commits": 50
+  },
+  "arms": ["neural_only", "generic_symbolic", "source_permuted", "source_induced", "target_written_isomorphic"],
+  "shared_runtime": ["raw_frames", "grounder_receipt", "frame_budget", "question_parser", "executor", "fallback_actor"],
+  "runtime_forbidden": ["official_object_annotations", "official_motion_traces", "official_functional_programs", "answers", "source_identity"],
+  "failure_policy": "FAIL_CLOSED_AND_REPORT;NO_RESERVE_RETUNING"
+}

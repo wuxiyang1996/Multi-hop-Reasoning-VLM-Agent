@@ -15,6 +15,7 @@ operators, target actions, effect grounding, or success evaluation.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from itertools import permutations
 from math import floor
 from typing import Any, Mapping, Sequence
 
@@ -160,8 +161,51 @@ def prior_from_frozen_artifact(
     return SourceApplicabilityPrior.from_profile(profile)
 
 
+def maximum_profile_contrast_derangement(
+    artifacts: Mapping[str, Mapping[str, Any]],
+    *, candidate_counts: Sequence[int] = (2, 3, 4),
+) -> dict[str, str]:
+    """Return the source-only derangement with maximal executable contrast."""
+
+    games = tuple(sorted(map(str, artifacts)))
+    if len(games) < 2:
+        raise ValueError("source permutation requires at least two artifacts")
+    counts = tuple(sorted({int(value) for value in candidate_counts}))
+    if not counts or counts[0] < 2:
+        raise ValueError("candidate counts must all be at least two")
+    priors = {
+        game: prior_from_frozen_artifact(artifacts[game]) for game in games
+    }
+    signatures = {
+        game: tuple(priors[game].trial_order(count) for count in counts)
+        for game in games
+    }
+    eligible = []
+    for permuted in permutations(games):
+        if any(left == right for left, right in zip(games, permuted)):
+            continue
+        mapping = dict(zip(games, permuted))
+        first_choice_contrast = sum(
+            signatures[source][-1][0] != signatures[control][-1][0]
+            for source, control in mapping.items()
+        )
+        full_order_contrast = sum(
+            signatures[source][index] != signatures[control][index]
+            for source, control in mapping.items()
+            for index in range(len(counts))
+        )
+        eligible.append((
+            first_choice_contrast, full_order_contrast,
+            stable_hash(mapping), mapping,
+        ))
+    if not eligible:
+        raise ValueError("no source derangement exists")
+    return max(eligible, key=lambda row: (row[0], row[1], row[2]))[3]
+
+
 __all__ = [
     "SourceApplicabilityPrior",
     "prior_from_frozen_artifact",
     "projected_rank_scores",
+    "maximum_profile_contrast_derangement",
 ]

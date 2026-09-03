@@ -165,7 +165,11 @@ def _provider_json_call(
                 request["temperature"] = 0
             candidate = client.chat.completions.create(**request)
             if not getattr(candidate, "choices", None):
-                raise TypeError("provider response omitted choices")
+                detail = getattr(candidate, "model_extra", None) or {}
+                raise TypeError(
+                    "provider response omitted choices; envelope="
+                    + json.dumps(detail, sort_keys=True, default=str)[:1000]
+                )
             choice = candidate.choices[0]
             if getattr(choice, "message", None) is None:
                 raise TypeError("provider response omitted assistant message")

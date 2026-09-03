@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "experiment": "webshop_neurosymbolic_causal_v7_development",
+  "claim_limit": "Consumed WebShop tasks only; no held-out claim.",
+  "goal_freeze": {
+    "artifact": "configs/webshop_consumed_goals_v7.json",
+    "artifact_sha256": "60b735ed2f0063bf1ea7f8d4323b0c284ab4be8408e54d0c27a22f6ca9f57d6e",
+    "goal_seed": 233,
+    "roles": [
+      "adaptation",
+      "qualification",
+      "reserve"
+    ],
+    "held_out_included": false
+  },
+  "decision_runtime": {
+    "model": "qwen/qwen3.5-35b-a3b",
+    "maximum_output_tokens": 3200,
+    "schema_retries": 3,
+    "candidate_count": 5,
+    "independent_condition_sessions": true,
+    "canonicalized_session_identity_for_common_randomness": true
+  },
+  "conditions": [
+    "target_only",
+    "selective_minimum_repeat",
+    "selective_authentic_source",
+    "selective_phase_permuted_source",
+    "selective_other_game_source"
+  ],
+  "causal_question": "Does authentic source value improve recovery beyond the matched target-native minimum-repeat heuristic?",
+  "primary_metrics": [
+    "strict_success",
+    "pass_success",
+    "official_reward",
+    "steps"
+  ],
+  "required_ablation": "selective_minimum_repeat",
+  "held_out_authorized_by_this_config": false
+}

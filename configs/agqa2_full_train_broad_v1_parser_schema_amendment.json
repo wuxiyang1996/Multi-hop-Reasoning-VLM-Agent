@@ -1,0 +1,34 @@
+{
+  "schema_version": "agqa-full-train-broad-parser-schema-amendment-v1",
+  "status": "FROZEN_BEFORE_ANY_SUCCESSFUL_RESERVE_RUNTIME_OR_OUTCOME_ACCESS",
+  "parent_preregistration_sha256": "81163627aa431d2ae0afbce4f6822d1b75fb11280e5368e3239f76d9536d8d1f",
+  "parent_preregistration_file_sha256": "3c17f66888767dbc14d74fe7cf2e2d4b897c9ab32cb9edae96e1dc2c4947f952",
+  "parent_anonymous_runtime_amendment_file_sha256": "c3ef09fa972485af38ab476fbf9ec48c0eb16af9307a9d923d65c182275d7957",
+  "failed_attempt": {
+    "slurm_job_id": "7421643",
+    "state": "FAILED",
+    "exit_code": "1:0",
+    "reason": "The legacy parser runner indexed answers_read before recognizing the frozen public projection schema and raised KeyError.",
+    "log_sha256": "7cf4d64c444e7ce63b2bc80152c1adc565bac3ae1c15a0d513cac1b1ecf02d06",
+    "semantic_runtime_created": false,
+    "model_inference_batches_completed": 0
+  },
+  "compatibility_change": {
+    "file": "scripts/run_agqa_layer_b_semantic_parser.py",
+    "replacement_sha256": "4144459b0af1840d9cb3d90b1534a01f0d86fc9e64cb812220f6f40ecc7fa783",
+    "scope": "Accept agqa-full-train-broad-public-v1 only when answers_projected, functional_programs_projected, and scene_graph_grounding_projected are explicitly false; preserve the legacy authority checks for all other schemas.",
+    "changes_model_or_decoding": false,
+    "changes_parser_training_or_qualification": false,
+    "changes_cohort_or_task_selection": false,
+    "changes_transfer_arms_or_gates": false
+  },
+  "authority": {
+    "provider_calls_before_amendment": 0,
+    "reserve_parser_outputs_read": 0,
+    "reserve_grounding_outputs_read": 0,
+    "reserve_answers_read": false,
+    "reserve_functional_programs_read": false,
+    "reserve_scene_graphs_read": false,
+    "formal_outcomes_read": false
+  }
+}

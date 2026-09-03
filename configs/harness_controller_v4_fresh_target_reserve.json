@@ -1,0 +1,47 @@
+{
+  "schema_version": "harness-controller-v4-fresh-target-reserve-config-v1",
+  "status": "FROZEN_BEFORE_V4_CARDINALITY_WEIGHT_UPDATES",
+  "selection_seed": "HARNESS_V4_TARGET_IR_RESERVE_20260830",
+  "candidate_pool": {
+    "path": "runs/target_harness_sft_five_domain_v1/train.jsonl",
+    "sha256": "f5be7ab178928c225536ee6cecff1032da6b743234d54608b3db19990c4ba62c",
+    "role": "TARGET_DEVELOPMENT_ROWS_NEVER_USED_BY_SOURCE_ONLY_V2_V3_OR_V4_WEIGHT_UPDATES"
+  },
+  "consumed_target_diagnostic": {
+    "dataset": {
+      "path": "runs/harness_controller_scientific_v4_zero_shot/zero_shot_eval.jsonl",
+      "sha256": "82a4c04b048501b0596e07e5ff6f82f22f0d62ad7a1573a92e4c38ef15acc65c"
+    },
+    "report": {
+      "path": "runs/harness_controller_scientific_v4_zero_shot/qwen35_9b_v3_report_retry1.json",
+      "sha256": "4102c040d43924b3d8cd8ea506f1f9395e8b3b38910a23198733e4353a005f89"
+    }
+  },
+  "source_only_v4_dataset": {
+    "manifest": {
+      "path": "runs/harness_controller_sft_v4_cardinality/manifest.json",
+      "sha256": "8a5931098683b0fc5119bdd7e53f179a5a8a6cd7c954685b37dc71c13db0f591"
+    },
+    "train": {
+      "path": "runs/harness_controller_sft_v4_cardinality/train.jsonl",
+      "sha256": "7030fd76c2846e667c86f6efbc622cb5af65f35038b9c2d9c1908c0b31071cc9"
+    }
+  },
+  "pair_quota_by_group": {
+    "alfworld": 100,
+    "discoveryworld": 100,
+    "tirbench": 100,
+    "video/agqa2": 50,
+    "video/clevrer": 50,
+    "webshop": 100
+  },
+  "selection_policy": {
+    "unit": "matched_pair",
+    "ranking": "SHA256_OF_SELECTION_SEED_AND_PAIR_ID",
+    "uses_completion_or_decision": false,
+    "uses_v3_prediction_or_correctness": false,
+    "uses_target_reward_or_success": false,
+    "uses_pair_identity_and_audit_group_only": true
+  },
+  "claim_boundary": "FRESH_TO_V4_MODEL_PROSPECTIVE_TARGET_IR_RESERVE;FROZEN_BEFORE_V4_TRAINING;DISJOINT_FROM_CONSUMED_1500_ROWS;TARGET_DEVELOPMENT_GROUNDING_NOT_UNTOUCHED_OFFICIAL_BENCHMARK_FORMAL"
+}

@@ -1,0 +1,47 @@
+{
+  "schema_version": 10,
+  "status": "FROZEN_LARGE_DEVELOPMENT",
+  "claim_boundary": "Outcome-blind 144-question development replication of controlled causal-game representation-value transfer into CLEVRER. The simultaneously frozen 144-question formal and 72-question reserve roles remain unopened. Official question/choice programs and answers are evaluator-only; the runtime compiler reads only public text.",
+  "source": {
+    "kind": "CONTROLLED_CAUSAL_GAME_MATCHED_REPRESENTATION_VALUES",
+    "seed": 901,
+    "control_seed": 902,
+    "heldout_seed": 903,
+    "train_states": 4096,
+    "heldout_states": 1024,
+    "ridge_alpha": 0.1,
+    "minimum_authentic_accuracy": 0.95,
+    "minimum_control_margin": 0.15
+  },
+  "target": {
+    "split_manifest": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/configs/clevrer_causal_query_transfer_v9_splits.json",
+    "official_root": "/fs/gamma-projects/vlm-robot/datasets/CLEVRER-official",
+    "split": "development",
+    "explicit_relation_prediction_directory": "with_edge_supervision_old",
+    "trajectory_prediction_directory": "without_edge_supervision",
+    "explicit_relation_reliability": 0.86,
+    "trajectory_reliability": 0.68,
+    "predicted_intervention_shift": 0.55
+  },
+  "conditions": [
+    "target_always_explicit_relation",
+    "target_always_trajectory",
+    "authentic_source_router",
+    "shuffled_source_router",
+    "source_marginal_router",
+    "intervention_semantics_inverted"
+  ],
+  "gates": {
+    "require_compiler_exact": true,
+    "require_source_gate_pass": true,
+    "require_authentic_action_contrast": true,
+    "require_authentic_strictly_above_all_controls": true,
+    "formal_and_reserve_must_remain_unread": true
+  },
+  "frozen_lineage": {
+    "split_manifest_sha256": "45ea9949e1c0a4144bcd0a9fed169cef40651fa12563b62ed60e520b2b9c2446",
+    "runner_sha256": "7e83ffb390dae0cbad783105c438f699c9ee51cdf92ffe46b5660f8b2c3f7a77",
+    "source_controller_sha256": "98f5648bf782c7cd7d579767a3a83c5039606156d260f8ed37043496d6f0eacf",
+    "target_compiler_sha256": "49be363fac3603213ba5621855f7f6cdd6f5d17804961acb57ea6f3699b8ff5c"
+  }
+}

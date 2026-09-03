@@ -1,0 +1,13 @@
+{
+  "schema_version": "agqa2-qwen235-tool-grounder-preregistration-v1",
+  "status": "FROZEN_BEFORE_ANY_QWEN235_DEVELOPMENT_CALL",
+  "split": "consumed_development",
+  "purpose": "Connectivity and schema qualification for a frozen off-the-shelf Qwen3-VL-235B target-native AGQA grounder before any fresh reserve is selected.",
+  "claim_boundary": "CONSUMED_DEVELOPMENT_ONLY;NO_FORMAL_TRANSFER_CLAIM;NO_TARGET_TRAINING;NO_GOLD_OR_PROGRAM_OR_SCENE_GRAPH_VISIBLE_AT_RUNTIME",
+  "model_id": "qwen/qwen3-vl-235b-a22b-instruct",
+  "thinking_enabled": false,
+  "training": false,
+  "first_stage_limit": 1,
+  "maximum_reported_provider_cost_usd": 0.5,
+  "next_step_if_schema_qualified": "Run the frozen consumed-development cohort, then freeze a new untouched reserve for matched neural-only/generic/source-induced/source-permuted evaluation."
+}

@@ -1,0 +1,28 @@
+{
+  "schema_version": "agqa2-source-triggered-cross-model-reanswer-development-v11b",
+  "status": "FROZEN_ON_CONSUMED_V70_AFTER_EMPTY_TRANSPORT_BEFORE_ACCEPTED_GEMINI_RECEIPTS",
+  "claim_boundary": "CONSUMED_V70_DEVELOPMENT_ONLY;TEST_CROSS_MODEL_CONSENSUS;NO_QUALIFICATION_OR_FORMAL_CLAIM;NO_TRAINING",
+  "base_report": "runs/agqa2_source_triggered_qualification_v10/base_report.json",
+  "base_report_file_sha256": "e83c9ff238f45b9f71ae07d19b5d083932732ba87fab25f608a94d0204f17467",
+  "manifest": "configs/agqa2_source_triggered_qualification_v10_manifest.json",
+  "manifest_file_sha256": "367d145f207a9f6f39cd77fcecb7d2da82991fb2c0df5009768bd54b75d5917c",
+  "collector": "scripts/collect_agqa2_source_triggered_reanswer_v8.py",
+  "collector_file_sha256": "fa2d425baffdd931eca55ab5651ca01091257f33ca0cce6d7291b0a23a160ff9",
+  "wrapper_root": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent",
+  "tool": "sample_frames",
+  "tool_frame_budget": 96,
+  "max_answer_tokens": 400,
+  "trigger_rule": "SOURCE_POSITIVE_NO_TIEBREAK_AND_DIRECT_BOOLEAN_DISAGREES_WITH_TYPED_DECISION",
+  "decision_rule": "CROSS_MODEL_CONSENSUS_DEVELOPMENT_PROBE_ONLY",
+  "model": {
+    "provider": "openrouter",
+    "base_url": "https://openrouter.ai/api/v1",
+    "api_key_name": "OPENROUTER_API_KEY",
+    "id": "google/gemini-3.1-pro-preview",
+    "temperature": 0,
+    "schema_retries": 2,
+    "timeout_seconds": 240,
+    "reasoning": {"effort": "minimal", "exclude": true}
+  },
+  "runtime_forbidden": ["answer", "functional_program", "scene_graph", "source_identity"]
+}

@@ -1,0 +1,30 @@
+{
+  "schema_version": "agqa2-oracle-query-mdp-v2-fresh-preregistration",
+  "status": "FROZEN_BEFORE_V2_SELECTION_OR_OUTCOMES",
+  "selection": {
+    "source_split": "official AGQA2 balanced train",
+    "exclude_all_v62_video_ids": true,
+    "selection_nonce": "AGQA2_ORACLE_QUERY_MDP_V2_FRESH_20260831",
+    "selection_fields": ["task_id", "video_id", "question", "semantic", "structural"],
+    "forbidden_selection_fields": ["answer", "program", "sg_grounding"],
+    "unique_videos": 300,
+    "questions_per_video": 3,
+    "tasks": 900
+  },
+  "runtime_authority": {
+    "public_question_read": true,
+    "official_stsg_read": true,
+    "official_public_ontology_read": true,
+    "answer_read_before_prediction_freeze": false,
+    "functional_program_read": false,
+    "program_derived_sg_grounding_read": false
+  },
+  "frozen_gates": {
+    "minimum_public_compiler_coverage": 0.40,
+    "minimum_oracle_committed_tasks": 200,
+    "minimum_oracle_committed_accuracy": 0.95,
+    "all_selected_videos_unseen_in_v62": true,
+    "zero_runtime_answer_program_grounding_read": true
+  },
+  "claim_boundary": "Fresh grounding/executor qualification only. Without a new matched direct actor and source-vs-generic divergence it is not a source-specific transfer result."
+}

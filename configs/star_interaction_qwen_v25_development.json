@@ -1,0 +1,57 @@
+{
+  "schema_version": 25,
+  "status": "FROZEN_BEFORE_V25_QWEN_DEVELOPMENT_OUTCOMES",
+  "claim_boundary": "Development-only same-model neural-symbolic qualification on the already-consumed V24 STAR Interaction rows. Qwen3-VL-32B-Instruct sees the exact same 24 dense frames and public question/options in both conditions. The target-only branch answers directly; the typed branch independently emits candidate proof receipts. The deterministic real-Sokoban REFUTED -> REPLAN state machine starts from the Qwen direct commitment. Binding-rotation and proof-topology derangements preserve candidate/step cardinality. This phase may select whether to advance but cannot confirm transfer; all future V26 videos must be fresh and unseen.",
+  "source_receipt": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/docs/results/sokoban_effect_program_v2_compact_receipt.json",
+  "input_v24_receipts": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/star_interaction_v24_fresh/receipts.json",
+  "expected_rows": 128,
+  "wrapper_root": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent",
+  "benchmark": {
+    "root": "/fs/gamma-projects/vlm-robot/datasets/STAR-official",
+    "split": "val",
+    "family": "Interaction"
+  },
+  "model": {
+    "provider": "openrouter",
+    "api_key_name": "OPENROUTER_API_KEY",
+    "id": "qwen/qwen3-vl-32b-instruct",
+    "base_url": "https://openrouter.ai/api/v1",
+    "timeout_seconds": 300,
+    "max_retries": 2,
+    "schema_retries": 3,
+    "max_tokens": 5200,
+    "max_proof_tokens": 5200
+  },
+  "media": {
+    "primary_frame_count": 12,
+    "proof_frame_count": 24,
+    "proof_frames_per_panel": 12,
+    "proxy_frame_max_side": 720,
+    "primary_frame_width": 224,
+    "proof_frame_width": 192,
+    "jpeg_quality": 88
+  },
+  "development_advancement_gates": {
+    "minimum_source_net_wins_vs_same_model_direct": 1,
+    "maximum_source_vs_direct_question_exact_two_sided_p": 0.10,
+    "source_vs_direct_video_cluster_bootstrap_lower_bound_must_exceed": 0.0,
+    "source_strictly_above_raw_typed_proof": true,
+    "source_strictly_above_binding_control": true,
+    "source_strictly_above_topology_control": true
+  },
+  "cluster_bootstrap": {
+    "resamples": 20000,
+    "seed": 25143,
+    "primary_independence_unit": "video_id"
+  },
+  "frozen_lineage": {
+    "source_receipt_sha256": "8f175c0edda951eba2064e9c53a8db6a25cdfa9fb0de8049d371dbf5335c9e80",
+    "input_v24_receipts_sha256": "5a04a32972b79a0b21acb52c0d113183550b73aeefa9e78332fbaf957fa6e146",
+    "collector_sha256": "c4d2480db4bee26b1ac644619674be1658cf942e7d061ff92a90c43125d5df64",
+    "v24_collector_sha256": "c3248baff7a51a8084cd8a2e34a21541f9d3b4a192c7a89e24ed03d77ea5249a",
+    "paired_collector_sha256": "1a2cba5619aee6a767cf73bcbaa7044594911f5c5903ef65ae98e6e62921bee1",
+    "generic_collector_sha256": "2566c89492c43e9dfe366aa49f6c1de63ed53a5c5f7b330f009ef77ab64acf46",
+    "transport_module_sha256": "2675beb07d86fe31124c9588b4dde61ff86c1915b31dd829e57f90b8c058f335",
+    "symbolic_executor_sha256": "167b6ad313440615531d2f023b474ef70999c0de635768215458222d17f31294"
+  }
+}

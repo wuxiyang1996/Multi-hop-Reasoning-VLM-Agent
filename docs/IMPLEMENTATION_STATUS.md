@@ -1,5 +1,34 @@
 # Implementation Status
 
+## AGQA Qwen32 compositional raw-video V17b（2026-09-03）
+
+在旧 query-conditioned single-candidate V14 negative ablation 之后，新的 multi-event
+duration-compositional 路线已完成 development -> frozen protocol -> one-shot fresh formal。
+256 个 video/task-disjoint balanced-train tasks 上，shared Qwen3.5-9B neural-only 与
+matched-permuted 均为 107/256，game source-induced 为 **123/256**（`+6.25 pp`，
+`20W/4L`，two-sided exact `p=.00154388`），negative transfer 1.56%，target-written
+isomorphic 100%；generic target-native ceiling 为 132/256。五臂共享 48+96-frame
+Qwen3-VL-32B grounding、parser、executor 与 fallback，grounder 不读取 answer/STSG/program/
+source/outcome。该结果验证 selective duration-compositional transfer，不是 full AGQA test 或
+SOTA；absolute `>55%` secondary target 未达到。完整协议、失败版本、cost、taxonomy 与主表行见
+[`AGQA_QWEN32_COMPOSITIONAL_RAW_VIDEO_V17B_RESULTS.md`](AGQA_QWEN32_COMPOSITIONAL_RAW_VIDEO_V17B_RESULTS.md)，
+机器总审计见
+[`results/two_video_transfer_bundle_v3.json`](results/two_video_transfer_bundle_v3.json)。
+
+## AGQA typed-evidence V13/V14（2026-09-03）
+
+V13 的 800-video / 1,600-task answer-blind typed-evidence grounding qualification
+已通过：460 个 supported candidates，precision 67.61%，Wilson lower 63.20%，coverage
+28.75%。随后一次性运行的 V14 512-video / 1,024-task untouched formal 没有验证增量
+transfer：source 246/1024、neural/permuted 245/1024，仅 1W/0L，`p=1.0`。285 次
+source commits 中 283 次直接复现 shared 9B fallback；query-conditioned grounder 已基本把
+single-hop answer 做完，Harness 没有非平凡的组合决策空间。
+
+V14 保留为 negative ablation，不在该 cohort 上调参。未来 formal 已新增 outcome-blind
+prediction-disagreement opportunity gate；下一条 AGQA 路线必须使用 question-blind multi-event
+graph 与 compositional/temporal task。详见
+[`AGQA_QUERY_GROUNDER_V2_TYPED_EVIDENCE_V13_V14_RESULTS.md`](AGQA_QUERY_GROUNDER_V2_TYPED_EVIDENCE_V13_V14_RESULTS.md)。
+
 ## Full video source algebra + CLEVRER/AGQA2 Layer B（2026-09-02）
 
 Anonymous controller gap 已关闭：六个 source-game `(state, action, effect, next_state)` lineage

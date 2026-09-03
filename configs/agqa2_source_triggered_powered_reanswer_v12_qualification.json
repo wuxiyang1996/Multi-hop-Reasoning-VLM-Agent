@@ -1,0 +1,38 @@
+{
+  "schema_version": "agqa2-source-triggered-powered-reanswer-qualification-v12",
+  "status": "FROZEN_AFTER_V71_RUNTIME_BEFORE_REANSWER_CALLS_WITH_PREPROVIDER_GATE",
+  "claim_boundary": "160_FRESH_ROUTER_VALIDATION_VIDEOS;POWERED_QUALIFICATION_ONLY;NO_FORMAL_CLAIM;NO_TRAINING_OR_PARAMETER_UPDATE",
+  "protocol_preregistration": "configs/agqa2_source_triggered_powered_qualification_v12_protocol.json",
+  "protocol_preregistration_file_sha256": "4ca416fcdf4a1b776de6ccbfc6a8217d2aa0f7a64ef6ece885806fbb6c6cae22",
+  "base_report": "runs/agqa2_source_triggered_powered_qualification_v12/base_report.json",
+  "base_report_file_sha256": "6942addab10c585a8fba49e45eac70f57b9ff7bb5b42871b74a42771291e3963",
+  "manifest": "configs/agqa2_source_triggered_powered_qualification_v12_manifest.json",
+  "manifest_file_sha256": "02524a0f5b6414fc94e5d969e17cf58fdcc31c15144aac308d82ff134c4e3135",
+  "collector": "scripts/collect_agqa2_source_triggered_reanswer_v8.py",
+  "collector_file_sha256": "fa2d425baffdd931eca55ab5651ca01091257f33ca0cce6d7291b0a23a160ff9",
+  "wrapper_root": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent",
+  "tool": "sample_frames",
+  "tool_frame_budget": 96,
+  "max_answer_tokens": 80,
+  "trigger_rule": "SOURCE_POSITIVE_NO_TIEBREAK_AND_DIRECT_BOOLEAN_DISAGREES_WITH_TYPED_DECISION",
+  "decision_rule": "FROZEN_QWEN235_REANSWERS_PUBLIC_QUESTION_FROM_ADDITIONAL_GLOBAL_TOOL_EVIDENCE",
+  "model": {
+    "provider": "openrouter",
+    "base_url": "https://openrouter.ai/api/v1",
+    "api_key_name": "OPENROUTER_API_KEY",
+    "id": "qwen/qwen3-vl-235b-a22b-instruct",
+    "temperature": 0,
+    "schema_retries": 2,
+    "timeout_seconds": 240
+  },
+  "runtime_forbidden": ["answer", "functional_program", "scene_graph", "source_identity"],
+  "qualification_gate": {
+    "minimum_wins": 3,
+    "maximum_losses": 2,
+    "minimum_net_gain": 1,
+    "minimum_route_accuracy": 1.0,
+    "minimum_source_permuted_abstention_rate": 1.0,
+    "minimum_target_written_equivalent_rate": 1.0,
+    "maximum_combined_cost_usd": 1.2
+  }
+}

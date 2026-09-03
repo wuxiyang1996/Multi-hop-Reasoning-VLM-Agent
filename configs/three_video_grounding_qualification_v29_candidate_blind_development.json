@@ -1,0 +1,71 @@
+{
+  "schema_version": 29,
+  "status": "POST_V28_DEVELOPMENT_REPAIR_ONLY",
+  "claim_boundary": "Source-free repair on the same already-consumed 12-sample V28 development pilot. V28 exposed candidate-conditioned hallucination, so the V29 grounder is candidate-blind and emits a multi-event target-native ledger. It sees only the public question, wrapper pixel-transition proposals, and proxy frames; it never sees answer candidates, gold labels, functional programs, STAR situation graphs, source skills, or source symbolic structure. This run may qualify the repaired mechanism for a new frozen scale-up, but cannot itself be confirmation evidence.",
+  "manifest": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/configs/three_video_grounding_qualification_v28_manifest.json",
+  "wrapper_root": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent",
+  "benchmarks": {
+    "clevrer": {
+      "root": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent/data/CLEVRER",
+      "annotation_split": "validation"
+    },
+    "star": {
+      "root": "/fs/gamma-projects/vlm-robot/datasets/STAR-official",
+      "annotation_split": "val"
+    },
+    "nextqa": {
+      "root": "/fs/gamma-projects/vlm-robot/datasets/NExT-QA-official",
+      "annotation_split": "val"
+    }
+  },
+  "model": {
+    "provider": "openrouter",
+    "api_key_name": "OPENROUTER_API_KEY",
+    "id": "openai/gpt-4.1",
+    "base_url": "https://openrouter.ai/api/v1",
+    "timeout_seconds": 180,
+    "max_retries": 2,
+    "schema_retries": 2,
+    "max_ground_tokens": 1600,
+    "max_answer_tokens": 500,
+    "temperature": 0
+  },
+  "media": {
+    "proxy_frame_count": 24,
+    "proxy_frame_max_side": 512,
+    "scout_frames_per_panel": 8,
+    "scout_frame_width": 192,
+    "answer_frame_count": 8,
+    "answer_frame_width": 256,
+    "jpeg_quality": 84
+  },
+  "grounding": {
+    "transition_pair_count": 6,
+    "uniform_anchor_count": 3,
+    "pixel_change_threshold": 0.0,
+    "semantic_tool": "CANDIDATE_BLIND_MULTI_EVENT_LEDGER_V2",
+    "maximum_events": 6,
+    "candidate_access": false,
+    "ledger_role": "NEURAL_PERCEPTION_TO_SYMBOLIC_EVENT_GRAPH"
+  },
+  "conditions": [
+    "uniform_direct",
+    "uniform_receipt",
+    "localized_direct",
+    "localized_receipt",
+    "shifted_receipt"
+  ],
+  "qualification_logic": {
+    "localization_effect": "localized_direct - uniform_direct",
+    "ledger_effect": "localized_receipt - localized_direct",
+    "combined_effect": "localized_receipt - uniform_direct",
+    "evidence_necessity": "localized_receipt - shifted_receipt",
+    "required_before_scale": [
+      "no candidate leakage",
+      "STAR oracle action/entity alignment",
+      "positive combined effect",
+      "positive evidence necessity",
+      "positive combined effect on at least two benchmarks"
+    ]
+  }
+}

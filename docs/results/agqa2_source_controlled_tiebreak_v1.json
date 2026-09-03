@@ -1,0 +1,84 @@
+{
+  "audits": [
+    {
+      "gates": {
+        "all_full_consensus_receipts_reexecuted_exactly": true,
+        "all_required_tiebreaks_source_authorized": true,
+        "all_runtime_rows_answer_blind": true,
+        "all_tiebreaks_follow_failed_two_view_terminal": true
+      },
+      "generic_fixed_two_correct": 9,
+      "report_path": "runs/agqa2_temporal_localized_query_v59_development/report.json",
+      "row_receipts_sha256": "f1609ce0a20d29b2561349eea28d7e6da853bb23bc9eee2d039c741db6471f96",
+      "rows": 40,
+      "source_correct": 9,
+      "source_status": "AGQA2_TEMPORAL_LOCALIZED_QUERY_QUALIFIED",
+      "source_vs_generic": {
+        "exact_two_sided_p": 1.0,
+        "losses": 0,
+        "ties": 40,
+        "wins": 0
+      },
+      "tiebreak_rows": 25,
+      "tiebreak_rows_with_candidate": 3
+    },
+    {
+      "gates": {
+        "all_full_consensus_receipts_reexecuted_exactly": true,
+        "all_required_tiebreaks_source_authorized": true,
+        "all_runtime_rows_answer_blind": true,
+        "all_tiebreaks_follow_failed_two_view_terminal": true
+      },
+      "generic_fixed_two_correct": 52,
+      "report_path": "runs/agqa2_temporal_localized_query_v60_qualification/report.json",
+      "row_receipts_sha256": "b03e398d520a48e035524cd8a9c8d78dcc9d5ad0d379a8b41513f38e0dd0c08a",
+      "rows": 240,
+      "source_correct": 55,
+      "source_status": "AGQA2_TEMPORAL_LOCALIZED_QUERY_QUALIFIED",
+      "source_vs_generic": {
+        "exact_two_sided_p": 0.25,
+        "losses": 0,
+        "ties": 237,
+        "wins": 3
+      },
+      "tiebreak_rows": 139,
+      "tiebreak_rows_with_candidate": 31
+    },
+    {
+      "gates": {
+        "all_full_consensus_receipts_reexecuted_exactly": true,
+        "all_required_tiebreaks_source_authorized": true,
+        "all_runtime_rows_answer_blind": true,
+        "all_tiebreaks_follow_failed_two_view_terminal": true
+      },
+      "generic_fixed_two_correct": 276,
+      "report_path": "runs/agqa2_full_distribution_v62/base_report.json",
+      "row_receipts_sha256": "046f469d7b54a5f83750149d3f0c257078c8d76b6937de513c1cf5c4da3f3d97",
+      "rows": 900,
+      "source_correct": 290,
+      "source_status": "AGQA2_TEMPORAL_LOCALIZED_QUERY_QUALIFIED",
+      "source_vs_generic": {
+        "exact_two_sided_p": 0.001312255859375,
+        "losses": 2,
+        "ties": 882,
+        "wins": 16
+      },
+      "tiebreak_rows": 217,
+      "tiebreak_rows_with_candidate": 58
+    }
+  ],
+  "claim_boundary": "Re-executes consumed answer-blind grounding receipts. It validates mechanism and counterfactual fixed-two controls but adds no fresh AGQA success claim.",
+  "fresh_evidence": false,
+  "gates": {
+    "all_receipt_reexecution_gates_pass": true,
+    "consumed_formal_diagnostic_positive": true,
+    "development_no_negative_transfer": true,
+    "qualification_positive_action_utility": true
+  },
+  "generic_control": "A target-written fixed-two-view scaffold with the same maximum budget but no recurrent transition.",
+  "next_step": "Wire this source authorization into a fresh collector before the third-view call, freeze new video-disjoint qualification, and rerun.",
+  "report_sha256": "7ac9372e336f81bf70729c93509677dddf790d68df72b63d62559a03027b22e4",
+  "schema_version": "agqa2-source-controlled-tiebreak-audit-v1",
+  "source_policy": "The qualified recurrent game program authorizes a third independent anchor view only after the two-view terminal/consensus guard fails.",
+  "status": "AGQA2_SOURCE_CONTROLLED_TIEBREAK_RETROSPECTIVE_SUPPORTED_FRESH_REQUIRED"
+}

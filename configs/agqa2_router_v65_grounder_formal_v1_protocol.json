@@ -1,0 +1,56 @@
+{
+  "claim_boundary": "80_VIDEO_DISJOINT_AGQA_TRAIN_FORMAL_QUESTIONS;FROZEN_QUESTION_ONLY_ROUTER;UNCHANGED_V65_QWEN235_VISUAL_GROUNDER;FOUR_ARM_CONFIRMATORY_TRANSFER",
+  "cohort": {
+    "one_question_per_video": true,
+    "sample_count": 80,
+    "selection_file_sha256": "b14932550111858726a5b9c0fb7451aab73b5a065980bdc4e7d4e1b53f965f8c",
+    "selection_manifest_sha256": "519145971f1642673151fb0473ce7b274979a103072584131af50aeec661b67f",
+    "selection_status": "FROZEN_V66_SELECTION_BEFORE_VIDEO_DOWNLOAD_PROVIDER_OR_FORMAL_LABEL_ACCESS",
+    "video_disjoint_from_router_train_validation_and_prior_runtime": true
+  },
+  "controls": {
+    "neural_only": "QWEN235_MATCHED_DIRECT_RESPONSE",
+    "source_induced": "V65_TYPED_GROUNDING_PLUS_SOURCE_INDUCED_IR_WITH_DIRECT_FAIL_CLOSED_FALLBACK",
+    "source_permuted": "DETERMINISTIC_WRONG_PROGRAM_TYPE_MUST_ABSTAIN_TO_MATCHED_DIRECT",
+    "target_written_equivalent": "SOURCE_BLIND_EXTENSIONALLY_IDENTICAL_TARGET_CONTROLLER"
+  },
+  "evaluator": {
+    "file": "scripts/evaluate_agqa2_router_v65_grounder_formal_v1.py",
+    "file_sha256": "1ffb9f5163e0011fd6fb81fa0a981abfb5180dc416ce32b6ff34a43aa1670e36",
+    "gold_access": "ONLY_AFTER_ALL_PROVIDER_RUNTIME_RECEIPTS_FREEZE",
+    "paired_test": "ONE_SIDED_EXACT_BINOMIAL_ON_SOURCE_VS_NEURAL_DISCORDANT_PAIRS"
+  },
+  "gates": {
+    "maximum_losses": 4,
+    "maximum_one_sided_exact_pvalue": 0.05,
+    "maximum_reported_provider_cost_usd": 0.75,
+    "minimum_net_gain": 5,
+    "minimum_source_authorizations": 20,
+    "minimum_wins": 6,
+    "required_route_correct": 80,
+    "required_source_permuted_abstentions": 80,
+    "required_target_written_equivalent_matches": 80,
+    "required_valid_runtime_rows": 80
+  },
+  "lineage": {
+    "expected_grounder_sha256": "f8e3e500c273858b5cb70a2ae3e0551e51be8dff4d76e33c6144a578209cbed1",
+    "dependency_overlay_sha256": {
+      "src/motif_transfer/phase3_source_function_induction.py": "5bd04fa4b0d9b3a90b61d9108e19b8366080b167a63e5ac2556d351356fdcd6d"
+    },
+    "frozen_runtime_git_commit": "ded7448839183851aa10c3cd3e12d253f04e1ceb",
+    "program_router_model_sha256": "6fcc9495610f97075f7c207e4c8311c7909198c5edd21a324a44f51bdc9e2a0d",
+    "program_router_qualification_file_sha256": "5141a15d0cbcbaea34a6bb07125545613f09961aa78c87d114d081d3a0d90f85",
+    "program_router_training_scope": "AGQA_OFFICIAL_TRAIN_DEVELOPMENT_PARTITIONS_ONLY",
+    "v65_collector_sha256": "c845a0446fe5edc60f29dedbbb8eca3527a1f0c087f130924529a64cb8cdd5f1",
+    "v65_grounder_module_sha256": "87a41b64a77aae9cd8899f714061276fd3fcee05e8950a050fffb8849b81761c"
+  },
+  "prohibited_adaptation": [
+    "NO_V65_GROUNDER_PARAMETER_OR_PROMPT_CHANGE",
+    "NO_FORMAL_VIDEO_OR_OUTCOME_USED_FOR_ROUTER_TRAINING",
+    "NO_FORMAL_RESULT_DRIVEN_THRESHOLD_CHANGE",
+    "NO_RETRY_ON_THE_SAME_FORMAL_COHORT_AFTER_GATE_FAILURE"
+  ],
+  "protocol_sha256": "66d8885aa5e8f5895df338d706b30246b8f47200d070c8c8ec7e5fff07fb4e72",
+  "schema_version": "agqa2-router-v65-grounder-formal-protocol-v1",
+  "status": "FROZEN_BEFORE_ANY_FORMAL_PROVIDER_OR_OUTCOME_ACCESS"
+}

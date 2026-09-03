@@ -1,0 +1,49 @@
+{
+  "schema_version": "agqa2-source-executor-formal-protocol-v1",
+  "status": "FROZEN_BEFORE_VIDEO_DOWNLOAD_PROVIDER_OR_FORMAL_LABEL_ACCESS",
+  "claim_boundary": "CONFIRMATORY_240_VIDEO_FORMAL_HOLDOUT;CORE_SOURCE_INDUCED_TYPED_EXECUTOR;NO_POST_OUTCOME_ADAPTATION",
+  "selection": "configs/agqa2_source_executor_formal_v14_selection.json",
+  "selection_file_sha256": "95dbffd287798c1ace825a29186666c8d192f976a663a426773b4404c885b5a2",
+  "sample_count": 240,
+  "unique_video_required": 240,
+  "split": "formal_holdout_as_reserve",
+  "qualified_development_report": "runs/agqa2_source_triggered_powered_qualification_v12/base_report.json",
+  "qualified_development_report_file_sha256": "6942addab10c585a8fba49e45eac70f57b9ff7bb5b42871b74a42771291e3963",
+  "qualified_grounder_sha256": "2e85079a8b6b18d2cc1a207f4060fb14b16490d6283e0c362a846aa56c7ea845",
+  "mechanism": {
+    "source_ir": "SOURCE_INDUCED_RECURRENT_ENTITY_GOAL_RELATION",
+    "target_native_program_router": "FROZEN_QUESTION_ONLY_ROUTER_V2",
+    "target_native_grounder": "QWEN3_VL_235B_INSTRUCT_OFF_THE_SHELF",
+    "final_rule": "TYPED_SOURCE_EXECUTOR_DECISION_IF_DECISIVE_ELSE_FROZEN_NEURAL_DIRECT_RESPONSE",
+    "base_frame_count": 48,
+    "parser_file_sha256": "49dfe379dad318205666ace4527b2425889862a27c2310832b0be6b6c2decbd6",
+    "authorizer_file_sha256": "a18315162c3f9e06186fd066040153ef286386c194c1f05995e127d9a32d3aac",
+    "collector_file_sha256": "ca277c7c77c44da0d7a4d3d020306c34a9e077b8ac587cd84b0dae7173c4bddc",
+    "evaluator_file_sha256": "eab582475fead1af2a35329fb2a4de1f81708326f684f61160d684c88d3ddac9"
+  },
+  "arms": [
+    "neural_only_direct",
+    "source_induced_typed_executor",
+    "source_permuted_wrong_type",
+    "target_written_equivalent_dynamics"
+  ],
+  "formal_gate": {
+    "minimum_wins": 24,
+    "maximum_losses": 24,
+    "minimum_net_gain": 6,
+    "maximum_one_sided_exact_pvalue": 0.05,
+    "minimum_route_accuracy": 1.0,
+    "minimum_source_permuted_abstention_rate": 1.0,
+    "minimum_target_written_equivalent_rate": 1.0,
+    "maximum_cost_usd": 1.8
+  },
+  "failure_policy": "IF_ANY_GATE_FAILS_REPORT_NEGATIVE_FORMAL_RESULT_AND_DO_NOT_RETUNE_ON_THIS_COHORT",
+  "runtime_forbidden": [
+    "FORMAL_ANSWERS_BEFORE_ALL_RUNTIME_RECEIPTS_FREEZE",
+    "FORMAL_FUNCTIONAL_PROGRAMS_BEFORE_ALL_RUNTIME_RECEIPTS_FREEZE",
+    "FORMAL_SCENE_GRAPHS",
+    "SOURCE_IDENTITY",
+    "GROUNDING_MODEL_TRAINING",
+    "POST_OUTCOME_GATE_CHANGE"
+  ]
+}

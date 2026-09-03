@@ -1,0 +1,122 @@
+{
+  "schema_version": "webshop-qwen35-9b-target-actor-qualification-v2",
+  "status": "FROZEN_AFTER_EXCLUDED_TRANSPORT_PREFLIGHT_BEFORE_ANY_VALID_V2_TARGET_EPISODE",
+  "claim_boundary": "Consumed WebShop development qualification only. V2 changes only the local serving context from 4096 to 8192 so the frozen 3200-token decision budget remains legal. It does not change the model, prompt, task, source IR, target grounder, controller, executor, condition set, or formal reserve state.",
+  "excluded_parent_preflight": {
+    "job_id": "7381900",
+    "report_path": "runs/webshop_qwen35_9b_scale_v1/smoke_v3/report.json",
+    "report_file_sha256": "e81b826c730630e0b0702234042fcb60f80511bddb92319d645ddb5d45603b28",
+    "reason": "All five matched arms encountered the same HTTP 400 at step 2 because 897 prompt tokens plus the frozen 3200 output-token request exceeded the 4096-token serving context. The run is an excluded transport preflight, not a capability result.",
+    "formal_target_opened": false
+  },
+  "model": {
+    "id": "Qwen/Qwen3.5-9B",
+    "hf_snapshot": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+    "role": "target_native_candidate_generator",
+    "weights": "base",
+    "source_game_lora_loaded": false,
+    "harness_lora_loaded": false
+  },
+  "frozen_components": {
+    "goal_manifest": {
+      "path": "configs/webshop_synthetic_unique_v14_frozen.json",
+      "sha256": "fc5d8a8ea2c5b9cfe6296fab6d36d623bdf8c539e31b45cd3c0bc7e2601705ee"
+    },
+    "source_program": {
+      "path": "runs/sokoban_search_automaton_v16/artifact.json",
+      "sha256": "261847ec1825dac50f87da013c3967d939e593f2c204abcd046d1886eb7f6a54"
+    },
+    "target_grounder": {
+      "path": "docs/results/webshop_neural_symbolic_v9_frozen_grounder.json",
+      "sha256": "bbf8a22ebec8e7ab6d55e570f230ba4fcb2b8630d1dc81bd24ba103f68701782"
+    },
+    "runner": {
+      "path": "scripts/run_webshop_search_automaton_v16.py",
+      "sha256": "b21567e4b02937d84283eb3b0d821443507f048ff945aa29fd9f3294541768ed"
+    },
+    "controller": {
+      "path": "src/motif_transfer/webshop_search_automaton_v16.py",
+      "sha256": "478994c5da56ee783e59823a79f026dfa2f7185d0f733a835bfe11e5cdd46c38"
+    },
+    "server": {
+      "path": "scripts/run_webshop_direct_server_v4.py",
+      "sha256": "b4193345c656a381e74f760df105c76b77aed3cc2dcbcc917449df313808ea78"
+    },
+    "launcher": {
+      "path": "cluster/run_webshop_qwen35_9b_scale_v1.sbatch",
+      "sha256": "d6931fbb7244a74e196734d9b838e7ea9bfe60d8f4d84ca344f3f15cfab90ac9"
+    }
+  },
+  "conditions": [
+    "raw_target_only",
+    "authentic_search_automaton_plus_target",
+    "event_binding_permuted_control",
+    "ledger_blind_control",
+    "target_native_search_ceiling"
+  ],
+  "task_policy": {
+    "role": "development",
+    "selection": "all_preexisting_development_tasks_in_frozen_manifest",
+    "smoke_tasks": [
+      "webshop.0"
+    ],
+    "qualification_tasks": [
+      "webshop.0",
+      "webshop.1",
+      "webshop.2",
+      "webshop.3",
+      "webshop.4",
+      "webshop.5",
+      "webshop.6",
+      "webshop.7",
+      "webshop.8",
+      "webshop.9",
+      "webshop.10",
+      "webshop.11",
+      "webshop.12",
+      "webshop.13",
+      "webshop.14",
+      "webshop.15",
+      "webshop.17",
+      "webshop.19",
+      "webshop.21",
+      "webshop.22",
+      "webshop.23",
+      "webshop.26",
+      "webshop.27",
+      "webshop.30"
+    ],
+    "formal_reserve_opened": false
+  },
+  "runtime": {
+    "goal_seed": 233,
+    "maximum_output_tokens": 3200,
+    "maximum_steps": 12,
+    "schema_retries": 3,
+    "candidate_count": 5,
+    "temperature": 0,
+    "model_context_length": 8192,
+    "gpu_memory_utilization": 0.82,
+    "decision_cache_seeded": false
+  },
+  "gates": {
+    "transport": [
+      "served_model_identity_exact",
+      "all_receipts_complete",
+      "matched_initial_state_hashes",
+      "zero_non_native_action_failures"
+    ],
+    "target_actor": [
+      "raw_policy_executes_native_actions",
+      "target_native_search_ceiling_executes_without_failure",
+      "ceiling_success_exceeds_raw_or_raw_success_leaves_headroom"
+    ],
+    "transfer": [
+      "authentic_success_gain_over_raw",
+      "zero_negative_transfer_vs_raw",
+      "strictly_beats_destructive_controls",
+      "matches_isomorphic_target_search_ceiling"
+    ]
+  },
+  "formal_reserve_opened": false
+}

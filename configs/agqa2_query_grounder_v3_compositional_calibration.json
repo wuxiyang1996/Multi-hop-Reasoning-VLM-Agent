@@ -1,0 +1,35 @@
+{
+  "schema_version": "agqa-query-grounder-v3-compositional-calibration-v1",
+  "status": "FROZEN_BEFORE_DEVELOPMENT_SELECTION_ACQUISITION_OR_OUTCOMES",
+  "parent_failed_qualification": "runs/agqa2_query_grounder_v2_task_disjoint_qualification_v2/qualification_evaluation.json",
+  "development_split": "AGQA balanced train / Action Genome train",
+  "claim_boundary": "Threshold calibration only; Action Genome train overlap makes this ineligible as transfer evidence.",
+  "cohort": {
+    "structural_type": "query",
+    "public_semantic_type": "object",
+    "more_steps": {"videos": 60, "tasks_per_video": 2},
+    "novel_composition": {"videos": 60, "tasks_per_video": 2},
+    "total_videos": 120,
+    "total_tasks": 240,
+    "exclude_all_prior_task_ids": true
+  },
+  "grounder_unchanged_except_calibrated_global_threshold": true,
+  "candidate_confidence_formula": "minimum of weighted pairwise top share and maximum absolute frozen-neural evidence",
+  "candidate_generation_threshold_for_calibration": 0.0,
+  "threshold_selection": {
+    "candidate_grid": [0.5, 0.525, 0.55, 0.575, 0.6, 0.625, 0.65, 0.675, 0.7, 0.725, 0.75, 0.775, 0.8],
+    "objective": "maximum unique-supported coverage",
+    "constraints": {
+      "unique_supported_count_minimum": 40,
+      "unique_supported_precision_wilson_95_lower_bound_minimum": 0.6,
+      "unique_supported_coverage_minimum": 0.2
+    },
+    "tie_break": "higher threshold",
+    "predicate_role_or_slice_specific_thresholds_forbidden": true
+  },
+  "qualification_after_calibration": {
+    "new_never_mentioned_agqa_test_task_ids_required": true,
+    "v2_qualification_tasks_forbidden": true,
+    "gates_unchanged_except_threshold_value": true
+  }
+}

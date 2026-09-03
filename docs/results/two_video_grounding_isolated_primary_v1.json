@@ -1,0 +1,101 @@
+{
+  "agqa2": {
+    "external_provider_calls": 0,
+    "generic_scaffold": {
+      "accuracy": 0.35777777777777775,
+      "committed": 322,
+      "conditional_accuracy": 1.0,
+      "correct": 322,
+      "coverage": 0.35777777777777775
+    },
+    "grounding": "OFFICIAL_STSG_HIDDEN_BEHIND_BUDGETED_TYPED_TOOLS",
+    "grounding_induced_source_losses": 0,
+    "source_induced": {
+      "accuracy": 0.4288888888888889,
+      "committed": 386,
+      "conditional_accuracy": 1.0,
+      "correct": 386,
+      "coverage": 0.4288888888888889
+    },
+    "source_permuted": {
+      "accuracy": 0.36777777777777776,
+      "committed": 335,
+      "conditional_accuracy": 0.9880597014925373,
+      "correct": 331,
+      "coverage": 0.37222222222222223
+    },
+    "source_vs_generic": {
+      "losses": 0,
+      "net_wins": 64,
+      "ties": 836,
+      "wins": 64
+    },
+    "source_vs_permuted": {
+      "losses": 0,
+      "net_wins": 55,
+      "ties": 845,
+      "wins": 55
+    },
+    "tasks": 900,
+    "unique_videos": 300
+  },
+  "claim_boundary": "CONTROLLER_TRANSFER_CONDITIONAL_ON_BENCHMARK_NATIVE_SHARED_STRUCTURED_GROUNDING;NOT_RAW_PIXEL_VIDEO_QA",
+  "clevrer": {
+    "external_provider_calls": 0,
+    "generic_scaffold_correct": 245,
+    "grounding": "LOCAL_PAIRED_STRUCTURED_EVENT_GRAPH_PROOF_RECEIPTS",
+    "grounding_induced_source_losses_vs_neural": 0,
+    "neural_only_correct": 236,
+    "source_induced_correct": 252,
+    "source_permuted_correct": 240,
+    "source_vs_generic": {
+      "losses": 6,
+      "net_wins": 7,
+      "ties": 341,
+      "wins": 13
+    },
+    "source_vs_neural": {
+      "losses": 0,
+      "net_wins": 16,
+      "ties": 344,
+      "wins": 16
+    },
+    "source_vs_permuted": {
+      "losses": 4,
+      "net_wins": 12,
+      "ties": 340,
+      "wins": 16
+    },
+    "tasks": 360
+  },
+  "gates": {
+    "agqa_fresh_300_video_cohort": true,
+    "agqa_matched_tool_budget": true,
+    "agqa_official_stsg_shared_backend": true,
+    "agqa_report_passed": true,
+    "agqa_source_committed_grounding_exact": true,
+    "agqa_zero_losses_vs_generic": true,
+    "agqa_zero_losses_vs_permuted": true,
+    "agqa_zero_runtime_answer_program_grounding_read": true,
+    "clevrer_metrics_recalculate": true,
+    "clevrer_one_shared_proof_receipt_per_task": true,
+    "clevrer_positive_vs_generic": true,
+    "clevrer_positive_vs_permuted": true,
+    "clevrer_prospective_360_question_reserve": true,
+    "clevrer_report_and_audit_passed": true,
+    "clevrer_zero_external_provider_calls": true,
+    "clevrer_zero_losses_vs_neural": true,
+    "clevrer_zero_runtime_outcome_exposure": true
+  },
+  "grounding_policy": {
+    "answers_or_official_functional_programs_available_to_runtime": false,
+    "generative_caption_used": false,
+    "raw_video_results_role": "SECONDARY_ROBUSTNESS_ONLY",
+    "same_grounding_receipt_or_backend_for_all_matched_arms": true,
+    "vlm_grounder_used_in_primary_arm_delta": false
+  },
+  "interpretation": "VISUAL_PERCEPTION_IS_REMOVED_FROM_THE_MATCHED_ARM_COMPARISON;ABSOLUTE_RESULTS_REMAIN_CONDITIONAL_ON_DISCLOSED_TARGET_NATIVE_STRUCTURED_INPUTS",
+  "report_sha256": "835a65c49d876b6a0a2621a25c8a524cf61294f704f5a289cc849030bc95f3cf",
+  "schema_version": "two-video-grounding-isolated-primary-audit-v1",
+  "status": "PASSED"
+}

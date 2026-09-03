@@ -1,0 +1,687 @@
+{
+  "schema_version": 22,
+  "status": "FROZEN_BEFORE_V22_RESERVE_RUNTIME_OR_OUTCOMES",
+  "selection_rule": "Use every historically unconsumed question on the V15 reserve video clusters and order by salted sample-ID hash. No answer, question text, option text, official structure, or model outcome participates.",
+  "selection_fields": [
+    "sample_id",
+    "video_id",
+    "question_type_or_family"
+  ],
+  "forbidden_selection_fields": [
+    "answer",
+    "options",
+    "question",
+    "functional_program",
+    "situation_graph",
+    "relation_annotation",
+    "model_outcome"
+  ],
+  "outcomes_or_answers_read_by_selector": false,
+  "reserve_videos_frozen_before_v15_development_outcomes": true,
+  "reserve_video_disjoint_from_v15_development_and_formal": true,
+  "questions_unqueried_before_v22": true,
+  "historical_raw_video_reuse_disclosed": true,
+  "video_cluster_is_primary_independence_unit": true,
+  "salt_sha256": "7a8980829e985d439cd35e41fa50ed607a6221f5f02f18847061b71748ffc743",
+  "v15_manifest": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/configs/natural_video_recovery_v15_splits.json",
+  "v15_manifest_sha256": "e8dd63417c8db357490c81cb4ab860fc247cdaae45bfead14ec758fa538aa04b",
+  "historical_exclusion_sha256": {
+    "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/configs/three_video_benchmark_splits_v1.json": "578086b9829b095483e470f0fbe67972de6edc29a3726492fc6ef2fbdd37439d",
+    "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/configs/three_video_v7_confirmation_splits.json": "fc1419db7657187990f383ea045417910319da83f95cc23035af16d93ae51417",
+    "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/structured_nextqa_v1/receipts.json": "655062f8cdc6dd5e56778e6c015afc4ab18e81f96dc6cc965e9bfde9eb846e96",
+    "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/structured_nextqa_v2/receipts.json": "3fcc2b29da9164959251c5fd0f7b8b92d82bf5e73bfcf8adf935b1d2eb6e7250",
+    "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/structured_nextqa_v3/receipts.json": "f26ffcd8f61853d26d891be860133f152af9523290a60c6fc8e95d74cb14a6ae",
+    "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/structured_nextqa_v4_answer_complete/receipts.json": "464549d63816f5e64ea62c4f224d87678420baf3777322159d45f1d882b4fdc2",
+    "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/structured_nextqa_v5_gpt54_dynamics/receipts.json": "2aa6899bc4639e715604d63c57c5621683e085332ad5afc6bd0e9829e6ca4d5f",
+    "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/structured_star_v1/receipts.json": "76f62466fd87029964d3a3024f2c1b320e6af4b6876f7bb654aa321d2ec41217",
+    "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/structured_star_v2/receipts.json": "be90c046702d9c2da80aadb821c4932e16064dfa41fb5bb2c7cb427c608af7e1",
+    "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/structured_star_v3_answer_complete/receipts.json": "36a7430880f3119671e5162eacdcf14ef21e9a97d4b249902b02e3422e5a1d3a",
+    "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/structured_star_v4_gpt54_dynamics/receipts.json": "f43b64dd8f19f9a2b3bba2d6c9facd27d23f2f3542bbdd592bb73afd4b93822c",
+    "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/typed_nextqa_v4_gpt54/receipts.json": "98a5c76f3713107fc83e2d71232a7d6913894100c6d2373d1af257d70fbad779",
+    "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/typed_nextqa_v4b_gpt54/receipts.json": "32e9b2907a6d65f9d0648574bd3d24ef51725f189291100091b83eb946d70333",
+    "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/typed_nextqa_v6_qualification/receipts.json": "fe357faf86b41c19d7f0a70e7016b7e0111f66232a731f9c4c164719218fdea8",
+    "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/typed_star_v4_gpt54/receipts.json": "8c6cefd38742c2cd62c382fbc7d9307293fe588147de9ead36be855be01c9f27",
+    "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/typed_star_v4b_gpt54/receipts.json": "3cc9d6f7ba0a7625443d2ef745b3498761c1578af6dfc2c4a8d4768dee437277"
+  },
+  "excluded_id_count": 201,
+  "annotation_sha256": {
+    "star_val": "c88335ce19281d882cb9b47f8126296cddee864f4ad0cf99bebc9c0a8533097c",
+    "nextqa_val": "43198bdef8436b8d64a9b75d846b0987c10cbf94ebf4be325c4a4e54634d66b8"
+  },
+  "benchmarks": {
+    "star": [
+      {
+        "sample_id": "Sequence_T2_5645",
+        "video_id": "V54TI",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Feasibility_T5_1863",
+        "video_id": "80E3X",
+        "family": "Feasibility"
+      },
+      {
+        "sample_id": "Sequence_T2_3994",
+        "video_id": "9A58F",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Interaction_T2_5823",
+        "video_id": "80E3X",
+        "family": "Interaction"
+      },
+      {
+        "sample_id": "Interaction_T1_6340",
+        "video_id": "9A58F",
+        "family": "Interaction"
+      },
+      {
+        "sample_id": "Sequence_T2_2002",
+        "video_id": "5OIQ7",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Sequence_T6_3629",
+        "video_id": "M1GW9",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Prediction_T3_810",
+        "video_id": "9A58F",
+        "family": "Prediction"
+      },
+      {
+        "sample_id": "Interaction_T2_2658",
+        "video_id": "5OIQ7",
+        "family": "Interaction"
+      },
+      {
+        "sample_id": "Sequence_T1_5311",
+        "video_id": "9A58F",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Prediction_T3_904",
+        "video_id": "J4RPL",
+        "family": "Prediction"
+      },
+      {
+        "sample_id": "Sequence_T3_4534",
+        "video_id": "9A58F",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Interaction_T1_6591",
+        "video_id": "M1GW9",
+        "family": "Interaction"
+      },
+      {
+        "sample_id": "Sequence_T1_5883",
+        "video_id": "J4RPL",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Sequence_T2_5051",
+        "video_id": "UIERL",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Interaction_T3_4282",
+        "video_id": "9A58F",
+        "family": "Interaction"
+      },
+      {
+        "sample_id": "Sequence_T3_4702",
+        "video_id": "M1GW9",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Sequence_T4_4989",
+        "video_id": "V54TI",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Interaction_T1_6342",
+        "video_id": "9A58F",
+        "family": "Interaction"
+      },
+      {
+        "sample_id": "Interaction_T1_6341",
+        "video_id": "9A58F",
+        "family": "Interaction"
+      },
+      {
+        "sample_id": "Interaction_T1_2964",
+        "video_id": "5OIQ7",
+        "family": "Interaction"
+      },
+      {
+        "sample_id": "Sequence_T1_5506",
+        "video_id": "M1GW9",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Sequence_T6_4444",
+        "video_id": "UIERL",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Sequence_T2_4140",
+        "video_id": "M1GW9",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Sequence_T4_3922",
+        "video_id": "J4RPL",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Prediction_T1_807",
+        "video_id": "2PREF",
+        "family": "Prediction"
+      },
+      {
+        "sample_id": "Sequence_T2_1547",
+        "video_id": "2PREF",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Interaction_T1_2211",
+        "video_id": "2PREF",
+        "family": "Interaction"
+      },
+      {
+        "sample_id": "Interaction_T1_6736",
+        "video_id": "80E3X",
+        "family": "Interaction"
+      },
+      {
+        "sample_id": "Sequence_T1_7491",
+        "video_id": "V54TI",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Feasibility_T6_1405",
+        "video_id": "V54TI",
+        "family": "Feasibility"
+      },
+      {
+        "sample_id": "Sequence_T2_1549",
+        "video_id": "2PREF",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Prediction_T4_1396",
+        "video_id": "80E3X",
+        "family": "Prediction"
+      },
+      {
+        "sample_id": "Sequence_T3_5021",
+        "video_id": "J4RPL",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Feasibility_T6_1141",
+        "video_id": "J4RPL",
+        "family": "Feasibility"
+      },
+      {
+        "sample_id": "Interaction_T1_6339",
+        "video_id": "9A58F",
+        "family": "Interaction"
+      },
+      {
+        "sample_id": "Sequence_T3_6392",
+        "video_id": "V54TI",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Interaction_T2_5494",
+        "video_id": "9A58F",
+        "family": "Interaction"
+      },
+      {
+        "sample_id": "Interaction_T1_7974",
+        "video_id": "UIERL",
+        "family": "Interaction"
+      },
+      {
+        "sample_id": "Prediction_T4_1301",
+        "video_id": "9A58F",
+        "family": "Prediction"
+      },
+      {
+        "sample_id": "Prediction_T3_848",
+        "video_id": "M1GW9",
+        "family": "Prediction"
+      },
+      {
+        "sample_id": "Sequence_T4_1752",
+        "video_id": "5OIQ7",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Interaction_T3_4283",
+        "video_id": "9A58F",
+        "family": "Interaction"
+      },
+      {
+        "sample_id": "Sequence_T6_1353",
+        "video_id": "2PREF",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Sequence_T2_2003",
+        "video_id": "5OIQ7",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Sequence_T6_1750",
+        "video_id": "5OIQ7",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Feasibility_T2_973",
+        "video_id": "J4RPL",
+        "family": "Feasibility"
+      },
+      {
+        "sample_id": "Sequence_T4_1340",
+        "video_id": "2PREF",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Sequence_T2_4141",
+        "video_id": "M1GW9",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Sequence_T2_5644",
+        "video_id": "V54TI",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Sequence_T4_4990",
+        "video_id": "V54TI",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Sequence_T1_5882",
+        "video_id": "J4RPL",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Feasibility_T5_1826",
+        "video_id": "M1GW9",
+        "family": "Feasibility"
+      },
+      {
+        "sample_id": "Sequence_T4_3652",
+        "video_id": "M1GW9",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Sequence_T4_1342",
+        "video_id": "2PREF",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Prediction_T4_1452",
+        "video_id": "J4RPL",
+        "family": "Prediction"
+      },
+      {
+        "sample_id": "Interaction_T1_6343",
+        "video_id": "9A58F",
+        "family": "Interaction"
+      },
+      {
+        "sample_id": "Prediction_T4_1784",
+        "video_id": "V54TI",
+        "family": "Prediction"
+      },
+      {
+        "sample_id": "Sequence_T6_3495",
+        "video_id": "9A58F",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Feasibility_T6_1065",
+        "video_id": "M1GW9",
+        "family": "Feasibility"
+      },
+      {
+        "sample_id": "Interaction_T1_7016",
+        "video_id": "J4RPL",
+        "family": "Interaction"
+      },
+      {
+        "sample_id": "Feasibility_T5_2327",
+        "video_id": "V54TI",
+        "family": "Feasibility"
+      },
+      {
+        "sample_id": "Feasibility_T5_1935",
+        "video_id": "J4RPL",
+        "family": "Feasibility"
+      },
+      {
+        "sample_id": "Sequence_T1_7488",
+        "video_id": "V54TI",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Sequence_T2_4451",
+        "video_id": "J4RPL",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Prediction_T3_1146",
+        "video_id": "V54TI",
+        "family": "Prediction"
+      },
+      {
+        "sample_id": "Interaction_T1_9078",
+        "video_id": "V54TI",
+        "family": "Interaction"
+      },
+      {
+        "sample_id": "Sequence_T4_3651",
+        "video_id": "M1GW9",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Sequence_T4_3514",
+        "video_id": "9A58F",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Sequence_T5_4643",
+        "video_id": "9A58F",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Feasibility_T5_1824",
+        "video_id": "M1GW9",
+        "family": "Feasibility"
+      },
+      {
+        "sample_id": "Sequence_T6_1749",
+        "video_id": "5OIQ7",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Feasibility_T6_1063",
+        "video_id": "M1GW9",
+        "family": "Feasibility"
+      },
+      {
+        "sample_id": "Sequence_T4_4459",
+        "video_id": "UIERL",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Sequence_T5_4813",
+        "video_id": "M1GW9",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Sequence_T6_1355",
+        "video_id": "2PREF",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Interaction_T1_9077",
+        "video_id": "V54TI",
+        "family": "Interaction"
+      },
+      {
+        "sample_id": "Interaction_T1_6589",
+        "video_id": "M1GW9",
+        "family": "Interaction"
+      },
+      {
+        "sample_id": "Interaction_T4_3530",
+        "video_id": "9A58F",
+        "family": "Interaction"
+      },
+      {
+        "sample_id": "Interaction_T2_5700",
+        "video_id": "M1GW9",
+        "family": "Interaction"
+      },
+      {
+        "sample_id": "Prediction_T4_1359",
+        "video_id": "M1GW9",
+        "family": "Prediction"
+      },
+      {
+        "sample_id": "Prediction_T4_1360",
+        "video_id": "M1GW9",
+        "family": "Prediction"
+      }
+    ],
+    "nextqa": [
+      {
+        "sample_id": "3526597179.Q3",
+        "video_id": "3526597179",
+        "family": "Temporal"
+      },
+      {
+        "sample_id": "3164519967.Q6",
+        "video_id": "3164519967",
+        "family": "Temporal"
+      },
+      {
+        "sample_id": "2712662377.Q5",
+        "video_id": "2712662377",
+        "family": "Temporal"
+      },
+      {
+        "sample_id": "3164519967.Q11",
+        "video_id": "3164519967",
+        "family": "Descriptive"
+      },
+      {
+        "sample_id": "6244382586.Q9",
+        "video_id": "6244382586",
+        "family": "Descriptive"
+      },
+      {
+        "sample_id": "3026084730.Q8",
+        "video_id": "3026084730",
+        "family": "Temporal"
+      },
+      {
+        "sample_id": "3026084730.Q4",
+        "video_id": "3026084730",
+        "family": "Causal"
+      },
+      {
+        "sample_id": "3526597179.Q2",
+        "video_id": "3526597179",
+        "family": "Descriptive"
+      },
+      {
+        "sample_id": "3164519967.Q3",
+        "video_id": "3164519967",
+        "family": "Causal"
+      },
+      {
+        "sample_id": "3526597179.Q5",
+        "video_id": "3526597179",
+        "family": "Causal"
+      },
+      {
+        "sample_id": "3164519967.Q8",
+        "video_id": "3164519967",
+        "family": "Descriptive"
+      },
+      {
+        "sample_id": "6244382586.Q8",
+        "video_id": "6244382586",
+        "family": "Causal"
+      },
+      {
+        "sample_id": "3026084730.Q1",
+        "video_id": "3026084730",
+        "family": "Temporal"
+      },
+      {
+        "sample_id": "3026084730.Q0",
+        "video_id": "3026084730",
+        "family": "Causal"
+      },
+      {
+        "sample_id": "6244382586.Q5",
+        "video_id": "6244382586",
+        "family": "Causal"
+      },
+      {
+        "sample_id": "3164519967.Q4",
+        "video_id": "3164519967",
+        "family": "Causal"
+      },
+      {
+        "sample_id": "3026084730.Q7",
+        "video_id": "3026084730",
+        "family": "Temporal"
+      },
+      {
+        "sample_id": "7364407194.Q0",
+        "video_id": "7364407194",
+        "family": "Causal"
+      },
+      {
+        "sample_id": "2712662377.Q0",
+        "video_id": "2712662377",
+        "family": "Causal"
+      },
+      {
+        "sample_id": "6244382586.Q0",
+        "video_id": "6244382586",
+        "family": "Causal"
+      },
+      {
+        "sample_id": "3526597179.Q4",
+        "video_id": "3526597179",
+        "family": "Temporal"
+      },
+      {
+        "sample_id": "3526597179.Q1",
+        "video_id": "3526597179",
+        "family": "Descriptive"
+      },
+      {
+        "sample_id": "3526597179.Q6",
+        "video_id": "3526597179",
+        "family": "Temporal"
+      },
+      {
+        "sample_id": "3164519967.Q5",
+        "video_id": "3164519967",
+        "family": "Temporal"
+      },
+      {
+        "sample_id": "3164519967.Q0",
+        "video_id": "3164519967",
+        "family": "Causal"
+      },
+      {
+        "sample_id": "6244382586.Q6",
+        "video_id": "6244382586",
+        "family": "Causal"
+      },
+      {
+        "sample_id": "3026084730.Q12",
+        "video_id": "3026084730",
+        "family": "Causal"
+      },
+      {
+        "sample_id": "2712662377.Q2",
+        "video_id": "2712662377",
+        "family": "Temporal"
+      },
+      {
+        "sample_id": "3026084730.Q10",
+        "video_id": "3026084730",
+        "family": "Causal"
+      },
+      {
+        "sample_id": "6244382586.Q1",
+        "video_id": "6244382586",
+        "family": "Temporal"
+      },
+      {
+        "sample_id": "3026084730.Q9",
+        "video_id": "3026084730",
+        "family": "Temporal"
+      },
+      {
+        "sample_id": "3026084730.Q5",
+        "video_id": "3026084730",
+        "family": "Causal"
+      },
+      {
+        "sample_id": "6244382586.Q4",
+        "video_id": "6244382586",
+        "family": "Temporal"
+      },
+      {
+        "sample_id": "3026084730.Q2",
+        "video_id": "3026084730",
+        "family": "Causal"
+      },
+      {
+        "sample_id": "2712662377.Q1",
+        "video_id": "2712662377",
+        "family": "Causal"
+      },
+      {
+        "sample_id": "7364407194.Q4",
+        "video_id": "7364407194",
+        "family": "Causal"
+      },
+      {
+        "sample_id": "3164519967.Q1",
+        "video_id": "3164519967",
+        "family": "Causal"
+      },
+      {
+        "sample_id": "3164519967.Q10",
+        "video_id": "3164519967",
+        "family": "Causal"
+      },
+      {
+        "sample_id": "3526597179.Q9",
+        "video_id": "3526597179",
+        "family": "Temporal"
+      },
+      {
+        "sample_id": "2712662377.Q4",
+        "video_id": "2712662377",
+        "family": "Descriptive"
+      },
+      {
+        "sample_id": "7364407194.Q3",
+        "video_id": "7364407194",
+        "family": "Temporal"
+      },
+      {
+        "sample_id": "3526597179.Q8",
+        "video_id": "3526597179",
+        "family": "Temporal"
+      },
+      {
+        "sample_id": "3026084730.Q6",
+        "video_id": "3026084730",
+        "family": "Causal"
+      },
+      {
+        "sample_id": "3526597179.Q0",
+        "video_id": "3526597179",
+        "family": "Temporal"
+      }
+    ]
+  }
+}

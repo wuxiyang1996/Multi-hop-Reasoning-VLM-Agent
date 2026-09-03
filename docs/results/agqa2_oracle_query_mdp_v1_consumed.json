@@ -1,0 +1,89 @@
+{
+  "claim_boundary": "Consumed diagnostic. Validates grounding-error isolation and target-native executor headroom. Source localization is tested as an additive stage over a target-native generic fallback; fresh matched replication is still required.",
+  "gates": {
+    "all_900_runtime_rows_frozen_before_evaluator": true,
+    "isomorphic_target_equivalence_disclosed": true,
+    "oracle_commit_coverage_above_old_165": true,
+    "oracle_committed_accuracy_at_least_95pct": true,
+    "public_compiler_coverage_at_least_40pct": true,
+    "source_beats_temporal_permutation": true,
+    "source_beats_unlocalized_generic": true,
+    "source_improves_neural_only": true,
+    "zero_runtime_answer_program_grounding_read": true
+  },
+  "lineage": {
+    "direct_predictions_sha256": "df1092394ae09efcbdd35a1398db9d020e696104a912d236576e74378848da70",
+    "evaluator_only_sha256": "ce935268ff632851b1c0563eee31abbf83ec9ff374223681fa1633d1ef6b0d96",
+    "official_ontology_sha256": "d35dbc5edfa1f9839e77070160db7d23d19d6c4bfe248b638fd1fce3bbd01b07",
+    "official_stsg_sha256": "9273ec6055df1c4730b9ea971994ae6f552a14620711273da81eab9d11d85061",
+    "public_cohort_sha256": "000d42cb4ae3e48e1d3daf8321bf0189bd2f3dc560626f25a6970beec4958546",
+    "runtime_predictions_sha256": "194a8d2a15777c22e20d9290215575afad66d31e7f9d4ca877e90fc9295e9fad",
+    "source_artifact_sha256": "7ff3e950f3eebaf75cca015df88ab6a01f2f364fe246102984a3cb4ee095f0d7"
+  },
+  "metrics": {
+    "generic_scaffold": {
+      "accuracy": 0.5477777777777778,
+      "correct": 493
+    },
+    "isomorphic_target_controller": {
+      "accuracy": 0.6244444444444445,
+      "correct": 562
+    },
+    "neural_only": {
+      "accuracy": 0.27666666666666667,
+      "correct": 249
+    },
+    "source_induced": {
+      "accuracy": 0.6244444444444445,
+      "correct": 562
+    },
+    "source_permuted": {
+      "accuracy": 0.5522222222222222,
+      "correct": 497
+    },
+    "target_native_ceiling": {
+      "accuracy": 0.6244444444444445,
+      "correct": 562
+    }
+  },
+  "next_step": "Freeze a new public-question-only reserve before reading outcomes; do not promote this consumed diagnostic to formal transfer evidence.",
+  "oracle_committed": 251,
+  "oracle_committed_correct": 251,
+  "public_compiler_applicable": 418,
+  "report_sha256": "f0472124cad54c1dbf7d93f282ac54f622a9fb646f7c745057532990111be4a0",
+  "schema_version": "agqa2-oracle-query-mdp-consumed-audit-v1",
+  "source_paired": {
+    "generic_scaffold": {
+      "losses": 0,
+      "net_wins": 69,
+      "ties": 831,
+      "wins": 69
+    },
+    "isomorphic_target_controller": {
+      "losses": 0,
+      "net_wins": 0,
+      "ties": 900,
+      "wins": 0
+    },
+    "neural_only": {
+      "losses": 0,
+      "net_wins": 313,
+      "ties": 587,
+      "wins": 313
+    },
+    "source_permuted": {
+      "losses": 0,
+      "net_wins": 65,
+      "ties": 835,
+      "wins": 65
+    },
+    "target_native_ceiling": {
+      "losses": 0,
+      "net_wins": 0,
+      "ties": 900,
+      "wins": 0
+    }
+  },
+  "status": "PASSED",
+  "tasks": 900
+}

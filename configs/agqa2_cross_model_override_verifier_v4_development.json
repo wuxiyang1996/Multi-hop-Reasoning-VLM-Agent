@@ -1,0 +1,23 @@
+{
+  "schema_version": "agqa2-cross-model-override-verifier-development-v4",
+  "status": "FROZEN_AFTER_V68_QWEN_ONLY_GATE_FAILURE_BEFORE_ANY_CROSS_MODEL_CALL",
+  "parent_qwen_verifier_config_file_sha256": "bcc264c344b3ca7316302ad7be018048e3ece7dcb79b5db3d41ef5cea8d0ef81",
+  "claim_boundary": "CONSUMED_V68_CROSS_MODEL_VETO_DEVELOPMENT;NO_QUALIFICATION_OR_FORMAL_CLAIM;NO_TRAINING",
+  "base_report": "runs/agqa2_router_grounding_qualification_v2/base_report.json",
+  "base_report_file_sha256": "b89574d40c82716c4d9f8c212af7eaafb08bd916ddeb00368a307609216d42f4",
+  "manifest": "configs/agqa2_router_grounding_qualification_v2_manifest.json",
+  "manifest_file_sha256": "d4b9ee91d9dd92f36dbc008cb59d9d25aa2a440b3ef1d7a7da2c9ac0678c9235",
+  "collector": "scripts/collect_agqa2_qwen235_override_verifier_v1.py",
+  "collector_file_sha256": "49479d3f869e7fee4594be7ed9c2c8bcb19dbbf169a4cdcdcc7655246d8492cd",
+  "wrapper_root": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent",
+  "tool": "sample_frames", "tool_frame_budget": 12,
+  "authorization_rule": "QWEN235_SUPPORTED_CONFIDENCE_GE_0_9_AND_GEMINI31PRO_SUPPORTED_CONFIDENCE_GE_0_9",
+  "model": {
+    "provider": "openrouter", "base_url": "https://openrouter.ai/api/v1",
+    "api_key_name": "OPENROUTER_API_KEY", "id": "google/gemini-3.1-pro-preview",
+    "temperature": 0, "schema_retries": 2, "timeout_seconds": 240,
+    "reasoning": {"effort": "minimal", "exclude": true}
+  },
+  "runtime_forbidden": ["question", "answer", "functional_program", "scene_graph", "source_identity"],
+  "development_gate": {"minimum_wins": 1, "maximum_losses": 0, "minimum_net_gain": 1, "maximum_cost_usd": 0.2}
+}

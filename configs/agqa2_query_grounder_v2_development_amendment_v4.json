@@ -1,0 +1,22 @@
+{
+  "schema_version": "agqa-query-grounder-v2-development-amendment-v1",
+  "status": "DEVELOPMENT_METHOD_REVISION_AFTER_CONSUMED_PILOT_ONLY",
+  "parent_protocol": "configs/agqa2_query_grounder_v2_development_protocol.json",
+  "consumed_development_artifact": "runs/agqa2_query_grounder_v2_development/pilot_v3_evaluation.json",
+  "diagnosis": "A whole-video inventory missed the evaluator-only gold entity on 5/5 consumed pilot queries; no formal reserve was opened.",
+  "method_change": {
+    "total_frame_budget_unchanged": 96,
+    "global_answer_blind_action_anchor_frames": 32,
+    "localized_typed_inventory_and_candidate_frames": 64,
+    "temporal_window_rules": {
+      "before": "fixed preceding window ending 0.5 seconds after localized anchor onset",
+      "after": "fixed following window beginning 0.5 seconds before localized anchor end",
+      "while": "localized anchor interval with fixed 1.5 second padding",
+      "unlocalized_or_no_anchor": "full-video fail-closed acquisition"
+    },
+    "answer_stsg_functional_program_source_and_outcome_visibility": false
+  },
+  "qualification_thresholds_changed": false,
+  "formal_secondary_target_changed": false,
+  "formal_reserve_consumed": false
+}

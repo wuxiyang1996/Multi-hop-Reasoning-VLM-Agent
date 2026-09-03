@@ -1,0 +1,163 @@
+{
+  "schema_version": "discoveryworld-fork-freeze-v2",
+  "status": "ADAPTATION_FORKS_FROZEN",
+  "evaluation_stage": "ADAPTATION",
+  "protocol_file_sha256": "c71892f2cad7d1883da77ad1575ca584f3a9dc2a36fdf4beaa95537f6d7b06b6",
+  "generator_file_sha256": "212ae17247a929ea4292487b4d063b3284b1169f711ea19d1f309488c8541447",
+  "target_baseline_config_sha256": "cd3b2d56b7b7857773bb3b9c289f486de587df08d96029ecb7c3b5b1659b79cb",
+  "outcome_fields_read_for_eligibility": false,
+  "receipts": [
+    {
+      "schema_version": "discoveryworld-qualification-fork-v1",
+      "task_id": "space_sick.easy.seed2",
+      "task": {
+        "scenario": "Space Sick",
+        "difficulty": "Easy",
+        "seed": 2
+      },
+      "reference_episode_sha256": "93fc661b21b0752b0760df4495a1b83b3be109321c89ae6608a2ea193b056424",
+      "allowed_commit_actions": [
+        "DROP",
+        "PUT"
+      ],
+      "eligible": true,
+      "reason": "FIRST_PREDECLARED_COMMIT_ACTION",
+      "fork_after_episode_step": 28,
+      "selected_episode_step": 29,
+      "selected_action": {
+        "action": "PUT",
+        "arg1": 57306,
+        "arg2": 1437
+      },
+      "selected_action_sha256": "2f928ca579d7cd7d52cd2f828c11752a13471dd5bafeec5884bb248e15ead746",
+      "outcome_fields_read_for_eligibility": false,
+      "fork_receipt_sha256": "12c4a534f4ee4c6bc4e53c6397f49f04179d5dafacfa5c2b341fbe8da8c5fbb4"
+    },
+    {
+      "schema_version": "discoveryworld-qualification-fork-v1",
+      "task_id": "proteomics.easy.seed2",
+      "task": {
+        "scenario": "Proteomics",
+        "difficulty": "Easy",
+        "seed": 2
+      },
+      "reference_episode_sha256": "ffaa3c04ef185efb4314766f9d2f73033819bc7de1d10a770addf4fe5e0503c4",
+      "allowed_commit_actions": [
+        "DROP",
+        "PUT"
+      ],
+      "eligible": true,
+      "reason": "FIRST_PREDECLARED_COMMIT_ACTION",
+      "fork_after_episode_step": 34,
+      "selected_episode_step": 35,
+      "selected_action": {
+        "action": "DROP",
+        "arg1": 17557
+      },
+      "selected_action_sha256": "b416f6086b8c0bc2779d49eefaae0e71279596bd193e5fcffcf497bb279deeec",
+      "outcome_fields_read_for_eligibility": false,
+      "fork_receipt_sha256": "1ad5454219df6b71c6bdf06b4120b0f81f384a0416df92499d4fdd54b40282b4"
+    },
+    {
+      "schema_version": "discoveryworld-qualification-fork-v1",
+      "task_id": "space_sick.easy.seed3",
+      "task": {
+        "scenario": "Space Sick",
+        "difficulty": "Easy",
+        "seed": 3
+      },
+      "reference_episode_sha256": "19b47d652f653cda51016a0f4efb4dc6e004321e5e7ce327c7c71f230b346b50",
+      "allowed_commit_actions": [
+        "DROP",
+        "PUT"
+      ],
+      "eligible": false,
+      "reason": "NO_PREDECLARED_COMMIT_ACTION",
+      "fork_after_episode_step": null,
+      "selected_episode_step": null,
+      "selected_action": null,
+      "selected_action_sha256": null,
+      "outcome_fields_read_for_eligibility": false,
+      "fork_receipt_sha256": "cc3c781cc96b30c961664db8bdec4c1013efe04ea678132a77d535b65ca85967"
+    },
+    {
+      "schema_version": "discoveryworld-qualification-fork-v1",
+      "task_id": "proteomics.easy.seed3",
+      "task": {
+        "scenario": "Proteomics",
+        "difficulty": "Easy",
+        "seed": 3
+      },
+      "reference_episode_sha256": "019fcb0cbeb33e8cab3f85fb9870e8518a06e40e41ef5b27e05297f279cdea7a",
+      "allowed_commit_actions": [
+        "DROP",
+        "PUT"
+      ],
+      "eligible": true,
+      "reason": "FIRST_PREDECLARED_COMMIT_ACTION",
+      "fork_after_episode_step": 44,
+      "selected_episode_step": 45,
+      "selected_action": {
+        "action": "DROP",
+        "arg1": 17557
+      },
+      "selected_action_sha256": "b416f6086b8c0bc2779d49eefaae0e71279596bd193e5fcffcf497bb279deeec",
+      "outcome_fields_read_for_eligibility": false,
+      "fork_receipt_sha256": "96f891e36a6e4dad3e77b5d634f0ccd26da9136905983f9928e0b55fc119096e"
+    },
+    {
+      "schema_version": "discoveryworld-qualification-fork-v1",
+      "task_id": "space_sick.easy.seed4",
+      "task": {
+        "scenario": "Space Sick",
+        "difficulty": "Easy",
+        "seed": 4
+      },
+      "reference_episode_sha256": "d823b08fc7f78311718316017e150a68f301fb7850d70cde8c22e7281108627c",
+      "allowed_commit_actions": [
+        "DROP",
+        "PUT"
+      ],
+      "eligible": false,
+      "reason": "NO_PREDECLARED_COMMIT_ACTION",
+      "fork_after_episode_step": null,
+      "selected_episode_step": null,
+      "selected_action": null,
+      "selected_action_sha256": null,
+      "outcome_fields_read_for_eligibility": false,
+      "fork_receipt_sha256": "e290f606f76e0bce7e57905ab6936ea7b4a532740119cf6e2301fa67699b83ca"
+    },
+    {
+      "schema_version": "discoveryworld-qualification-fork-v1",
+      "task_id": "proteomics.easy.seed4",
+      "task": {
+        "scenario": "Proteomics",
+        "difficulty": "Easy",
+        "seed": 4
+      },
+      "reference_episode_sha256": "5d65978b0cea4612951732b21826d95399ad921100632a02c363b680365cb898",
+      "allowed_commit_actions": [
+        "DROP",
+        "PUT"
+      ],
+      "eligible": true,
+      "reason": "FIRST_PREDECLARED_COMMIT_ACTION",
+      "fork_after_episode_step": 32,
+      "selected_episode_step": 33,
+      "selected_action": {
+        "action": "DROP",
+        "arg1": 17557
+      },
+      "selected_action_sha256": "b416f6086b8c0bc2779d49eefaae0e71279596bd193e5fcffcf497bb279deeec",
+      "outcome_fields_read_for_eligibility": false,
+      "fork_receipt_sha256": "211d274de55777bb7d315799a2fcdc6440843ac9d1e25c239ecd09e4c87722a1"
+    }
+  ],
+  "generated_configs": [
+    "configs/generated/discoveryworld_v21_spatial_realization_adaptation/space_sick.easy.seed2.json",
+    "configs/generated/discoveryworld_v21_spatial_realization_adaptation/proteomics.easy.seed2.json",
+    "configs/generated/discoveryworld_v21_spatial_realization_adaptation/proteomics.easy.seed3.json",
+    "configs/generated/discoveryworld_v21_spatial_realization_adaptation/proteomics.easy.seed4.json"
+  ],
+  "summary_sha256": "5f68f419a58677349e7e3945d41b9644106fb4584106ab01ed43ae96f739e23d"
+}

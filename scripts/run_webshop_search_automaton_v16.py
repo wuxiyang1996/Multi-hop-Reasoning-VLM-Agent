@@ -214,6 +214,14 @@ def main() -> int:
     parser.add_argument("--schema-retries", type=int, default=3)
     parser.add_argument("--candidate-count", type=int, default=5)
     parser.add_argument("--maximum-steps", type=int, default=12)
+    parser.add_argument(
+        "--disable-thinking",
+        action="store_true",
+        help=(
+            "Disable Qwen thinking tokens for the structured target-action "
+            "interface. This is a decoding/interface control, not a policy skill."
+        ),
+    )
     parser.add_argument("--run-id", default="webshop-search-automaton-v16-dev")
     args = parser.parse_args()
 
@@ -256,6 +264,13 @@ def main() -> int:
     cache_path = args.output_dir / "decision_cache.json"
     if not cache_path.exists() and args.cache_seed.is_file():
         shutil.copyfile(args.cache_seed, cache_path)
+    request_overrides: dict[str, Any] = {
+        "max_tokens": args.maximum_output_tokens,
+    }
+    if args.disable_thinking:
+        request_overrides["chat_template_kwargs"] = {
+            "enable_thinking": False,
+        }
     backend = MemoizedCompletionBackend(
         OpenAICompatibleBackend(
             args.base_url,
@@ -264,7 +279,7 @@ def main() -> int:
             json_mode=True,
             temperature=0,
             timeout_seconds=180,
-            request_overrides={"max_tokens": args.maximum_output_tokens},
+            request_overrides=request_overrides,
         ),
         cache_path=cache_path,
     )
@@ -445,6 +460,7 @@ def main() -> int:
         "decision_cache_file_sha256": (
             file_sha256(cache_path) if cache_path.is_file() else None
         ),
+        "backend_identity": backend.identity,
     }
     report = body | {"report_sha256": stable_hash(body)}
     (args.output_dir / "report.json").write_text(

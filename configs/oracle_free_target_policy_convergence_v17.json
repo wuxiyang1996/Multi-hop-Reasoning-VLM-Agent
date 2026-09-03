@@ -1,0 +1,68 @@
+{
+  "schema_version": "oracle-free-target-policy-plan-v17-convergence-repair",
+  "status": "FROZEN_BEFORE_ORACLE_FREE_POLICY_TRAINING",
+  "claim_boundary": "CONVERGENCE_ONLY_REPAIR_AFTER_THE_FIRST FROZEN_RUN_HIT_LBFGS_MAX_ITER; REUSES_ONLY_CONSUMED_TARGET_ADAPTATION_EXPERT_RECEIPTS; FEATURES, SEEDS, CONTROLS, BOOTSTRAP, AND STATISTICAL_GATES_ARE_UNCHANGED; MAXIMUM_ITERATIONS_IS_RAISED_AND_OPTIMIZER_CONVERGENCE_IS_NOW_A_HARD_GATE; NO_QUALIFICATION, CONFIRMATION, OR VALID_UNSEEN_DATA MAY_BE_READ; THIS GATE_ALONE_DOES_NOT_ESTABLISH_TRANSFER",
+  "target_adaptation": {
+    "receipts": {
+      "path": "runs/multisource_alfworld_neurosymbolic_v2/adaptation_expert_receipts.json",
+      "file_sha256": "af62e7fb0754a084372b7834707528b9e91ab31f304a8d37d93e3935e8a936c1"
+    },
+    "partitions": {
+      "train": "adaptation_train",
+      "validation": "adaptation_validation"
+    },
+    "task_identity_overlap_allowed": false,
+    "qualification_or_heldout_read_allowed": false
+  },
+  "model": {
+    "kind": "target-native-oracle-free-policy-mlp-v17",
+    "feature_bins": 192,
+    "hidden_units": 48,
+    "maximum_iterations": 2400,
+    "maximum_transitions_per_episode": 48,
+    "negative_candidates_per_positive": 5,
+    "seed": 971701,
+    "training_label": "expert_action_identity_only",
+    "within_state_permuted_expert_control": true
+  },
+  "bootstrap": {
+    "unit": "adaptation_validation_task",
+    "samples": 5000,
+    "lower_tail_alpha": 0.05,
+    "seed": 971702
+  },
+  "gates": {
+    "minimum_validation_episodes": 8,
+    "minimum_authentic_pairwise_auc": 0.7,
+    "top1_minus_random_cluster_bootstrap_lower_bound_must_exceed": 0.0,
+    "authentic_minus_permuted_control_cluster_bootstrap_lower_bound_must_exceed": 0.0,
+    "authentic_optimizer_must_converge_before_iteration_limit": true
+  },
+  "forbidden_semantic_inputs": [
+    "required_option",
+    "workflow_progress",
+    "held_object",
+    "transformed_object",
+    "completion_label",
+    "reward",
+    "official_success"
+  ],
+  "implementation": {
+    "feature_module": {
+      "path": "src/motif_transfer/oracle_free_target_grounder.py",
+      "file_sha256": "faaa812091347e007f5ae487d526538984404139b37195fdd23ee35d72b3cf18"
+    },
+    "trainer": {
+      "path": "scripts/train_oracle_free_target_policy_v17.py",
+      "file_sha256": "dbec1f03a4940a55d14a0b25f9d963833acb0617c3c36f7a2c003b2b3aa29188"
+    }
+  },
+  "prior_nonconverged_artifact": {
+    "path": "configs/oracle_free_target_policy_candidate_v17.json",
+    "artifact_sha256": "a7bd85b4ff20bfe998671e679c9ff27c4254c30ea99f10c527ff2341113c0629",
+    "disposition": "QUARANTINED_BEFORE_TARGET_SHADOW_FOR_MISSING_CONVERGENCE_GATE"
+  },
+  "target_shadow_or_outcome_authorized_by_this_config": false,
+  "confirmation_read": false,
+  "existing_valid_unseen_heldout_read": false
+}

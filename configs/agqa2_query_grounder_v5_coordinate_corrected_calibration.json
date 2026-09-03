@@ -1,0 +1,42 @@
+{
+  "schema_version": "agqa-query-grounder-v5-coordinate-corrected-calibration-v1",
+  "status": "FROZEN_BEFORE_V5_GROUNDING_COMPLETION_OR_DEVELOPMENT_OUTCOME_ACCESS",
+  "parent_protocol": "configs/agqa2_query_grounder_v5_coordinate_corrected_development.json",
+  "development_split": "AGQA balanced train / Action Genome train",
+  "claim_boundary": "development-only grounder qualification; never transfer evidence",
+  "candidate_generation_threshold": 0.0,
+  "threshold_selection": {
+    "candidate_grid": [0.5, 0.525, 0.55, 0.575, 0.6, 0.625, 0.65, 0.675, 0.7, 0.725, 0.75, 0.775, 0.8],
+    "objective": "maximum unique-supported coverage",
+    "tie_break": "higher threshold",
+    "constraints": {
+      "unique_supported_count_minimum": 40,
+      "unique_supported_precision_wilson_95_lower_bound_minimum": 0.6,
+      "unique_supported_coverage_minimum": 0.2
+    }
+  },
+  "grounding_gates": {
+    "entity_candidate_pool_recall_minimum": 0.75,
+    "typed_role_binding_fidelity_minimum": 0.8,
+    "cross_frame_dedup_fidelity_minimum": 0.9,
+    "provider_and_contract_success_fraction_minimum": 0.95,
+    "authority_safe_receipt_fraction": 1.0
+  },
+  "metric_definitions": {
+    "entity_candidate_pool_recall": "fraction of evaluator-only gold object labels present anywhere in the answer-blind stable-track inventory",
+    "typed_role_binding_fidelity": "fraction of emitted query candidates whose requested role, typed-event role binding, track ID and cited evidence are mutually consistent",
+    "cross_frame_dedup_fidelity": "one minus residual same-predicate/same-typed-role event pairs with interval IoU at least 0.5, normalized by emitted typed-event pairs",
+    "development_answers": "opened only by the evaluator after grounding receipts are immutable"
+  },
+  "forbidden_grounder_inputs": [
+    "task_answer",
+    "official_stsg",
+    "functional_program",
+    "source_controller",
+    "target_outcome"
+  ],
+  "decision": {
+    "if_pass": "freeze implementation, models, frame budget, ontology, global threshold and fusion before a video-disjoint qualification cohort",
+    "if_fail": "do not allocate qualification; use only this consumed development cohort for question-blind supplemental-grounder development"
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "protocol_status": "FROZEN_BEFORE_MULTIHORIZON_OUTCOMES",
+  "claim_boundary": "MECHANISM_SMOKE_NOT_CONFIRMATORY",
+  "question": "Does authentic source skill context improve matched h8 official return relative to skill-masked and random-skill controls?",
+  "source_game": "gymv_thunder_force_iii",
+  "source_skill_id": "COMMIT/CLEAR",
+  "input_collection": "runs/fresh_source_execution_motif_v1/gymv_thunder_force_iii/evidence",
+  "input_collection_authority": "FRESH_NO_HUMAN_HINTS_INTEGRITY_ACCEPTED",
+  "selection": {
+    "splits": [
+      "qualification",
+      "held_out"
+    ],
+    "maximum_snapshots_per_split": 1,
+    "rule": "LONGEST_CONTIGUOUS_MATCHED_LINEAGE_THEN_STABLE_HASH",
+    "forbidden_selection_fields": [
+      "action",
+      "reward",
+      "after_state",
+      "skill_text",
+      "natural_language_semantics"
+    ]
+  },
+  "treatments": [
+    "B",
+    "G_MINUS_S",
+    "G_PLUS_S",
+    "G_PLUS_RANDOM"
+  ],
+  "estimands": {
+    "COMMON_G_MINUS_S_CONTINUATION": "Freeze each treatment-specific first action, then use G_MINUS_S for decisions 1 through 7.",
+    "FULL_TREATMENT_REGIME": "Apply the same frozen checkpoint/context treatment for all eight decisions; G_PLUS_S and G_PLUS_RANDOM retain their snapshot-frozen context."
+  },
+  "horizons": [
+    1,
+    2,
+    4,
+    8
+  ],
+  "primary_horizon": 8,
+  "primary_metric": "paired official cumulative native reward",
+  "mechanical_smoke_gate": {
+    "complete_cells_required": true,
+    "required_positive_paired_differences": [
+      "G_PLUS_S_MINUS_G_MINUS_S",
+      "G_PLUS_S_MINUS_G_PLUS_RANDOM"
+    ],
+    "required_estimands": [
+      "COMMON_G_MINUS_S_CONTINUATION",
+      "FULL_TREATMENT_REGIME"
+    ],
+    "required_splits": [
+      "qualification",
+      "held_out"
+    ]
+  },
+  "interpretation": {
+    "pass": "Implementation-level replication candidate only; expand with a new confirmatory sample-size and statistical plan.",
+    "fail": "Do not transfer the current source context or derived graph; diagnose value and context semantics before target experiments."
+  }
+}

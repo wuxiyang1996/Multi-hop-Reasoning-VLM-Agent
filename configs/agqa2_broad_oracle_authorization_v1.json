@@ -1,0 +1,70 @@
+{
+  "artifact_sha256": "0f964662dab77b65f392fa857df6b2a0370ea11cad4f2a5c1b7507f7ca94389a",
+  "authorized_comparisons": [
+    "QUERY_OBJECT"
+  ],
+  "claim_boundary": "Target-native operator qualification on consumed train development reserves; target outcomes select only an operator allowlist, never a source program or per-example decision.",
+  "development_runs": [
+    "runs/agqa2_oracle_query_mdp_v2_fresh",
+    "runs/agqa2_oracle_query_mdp_v3_transfer"
+  ],
+  "development_tasks": 1800,
+  "metrics": {
+    "BEFORE_AFTER": {
+      "authorized": false,
+      "committed": 3,
+      "conditional_accuracy": 1.0,
+      "correct": 3,
+      "parsed": 72
+    },
+    "CHOOSE_OBJECT": {
+      "authorized": false,
+      "committed": 5,
+      "conditional_accuracy": 0.4,
+      "correct": 2,
+      "parsed": 21
+    },
+    "EXISTS": {
+      "authorized": false,
+      "committed": 220,
+      "conditional_accuracy": 0.4636363636363636,
+      "correct": 102,
+      "parsed": 220
+    },
+    "QUERY_OBJECT": {
+      "authorized": true,
+      "committed": 63,
+      "conditional_accuracy": 1.0,
+      "correct": 63,
+      "parsed": 295
+    },
+    "SELECT_LONGER": {
+      "authorized": false,
+      "committed": 1,
+      "conditional_accuracy": 1.0,
+      "correct": 1,
+      "parsed": 1
+    },
+    "VERIFY_A_LONGER": {
+      "authorized": false,
+      "committed": 1,
+      "conditional_accuracy": 1.0,
+      "correct": 1,
+      "parsed": 1
+    },
+    "VERIFY_A_SHORTER": {
+      "authorized": false,
+      "committed": 2,
+      "conditional_accuracy": 1.0,
+      "correct": 2,
+      "parsed": 2
+    }
+  },
+  "minimum_commits": 20,
+  "minimum_conditional_accuracy": 0.95,
+  "official_ontology_sha256": "d35dbc5edfa1f9839e77070160db7d23d19d6c4bfe248b638fd1fce3bbd01b07",
+  "official_train_stsg_sha256": "9273ec6055df1c4730b9ea971994ae6f552a14620711273da81eab9d11d85061",
+  "runtime_answer_program_or_sg_grounding_read": false,
+  "schema_version": "agqa2-broad-oracle-authorization-v1",
+  "status": "FROZEN_FROM_CONSUMED_TRAIN_DEVELOPMENT"
+}

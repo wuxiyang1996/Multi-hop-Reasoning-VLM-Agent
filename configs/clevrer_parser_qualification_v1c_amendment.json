@@ -1,0 +1,11 @@
+{
+  "schema_version": "clevrer-parser-qualification-amendment-v1c",
+  "status": "FROZEN_AFTER_V1B_AUDIT_ALIAS_MISMATCH_BEFORE_V1C_RERUN",
+  "parent_failed_report": "runs/clevrer_full_raw_video_v1b/parser_qualification.json",
+  "parent_failed_report_sha256": "b7e4c5ca3cd0363601eb4b9ae4ebb21c46f11c42bf705b243a0ff98fa2f2642e",
+  "change": "Normalize annotation-only aliases start/end/get_frame/get_object/get_col_partner/get_counterfact to the released NS-DR executor vocabulary before exact comparison.",
+  "unchanged": ["compiler", "public cohort", "source algebra", "grounder", "reserve", "program exactness threshold"],
+  "development_answers_read": false,
+  "reserve_programs_read": false,
+  "reserve_answers_read": false
+}

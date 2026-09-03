@@ -1,0 +1,31 @@
+{
+  "schema_version": "agqa2-qwen235-selective-authorizer-freeze-v1",
+  "status": "FROZEN_AFTER_CONSUMED_DEVELOPMENT_BEFORE_FRESH_RESERVE_SELECTION",
+  "model_id": "qwen/qwen3-vl-235b-a22b-instruct",
+  "training": false,
+  "thinking_enabled": false,
+  "authorizer_module": "src/motif_transfer/agqa_qwen235_selective_authorizer.py",
+  "authorizer_module_sha256": "a18315162c3f9e06186fd066040153ef286386c194c1f05995e127d9a32d3aac",
+  "development_report": "runs/agqa2_qwen235_tool_grounder_v1_development/selective_authorizer_v1_report.json",
+  "development_report_file_sha256": "9961b408f1105c4c9f1a39ae0fabe9c390ce5bc8e1a43adf19fbc0e9da555348",
+  "development_report_sha256": "6edab71e6488bbcd7954434ea8eba2694cbece84215ff632889d9f8c808dcf42",
+  "development_metrics": {
+    "sample_count": 36,
+    "authorized": 4,
+    "wins": 1,
+    "losses": 0,
+    "net_gain": 1
+  },
+  "applicability_rule": "AUTHORIZE_POSITIVE_RELATION_RECURRENT_EXISTS_ONLY_WHEN_DOUBLE_SCAN_OBSERVED_AND_NO_CONFLICT_TIEBREAK;OTHERWISE_ABSTAIN_TO_DIRECT",
+  "fresh_gates": {
+    "minimum_authorized": 8,
+    "minimum_wins": 2,
+    "maximum_losses": 0,
+    "minimum_net_gain": 2,
+    "required_route_accuracy": 1.0,
+    "required_source_permuted_abstention_rate": 1.0,
+    "required_target_written_equivalent_rate": 1.0,
+    "maximum_reported_provider_cost_usd": 0.5
+  },
+  "forbidden_after_freeze": ["changing_authorizer_from_fresh_outcomes", "training_on_target_answers", "reading_scene_graph_at_runtime", "using_official_program_at_runtime"]
+}

@@ -246,7 +246,7 @@ def _canonical_object_candidate(value: str) -> str:
 
     candidate = re.sub(r"[^a-z0-9 ]+", " ", value.casefold())
     candidate = re.sub(r"\s+", " ", candidate).strip()
-    return re.sub(r"^(?:a|an|the)\s+", "", candidate)
+    return re.sub(r"^(?:a|an|the|some)\s+", "", candidate)
 
 
 def _safe_public_plan(payload: Mapping[str, Any]) -> AGQAQueryPlan | None:
@@ -350,6 +350,8 @@ def parse_public_question_plan(question: str) -> AGQAQueryPlan | None:
     ) or re.match(r"^(?:in the video, )?what was the person (.+)$", lower)
     if match:
         relation = _visible_event_phrase(match.group(1))
+        if " but not " in relation:
+            return None
         return _safe_public_plan({
             "obligation_kind": RELATION_ROUTE,
             "comparison": "QUERY_OBJECT",
@@ -382,12 +384,12 @@ def parse_public_question_plan(question: str) -> AGQAQueryPlan | None:
     # make this deliberately narrower than arbitrary disjunctive actions.
     match = re.match(
         r"^(?:in the video, )?(?:was|were|did) (?:the person|they) "
-        r"(.+) or ((?:a|an|the) .+)$",
+        r"(.+) or ((?:a|an|the|some) .+)$",
         lower,
     )
     if match:
         left = match.group(1)
-        candidate_starts = list(re.finditer(r"\b(?:a|an|the)\s+", left))
+        candidate_starts = list(re.finditer(r"\b(?:a|an|the|some)\s+", left))
         if candidate_starts:
             candidate_start = candidate_starts[-1].start()
             relation = _visible_event_phrase(left[:candidate_start])
@@ -413,6 +415,8 @@ def parse_public_question_plan(question: str) -> AGQAQueryPlan | None:
     )
     if match:
         relation = _visible_event_phrase(match.group(1))
+        if " but not " in relation:
+            return None
         return _safe_public_plan({
             "obligation_kind": RELATION_ROUTE,
             "comparison": "EXISTS",

@@ -154,8 +154,14 @@ def target_grounding(
     *, task_id: str, contract: SourceIRContract,
     target_grounder_sha256: str, proof_receipt_sha256: str,
     proof_predicted_uplift: float, decision_threshold: float,
+    shared_target_state_sha256: str | None = None,
 ) -> UnifiedTargetGrounding:
-    """Bind one outcome-blind proof receipt to the induced relation program."""
+    """Bind one outcome-blind proof receipt to the induced relation program.
+
+    ``shared_target_state_sha256`` lets the video-transfer measurement layer
+    force every matched controller arm to consume one content-addressed target
+    state.  Legacy callers retain the original locally derived state hash.
+    """
 
     positive_delta = float(proof_predicted_uplift) > float(decision_threshold)
     requirement = TargetIRRequirement.create(
@@ -170,7 +176,7 @@ def target_grounding(
         grounder_qualified=True,
         formal_outcome_read=False,
     )
-    state_sha256 = stable_hash({
+    state_sha256 = shared_target_state_sha256 or stable_hash({
         "task_id": task_id,
         "proof_receipt_sha256": proof_receipt_sha256,
         "proof_predicted_uplift": float(proof_predicted_uplift),

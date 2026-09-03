@@ -1,0 +1,32 @@
+{
+  "schema_version": 17,
+  "status": "FROZEN_BEFORE_V17_CROSS_MODEL_DEVELOPMENT_OUTCOMES",
+  "claim_boundary": "Development-only independent target-native proof grounding on the 84 consumed V15 rows. GPT-5.4 primary receipts are immutable. Gemini 3.1 Pro sees the dense frames and public question/options but not the primary answer, gold, official programs, or graphs. Sokoban recovery fires only when Gemini's typed proof refutes the GPT primary option and supports a distinct Gemini option. Formal and reserve remain unqueried.",
+  "source_receipt": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/docs/results/sokoban_effect_program_v2_compact_receipt.json",
+  "input_receipts": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/natural_video_recovery_v15_development/paired_receipts.json",
+  "model": {
+    "provider": "openrouter",
+    "api_key_name": "OPENROUTER_API_KEY",
+    "id": "google/gemini-3.1-pro-preview",
+    "base_url": "https://openrouter.ai/api/v1",
+    "timeout_seconds": 300,
+    "max_retries": 2,
+    "schema_retries": 3,
+    "max_proof_tokens": 5200
+  },
+  "media": {
+    "proof_frame_count": 24,
+    "proof_frames_per_panel": 12,
+    "proxy_frame_max_side": 720,
+    "proof_frame_width": 192,
+    "jpeg_quality": 88
+  },
+  "frozen_lineage": {
+    "source_receipt_sha256": "8f175c0edda951eba2064e9c53a8db6a25cdfa9fb0de8049d371dbf5335c9e80",
+    "input_receipts_sha256": "9b23f20d736d87930cf72167245573420d98cb67769547b85f58be36a1ff7b4d",
+    "collector_sha256": "b695a902e164c13fbec3e064c8a6a87c30db42f9df861eb6d8ad23fd8f9971d4",
+    "paired_collector_sha256": "1a2cba5619aee6a767cf73bcbaa7044594911f5c5903ef65ae98e6e62921bee1",
+    "focused_collector_sha256": "59a8422f7ead3b041c2f7979b19affb3fa0c8d5a218c7a5a18ed36b95cea3bdb",
+    "contract_module_sha256": "bdca859acc73384b66799d73e4b16845151bc195e65aa7ce9ae4178b22965f7c"
+  }
+}

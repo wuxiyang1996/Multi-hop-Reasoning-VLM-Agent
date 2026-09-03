@@ -1,0 +1,41 @@
+{
+  "schema_version": 32,
+  "status": "POST_V31_CONSUMED_NATURAL_VIDEO_DEVELOPMENT_ONLY",
+  "claim_boundary": "Candidate-local high-resolution adjudication of only V30 SUPPORTED claims on consumed STAR/NExT-QA development rows. Each call sees the question and exactly one candidate without slot, competitors, baseline, prior verdict, or gold. CLEVRER is deliberately excluded because its predictive/counterfactual dynamics require the separately validated NS-DR executor path.",
+  "manifest": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/configs/three_video_grounding_qualification_v28_manifest.json",
+  "typed_v30_receipts": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/three_video_typed_claims_v30_development/receipts.json",
+  "typed_v30_receipts_sha256": "87ee45b3053eceef4d87f8b15d13b384db2d6338c0b580d4a1da7e1c70aed85a",
+  "matched_v31_receipts": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/three_video_typed_claims_v31_matched_development/receipts.json",
+  "matched_v31_receipts_sha256": "effaf76273ac5ce9bc15356604973122d21d72c94ce24988859a46d36785ef3d",
+  "wrapper_root": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent",
+  "benchmarks": {
+    "star": {
+      "root": "/fs/gamma-projects/vlm-robot/datasets/STAR-official",
+      "annotation_split": "val"
+    },
+    "nextqa": {
+      "root": "/fs/gamma-projects/vlm-robot/datasets/NExT-QA-official",
+      "annotation_split": "val"
+    }
+  },
+  "model": {
+    "provider": "openrouter",
+    "api_key_name": "OPENROUTER_API_KEY",
+    "id": "google/gemini-3.1-pro-preview",
+    "base_url": "https://openrouter.ai/api/v1",
+    "timeout_seconds": 180,
+    "max_retries": 2,
+    "schema_retries": 3,
+    "max_adjudication_tokens": 1100,
+    "temperature": 0
+  },
+  "media": {
+    "proxy_frame_count": 48,
+    "proxy_frame_max_side": 512,
+    "focus_radius": 1,
+    "focus_frame_limit": 20,
+    "focus_frames_per_panel": 4,
+    "focus_frame_width": 384,
+    "jpeg_quality": 88
+  }
+}

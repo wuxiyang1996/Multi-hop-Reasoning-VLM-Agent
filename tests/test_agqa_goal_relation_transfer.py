@@ -19,6 +19,12 @@ from motif_transfer.unified_transfer_runtime import (
     PairedCalibration,
     TransferVerdict,
 )
+from motif_transfer.video_transfer_measurement import (
+    GroundingMode,
+    GroundingToolBudget,
+    SharedVideoGroundingReceipt,
+    assert_unified_target_uses_shared_grounding,
+)
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -187,3 +193,22 @@ def test_prediction_composition_preserves_target_native_fallback():
     assert frozen.source_harness_prediction == "clothes"
     assert frozen.effect_shuffled_prediction == "clothes"
     assert frozen.current_outcome_read is False
+
+
+def test_agqa_adapter_accepts_shared_answer_blind_video_state():
+    state = {
+        "intervals": [{"start": 4, "end": 9}],
+        "bindings": [{"subject": "person", "relation": "holding"}],
+    }
+    shared = SharedVideoGroundingReceipt.create(
+        benchmark="agqa2", task_id="future-task", split="qualification",
+        mode=GroundingMode.ORACLE_EVENT_GRAPH, state=state,
+        evidence_source_sha256=stable_hash("official-agqa-scene-grounding"),
+        tool_budget=GroundingToolBudget(0, 0, 0),
+        official_scene_graph_read=True,
+    )
+    binding = _binding(target_state_sha256=shared.target_state_sha256)
+    target = unified_target_grounding(
+        artifact=ARTIFACT, confirmation=CONFIRMATION, binding=binding,
+    )
+    assert_unified_target_uses_shared_grounding(shared, target)

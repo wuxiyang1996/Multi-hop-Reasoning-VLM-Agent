@@ -6,6 +6,7 @@ import pytest
 from motif_transfer.contracts import stable_hash
 from motif_transfer.phase3_source_applicability import (
     SourceApplicabilityPrior,
+    maximum_profile_contrast_derangement,
     prior_from_frozen_artifact,
     projected_rank_scores,
 )
@@ -67,3 +68,26 @@ def test_profile_hash_is_fail_closed():
     }
     with pytest.raises(ValueError, match="profile hash mismatch"):
         SourceApplicabilityPrior.from_profile(profile)
+
+
+def test_source_only_permutation_is_deranged_and_deterministic():
+    artifacts = {
+        path.stem: json.loads(path.read_text())
+        for path in PROGRAMS.glob("*.json")
+    }
+    mapping = maximum_profile_contrast_derangement(artifacts)
+    assert set(mapping) == set(artifacts)
+    assert set(mapping.values()) == set(artifacts)
+    assert all(source != control for source, control in mapping.items())
+    assert mapping == maximum_profile_contrast_derangement(artifacts)
+    assert all(
+        prior_from_frozen_artifact(artifacts[source]).trial_order(4)[0]
+        != prior_from_frozen_artifact(artifacts[control]).trial_order(4)[0]
+        for source, control in mapping.items()
+    )
+    assert any(
+        prior_from_frozen_artifact(artifacts[source]).trial_order(count)
+        != prior_from_frozen_artifact(artifacts[control]).trial_order(count)
+        for source, control in mapping.items()
+        for count in (2, 3, 4)
+    )

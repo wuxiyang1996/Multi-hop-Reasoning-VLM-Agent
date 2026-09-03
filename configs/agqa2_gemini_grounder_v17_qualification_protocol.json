@@ -1,0 +1,23 @@
+{
+  "applicability_rule": "ALL_DECISIVE_TYPED_EXECUTIONS",
+  "claim_boundary": "48_PILOT_DISJOINT_CONSUMED_DEVELOPMENT_VIDEOS;POST_V74_EXPLORATORY_GROUNDER_QUALIFICATION",
+  "evaluator_file_sha256": "1073f8226db7b3b2cc7836f6fbafaca8962c4d543a31de1f132ff25b79767df2",
+  "failure_policy": "IF_ANY_GATE_FAILS_DO_NOT_OPEN_THE_96_VIDEO_EXPLORATORY_RESERVE",
+  "grounder_model": "google/gemini-3.1-pro-preview",
+  "grounder_sha256": "36e5825fb3acccbe72f789aae5a7a3a1d6f39aba384ff08d36c14bb1fbcacbec",
+  "multiple_testing_disclosure": "POST_V74_NEW_GROUNDER_HYPOTHESIS;CANNOT_REPLACE_OR_OVERTURN_THE_V74_NEGATIVE_RESULT",
+  "pilot_report_file_sha256": "1a62d11098a7f4c010dc231de445cfd90bcdee5018d4cf5051969ea2244e0102",
+  "qualification_gate": {
+    "maximum_cost_usd": 3.5,
+    "maximum_losses": 4,
+    "maximum_one_sided_exact_pvalue": 0.05,
+    "minimum_net_gain": 8,
+    "minimum_route_accuracy": 1.0,
+    "minimum_source_permuted_abstention_rate": 1.0,
+    "minimum_target_written_equivalent_rate": 1.0,
+    "minimum_wins": 12
+  },
+  "sample_count": 48,
+  "schema_version": "agqa2-independent-grounder-qualification-protocol-v1",
+  "status": "FROZEN_BEFORE_V76_PROVIDER_OR_OUTCOME_ACCESS"
+}

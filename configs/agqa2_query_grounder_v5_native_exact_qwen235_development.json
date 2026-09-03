@@ -1,0 +1,72 @@
+{
+  "schema_version": "agqa-query-grounder-v5-native-exact-qwen235-development-v1",
+  "status": "INPUT_BINDING_AMENDMENT_FROZEN_AFTER_FAILED_PRECALL_PREFLIGHT_BEFORE_STAGE_B_PROVIDER_CALLS_OR_STAGE_B_OUTCOMES",
+  "parent_stage_a": {
+    "artifact": "runs/agqa2_query_grounder_v5_coordinate_corrected_development/stage_a_development_evaluation.json",
+    "status": "V5_STAGE_A_DEVELOPMENT_NOT_QUALIFIED",
+    "passed_gates": [
+      "entity_candidate_pool_recall",
+      "typed_role_binding_fidelity",
+      "cross_frame_dedup_fidelity",
+      "provider_and_contract_success",
+      "authority_safe_receipts"
+    ],
+    "failed_gate": "one_global_threshold_qualified"
+  },
+  "development_split": "same consumed V5 AGQA balanced-train development cohort",
+  "claim_boundary": "grounder development only; no task is transfer evidence",
+  "development_diagnosis": {
+    "old_v4_verifier_problem": "SGDET boxes in 600px detector coordinates were drawn directly on native video pixels and verifier frames were independently resampled",
+    "repair": "decode exact SGDET native frame indices, verify exact BGR pixel hashes, and divide detector boxes by the frozen Faster R-CNN preprocessing scale before drawing",
+    "answer_or_outcome_used_to_choose_candidate": false
+  },
+  "immutable_inputs": {
+    "cohort_sha256": "25aa6ef42d69c2063915559c9d3cc8b917cf33307b3c571fd4b087905b8d55a2",
+    "query_grounding_file_sha256": "c9c7c9c0ba8d9b52493f3d8b801c6233ebe6507dda1b9a784fe38610bace7c8a",
+    "sgdet_file_sha256": "37d59769f73087f3a7d295db2622e1aa86ea2e44be4f5391f037972d00561813",
+    "slowfast_binding_file_sha256": "8de0bc4aa1fba3c824c5e88038f087e57d6b798af6aeaa1476eee44463be3497",
+    "verifier_script_sha256": "190708fc5d5987367ccc35976538d471a319502c0662e917c06981ea61824308"
+  },
+  "input_binding_amendment": {
+    "failed_preflight": "cohort_sha256 mistakenly used the public_cohort.json file digest rather than the frozen internal cohort content digest",
+    "provider_calls_before_amendment": 0,
+    "stage_b_grounding_rows_before_amendment": 0,
+    "stage_b_outcomes_read_before_amendment": false,
+    "model_prompt_frame_budget_candidate_pool_and_thresholds_changed": false
+  },
+  "verifier": {
+    "model": "qwen/qwen3-vl-235b-a22b-instruct",
+    "temperature_omitted": true,
+    "coordinate_mode": "native_exact",
+    "candidate_pool": "top-6 label-unique frozen SGDET/SlowFast candidates",
+    "maximum_candidate_count": 6,
+    "maximum_presented_unique_frames": 12,
+    "frames_per_panel": 2,
+    "frame_width": 448,
+    "stable_track_specific_boxes": true,
+    "exact_sgdet_frame_hash_required": true,
+    "detector_box_inverse_resize_required": true,
+    "output": "candidate ID or ABSTAIN only",
+    "answer_name_output_forbidden": true,
+    "functional_program_read": false,
+    "official_scene_graph_read": false,
+    "source_controller_read": false,
+    "target_outcome_read": false
+  },
+  "threshold_selection": {
+    "score": "frozen VLM self-reported confidence",
+    "candidate_grid": [0.5, 0.6, 0.7, 0.8, 0.85, 0.9, 0.925, 0.95, 0.96, 0.97, 0.98, 0.99],
+    "objective": "maximum unique-supported coverage",
+    "constraints": {
+      "unique_supported_count_minimum": 40,
+      "unique_supported_precision_wilson_95_lower_bound_minimum": 0.6,
+      "unique_supported_coverage_minimum": 0.2
+    },
+    "tie_break": "higher threshold",
+    "predicate_role_slice_or_task_specific_thresholds_forbidden": true
+  },
+  "decision": {
+    "if_pass": "freeze this coordinate protocol and threshold, then allocate a new video-disjoint qualification cohort",
+    "if_fail": "do not allocate qualification; continue only on consumed development videos using question-blind Video_Skills event evidence"
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "schema_version": 2,
+  "status": "FROZEN_BEFORE_FIRST_ZERO_SHOT_FORMAL_RUN",
+  "claim_boundary": "Controlled zero-shot mechanism test only. Source is a synthetic intervention-rich hidden-rule game and target is a semantically disjoint synthetic diagnosis domain. This result cannot establish arcade-to-ALFWorld transfer or robust few-shot adaptation.",
+  "freeze_record": {
+    "motivated_by_prior_v1_v2_results": true,
+    "formal_target_seeds_seen_during_selection": false,
+    "frozen_claim": "zero-shot intervention-value structure transfer"
+  },
+  "domain": {
+    "hypothesis_count": 4,
+    "test_count": 5,
+    "max_tests": 4,
+    "test_cost": 0.025,
+    "calibration_samples_per_cell": 12,
+    "calibration_beta_prior": 1.5
+  },
+  "source": {
+    "train_domain_seeds": [11000, 11001, 11002, 11003, 11004, 11005, 11006, 11007, 11008, 11009, 11010, 11011, 11012, 11013, 11014, 11015, 11016, 11017, 11018, 11019, 11020, 11021, 11022, 11023],
+    "evaluation_domain_seeds": [11100, 11101, 11102, 11103, 11104, 11105, 11106, 11107],
+    "states_per_domain": 20
+  },
+  "target": {
+    "support_domain_seeds": [15000, 15001, 15002, 15003],
+    "support_states_per_domain": 1,
+    "support_k": [0],
+    "evaluation_domain_seeds": {
+      "zero_shot_qualification": [15100, 15101, 15102, 15103, 15104, 15105, 15106, 15107, 15108, 15109, 15110, 15111, 15112, 15113, 15114, 15115],
+      "zero_shot_held_out": [15200, 15201, 15202, 15203, 15204, 15205, 15206, 15207, 15208, 15209, 15210, 15211, 15212, 15213, 15214, 15215]
+    },
+    "episode_seeds": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127]
+  },
+  "model": {
+    "kind": "source_prior_target_residual_ensemble",
+    "seed": 73101,
+    "control_seed": 73102,
+    "ensemble_size": 9,
+    "ridge_alpha": 0.5,
+    "target_mass": 1.0,
+    "residual_ridge_alpha": 2.0,
+    "maximum_residual_scale": 1.0,
+    "residual_full_strength_states": 4
+  },
+  "policy": {
+    "uncertainty_scale": 0.5,
+    "decision_margin": 0.0025,
+    "fallback_commit_threshold": 0.72
+  },
+  "gate": {
+    "bootstrap_samples": 3000,
+    "requirements": [
+      {
+        "name": "zero_shot_superiority",
+        "required_splits": ["zero_shot_qualification", "zero_shot_held_out"],
+        "required_k": [0],
+        "controls": ["target_only", "shuffled_source_plus_target", "source_marginal_plus_target"],
+        "minimum_mean_net_return_delta": 0.005,
+        "minimum_ci95_net_return_delta": 0.0
+      }
+    ]
+  }
+}

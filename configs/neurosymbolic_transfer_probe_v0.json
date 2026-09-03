@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "status": "FROZEN_BEFORE_FIRST_RUN",
+  "frozen_at": "2026-08-09",
+  "claim_boundary": "Adaptation-development feasibility only. This is not qualification, held-out task success, or proof of game-to-target skill transfer.",
+  "source": {
+    "manifest": "docs/results/harness_pretraining_v1_manifest.json",
+    "training_split": "train",
+    "diagnostic_split": "source_held_out",
+    "forbidden_inputs": [
+      "game_id",
+      "skill_name",
+      "raw_action_token",
+      "natural_language_rationale",
+      "target_data"
+    ]
+  },
+  "target": {
+    "input_dir": "runs/target_rollout_collection_v1/alfworld_valid_unseen/adaptation",
+    "support_task_offsets": [0, 1, 2, 3],
+    "internal_evaluation_task_offsets": [4, 5, 6, 7],
+    "adaptation_k": [0, 1, 2, 4],
+    "qualification_or_held_out_used": false
+  },
+  "operational_labels": [
+    "admissible_set_changed",
+    "positive_native_reward",
+    "terminal"
+  ],
+  "before_state_features": [
+    "log_native_action_count",
+    "step_over_100",
+    "previous_admissible_set_changed",
+    "previous_positive_native_reward",
+    "previous_terminal",
+    "recent_admissible_change_rate_3",
+    "recent_positive_reward_rate_3",
+    "previous_action_repeated",
+    "history_unique_action_ratio"
+  ],
+  "model": {
+    "kind": "sklearn_mlp_classifier",
+    "hidden_layer_sizes": [12],
+    "activation": "tanh",
+    "solver": "lbfgs",
+    "alpha": 0.01,
+    "max_iter": 300,
+    "seeds": [73001, 73002, 73003, 73004, 73005]
+  },
+  "conditions": [
+    "target_only",
+    "source_neural_zero_shot",
+    "authentic_source_plus_target",
+    "shuffled_source_plus_target",
+    "source_marginal_plus_target"
+  ],
+  "target_source_training_mass_ratio": 1.0,
+  "selective_thresholds": {
+    "refuted_max": 0.2,
+    "supported_min": 0.8
+  },
+  "primary_metric": "macro_brier",
+  "positive_gate": {
+    "required_k": [1, 2, 4],
+    "authentic_must_beat": [
+      "target_only",
+      "shuffled_source_plus_target",
+      "source_marginal_plus_target"
+    ],
+    "comparison": "lower_mean_macro_brier"
+  }
+}

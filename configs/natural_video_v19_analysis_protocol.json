@@ -1,0 +1,25 @@
+{
+  "schema_version": 19,
+  "status": "FROZEN_BEFORE_V19_OUTCOMES_WERE_INSPECTED",
+  "receipts": "runs/natural_video_v19_expanded_formal/formal_receipts.json",
+  "formal_config": "configs/natural_video_v19_expanded_formal.json",
+  "formal_manifest": "configs/natural_video_v19_expanded_formal_manifest.json",
+  "expected_rows": 251,
+  "primary_independence_unit": "benchmark_x_video_id",
+  "controls": {
+    "within_benchmark_family_shuffled_recovery_mask": "Permute the frozen authentic recovery decisions within each benchmark/family cell, retaining each cell's recovery count; a selected row uses that row's blind proof answer.",
+    "same_rate_marginal_recovery_mask": "Within each benchmark, choose the same number of source-compatible rows as authentic recoveries without conditioning on the typed proof state; a selected row uses that row's blind proof answer."
+  },
+  "cluster_inference": {
+    "kind": "benchmark_stratified_video_cluster_bootstrap",
+    "resamples": 20000,
+    "confidence": 0.95,
+    "seed_from_formal_config": "cluster_bootstrap",
+    "estimand": "pooled question-level exact-match delta with video clusters resampled independently within STAR and NExT-QA"
+  },
+  "additional_preoutcome_claim_gates": {
+    "pooled_authentic_minus_primary_cluster_bootstrap_lower_bound_must_exceed": 0.0,
+    "minimum_positive_minus_negative_video_clusters_each_benchmark": 1
+  },
+  "interpretation": "PASS requires every originally frozen V19 gate and every additional independence-aware gate. Failure cannot be relabeled as validated transfer after inspecting outcomes."
+}

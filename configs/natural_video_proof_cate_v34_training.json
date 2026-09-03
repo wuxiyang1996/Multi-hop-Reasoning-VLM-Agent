@@ -1,0 +1,34 @@
+{
+  "schema_version": 34,
+  "source_receipt": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/docs/results/sokoban_effect_program_v2_compact_receipt.json",
+  "development_receipts": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/natural_video_v19_expanded_formal/formal_receipts.json",
+  "frozen_lineage": {
+    "source_receipt_sha256": "8f175c0edda951eba2064e9c53a8db6a25cdfa9fb0de8049d371dbf5335c9e80",
+    "development_receipts_sha256": "50011ed4a8ec645b5652220bfcc61f18ddb816b6bb3c49f20a7f445be5d8090d",
+    "feature_compiler_sha256": "bdca859acc73384b66799d73e4b16845151bc195e65aa7ce9ae4178b22965f7c"
+  },
+  "model": {
+    "kind": "FIVE_HEAD_ONE_HIDDEN_LAYER_TANH_MLP_ENSEMBLE",
+    "hidden_units": 12,
+    "alpha": 3.0,
+    "max_iter": 3000,
+    "seeds": [0, 1, 2, 13, 21]
+  },
+  "decision_threshold": 0.0,
+  "controls": {
+    "proof_shuffle_seed": 34017,
+    "uplift_permutation_seed": 34031
+  },
+  "gates": {
+    "minimum_selected": 80,
+    "minimum_net_wins": 35,
+    "maximum_exact_p": 0.0001,
+    "minimum_net_wins_each_benchmark": 10,
+    "require_source_proof_above_primary": true,
+    "require_source_proof_above_always_proof": true,
+    "require_source_proof_above_base_only": true,
+    "require_source_proof_above_permuted_uplift": true,
+    "require_source_proof_above_shuffled_proof": true
+  },
+  "claim_boundary": "Development-only target adaptation on 251 already-consumed V19 STAR/NExT-QA receipts. The authentic condition imports only the independently confirmed Sokoban COMMIT/VERIFY/EXPECTED_EFFECT_REFUTED/REPLAN controller topology; neural evidence and uplift fitting are target-native. Every prediction is leave-one-(benchmark,video_id)-out. Gold and official target structures are used only to construct training uplift labels, never runtime features. Passing this gate authorizes a prospectively frozen evaluation; it is not itself a fresh transfer claim."
+}

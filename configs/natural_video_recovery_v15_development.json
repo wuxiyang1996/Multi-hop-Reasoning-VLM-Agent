@@ -1,0 +1,48 @@
+{
+  "schema_version": 15,
+  "status": "FROZEN_BEFORE_V15_NATURAL_VIDEO_DEVELOPMENT_OUTCOMES",
+  "claim_boundary": "Development-only paired natural-video collection for the real-Sokoban VERIFY/EXPECTED_EFFECT_REFUTED/REPLAN contract. Primary and dense candidate-proof branches are target-native; source contributes only closed-loop recovery structure. The new V15 development/formal/reserve roles are mutually video-disjoint and all old question IDs are excluded, but raw videos overlap historical experiments because the local STAR/NExT-QA media subsets are exhausted. Formal and reserve outcomes remain unqueried.",
+  "source_receipt": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/docs/results/sokoban_effect_program_v2_compact_receipt.json",
+  "wrapper_root": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent",
+  "target": {
+    "split_manifest": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/configs/natural_video_recovery_v15_splits.json",
+    "split": "development",
+    "transferred_contract": "COMMIT_PRIMARY -> VERIFY_WITH_TYPED_TARGET_PROOF; EXPECTED_EFFECT_REFUTED -> REPLAN_TO_PROOF_ANSWER"
+  },
+  "benchmarks": {
+    "star": {
+      "root": "/fs/gamma-projects/vlm-robot/datasets/STAR-official",
+      "annotation_split": "val"
+    },
+    "nextqa": {
+      "root": "/fs/gamma-projects/vlm-robot/datasets/NExT-QA-official",
+      "annotation_split": "val"
+    }
+  },
+  "model": {
+    "provider": "openai",
+    "api_key_name": "OPENAI_API_KEY",
+    "id": "gpt-5.4",
+    "base_url": "https://us.api.openai.com/v1",
+    "timeout_seconds": 300,
+    "max_retries": 2,
+    "schema_retries": 3,
+    "max_primary_tokens": 1200,
+    "max_proof_tokens": 5200
+  },
+  "media": {
+    "primary_frame_count": 12,
+    "proof_frame_count": 24,
+    "proof_frames_per_panel": 12,
+    "proxy_frame_max_side": 720,
+    "primary_frame_width": 224,
+    "proof_frame_width": 192,
+    "jpeg_quality": 88
+  },
+  "frozen_lineage": {
+    "source_receipt_sha256": "8f175c0edda951eba2064e9c53a8db6a25cdfa9fb0de8049d371dbf5335c9e80",
+    "split_manifest_sha256": "e8dd63417c8db357490c81cb4ab860fc247cdaae45bfead14ec758fa538aa04b",
+    "collector_sha256": "1a2cba5619aee6a767cf73bcbaa7044594911f5c5903ef65ae98e6e62921bee1",
+    "feature_module_sha256": "d5e271fde2783d4ec4d929b154c95db4d3d12e43e965e74c141a1378426fd900"
+  }
+}
