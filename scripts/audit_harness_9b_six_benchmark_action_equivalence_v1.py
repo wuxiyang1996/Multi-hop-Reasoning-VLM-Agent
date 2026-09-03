@@ -23,6 +23,7 @@ REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "src"))
 
 from motif_transfer.contracts import stable_hash  # noqa: E402
+from motif_transfer.portable_paths import resolve_repo_artifact  # noqa: E402
 
 
 def _read(path: Path) -> dict[str, Any]:
@@ -55,7 +56,7 @@ def _verified_formal_paths(prereg: Mapping[str, Any]) -> dict[str, list[Path]]:
     for benchmark, specs in prereg["formal_evidence"].items():
         paths = []
         for spec in specs:
-            path = Path(spec["path"])
+            path = resolve_repo_artifact(spec["path"], REPO)
             if not path.is_file() or _sha(path) != spec["sha256"]:
                 raise ValueError(f"formal evidence drifted: {path}")
             paths.append(path)
@@ -358,13 +359,17 @@ def main() -> int:
         and all((report.get("gates") or {}).values())
     ):
         raise SystemExit("route substitution gate did not pass")
-    prereg_path = Path(activation["target_preregistration"]["path"])
+    prereg_path = resolve_repo_artifact(
+        activation["target_preregistration"]["path"], REPO,
+    )
     prereg = _read(prereg_path)
     if _sha(prereg_path) != activation["target_preregistration"]["sha256"]:
         raise SystemExit("substitution preregistration drifted")
     _verified_formal_paths(prereg)
-    dataset_path = Path(activation["evaluation_file"]["path"])
-    index_path = Path(activation["native_replay_index"]["path"])
+    dataset_path = resolve_repo_artifact(activation["evaluation_file"]["path"], REPO)
+    index_path = resolve_repo_artifact(
+        activation["native_replay_index"]["path"], REPO,
+    )
     dataset = {str(row["example_id"]): row for row in _rows(dataset_path)}
     index = _rows(index_path)
     predictions = {

@@ -22,6 +22,7 @@ REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "src"))
 
 from motif_transfer.contracts import stable_hash  # noqa: E402
+from motif_transfer.portable_paths import resolve_repo_artifact  # noqa: E402
 from motif_transfer.multi_ir_selector_training import (  # noqa: E402
     SELECT_SKILL,
     execute_anonymous_selection,
@@ -50,8 +51,7 @@ def _rows(path: Path) -> list[dict[str, Any]]:
 
 
 def _resolve(value: str) -> Path:
-    path = Path(value)
-    return path if path.is_absolute() else REPO / path
+    return resolve_repo_artifact(value, REPO)
 
 
 def _sha(path: Path) -> str:
@@ -95,8 +95,8 @@ def freeze(config_path: Path, output_dir: Path) -> dict[str, Any]:
         and all((parent.get("gates") or {}).values())
     ):
         raise ValueError("parent substitution preregistration is not gate-clean")
-    parent_dataset = Path(parent["route_selector_replay"]["path"])
-    parent_index = Path(parent["native_replay_index"]["path"])
+    parent_dataset = _resolve(parent["route_selector_replay"]["path"])
+    parent_index = _resolve(parent["native_replay_index"]["path"])
     if not (
         _sha(parent_dataset) == parent["route_selector_replay"]["sha256"]
         and _sha(parent_index) == parent["native_replay_index"]["sha256"]

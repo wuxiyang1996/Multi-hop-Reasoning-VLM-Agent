@@ -7,7 +7,14 @@ import argparse
 import hashlib
 import json
 from pathlib import Path
+import sys
 from typing import Any
+
+
+REPO = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(REPO / "src"))
+
+from motif_transfer.portable_paths import resolve_repo_artifact  # noqa: E402
 
 
 def _read(path: Path) -> dict[str, Any]:
@@ -62,9 +69,13 @@ def main() -> int:
         raise SystemExit("five-schema adapter training was not source-only")
 
     substitution = protocol["six_benchmark_substitution"]
-    prereg_path = Path(substitution["preregistration"]["path"])
-    dataset_path = Path(substitution["dataset"]["path"])
-    index_path = Path(substitution["native_replay_index"]["path"])
+    prereg_path = resolve_repo_artifact(
+        substitution["preregistration"]["path"], REPO,
+    )
+    dataset_path = resolve_repo_artifact(substitution["dataset"]["path"], REPO)
+    index_path = resolve_repo_artifact(
+        substitution["native_replay_index"]["path"], REPO,
+    )
     prereg = _read(prereg_path)
     if not (
         _sha(prereg_path) == substitution["preregistration"]["sha256"]

@@ -8,10 +8,14 @@ from collections import Counter, defaultdict
 import hashlib
 import json
 from pathlib import Path
+import sys
 from typing import Any
 
 
 REPO = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(REPO / "src"))
+
+from motif_transfer.portable_paths import resolve_repo_artifact  # noqa: E402
 DEFAULT_PROTOCOL = REPO / "configs/harness_controller_qwen35_9b_mixed_v1_protocol.json"
 
 
@@ -30,8 +34,7 @@ def _sha(path: Path) -> str:
 
 
 def _resolve(value: str) -> Path:
-    path = Path(value)
-    return path if path.is_absolute() else REPO / path
+    return resolve_repo_artifact(value, REPO)
 
 
 def _verified(spec: dict[str, Any]) -> Path:

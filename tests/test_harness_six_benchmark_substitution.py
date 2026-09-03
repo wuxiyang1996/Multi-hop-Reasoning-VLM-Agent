@@ -28,6 +28,11 @@ from scripts.build_harness_9b_six_benchmark_paper_report_v1 import (
     _write_if_absent_or_identical,
     formal_success_rows,
 )
+from motif_transfer.portable_paths import resolve_repo_artifact
+
+
+def _artifact(value: str) -> Path:
+    return resolve_repo_artifact(value, REPO)
 
 
 def test_optional_temporal_source_extends_catalog_without_changing_v1() -> None:
@@ -72,7 +77,7 @@ def test_six_benchmark_freeze_uses_all_preoutcome_task_ids(tmp_path: Path) -> No
     assert manifest["route_selector_replay"]["group_counts"]["agqa2"] == 1800
     rows = [
         json.loads(line)
-        for line in Path(manifest["route_selector_replay"]["path"])
+        for line in _artifact(manifest["route_selector_replay"]["path"])
         .read_text(encoding="utf-8").splitlines()
         if line
     ]
@@ -99,8 +104,8 @@ def test_fresh_presentation_reserve_is_disjoint_and_preupdate_frozen() -> None:
     assert all(fresh["gates"].values())
     assert fresh["route_selector_replay"]["rows"] == 2246
     assert fresh["native_replay_index"]["tasks"] == 1346
-    parent_rows = _rows(Path(parent["route_selector_replay"]["path"]))
-    fresh_rows = _rows(Path(fresh["route_selector_replay"]["path"]))
+    parent_rows = _rows(_artifact(parent["route_selector_replay"]["path"]))
+    fresh_rows = _rows(_artifact(fresh["route_selector_replay"]["path"]))
     assert {row["prompt"] for row in parent_rows}.isdisjoint(
         {row["prompt"] for row in fresh_rows}
     )
@@ -108,7 +113,7 @@ def test_fresh_presentation_reserve_is_disjoint_and_preupdate_frozen() -> None:
         {row["example_id"] for row in fresh_rows}
     )
     for key in ("route_selector_replay", "native_replay_index"):
-        path = Path(fresh[key]["path"])
+        path = _artifact(fresh[key]["path"])
         assert hashlib.sha256(path.read_bytes()).hexdigest() == fresh[key]["sha256"]
 
 
@@ -200,8 +205,8 @@ def test_exact_routes_bridge_to_all_six_formal_benchmarks(
         / "runs" / reserve_dir / "preregistration.json"
     )
     prereg = json.loads(prereg_path.read_text(encoding="utf-8"))
-    dataset_path = Path(prereg["route_selector_replay"]["path"])
-    index_path = Path(prereg["native_replay_index"]["path"])
+    dataset_path = _artifact(prereg["route_selector_replay"]["path"])
+    index_path = _artifact(prereg["native_replay_index"]["path"])
     activation_path = tmp_path / "activation.json"
     activation = {
         "status": "FROZEN_SIX_BENCHMARK_SUBSTITUTION_EVALUATION_READY",
