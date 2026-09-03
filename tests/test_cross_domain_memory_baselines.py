@@ -16,6 +16,8 @@ from motif_transfer.cross_domain_memory_baselines import (
     bind_memory_artifact_to_target,
     canonical_source_episodes,
     induce_memory_artifact,
+    gate_candidates_to_target,
+    gate_memory_artifact_to_target,
     resolve_source_outcome,
     retrieve_memory_items,
     source_projection,
@@ -146,6 +148,55 @@ class LeakyBinder(FakeBinder):
         return json.dumps(value)
 
 
+class FakeGate:
+    identity = {"model": "open-weight-shared-gate-test"}
+    last_usage = {"total_tokens": 7}
+
+    def __init__(self, *, reject_last=False):
+        self.reject_last = reject_last
+        self.calls = 0
+
+    def complete(self, role, system, payload):
+        assert role == "memory_gate_verifier"
+        assert "Never rewrite" in system
+        self.calls += 1
+        rows = []
+        for index, candidate in enumerate(payload["candidates"]):
+            admit = not (self.reject_last and index == len(payload["candidates"]) - 1)
+            rows.append({
+                "candidate_ref": candidate["candidate_ref"],
+                "admit": admit,
+                "supporting_example_ids": [payload["adaptation_examples"][0]["example_id"]] if admit else [],
+                "reason": "directly demonstrated" if admit else "not demonstrated",
+            })
+        return json.dumps({"decisions": rows})
+
+
+class FakeRefiningExpeL(FakeCompletion):
+    def __init__(self):
+        super().__init__(MemoryBaseline.EXPEL)
+        self.roles = []
+
+    def complete(self, role, system, payload):
+        self.roles.append(role)
+        if role == "memory_inducer":
+            return super().complete(role, system, payload)
+        self.calls += 1
+        assert role == "memory_refiner"
+        receipts = [
+            receipt
+            for item in payload["current_insights"] + payload["new_candidate_insights"]
+            for receipt in item["evidence_receipt_ids"]
+        ]
+        return json.dumps({"items": [{
+            "title": "refined insight bank",
+            "content": "Check uncertainty before commitment across observed situations.",
+            "applicability": "When current evidence remains uncertain.",
+            "kind": "INSIGHT",
+            "evidence_receipt_ids": list(dict.fromkeys(receipts)),
+        }]})
+
+
 @pytest.mark.parametrize("method", list(MemoryBaseline))
 def test_all_three_methods_build_frozen_source_only_artifacts(method):
     backend = FakeCompletion(method)
@@ -257,6 +308,62 @@ def test_target_binding_is_frozen_traceable_and_domain_specific():
     assert bound["target_binding"]["source_artifact_sha256"] == source["artifact_sha256"]
     assert bound["target_binding"]["adaptation_example_ids"] == ["alf-adapt-1"]
     assert len(bound["items"]) == len(source["items"])
+
+
+def _alfworld_adaptation():
+    return {
+        "target_domain": "alfworld", "split_role": "adaptation",
+        "examples": [{
+            "example_id": "alf-adapt-1",
+            "task": "put an object in a receptacle",
+            "observation": "A room description with an uncertain object location.",
+            "native_actions": ["go to cabinet 1", "take mug 1 from cabinet 1"],
+        }],
+    }
+
+
+def test_shared_gate_preserves_admitted_native_memory_byte_for_byte():
+    source = induce_memory_artifact(
+        MemoryBaseline.AWM, SOURCE, FakeCompletion(MemoryBaseline.AWM)
+    )
+    bound = gate_memory_artifact_to_target(
+        source, "alfworld", _alfworld_adaptation(), FakeGate()
+    )
+    validate_memory_artifact(bound)
+    assert bound["target_binding"]["binding_mode"] == "SHARED_GATE_ONLY_NO_REWRITE"
+    assert bound["items"] == source["items"]
+    assert all(
+        row["source_item_id"] == row["bound_item_id"]
+        for row in bound["target_binding"]["item_bindings"]
+    )
+
+
+def test_shared_gate_is_method_neutral_and_mechanically_rejects_action_leakage():
+    gate = FakeGate()
+    receipt = gate_candidates_to_target(
+        [{
+            "candidate_id": "ours:ir-1", "title": "Our structured skill",
+            "content": "Use take mug 1 from cabinet 1 immediately.",
+            "applicability": "Whenever a mug is requested.",
+        }],
+        "alfworld", _alfworld_adaptation(), gate,
+    )
+    assert receipt["admitted_candidate_ids"] == []
+    assert receipt["decisions"][0]["decision_authority"] == "MECHANICAL_TARGET_ACTION_GATE"
+    assert gate.calls == 0
+
+
+def test_expel_iteratively_refines_the_global_insight_bank():
+    backend = FakeRefiningExpeL()
+    artifact = induce_memory_artifact(
+        MemoryBaseline.EXPEL, SOURCE, backend,
+        maximum_episodes_per_call=1, expel_refinement_rounds=1,
+    )
+    validate_memory_artifact(artifact)
+    assert "memory_refiner" in backend.roles
+    assert artifact["expel_refinement_rounds"] == 1
+    assert artifact["refinement_calls"] == 1
+    assert [item["title"] for item in artifact["items"]] == ["refined insight bank"]
 
 
 def test_target_binding_rejects_non_adaptation_data():

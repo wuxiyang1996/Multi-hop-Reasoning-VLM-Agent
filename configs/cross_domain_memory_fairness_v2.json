@@ -2,16 +2,38 @@
   "schema_version": 2,
   "status": "FAIRNESS_GATES_IMPLEMENTED_SOURCE_COLLECTION_INCOMPLETE",
   "claim_name": "target-adapted cross-domain textual-memory transfer",
-  "claim_boundary": "This protocol compares clean-room ExpeL-style, AWM-style, and ReasoningBank-style memory mechanisms. It is not an exact reproduction of the upstream repositories and is not weight, policy, or action-skill transfer.",
+  "claim_boundary": "This protocol compares adapted clean-room implementations of ExpeL, AWM, and ReasoningBank for cross-domain skill-memory transfer. It is not an exact execution of the upstream repositories and is not weight or policy transfer.",
   "implementation_fidelity": {
     "level": "clean_room_style",
-    "exact_upstream_method_names_allowed": false,
-    "required_result_labels": ["ExpeL-style", "AWM-style", "ReasoningBank-style"],
+    "exact_upstream_method_names_allowed": true,
+    "required_result_labels": ["ExpeL", "AWM", "ReasoningBank"],
+    "required_table_footnote": "All three rows are adapted clean-room implementations under one shared source/target harness, not exact upstream pipeline executions.",
     "upgrade_to_exact_baseline_requires": [
       "pinned upstream repository commit",
       "upstream induction and retrieval path actually executed",
       "compatibility adapter tests against upstream outputs"
     ]
+  },
+  "method_fidelity": {
+    "expel": {
+      "iterative_insight_refinement_minimum_rounds_per_new_batch": 1,
+      "native_memory_form": "global natural-language insight bank"
+    },
+    "awm": {
+      "native_memory_form": "workflow",
+      "gate_may_rewrite_workflow": false
+    },
+    "reasoning_bank": {
+      "native_memory_form": "success/failure strategy and pitfall items",
+      "target_online_updates": false
+    }
+  },
+  "shared_target_gate": {
+    "policy": "ADMIT_OR_REJECT_ONLY",
+    "may_rewrite_memory": false,
+    "same_gate_for_baselines_and_ours": true,
+    "admission_requires_target_adaptation_evidence": true,
+    "raw_ungated_arm": "secondary fidelity ablation; never substitute for the gated primary comparison"
   },
   "estimands": {
     "primary": "intent-to-treat paired delta in official target success versus target-only",

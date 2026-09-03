@@ -50,7 +50,8 @@ def main() -> int:
         "schema_version": 1,
         "protocol": str(args.protocol.resolve()),
         "protocol_sha256": stable_hash(protocol),
-        "comparison_label": "clean-room style memory mechanisms",
+        "comparison_labels": protocol["implementation_fidelity"]["required_result_labels"],
+        "comparison_footnote": protocol["implementation_fidelity"]["required_table_footnote"],
         "artifact_suites_ready": all(row["formal_ready"] for row in audits.values()),
         "formal_target_cohort_ready": target_cohort_ready,
         "all_domains_formal_ready": (

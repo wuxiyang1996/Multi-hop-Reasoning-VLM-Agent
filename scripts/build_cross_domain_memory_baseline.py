@@ -32,6 +32,7 @@ def main() -> None:
     parser.add_argument("--base-url", default="http://127.0.0.1:8000/v1")
     parser.add_argument("--api-key-env", default="OPENAI_API_KEY")
     parser.add_argument("--maximum-items-per-call", type=int, default=8)
+    parser.add_argument("--expel-refinement-rounds", type=int, default=1)
     args = parser.parse_args()
 
     source = json.loads(args.source.read_text(encoding="utf-8"))
@@ -39,7 +40,7 @@ def main() -> None:
         raise SystemExit("source input must be one JSON object")
     raw_backend = OpenAICompatibleBackend(
         args.base_url,
-        {"memory_inducer": args.model},
+        {"memory_inducer": args.model, "memory_refiner": args.model},
         api_key_env=args.api_key_env,
         json_mode=True,
         temperature=0,
@@ -50,6 +51,10 @@ def main() -> None:
         source,
         backend,
         maximum_items_per_call=args.maximum_items_per_call,
+        expel_refinement_rounds=(
+            args.expel_refinement_rounds
+            if args.method == MemoryBaseline.EXPEL.value else 0
+        ),
     )
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(
@@ -61,6 +66,7 @@ def main() -> None:
         "source_domains": artifact["source_domains"],
         "episodes": len(artifact["source_episode_ids"]),
         "items": len(artifact["items"]),
+        "refinement_calls": artifact["refinement_calls"],
         "artifact_sha256": artifact["artifact_sha256"],
         "output": str(args.output),
     }, ensure_ascii=False, indent=2))

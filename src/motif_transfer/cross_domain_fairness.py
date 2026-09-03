@@ -62,6 +62,7 @@ def audit_target_bound_suite(
     counts: set[int] = set()
     admitted: dict[str, int] = {}
     artifact_hashes: dict[str, str] = {}
+    blockers = []
     for method in sorted(expected):
         artifact = artifacts[method]
         validate_memory_artifact(artifact)
@@ -75,6 +76,29 @@ def audit_target_bound_suite(
         superset_ids.add(ids)
         counts.add(len(ids))
         adaptations.add(str(binding.get("adaptation_payload_sha256") or ""))
+        if binding.get("binding_mode") != "SHARED_GATE_ONLY_NO_REWRITE":
+            blockers.append(f"{method}: target adaptation is not shared gate-only/no-rewrite")
+        if artifact.get("online_memory_updates_allowed") is not False:
+            blockers.append(f"{method}: target online memory updates are not disabled")
+        if artifact.get("target_actions_in_memory_allowed") is not False:
+            blockers.append(f"{method}: target actions are not forbidden in memory")
+        for row in binding.get("item_bindings") or ():
+            if str(row.get("source_item_id")) != str(row.get("bound_item_id")):
+                blockers.append(f"{method}: gate changed a source memory item")
+                break
+        if method == MemoryBaseline.EXPEL.value:
+            rounds = int(artifact.get("expel_refinement_rounds") or 0)
+            expected_refinements = rounds * max(0, int(artifact.get("induction_calls") or 0) - 1)
+            if rounds < 1 or int(artifact.get("refinement_calls") or 0) < expected_refinements:
+                blockers.append("expel: iterative insight refinement was not fully executed")
+        if method == MemoryBaseline.AWM.value and any(
+            str(item.get("kind")) != "WORKFLOW" for item in artifact.get("items") or ()
+        ):
+            blockers.append("awm: admitted bank does not preserve workflow items")
+        if method == MemoryBaseline.REASONING_BANK.value:
+            kinds = {str(item.get("kind")) for item in artifact.get("items") or ()}
+            if kinds - {"STRATEGY", "PITFALL"}:
+                blockers.append("reasoning_bank: admitted bank changed native memory kinds")
         admitted[method] = len(artifact.get("items") or ())
         artifact_hashes[method] = str(artifact["artifact_sha256"])
     if "" in supersets or len(supersets) != 1 or len(superset_ids) != 1:
@@ -84,7 +108,6 @@ def audit_target_bound_suite(
     if len(counts) != 1:
         raise FairnessProtocolError("source superset episode counts differ")
     count = next(iter(counts))
-    blockers = []
     if count != int(expected_source_episodes):
         blockers.append(f"source_episode_count={count}, expected={expected_source_episodes}")
     exact_ready = implementation_fidelity == "upstream_pinned" and not blockers

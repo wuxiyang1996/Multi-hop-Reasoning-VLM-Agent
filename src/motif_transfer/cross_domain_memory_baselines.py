@@ -16,6 +16,7 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass
 from enum import Enum
+import copy
 import json
 import math
 import re
@@ -293,6 +294,15 @@ _SYSTEMS = {
     ),
 }
 
+_EXPEL_REFINER_SYSTEM = (
+    "Implement ExpeL's iterative insight-refinement stage. Reconcile the current insight bank "
+    "with the newly extracted candidate insights: merge duplicates, correct contradictions, "
+    "retain useful failure lessons, and return the strongest bounded bank. Use only supplied "
+    "source evidence and preserve real evidence receipt IDs. Return exactly one JSON object "
+    "{\"items\":[...]}; every item has title, content, applicability, kind=INSIGHT, "
+    "source_episode_ids, evidence_receipt_ids. Never mention or propose a target action."
+)
+
 
 # Which outcome labels each published method induces from.  These follow the
 # original papers, not a house convention: ExpeL contrasts successes against
@@ -404,6 +414,7 @@ def induce_memory_artifact(
     minimum_eligible_episodes: int = 1,
     benchmark_predicate: Callable[[Mapping[str, Any]], bool | None] | None = None,
     shared_evaluator: Callable[[Mapping[str, Any]], bool | None] | None = None,
+    expel_refinement_rounds: int = 0,
 ) -> dict[str, Any]:
     """Run frozen source-only induction and return a self-hashed artifact.
 
@@ -411,6 +422,8 @@ def induce_memory_artifact(
     reads only the projection its published algorithm is defined over.
     """
     method = MemoryBaseline(method)
+    if int(expel_refinement_rounds) < 0:
+        raise ValueError("expel_refinement_rounds must be non-negative")
     superset = canonical_source_episodes(
         source_payload,
         benchmark_predicate=benchmark_predicate,
@@ -450,6 +463,8 @@ def induce_memory_artifact(
     }[method]
     all_items: list[MemoryItem] = []
     call_receipts = []
+    refinement_call_receipts = []
+    cumulative_episode_ids: set[str] = set()
     for call_index, selected in enumerate(calls):
         payload = canonical_source_payload(selected)
         allowed_episode_ids = {episode.episode_id for episode in selected}
@@ -483,14 +498,48 @@ def induce_memory_artifact(
                 f"{method.value} induction call {call_index} failed the receipt "
                 f"lineage check {induction_retries} times: {attempt_error}"
             )
-        all_items.extend(items)
+        induction_usage = dict(getattr(backend, "last_usage", {}) or {})
+        cumulative_episode_ids.update(allowed_episode_ids)
+        if (
+            method == MemoryBaseline.EXPEL
+            and all_items
+            and expel_refinement_rounds > 0
+        ):
+            candidate_bank = items
+            for refinement_round in range(expel_refinement_rounds):
+                refinement_request = {
+                    "current_insights": [asdict(item) for item in all_items],
+                    "new_candidate_insights": [asdict(item) for item in candidate_bank],
+                    "maximum_items": maximum_items_per_call,
+                }
+                refinement_raw = backend.complete(
+                    "memory_refiner", _EXPEL_REFINER_SYSTEM, refinement_request,
+                )
+                candidate_bank = _parse_items(
+                    refinement_raw,
+                    allowed_episode_ids=cumulative_episode_ids,
+                    receipt_to_episode=receipt_to_episode,
+                    allowed_kinds={"INSIGHT"},
+                    maximum_items=maximum_items_per_call,
+                )
+                refinement_call_receipts.append({
+                    "source_call_index": call_index,
+                    "refinement_round": refinement_round,
+                    "input_sha256": stable_hash(refinement_request),
+                    "response_sha256": stable_hash(refinement_raw),
+                    "item_ids": [item.item_id for item in candidate_bank],
+                    "usage": dict(getattr(backend, "last_usage", {}) or {}),
+                })
+            all_items = list(candidate_bank)
+        else:
+            all_items.extend(items)
         call_receipts.append({
             "call_index": call_index,
             "input_sha256": stable_hash(payload),
             "response_sha256": stable_hash(raw),
             "attempts": attempt,
             "item_ids": [item.item_id for item in items],
-            "usage": dict(getattr(backend, "last_usage", {}) or {}),
+            "usage": induction_usage,
         })
     body = {
         "schema_version": 2,
@@ -508,12 +557,17 @@ def induce_memory_artifact(
         "source_projection": projection,
         "source_payload_sha256": stable_hash(canonical),
         "induction_calls": len(calls),
+        "expel_refinement_rounds": (
+            int(expel_refinement_rounds) if method == MemoryBaseline.EXPEL else 0
+        ),
+        "refinement_calls": len(refinement_call_receipts),
         "maximum_episodes_per_call": maximum_episodes_per_call,
         "source_receipt_ids": sorted(receipt_to_episode),
         "backend_identity": dict(backend.identity),
         "backend_identity_sha256": stable_hash(backend.identity),
         "items": [asdict(item) for item in all_items],
         "call_receipts": call_receipts,
+        "refinement_call_receipts": refinement_call_receipts,
         "online_memory_updates_allowed": False,
         "target_actions_in_memory_allowed": False,
     }
@@ -591,6 +645,17 @@ _TARGET_BINDING_VERIFIER_SYSTEM = (
     "merely renamed. Return exactly {\"decisions\":[...]} with one row per candidate_ref and "
     "fields candidate_ref, admit, supporting_example_ids, reason. An admitted row must cite at "
     "least one real supplied example_id."
+)
+
+_TARGET_GATE_ONLY_SYSTEM = (
+    "You are a representation-neutral admission gate for cross-domain memory. "
+    "For every supplied candidate, decide only ADMIT or REJECT from the supplied "
+    "target adaptation examples. Never rewrite, summarize, repair, or translate a "
+    "candidate. Admit only when at least one example directly demonstrates that the "
+    "unchanged candidate is useful in this target domain; generic plausibility is not "
+    "evidence. Return exactly {\"decisions\":[...]} with one row per candidate_ref "
+    "and fields candidate_ref, admit, supporting_example_ids, reason. Every admitted "
+    "row must cite at least one real example_id; rejected rows cite no examples."
 )
 
 _FORBIDDEN_BOUND_MEMORY_TERMS = (
@@ -681,6 +746,197 @@ def _validated_adaptation_payload(
         if split != "adaptation":
             raise TargetBindingError("qualification/formal example reached target binding")
     return json.loads(json.dumps(payload, ensure_ascii=False))
+
+
+def gate_candidates_to_target(
+    candidates: Sequence[Mapping[str, Any]],
+    target_domain: TargetDomain | str,
+    adaptation_payload: Mapping[str, Any],
+    backend: CompletionBackend,
+    *,
+    maximum_items_per_call: int = 8,
+    gate_retries: int = 3,
+) -> dict[str, Any]:
+    """Apply the same evidence-only, no-rewrite gate to any memory representation."""
+    target_domain = TargetDomain(target_domain)
+    adaptation = _validated_adaptation_payload(adaptation_payload, target_domain)
+    native_actions = tuple(dict.fromkeys(
+        str(action)
+        for example in adaptation["examples"]
+        for action in (example.get("native_actions") or ())
+    ))
+    known_examples = {str(example["example_id"]) for example in adaptation["examples"]}
+    normalised: list[dict[str, str]] = []
+    seen_ids: set[str] = set()
+    for raw in candidates:
+        candidate_id = str(raw.get("candidate_id") or "").strip()
+        title = str(raw.get("title") or "").strip()
+        content = str(raw.get("content") or "").strip()
+        applicability = str(raw.get("applicability") or "").strip()
+        if not candidate_id or candidate_id in seen_ids:
+            raise TargetBindingError("candidate identity is empty or duplicated")
+        if not title or not content or not applicability:
+            raise TargetBindingError(f"candidate {candidate_id!r} has an empty rendered field")
+        seen_ids.add(candidate_id)
+        normalised.append({
+            "candidate_id": candidate_id, "title": title,
+            "content": content, "applicability": applicability,
+        })
+
+    decisions: list[dict[str, Any]] = []
+    call_receipts: list[dict[str, Any]] = []
+    size = max(1, int(maximum_items_per_call))
+    for call_index, start in enumerate(range(0, len(normalised), size)):
+        selected = normalised[start:start + size]
+        eligible: list[dict[str, str]] = []
+        for candidate in selected:
+            copied = text_names_native_action(
+                " ".join((candidate["title"], candidate["content"], candidate["applicability"])),
+                native_actions,
+            )
+            if copied is not None:
+                decisions.append({
+                    "candidate_id": candidate["candidate_id"], "admit": False,
+                    "supporting_example_ids": [],
+                    "reason": f"mechanical target-action leakage: {copied}",
+                    "decision_authority": "MECHANICAL_TARGET_ACTION_GATE",
+                })
+            else:
+                eligible.append(candidate)
+        if not eligible:
+            continue
+        reference_to_id = {
+            f"G{start + offset:05d}": candidate["candidate_id"]
+            for offset, candidate in enumerate(eligible)
+        }
+        candidate_by_id = {candidate["candidate_id"]: candidate for candidate in eligible}
+        request = {
+            "target_domain": target_domain.value,
+            "adaptation_examples": adaptation["examples"],
+            "candidates": [
+                dict(candidate_by_id[candidate_id], candidate_ref=reference)
+                for reference, candidate_id in reference_to_id.items()
+            ],
+        }
+        error_text = ""
+        for attempt in range(1, gate_retries + 1):
+            call_request = request if not error_text else request | {
+                "previous_attempt_rejected": error_text,
+            }
+            raw = backend.complete("memory_gate_verifier", _TARGET_GATE_ONLY_SYSTEM, call_request)
+            usage = dict(getattr(backend, "last_usage", {}) or {})
+            try:
+                parsed = json.loads(raw)
+                rows = parsed.get("decisions") if isinstance(parsed, Mapping) else None
+                if not isinstance(rows, list):
+                    raise TargetBindingError("memory gate returned no decisions list")
+                returned = [str(row.get("candidate_ref") or "") for row in rows]
+                if (len(rows) != len(reference_to_id) or set(returned) != set(reference_to_id)
+                        or len(set(returned)) != len(returned)):
+                    raise TargetBindingError("memory gate must decide every candidate exactly once")
+                parsed_decisions: list[dict[str, Any]] = []
+                for row in rows:
+                    admit = bool(row.get("admit"))
+                    supporting = list(map(str, row.get("supporting_example_ids") or ()))
+                    if admit and (not supporting or set(supporting) - known_examples):
+                        raise TargetBindingError("memory gate cited invalid adaptation evidence")
+                    if not admit and supporting:
+                        raise TargetBindingError("rejected memory gate row must not cite evidence")
+                    parsed_decisions.append({
+                        "candidate_id": reference_to_id[str(row["candidate_ref"])],
+                        "admit": admit, "supporting_example_ids": supporting,
+                        "reason": str(row.get("reason") or "")[:1000],
+                        "decision_authority": "SHARED_EVIDENCE_GATE",
+                    })
+                decisions.extend(parsed_decisions)
+                break
+            except (ValueError, KeyError, TypeError) as error:
+                error_text = str(error)[:400]
+        else:
+            raise TargetBindingError(
+                f"memory gate call {call_index} failed {gate_retries} times: {error_text}"
+            )
+        call_receipts.append({
+            "call_index": call_index, "input_sha256": stable_hash(request),
+            "response_sha256": stable_hash(raw), "attempts": attempt, "usage": usage,
+        })
+
+    decision_by_id = {row["candidate_id"]: row for row in decisions}
+    if set(decision_by_id) != seen_ids or len(decisions) != len(seen_ids):
+        raise TargetBindingError("shared gate did not produce exactly one decision per candidate")
+    ordered = [decision_by_id[candidate["candidate_id"]] for candidate in normalised]
+    return {
+        "schema_version": 1, "gate_policy": "SHARED_GATE_ONLY_NO_REWRITE",
+        "target_domain": target_domain.value,
+        "adaptation_payload_sha256": stable_hash(adaptation),
+        "adaptation_example_ids": sorted(known_examples),
+        "candidate_payload_sha256": stable_hash(normalised),
+        "admitted_candidate_ids": [row["candidate_id"] for row in ordered if row["admit"]],
+        "decisions": ordered, "call_receipts": call_receipts,
+        "backend_identity": dict(backend.identity),
+        "backend_identity_sha256": stable_hash(backend.identity),
+    }
+
+
+def gate_memory_artifact_to_target(
+    source_artifact: Mapping[str, Any],
+    target_domain: TargetDomain | str,
+    adaptation_payload: Mapping[str, Any],
+    backend: CompletionBackend,
+    *,
+    maximum_items_per_call: int = 8,
+    gate_retries: int = 3,
+) -> dict[str, Any]:
+    """Freeze the admitted subset of a source bank without changing any item bytes."""
+    validate_memory_artifact(source_artifact)
+    target_domain = TargetDomain(target_domain)
+    if target_domain.value in set(map(str, source_artifact["source_domains"])):
+        raise TargetBindingError("cannot gate memory back to a source domain")
+    source_items = list(source_artifact["items"])
+    receipt = gate_candidates_to_target(
+        [{"candidate_id": str(item["item_id"]), "title": str(item["title"]),
+          "content": str(item["content"]), "applicability": str(item["applicability"])}
+         for item in source_items],
+        target_domain, adaptation_payload, backend,
+        maximum_items_per_call=maximum_items_per_call, gate_retries=gate_retries,
+    )
+    admitted = set(receipt["admitted_candidate_ids"])
+    decision_by_id = {row["candidate_id"]: row for row in receipt["decisions"]}
+    bound_items = [copy.deepcopy(item)
+                   for item in source_items if str(item["item_id"]) in admitted]
+    item_bindings = [{
+        "source_item_id": str(item["item_id"]), "bound_item_id": str(item["item_id"]),
+        "verified_supporting_example_ids": decision_by_id[str(item["item_id"])]["supporting_example_ids"],
+        "verification_reason": decision_by_id[str(item["item_id"])]["reason"],
+    } for item in bound_items]
+    body = {
+        key: json.loads(json.dumps(value, ensure_ascii=False))
+        for key, value in source_artifact.items()
+        if key not in {"artifact_sha256", "items", "call_receipts", "backend_identity",
+                       "backend_identity_sha256", "target_binding"}
+    }
+    body.update({
+        "schema_version": 4,
+        "artifact_kind": "FROZEN_TARGET_BOUND_CROSS_DOMAIN_MEMORY_BASELINE",
+        "items": bound_items, "backend_identity": receipt["backend_identity"],
+        "backend_identity_sha256": receipt["backend_identity_sha256"],
+        "call_receipts": receipt["call_receipts"],
+        "target_binding": {
+            "target_domain": target_domain.value,
+            "binding_mode": "SHARED_GATE_ONLY_NO_REWRITE",
+            "binding_status": "BOUND_ITEMS_AVAILABLE" if bound_items else "ALL_ITEMS_ABSTAINED",
+            "source_artifact_sha256": source_artifact["artifact_sha256"],
+            "adaptation_payload_sha256": receipt["adaptation_payload_sha256"],
+            "adaptation_example_ids": receipt["adaptation_example_ids"],
+            "item_bindings": item_bindings, "gate_decisions": receipt["decisions"],
+            "candidate_payload_sha256": receipt["candidate_payload_sha256"],
+            "source_abstraction_audit": source_abstraction_audit(source_artifact),
+        },
+        "online_memory_updates_allowed": False, "target_actions_in_memory_allowed": False,
+    })
+    artifact = body | {"artifact_sha256": stable_hash(body)}
+    validate_memory_artifact(artifact)
+    return artifact
 
 
 def bind_memory_artifact_to_target(
@@ -1200,6 +1456,7 @@ __all__ = [
     "MemoryItem", "OutcomeAuthority", "OutcomeLabel", "TargetBindingError", "TargetDomain",
     "adapt_target_context", "canonical_source_episodes",
     "canonical_source_payload", "bind_memory_artifact_to_target",
+    "gate_candidates_to_target", "gate_memory_artifact_to_target",
     "induce_memory_artifact", "method_code_reference", "source_abstraction_audit",
     "resolve_source_outcome", "retrieve_memory_items", "source_projection",
     "text_names_native_action", "validate_memory_artifact",

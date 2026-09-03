@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "status": "PILOT_GATE_COVERAGE_ONLY_NOT_A_TARGET_PERFORMANCE_CLAIM",
+  "date": "2026-09-02",
+  "scope": ["webshop", "alfworld", "discoveryworld", "tirbench"],
+  "gate_model": "qwen/qwen3.5-35b-a3b",
+  "gate_policy": "SHARED_GATE_ONLY_NO_REWRITE",
+  "source_superset_episode_count": 36,
+  "target_adaptation_examples_per_domain": 2,
+  "results": {
+    "webshop": {
+      "expel": {"source_items": 21, "admitted_items": 0, "artifact_sha256": "2f2a17e317e66d0074729f972801bb76441de3b31c933b3325db4fa176f7f7c6"},
+      "awm": {"source_items": 13, "admitted_items": 0, "artifact_sha256": "169ad4cf095fa46c92e6842e44990231fa7241efd5322c5643dea1babe3d3b1e"},
+      "reasoning_bank": {"source_items": 79, "admitted_items": 2, "artifact_sha256": "502738a253024359dc950c64141b5955c75be7d0092557d0548b9ef0c4a265a8"}
+    },
+    "alfworld": {
+      "expel": {"source_items": 21, "admitted_items": 0, "artifact_sha256": "df0e7bef4028a5b40dcddd30d17a942aa6c583e00230499942584e49085d2d1a"},
+      "awm": {"source_items": 13, "admitted_items": 0, "artifact_sha256": "808e3f2aadb85547dbdf1f68e7b24e299a821cf1908123819dc5c4d6afe9df7d"},
+      "reasoning_bank": {"source_items": 79, "admitted_items": 1, "artifact_sha256": "5d8062aa132ac87cb640be4bc0b7006ebc607fd0299d7ed3fccacd86632ef45f"}
+    },
+    "discoveryworld": {
+      "expel": {"source_items": 21, "admitted_items": 0, "artifact_sha256": "dbd9be195b1e7f8b5982b99ab3284866e57e72f1e56a53c4f6a984aeb1540252"},
+      "awm": {"source_items": 13, "admitted_items": 0, "artifact_sha256": "fa0ea6770114fd2a714d2eeeb1cd30c09501962e807d8559d43655d1c796fc95"},
+      "reasoning_bank": {"source_items": 79, "admitted_items": 2, "artifact_sha256": "2295b337b3fc40359f2029cd146ab07c1d541c772dd2ffcd0bdb4692d418be23"}
+    },
+    "tirbench": {
+      "expel": {"source_items": 21, "admitted_items": 0, "artifact_sha256": "76a0fe4254f7781c881d3410a37b00dae92ef576f3389b2dfa78e2437cae7871"},
+      "awm": {"source_items": 13, "admitted_items": 0, "artifact_sha256": "343baaaf36abd9ebf02018c69c5e240ecaaef69ee46cffb4b911b9ac7d94d40e"},
+      "reasoning_bank": {"source_items": 79, "admitted_items": 0, "artifact_sha256": "13e9b8822fe9f2acb61cf7fa3ec5c2ed33ccd7ba26661cdf23b2cdf9fed6c3cc"}
+    }
+  },
+  "formal_blockers": [
+    "source superset has 36 episodes rather than the preregistered 96",
+    "this provisional ExpeL source artifact predates iterative insight refinement",
+    "formal target cohorts are not frozen"
+  ],
+  "interpretation": "Without target-specific rewriting, current ExpeL and AWM memories have zero evidence-backed coverage on all four pilot domains. ReasoningBank admits 2/79 items on WebShop, 1/79 on ALFWorld, 2/79 on DiscoveryWorld, and 0/79 on TIRBench. These are coverage observations only; target outcome rollouts are deferred to the refined 96-episode source suite."
+}
