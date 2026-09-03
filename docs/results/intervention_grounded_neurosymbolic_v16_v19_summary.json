@@ -1,0 +1,125 @@
+{
+  "schema_version": "intervention-grounded-neurosymbolic-v16-v19-summary",
+  "claim_boundary": "Controlled synthetic source and consumed ALFWorld train-development tasks only; not fresh cross-domain generalization and not real-game source transfer.",
+  "v16": {
+    "status": "POSTHOC_INVALIDATED_ORACLE_SYMBOL_SHORTCUT",
+    "source_gate_status": "SOURCE_GATE_PASSED",
+    "candidate_sha256": "597d81bdf433bc6ef966ab56f220792094698a7bf8dc6d31c7c528faa76dec6d",
+    "report_sha256": "2722ce5dff8ccddadec34dd4f2e9ae6a928bfa3ea1ca38a36048ca6031a9e58a",
+    "reason": "The pairwise representation still exposed matches_required_option and interactions, so a perfect source gate was not evidence of transferable structure."
+  },
+  "v17_source": {
+    "status": "SOURCE_GATE_PASSED",
+    "candidate_sha256": "4df4c2e3af752e31c06734f1466170a88fda4b1f47da8143a606aedebe4d35c6",
+    "report_sha256": "e4bd67656c01238c1394585b8572f7a9364077990bd54b881652228d586ea743",
+    "heldout_states": 2048,
+    "authentic_interventions": 1521,
+    "authentic_positive_interventions": 1521,
+    "authentic_negative_interventions": 0,
+    "authentic_mean_true_utility": 0.1630459,
+    "authentic_utility_stratified_bootstrap_lower_bound": 0.155301,
+    "destructive_control_interventions": {
+      "within_state_effect_permutation": 0,
+      "within_state_value_shuffle": 0,
+      "effect_blind": 0
+    },
+    "forbidden_oracle_feature_values_nonzero": 0,
+    "limitation": "The source is a controlled synthetic multi-surface workflow generator, not collected real-game trajectories."
+  },
+  "v18_target_grounder": {
+    "status": "CLASSIFIER_GATE_PASSED_TRANSFER_CONTRACT_FAILED",
+    "artifact_sha256": "71aff0cbd171a3b20e5c7805ea0d0e41f4f99da856dfaabb8e716a1cd7f331a8",
+    "validation_states": 266,
+    "authentic_pairwise_auc": 0.846558758656503,
+    "permuted_expert_control_pairwise_auc": 0.29066924243128284,
+    "authentic_top1": 0.31203007518796994,
+    "random_top1": 0.03176776485169853,
+    "cluster_bootstrap_lower_top1_minus_random": 0.1726667460580039,
+    "cluster_bootstrap_lower_pairwise_auc_minus_permuted_control": 0.5271759587793041,
+    "required_option_or_workflow_features_used": false,
+    "reward_success_completion_fields_consumed": false,
+    "actual_score_semantics": "expert_action_imitation_score",
+    "causal_successor_effect_certified": false,
+    "counterfactual_action_supervision": false
+  },
+  "v18_outcome_blind_shadow": {
+    "status": "POSTHOC_INVALIDATED_SCORE_SEMANTICS_AND_SUPPORT_MISMATCH",
+    "report_sha256": "9dad3a5df2a74f5c8dbce3d0da7feebd00a2eddaf29ca71d237db74fad21e360",
+    "tasks": 64,
+    "tasks_with_authentic_option_contrast": 41,
+    "tasks_with_source_specific_option_contrast": 41,
+    "authentic_option_contrasts": 1279,
+    "source_specific_option_contrasts": 1279,
+    "mean_option_change_rate": {
+      "authentic_intervention_effect": 0.33307291666666666,
+      "within_state_effect_permutation": 0.0,
+      "within_state_value_shuffle": 0.0,
+      "effect_blind": 0.0,
+      "target_effect_permutation": 0.011458333333333333
+    },
+    "authentic_minus_control_cluster_bootstrap_lower_bounds": {
+      "within_state_effect_permutation": 0.2638020833333333,
+      "within_state_value_shuffle": 0.26614583333333336,
+      "effect_blind": 0.26484375000000004,
+      "target_effect_permutation": 0.2520833333333333
+    },
+    "reward_serialized": false,
+    "official_success_serialized": false,
+    "interpretation": "Source-specific numerical option contrast only; not valid evidence of causally grounded neural-symbolic transfer."
+  },
+  "v19_matched_outcomes": {
+    "status": "CONSUMED_DEVELOPMENT_TRANSFER_GATE_FAILED_STOP",
+    "report_sha256": "deb1075814de088d1a70f39947a19d3d11058e54e9af55b9a4cdef50c9522996",
+    "tasks_per_condition": 64,
+    "successes": {
+      "target_neural_baseline": 0,
+      "authentic_intervention_effect": 0,
+      "source_effect_permutation": 0,
+      "target_effect_permutation": 0
+    },
+    "mean_return": {
+      "target_neural_baseline": 0.0,
+      "authentic_intervention_effect": 0.0,
+      "source_effect_permutation": 0.0,
+      "target_effect_permutation": 0.0
+    },
+    "mean_source_interventions": {
+      "target_neural_baseline": 0.0,
+      "authentic_intervention_effect": 14.59375,
+      "source_effect_permutation": 0.0,
+      "target_effect_permutation": 0.109375
+    },
+    "mean_adjacent_exact_action_repeat_rate": {
+      "target_neural_baseline": 0.2666843220338983,
+      "authentic_intervention_effect": 0.4483580508474576,
+      "source_effect_permutation": 0.2666843220338983,
+      "target_effect_permutation": 0.2748940677966102
+    },
+    "authentic_median_max_identical_action_run": 17.5,
+    "baseline_median_max_identical_action_run": 1.0,
+    "authentic_tasks_with_source_interventions": 41,
+    "authentic_intervention_pair_counts": {
+      "ACQUIRE->SEARCH": 356,
+      "SEARCH->PLACE": 253,
+      "SEARCH->ACQUIRE": 115,
+      "ACQUIRE->TRANSFORM": 113,
+      "PLACE->TRANSFORM": 53,
+      "PLACE->SEARCH": 44
+    },
+    "confirmation_or_valid_unseen_read_or_run": false
+  },
+  "diagnosis": [
+    "The target quantity named neural_effect_probability was expert-action likelihood, not a learned causal successor-state effect.",
+    "The source calibration support normally had exactly one of five effect scores above 0.1, while every target contrast state had two or three scores above 0.1; source-only conformal residuals did not certify this covariate shift.",
+    "Zeroing ungrounded binding fields prevented oracle leakage but also removed target-object and destination binding needed to instantiate an abstract option safely.",
+    "The transferred relative option value had no target-native successor-state update, option termination predicate, or recovery transition, so admitted overrides became loops.",
+    "The V18 contrast gate is post-hoc invalidated as transfer evidence, and V19 rejects the controller as a success-improving mechanism."
+  ],
+  "v20_contract_audit": {
+    "status": "V18_CONTRACT_INVALIDATED_V19_MECHANISM_REJECTED",
+    "audit_sha256": "6b5f73a1699f2f408c9f01c928495c9c6f97056ff205518633397134dfe094bf",
+    "fail_closed_fix": "Require calibrated counterfactual successor-event probabilities plus a joint source-target support receipt before source conformal admission."
+  },
+  "next_required_interface": "Transfer a closed-loop intervention automaton over learned causal event deltas: precondition, native intervention, predicted successor event, termination, and recovery; ground every field with target-native counterfactual transition receipts.",
+  "summary_sha256": "19a5dfcddeeb73d2ee89ea6807b2402bf707ceac306a7d669bd834f17f57a449"
+}

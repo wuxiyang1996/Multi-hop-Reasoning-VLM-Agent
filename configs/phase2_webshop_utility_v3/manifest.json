@@ -1,0 +1,1163 @@
+{
+  "schema_version": "phase2-webshop-six-source-utility-v1",
+  "status": "FROZEN_BEFORE_ANY_PHASE2_TARGET_RESET_PROVIDER_CALL_OR_OUTCOME",
+  "attempt_version": "v3_after_v2_candidate_validation_failure",
+  "claim_boundary": "One-shot aggregate causal utility test of the common policy supported by six independent game lineages on 32 new, product-disjoint WebShop goals. Per-game task counts are replication strata, not powered per-game studies.",
+  "selection_read_target_outcome": false,
+  "historical_target_outcome_reuse_allowed": false,
+  "source_assignment_read_target_semantics": false,
+  "source_assignment_rule": "SOURCE_GAMES manifest order round-robin before V3 outcomes",
+  "candidate_generation_failure_policy": {
+    "schema_version": "webshop-target-native-candidate-fallback-v3",
+    "trigger": "all frozen model schema retries fail target-native action validation",
+    "action": "noop()",
+    "task_or_goal_information_used": false,
+    "source_information_used": false,
+    "condition_information_used": false,
+    "transport_errors_caught": false,
+    "rationale": "Convert malformed model output into an audited safe policy outcome, not a runtime failure."
+  },
+  "seed_derivation": {
+    "label": "phase2-webshop-six-source-utility-v3-failclosed",
+    "phase1_audit_sha256": "9df87079672378370ae2db3a2acdcd817a220cb07d0465fe0a9c68bfb518bba7",
+    "v2_report_sha256": "edb94a37ab0676cacac2b6f5cae4dfd1b7101fb5103f7c6e231599cb23ab929a",
+    "fallback_schema": "webshop-target-native-candidate-fallback-v3",
+    "seed_hash": "e932fde1c7253e3df072c14b7534e518c87a16350ca357c69275bb0747e41909",
+    "rule": "int(first eight hex digits, base16)"
+  },
+  "goal_seed": 3912433121,
+  "server_goal_count": 6910,
+  "number_of_registered_tasks_required": 344,
+  "prior_consumed_goal_manifest": "configs/phase2_webshop_utility_v2/manifest.json",
+  "prior_consumed_goal_manifest_file_sha256": "8df925c772491f512a8b9176d1c7f63065892ef17ef10a2b2c8f650825ac8a87",
+  "earlier_consumed_goal_manifest": "configs/phase2_webshop_utility_v1/manifest.json",
+  "earlier_consumed_goal_manifest_file_sha256": "f80e94e0e4600917aab90743638d39fa6d10c4db3923ea9b99038e25f025b107",
+  "historical_consumed_goal_manifest": "configs/webshop_synthetic_unique_v14_frozen.json",
+  "historical_consumed_goal_manifest_file_sha256": "fc5d8a8ea2c5b9cfe6296fab6d36d623bdf8c539e31b45cd3c0bc7e2601705ee",
+  "predecessor_report": "runs/phase2_webshop_utility_v2/report.json",
+  "predecessor_report_sha256": "edb94a37ab0676cacac2b6f5cae4dfd1b7101fb5103f7c6e231599cb23ab929a",
+  "predecessor_report_file_sha256": "36a21e075212393846e908d9e6db5d7eea8962494daaaa1f0c17a3307e5f5a5f",
+  "predecessor_failed_gates": [
+    "all_receipts_complete"
+  ],
+  "runtime_drycheck": "docs/results/phase2_webshop_runtime_v3_drycheck.json",
+  "runtime_drycheck_sha256": "781b732eeed56a4eab8ccd6d1a95bd23460724d7802627c1a1e905f6bd152389",
+  "runtime_drycheck_file_sha256": "89321973e945133db07a2b391825ca78b3abdb79d7fabccbeeb9e639a6eed397",
+  "execution_interpreter": "/fs/gamma-projects/vlm-robot/conda/envs/vlm_benchmarks/bin/python3.11",
+  "prior_target_adapter_qualification": "runs/webshop_search_automaton_v16_formal/report.json",
+  "prior_target_adapter_qualification_file_sha256": "6d2c7c20fdf091013eb8dce9c769795ca02e34b55a70ca160836df3be44b0a51",
+  "parent_phase1_manifest": "configs/phase1_direct_prospective_v1/manifest.json",
+  "parent_phase1_manifest_sha256": "7a0d600bc3c9c3ec5ff4c7bb2384e5740cbbb5b6aba8918962faa57b5468f5a1",
+  "parent_phase1_manifest_file_sha256": "c2045baf6ff66f1062a88812a48dcd70bbf7f479e21993b2cd1bac7ce2787cb5",
+  "parent_phase1_audit": "docs/results/phase1_direct_prospective_24_of_24_v4.json",
+  "parent_phase1_audit_sha256": "9df87079672378370ae2db3a2acdcd817a220cb07d0465fe0a9c68bfb518bba7",
+  "semantic_independence_audit": {
+    "tasks": 32,
+    "unique_goal_semantics": 32,
+    "required_unique_goal_semantics": 32,
+    "duplicate_goal_semantics": [],
+    "duplicate_multiplicities": {},
+    "consumed_instruction_overlap": [],
+    "candidate_unique_asins": 32,
+    "consumed_asin_overlap": [],
+    "gates": {
+      "enough_unique_goal_semantics": true,
+      "one_task_per_goal_semantics": true,
+      "instruction_disjoint_from_consumed": true,
+      "asin_disjoint_from_consumed": true,
+      "one_task_per_asin": true
+    },
+    "passed": true
+  },
+  "sources": {
+    "tetris": {
+      "artifact": "runs/phase1_direct_prospective_v1/source_artifacts/tetris.json",
+      "artifact_sha256": "585e5b29303fcbe23e8f8b5414ea389ea6257c96f55fa64897661fe2e2b306e7",
+      "artifact_file_sha256": "7c40f5baab7926435b58d2992ae20ca4eb07e1c72a4b59d9e1e377cde3b8e576"
+    },
+    "candy_crush": {
+      "artifact": "runs/phase1_direct_prospective_v1/source_artifacts/candy_crush.json",
+      "artifact_sha256": "6f80cf4d4a8f4f5d9964680949bd55938d584165aab939b2f028c22649e2ea4d",
+      "artifact_file_sha256": "ebab70c63ade7ab5c888630cddb4c395f9f14eed5b460bf958de5095946369f2"
+    },
+    "gymv_columns": {
+      "artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_columns.json",
+      "artifact_sha256": "39c5194016c037072aaa4a82137a8d242ceda17ed7ccd72caf16b495784000d0",
+      "artifact_file_sha256": "0a47aa22c60266226132e667dbfaf16c03382ca03fd730d95afc751be878255e"
+    },
+    "gymv_streets_of_rage_2": {
+      "artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_streets_of_rage_2.json",
+      "artifact_sha256": "0811312fd98f697b572a72e5c1d2da4417ec6ec35c9db00e51d8f1bb4d1123d6",
+      "artifact_file_sha256": "a66acf806e6188a22782054520f00a1a8142e79874fef5b7f8cc42b9f82dbc54"
+    },
+    "gymv_thunder_force_iii": {
+      "artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_thunder_force_iii.json",
+      "artifact_sha256": "78ccd564e5453fa33a2b34eb2edf46263f025ec45eae2c1bbdf3017cc7d695d8",
+      "artifact_file_sha256": "0b52167b9259d6304950766e94d7e1a3d764ad241af1dfbff658fccc7cebb070"
+    },
+    "gymv_strider": {
+      "artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_strider.json",
+      "artifact_sha256": "9993c7b0d04d2e090f1b20f89b6c4b90f697a8b36f598869e45141a9b5b00ccf",
+      "artifact_file_sha256": "4d6aa2ce61c70c3023c41435d337925289cc9c0e179381e6285492f33a095c5e"
+    }
+  },
+  "target_grounder": "docs/results/webshop_neural_symbolic_v9_frozen_grounder.json",
+  "target_grounder_file_sha256": "bbf8a22ebec8e7ab6d55e570f230ba4fcb2b8630d1dc81bd24ba103f68701782",
+  "conditions": [
+    "raw_target_only",
+    "authentic_search_automaton_plus_target",
+    "event_binding_permuted_control",
+    "ledger_blind_control",
+    "target_native_search_ceiling"
+  ],
+  "tasks": [
+    {
+      "task_id": "webshop.0",
+      "target_identity": "webshop.synthetic.phase2v3.seed3912433121.index0.1c6844f1a688aa36",
+      "server_goal_index": 0,
+      "asin": "B08P28NXH3",
+      "instruction_text": "Find me grain free, artificial ingredients, low calorie, high protein, low carb, non gmo, gluten free puffed snacks with flavor name: cheddar cheese, and price lower than 60.00 dollars",
+      "goal": {
+        "asin": "B08P28NXH3",
+        "category": "grocery",
+        "query": "puffed snacks",
+        "name": "Schoolyard Snacks Low Carb Keto Cheese Puffs - Cheddar Cheese - High Protein - All Natural - Gluten & Grain-Free - Healthy Chips - Low Calorie Food - 12 Pack Single Serve Bags - 100 Calories",
+        "product_category": "Grocery & Gourmet Food › Snacks & Sweets › Snack Foods › Puffed Snacks",
+        "instruction_text": "Find me grain free, artificial ingredients, low calorie, high protein, low carb, non gmo, gluten free puffed snacks with flavor name: cheddar cheese, and price lower than 60.00 dollars",
+        "attributes": [
+          "grain free",
+          "artificial ingredients",
+          "low calorie",
+          "high protein",
+          "low carb",
+          "non gmo",
+          "gluten free"
+        ],
+        "price_upper": 60.0,
+        "goal_options": {
+          "flavor name": "cheddar cheese"
+        },
+        "weight": 0.14472373504631572
+      },
+      "goal_sha256": "1c6844f1a688aa36845944a02419b37e6aa5e335912aa40e67d9b994cd7783f8",
+      "selected_target_previously_executed": false,
+      "source_game": "tetris",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/tetris.json",
+      "source_artifact_sha256": "585e5b29303fcbe23e8f8b5414ea389ea6257c96f55fa64897661fe2e2b306e7",
+      "source_artifact_file_sha256": "7c40f5baab7926435b58d2992ae20ca4eb07e1c72a4b59d9e1e377cde3b8e576"
+    },
+    {
+      "task_id": "webshop.7",
+      "target_identity": "webshop.synthetic.phase2v3.seed3912433121.index7.de8ec3692aed0544",
+      "server_goal_index": 7,
+      "asin": "B09QHT6WKQ",
+      "instruction_text": "Find me twin size beds with storage space, box spring with color: grey, and price lower than 100.00 dollars",
+      "goal": {
+        "asin": "B09QHT6WKQ",
+        "category": "garden",
+        "query": "beds",
+        "name": "Twin Size Platform Bed for Kids Teens Adults, Metal Platform Bed Frame with Headboard and Footboard, 4 Wooden Feets, 2 Steel Legs, Metal Slats Support, No Box Spring Needed, Easy Assembly (Gray)",
+        "product_category": "Home & Kitchen › Furniture › Bedroom Furniture › Beds, Frames & Bases › Bed Frames",
+        "instruction_text": "Find me twin size beds with storage space, box spring with color: grey, and price lower than 100.00 dollars",
+        "attributes": [
+          "twin size",
+          "storage space",
+          "box spring"
+        ],
+        "price_upper": 100.0,
+        "goal_options": {
+          "color": "grey"
+        },
+        "weight": 0.09091710758377425
+      },
+      "goal_sha256": "de8ec3692aed0544d4174919482b23d38b6b9725f75efd71cac2fa3a3804931a",
+      "selected_target_previously_executed": false,
+      "source_game": "candy_crush",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/candy_crush.json",
+      "source_artifact_sha256": "6f80cf4d4a8f4f5d9964680949bd55938d584165aab939b2f028c22649e2ea4d",
+      "source_artifact_file_sha256": "ebab70c63ade7ab5c888630cddb4c395f9f14eed5b460bf958de5095946369f2"
+    },
+    {
+      "task_id": "webshop.8",
+      "target_identity": "webshop.synthetic.phase2v3.seed3912433121.index8.1cbada161ad83ffb",
+      "server_goal_index": 8,
+      "asin": "B09NRF2QGD",
+      "instruction_text": "Find me hall trees with solid wood, storage space for living room with color: beige, and price lower than 350.00 dollars",
+      "goal": {
+        "asin": "B09NRF2QGD",
+        "category": "garden",
+        "query": "hall trees",
+        "name": "DIANDIAN Sturdy Coat Rack Stand Hall Solid Wood Coat Tree with 9 Round Hook, for Clothing Hats, Hallway Entryway Office, Easy Assembly (Color : Beige)",
+        "product_category": "Home & Kitchen › Furniture › Entryway Furniture › Coat Racks",
+        "instruction_text": "Find me hall trees with solid wood, storage space for living room with color: beige, and price lower than 350.00 dollars",
+        "attributes": [
+          "solid wood",
+          "storage space",
+          "living room"
+        ],
+        "price_upper": 350.0,
+        "goal_options": {
+          "color": "beige"
+        },
+        "weight": 0.017650729646697387
+      },
+      "goal_sha256": "1cbada161ad83ffb9a14c8e0b06f934ae24f169b3ec1f8923cb4481129356517",
+      "selected_target_previously_executed": false,
+      "source_game": "gymv_columns",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_columns.json",
+      "source_artifact_sha256": "39c5194016c037072aaa4a82137a8d242ceda17ed7ccd72caf16b495784000d0",
+      "source_artifact_file_sha256": "0a47aa22c60266226132e667dbfaf16c03382ca03fd730d95afc751be878255e"
+    },
+    {
+      "task_id": "webshop.17",
+      "target_identity": "webshop.synthetic.phase2v3.seed3912433121.index17.256155b7e8d62a15",
+      "server_goal_index": 17,
+      "asin": "B07DRFDWVT",
+      "instruction_text": "Find me machine washable living room sets for living room with color: *soft grey, and price lower than 50.00 dollars",
+      "goal": {
+        "asin": "B07DRFDWVT",
+        "category": "garden",
+        "query": "living room sets",
+        "name": "JINCHAN Tie Up Valance Moroccan Tile Print Curtain Valance Bedroom Curtain Quatrefoil Flax Linen Blend Textured Geometry Lattice Rod Pocket Window Treatment Set Living Room 1 Panel 18\" L Grey",
+        "product_category": "Home & Kitchen › Home Décor Products › Window Treatments › Curtains & Drapes › Panels",
+        "instruction_text": "Find me machine washable living room sets for living room with color: *soft grey, and price lower than 50.00 dollars",
+        "attributes": [
+          "machine washable",
+          "living room"
+        ],
+        "price_upper": 50.0,
+        "goal_options": {
+          "color": "*soft grey"
+        },
+        "weight": 0.0029161562542534365
+      },
+      "goal_sha256": "256155b7e8d62a159972f42cb1e391d560136895c119f9a5d9117db346075b0b",
+      "selected_target_previously_executed": false,
+      "source_game": "gymv_streets_of_rage_2",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_streets_of_rage_2.json",
+      "source_artifact_sha256": "0811312fd98f697b572a72e5c1d2da4417ec6ec35c9db00e51d8f1bb4d1123d6",
+      "source_artifact_file_sha256": "a66acf806e6188a22782054520f00a1a8142e79874fef5b7f8cc42b9f82dbc54"
+    },
+    {
+      "task_id": "webshop.27",
+      "target_identity": "webshop.synthetic.phase2v3.seed3912433121.index27.0e57809eb1ab463d",
+      "server_goal_index": 27,
+      "asin": "B07BFLJQCX",
+      "instruction_text": "Find me hair loss products with coconut oil for hair loss, and price lower than 40.00 dollars",
+      "goal": {
+        "asin": "B07BFLJQCX",
+        "category": "beauty",
+        "query": "hair loss products",
+        "name": "artnaturals Black Castor Oil Conditioner – (16 Fl Oz / 473ml) – Strengthen, Grow and Restore – Jamaican Castor – For Color Treated Hair",
+        "product_category": "Beauty & Personal Care › Hair Care › Shampoo & Conditioner › Conditioners",
+        "instruction_text": "Find me hair loss products with coconut oil for hair loss, and price lower than 40.00 dollars",
+        "attributes": [
+          "coconut oil",
+          "hair loss"
+        ],
+        "price_upper": 40.0,
+        "goal_options": {},
+        "weight": 0.18333333333333332
+      },
+      "goal_sha256": "0e57809eb1ab463dcc1e34b22ee14aa54ab69edc691f887186f6408f736058e6",
+      "selected_target_previously_executed": false,
+      "source_game": "gymv_thunder_force_iii",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_thunder_force_iii.json",
+      "source_artifact_sha256": "78ccd564e5453fa33a2b34eb2edf46263f025ec45eae2c1bbdf3017cc7d695d8",
+      "source_artifact_file_sha256": "0b52167b9259d6304950766e94d7e1a3d764ad241af1dfbff658fccc7cebb070"
+    },
+    {
+      "task_id": "webshop.40",
+      "target_identity": "webshop.synthetic.phase2v3.seed3912433121.index40.60ae357df6eaf62a",
+      "server_goal_index": 40,
+      "asin": "B096G437B4",
+      "instruction_text": "Find me mid century table lamps with bronze finish, steel frame, and price lower than 110.00 dollars",
+      "goal": {
+        "asin": "B096G437B4",
+        "category": "garden",
+        "query": "table lamps",
+        "name": "Henn&Hart Mid-Century Modern Metal Table Lamp with Fabric Shade in Blackened Bronze (TL0483)",
+        "product_category": "Tools & Home Improvement › Lighting & Ceiling Fans › Lamps & Shades › Table Lamps",
+        "instruction_text": "Find me mid century table lamps with bronze finish, steel frame, and price lower than 110.00 dollars",
+        "attributes": [
+          "mid century",
+          "bronze finish",
+          "steel frame"
+        ],
+        "price_upper": 110.0,
+        "goal_options": {},
+        "weight": 0.10381836945304439
+      },
+      "goal_sha256": "60ae357df6eaf62ad04f26e3dfa6a854aad448e5578f7caa41db88961cc59541",
+      "selected_target_previously_executed": false,
+      "source_game": "gymv_strider",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_strider.json",
+      "source_artifact_sha256": "9993c7b0d04d2e090f1b20f89b6c4b90f697a8b36f598869e45141a9b5b00ccf",
+      "source_artifact_file_sha256": "4d6aa2ce61c70c3023c41435d337925289cc9c0e179381e6285492f33a095c5e"
+    },
+    {
+      "task_id": "webshop.89",
+      "target_identity": "webshop.synthetic.phase2v3.seed3912433121.index89.4341f4ccc759d5da",
+      "server_goal_index": 89,
+      "asin": "B09Q37JQZ6",
+      "instruction_text": "Find me machine wash women's swimsuits & cover ups with tummy control, high waist with color: green, and size: xx-large, and price lower than 50.00 dollars",
+      "goal": {
+        "asin": "B09Q37JQZ6",
+        "category": "fashion",
+        "query": "women's swimsuits & cover ups",
+        "name": "Women's Sexy Swimsuit One Piece High Neck Halter Bikini Floral Stiching See Through Monokini Tummy Control Beachwear",
+        "product_category": "Clothing, Shoes & Jewelry › Women › Clothing › Swimsuits & Cover Ups › One-Pieces",
+        "instruction_text": "Find me machine wash women's swimsuits & cover ups with tummy control, high waist with color: green, and size: xx-large, and price lower than 50.00 dollars",
+        "attributes": [
+          "machine wash",
+          "tummy control",
+          "high waist"
+        ],
+        "price_upper": 50.0,
+        "goal_options": {
+          "color": "green",
+          "size": "xx-large"
+        },
+        "weight": 0.004443270062190296
+      },
+      "goal_sha256": "4341f4ccc759d5da3db1466576fe192708225590bcecb6857d26d3432ea14d08",
+      "selected_target_previously_executed": false,
+      "source_game": "tetris",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/tetris.json",
+      "source_artifact_sha256": "585e5b29303fcbe23e8f8b5414ea389ea6257c96f55fa64897661fe2e2b306e7",
+      "source_artifact_file_sha256": "7c40f5baab7926435b58d2992ae20ca4eb07e1c72a4b59d9e1e377cde3b8e576"
+    },
+    {
+      "task_id": "webshop.90",
+      "target_identity": "webshop.synthetic.phase2v3.seed3912433121.index90.dc3c102865caf831",
+      "server_goal_index": 90,
+      "asin": "B083ZK4NRS",
+      "instruction_text": "Find me screen protectors with tempered glass, glass screen, and price lower than 50.00 dollars",
+      "goal": {
+        "asin": "B083ZK4NRS",
+        "category": "electronics",
+        "query": "screen protectors",
+        "name": "Spigen Tempered Glass Screen Protector [GlasTR Slim] Designed for Google Pixelbook Go (13.3inch) [9H Hardness]",
+        "product_category": "Cell Phones & Accessories › Accessories › Maintenance, Upkeep & Repairs › Screen Protectors",
+        "instruction_text": "Find me screen protectors with tempered glass, glass screen, and price lower than 50.00 dollars",
+        "attributes": [
+          "tempered glass",
+          "glass screen"
+        ],
+        "price_upper": 50.0,
+        "goal_options": {},
+        "weight": 0.09401709401709402
+      },
+      "goal_sha256": "dc3c102865caf831d2273649f7bbe562db9bca98daa613f69efb34561d373f3c",
+      "selected_target_previously_executed": false,
+      "source_game": "candy_crush",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/candy_crush.json",
+      "source_artifact_sha256": "6f80cf4d4a8f4f5d9964680949bd55938d584165aab939b2f028c22649e2ea4d",
+      "source_artifact_file_sha256": "ebab70c63ade7ab5c888630cddb4c395f9f14eed5b460bf958de5095946369f2"
+    },
+    {
+      "task_id": "webshop.95",
+      "target_identity": "webshop.synthetic.phase2v3.seed3912433121.index95.3418d69d49c752cb",
+      "server_goal_index": 95,
+      "asin": "B094Q7B3SS",
+      "instruction_text": "Find me slim fit, loose fit women's tops, tees & blouses with long sleeve, short sleeve with color: a01#black, and size: 5x-large, and price lower than 40.00 dollars",
+      "goal": {
+        "asin": "B094Q7B3SS",
+        "category": "fashion",
+        "query": "women's tops, tees & blouses",
+        "name": "Women Cold Shoulder Tops, Summer Butterfly Print Shirts Fashion Casual Short Sleeve Plus-Size Tunic Top Tee and Blouse",
+        "product_category": "Clothing, Shoes & Jewelry › Women › Clothing › Tops, Tees & Blouses › Tunics",
+        "instruction_text": "Find me slim fit, loose fit women's tops, tees & blouses with long sleeve, short sleeve with color: a01#black, and size: 5x-large, and price lower than 40.00 dollars",
+        "attributes": [
+          "slim fit",
+          "loose fit",
+          "long sleeve",
+          "short sleeve"
+        ],
+        "price_upper": 40.0,
+        "goal_options": {
+          "color": "a01#black",
+          "size": "5x-large"
+        },
+        "weight": 0.001049415721996561
+      },
+      "goal_sha256": "3418d69d49c752cb428479e74c4cf8e5c7341871dd2706942e7b5ea9eed49853",
+      "selected_target_previously_executed": false,
+      "source_game": "gymv_columns",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_columns.json",
+      "source_artifact_sha256": "39c5194016c037072aaa4a82137a8d242ceda17ed7ccd72caf16b495784000d0",
+      "source_artifact_file_sha256": "0a47aa22c60266226132e667dbfaf16c03382ca03fd730d95afc751be878255e"
+    },
+    {
+      "task_id": "webshop.105",
+      "target_identity": "webshop.synthetic.phase2v3.seed3912433121.index105.0b0cba5adf7348ee",
+      "server_goal_index": 105,
+      "asin": "B09MFZ726L",
+      "instruction_text": "Find me open toe women's flats with rubber sole for daily wear with color: black, and size: 8, and price lower than 60.00 dollars",
+      "goal": {
+        "asin": "B09MFZ726L",
+        "category": "fashion",
+        "query": "women's flats",
+        "name": "Olivia Miller Women’s Fashion Ladies Shoes, Sara PU Vegan Leather & Rhinestones Double Strap Cutout Band Slip On Open Toe Trendy Casual Summer Slide Flat Sandals",
+        "product_category": "Clothing, Shoes & Jewelry › Women › Shoes › Sandals › Slides",
+        "instruction_text": "Find me open toe women's flats with rubber sole for daily wear with color: black, and size: 8, and price lower than 60.00 dollars",
+        "attributes": [
+          "open toe",
+          "rubber sole",
+          "daily wear"
+        ],
+        "price_upper": 60.0,
+        "goal_options": {
+          "color": "black",
+          "size": "8"
+        },
+        "weight": 0.006200749645957226
+      },
+      "goal_sha256": "0b0cba5adf7348ee8a03fbeb6e8c9d1b36889b4faa394934cc6440181a9811df",
+      "selected_target_previously_executed": false,
+      "source_game": "gymv_streets_of_rage_2",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_streets_of_rage_2.json",
+      "source_artifact_sha256": "0811312fd98f697b572a72e5c1d2da4417ec6ec35c9db00e51d8f1bb4d1123d6",
+      "source_artifact_file_sha256": "a66acf806e6188a22782054520f00a1a8142e79874fef5b7f8cc42b9f82dbc54"
+    },
+    {
+      "task_id": "webshop.111",
+      "target_identity": "webshop.synthetic.phase2v3.seed3912433121.index111.8bfe528783104953",
+      "server_goal_index": 111,
+      "asin": "B09HMCKZQW",
+      "instruction_text": "Find me knee high, non slip women's pumps with closed toe, leather sole, ankle strap, arch support, rubber outsole with size: 9.5, and price lower than 60.00 dollars",
+      "goal": {
+        "asin": "B09HMCKZQW",
+        "category": "fashion",
+        "query": "women's pumps",
+        "name": "Copercn Dress Ankle Booties For Women Ladies Fashion Casual Chunky Block High Heels Dress Pump Thermal Short Boots Winter Fall Dressy Short Boots For Business Work Wedding Party Dresses",
+        "product_category": "Clothing, Shoes & Jewelry › Women › Shoes › Boots › Ankle & Bootie",
+        "instruction_text": "Find me knee high, non slip women's pumps with closed toe, leather sole, ankle strap, arch support, rubber outsole with size: 9.5, and price lower than 60.00 dollars",
+        "attributes": [
+          "knee high",
+          "non slip",
+          "closed toe",
+          "leather sole",
+          "ankle strap",
+          "arch support",
+          "rubber outsole"
+        ],
+        "price_upper": 60.0,
+        "goal_options": {
+          "size": "9.5"
+        },
+        "weight": 0.03372975085202524
+      },
+      "goal_sha256": "8bfe5287831049534e53c9024476c1b2c3bba776c911cb4c4c3df10f40ab6ed5",
+      "selected_target_previously_executed": false,
+      "source_game": "gymv_thunder_force_iii",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_thunder_force_iii.json",
+      "source_artifact_sha256": "78ccd564e5453fa33a2b34eb2edf46263f025ec45eae2c1bbdf3017cc7d695d8",
+      "source_artifact_file_sha256": "0b52167b9259d6304950766e94d7e1a3d764ad241af1dfbff658fccc7cebb070"
+    },
+    {
+      "task_id": "webshop.114",
+      "target_identity": "webshop.synthetic.phase2v3.seed3912433121.index114.db9899652c8ff5f5",
+      "server_goal_index": 114,
+      "asin": "B09P57ZKGP",
+      "instruction_text": "Find me high performance, high speed flashes with color: black, and size: 128mb, and price lower than 130.00 dollars",
+      "goal": {
+        "asin": "B09P57ZKGP",
+        "category": "electronics",
+        "query": "flashes",
+        "name": "10 Pack 512MB USB Flash Drives Gift Stick Business Bidding Thumb Drive USB 2.0 high Speed Pen Drives (512MB, Black)",
+        "product_category": "Electronics › Computers & Accessories › Data Storage › USB Flash Drives",
+        "instruction_text": "Find me high performance, high speed flashes with color: black, and size: 128mb, and price lower than 130.00 dollars",
+        "attributes": [
+          "high performance",
+          "high speed"
+        ],
+        "price_upper": 130.0,
+        "goal_options": {
+          "color": "black",
+          "size": "128mb"
+        },
+        "weight": 0.04090909090909091
+      },
+      "goal_sha256": "db9899652c8ff5f50086e4811a9616dcc90820701caa8609b8f2753d0ab5d1af",
+      "selected_target_previously_executed": false,
+      "source_game": "gymv_strider",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_strider.json",
+      "source_artifact_sha256": "9993c7b0d04d2e090f1b20f89b6c4b90f697a8b36f598869e45141a9b5b00ccf",
+      "source_artifact_file_sha256": "4d6aa2ce61c70c3023c41435d337925289cc9c0e179381e6285492f33a095c5e"
+    },
+    {
+      "task_id": "webshop.116",
+      "target_identity": "webshop.synthetic.phase2v3.seed3912433121.index116.02b199dcf286dd1c",
+      "server_goal_index": 116,
+      "asin": "B09NDS8F4V",
+      "instruction_text": "Find me women's jumpsuits, rompers & overalls with button closure, quality polyester, polyester spandex, long sleeve for daily wear with color: hot pink, and size: large, and price lower than 40.00 dollars",
+      "goal": {
+        "asin": "B09NDS8F4V",
+        "category": "fashion",
+        "query": "women's jumpsuits, rompers & overalls",
+        "name": "AODONG Onesie Pajamas for Women Onesies Romper Pajamas Printed Bodycon Jumpsuit Shorts Sexy One Piece Pjs Overall",
+        "product_category": "Clothing, Shoes & Jewelry › Women › Clothing › Lingerie, Sleep & Lounge › Sleep & Lounge › Sets",
+        "instruction_text": "Find me women's jumpsuits, rompers & overalls with button closure, quality polyester, polyester spandex, long sleeve for daily wear with color: hot pink, and size: large, and price lower than 40.00 dollars",
+        "attributes": [
+          "button closure",
+          "quality polyester",
+          "polyester spandex",
+          "long sleeve",
+          "daily wear"
+        ],
+        "price_upper": 40.0,
+        "goal_options": {
+          "color": "hot pink",
+          "size": "large"
+        },
+        "weight": 0.00858723710831699
+      },
+      "goal_sha256": "02b199dcf286dd1c062a6a973901d3ab191d7dc66fe13a32e90b1af2637e8b55",
+      "selected_target_previously_executed": false,
+      "source_game": "tetris",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/tetris.json",
+      "source_artifact_sha256": "585e5b29303fcbe23e8f8b5414ea389ea6257c96f55fa64897661fe2e2b306e7",
+      "source_artifact_file_sha256": "7c40f5baab7926435b58d2992ae20ca4eb07e1c72a4b59d9e1e377cde3b8e576"
+    },
+    {
+      "task_id": "webshop.132",
+      "target_identity": "webshop.synthetic.phase2v3.seed3912433121.index132.d45e40c034174cef",
+      "server_goal_index": 132,
+      "asin": "B09Q67H373",
+      "instruction_text": "Find me loose fit, slim fit men's tuxedo shirts with long sleeve, short sleeve, polyester cotton, elastic waist, regular fit for gym workout with color: b-blue, and size: x-large, and price lower than 40.00 dollars",
+      "goal": {
+        "asin": "B09Q67H373",
+        "category": "fashion",
+        "query": "men's tuxedo shirts",
+        "name": "JSPOYOU 2022 Newly T-Shirt for Mens Funny 3D Graphics Pattern Crewneck Short Sleeve Tees Big and Tall Summer Casual Comfy Top",
+        "product_category": "Clothing, Shoes & Jewelry › Men › Clothing › Shirts › T-Shirts",
+        "instruction_text": "Find me loose fit, slim fit men's tuxedo shirts with long sleeve, short sleeve, polyester cotton, elastic waist, regular fit for gym workout with color: b-blue, and size: x-large, and price lower than 40.00 dollars",
+        "attributes": [
+          "loose fit",
+          "slim fit",
+          "long sleeve",
+          "short sleeve",
+          "polyester cotton",
+          "elastic waist",
+          "regular fit",
+          "gym workout"
+        ],
+        "price_upper": 40.0,
+        "goal_options": {
+          "color": "b-blue",
+          "size": "x-large"
+        },
+        "weight": 0.004610993331726695
+      },
+      "goal_sha256": "d45e40c034174cef857ad7e4ec72e17047c760c0dba5b0449a05e6cd86c34bbe",
+      "selected_target_previously_executed": false,
+      "source_game": "candy_crush",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/candy_crush.json",
+      "source_artifact_sha256": "6f80cf4d4a8f4f5d9964680949bd55938d584165aab939b2f028c22649e2ea4d",
+      "source_artifact_file_sha256": "ebab70c63ade7ab5c888630cddb4c395f9f14eed5b460bf958de5095946369f2"
+    },
+    {
+      "task_id": "webshop.135",
+      "target_identity": "webshop.synthetic.phase2v3.seed3912433121.index135.3effed34cc806f3c",
+      "server_goal_index": 135,
+      "asin": "B07SRS3MXP",
+      "instruction_text": "Find me high resolution cd players & recorders for 4g lte, and price lower than 360.00 dollars",
+      "goal": {
+        "asin": "B07SRS3MXP",
+        "category": "electronics",
+        "query": "cd players & recorders",
+        "name": "XTRONS 7 Inch Touch Screen Car Stereo for Jeep Wrangler Dodge Chrysler, Android 10 GPS Navigation for Car, Octa Core 4GB+64GB Car Radio Player, Built-in DSP Car Auto Play Android Auto Support 4G LTE",
+        "product_category": "Electronics › Car & Vehicle Electronics › Car Electronics › Car Video › In-Dash Navigation",
+        "instruction_text": "Find me high resolution cd players & recorders for 4g lte, and price lower than 360.00 dollars",
+        "attributes": [
+          "high resolution",
+          "4g lte"
+        ],
+        "price_upper": 360.0,
+        "goal_options": {},
+        "weight": 0.3055555555555556
+      },
+      "goal_sha256": "3effed34cc806f3cec31026df93736bc4c00c2762e6b4461b615e2ec87248686",
+      "selected_target_previously_executed": false,
+      "source_game": "gymv_columns",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_columns.json",
+      "source_artifact_sha256": "39c5194016c037072aaa4a82137a8d242ceda17ed7ccd72caf16b495784000d0",
+      "source_artifact_file_sha256": "0a47aa22c60266226132e667dbfaf16c03382ca03fd730d95afc751be878255e"
+    },
+    {
+      "task_id": "webshop.142",
+      "target_identity": "webshop.synthetic.phase2v3.seed3912433121.index142.d45a5697ba3a39c7",
+      "server_goal_index": 142,
+      "asin": "B07PVZPS58",
+      "instruction_text": "Find me machine wash men's underwear with polyester spandex with size: medium, and price lower than 50.00 dollars",
+      "goal": {
+        "asin": "B07PVZPS58",
+        "category": "fashion",
+        "query": "men's underwear",
+        "name": "BRIEF INSANITY Hot Rod Boxer Briefs for Men and Women | Vintage Car Print Boxer Shorts - Funny, Humorous, Novelty Underwear",
+        "product_category": "Clothing, Shoes & Jewelry › Men › Clothing › Underwear › Boxers",
+        "instruction_text": "Find me machine wash men's underwear with polyester spandex with size: medium, and price lower than 50.00 dollars",
+        "attributes": [
+          "machine wash",
+          "polyester spandex"
+        ],
+        "price_upper": 50.0,
+        "goal_options": {
+          "size": "medium"
+        },
+        "weight": 0.0008823104383988353
+      },
+      "goal_sha256": "d45a5697ba3a39c7ce71f21434f7aaeab2f0fe33d2dcc7c5e8751c77286315ba",
+      "selected_target_previously_executed": false,
+      "source_game": "gymv_streets_of_rage_2",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_streets_of_rage_2.json",
+      "source_artifact_sha256": "0811312fd98f697b572a72e5c1d2da4417ec6ec35c9db00e51d8f1bb4d1123d6",
+      "source_artifact_file_sha256": "a66acf806e6188a22782054520f00a1a8142e79874fef5b7f8cc42b9f82dbc54"
+    },
+    {
+      "task_id": "webshop.151",
+      "target_identity": "webshop.synthetic.phase2v3.seed3912433121.index151.f4118d9e9ce5cb5f",
+      "server_goal_index": 151,
+      "asin": "B09PNJC838",
+      "instruction_text": "Find me toothpicks for valentine day, baby shower, and price lower than 120.00 dollars",
+      "goal": {
+        "asin": "B09PNJC838",
+        "category": "grocery",
+        "query": "toothpicks",
+        "name": "Set of 12 Sparkle Gold or Silver Tinsel Cupcake Toppers, Valentine's Day, New Year Party Decorations, Wedding Decorations",
+        "product_category": "Grocery & Gourmet Food › Pantry Staples › Cooking & Baking › Frosting, Icing & Decorations › Cupcake Toppers",
+        "instruction_text": "Find me toothpicks for valentine day, baby shower, and price lower than 120.00 dollars",
+        "attributes": [
+          "valentine day",
+          "baby shower"
+        ],
+        "price_upper": 120.0,
+        "goal_options": {},
+        "weight": 0.375
+      },
+      "goal_sha256": "f4118d9e9ce5cb5f50ecc6ecbd1e10043e453f20b929147177d8bc6e482ab885",
+      "selected_target_previously_executed": false,
+      "source_game": "gymv_thunder_force_iii",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_thunder_force_iii.json",
+      "source_artifact_sha256": "78ccd564e5453fa33a2b34eb2edf46263f025ec45eae2c1bbdf3017cc7d695d8",
+      "source_artifact_file_sha256": "0b52167b9259d6304950766e94d7e1a3d764ad241af1dfbff658fccc7cebb070"
+    },
+    {
+      "task_id": "webshop.153",
+      "target_identity": "webshop.synthetic.phase2v3.seed3912433121.index153.48f9dd2e52088725",
+      "server_goal_index": 153,
+      "asin": "B00JGBJD3E",
+      "instruction_text": "Find me machine wash men's shorts with drawstring closure, and price lower than 80.00 dollars",
+      "goal": {
+        "asin": "B00JGBJD3E",
+        "category": "fashion",
+        "query": "men's shorts",
+        "name": "Ed Hardy Men's Glory Lounge Shorts - Sand Storm - Large",
+        "product_category": "Clothing, Shoes & Jewelry › Men › Clothing › Sleep & Lounge › Sleep Bottoms",
+        "instruction_text": "Find me machine wash men's shorts with drawstring closure, and price lower than 80.00 dollars",
+        "attributes": [
+          "machine wash",
+          "drawstring closure"
+        ],
+        "price_upper": 80.0,
+        "goal_options": {},
+        "weight": 0.003791674831341153
+      },
+      "goal_sha256": "48f9dd2e5208872592d8202e24a5e8eedcc32ab5213451678b60453d253cecde",
+      "selected_target_previously_executed": false,
+      "source_game": "gymv_strider",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_strider.json",
+      "source_artifact_sha256": "9993c7b0d04d2e090f1b20f89b6c4b90f697a8b36f598869e45141a9b5b00ccf",
+      "source_artifact_file_sha256": "4d6aa2ce61c70c3023c41435d337925289cc9c0e179381e6285492f33a095c5e"
+    },
+    {
+      "task_id": "webshop.154",
+      "target_identity": "webshop.synthetic.phase2v3.seed3912433121.index154.49f37a585f16a07f",
+      "server_goal_index": 154,
+      "asin": "B09QMJ5KQH",
+      "instruction_text": "Find me high quality hair extensions, wigs & accessories for hair extensions, synthetic hair with color: dark brown, and price lower than 140.00 dollars",
+      "goal": {
+        "asin": "B09QMJ5KQH",
+        "category": "beauty",
+        "query": "hair extensions, wigs & accessories",
+        "name": "Messy Bun Scrunchie Hair Bun Extensions Wavy Curly Messy Donut Hairpieces Synthetic Donut Updo Hair Pieces for Women and Girls (black brown)",
+        "product_category": "Beauty & Personal Care › Hair Care › Hair Extensions, Wigs & Accessories › Hairpieces",
+        "instruction_text": "Find me high quality hair extensions, wigs & accessories for hair extensions, synthetic hair with color: dark brown, and price lower than 140.00 dollars",
+        "attributes": [
+          "high quality",
+          "hair extensions",
+          "synthetic hair"
+        ],
+        "price_upper": 140.0,
+        "goal_options": {
+          "color": "dark brown"
+        },
+        "weight": 0.17025089605734767
+      },
+      "goal_sha256": "49f37a585f16a07fb0480ebd931b5198c3976f9ac4cf8b4a3dd4a89187ddcba2",
+      "selected_target_previously_executed": false,
+      "source_game": "tetris",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/tetris.json",
+      "source_artifact_sha256": "585e5b29303fcbe23e8f8b5414ea389ea6257c96f55fa64897661fe2e2b306e7",
+      "source_artifact_file_sha256": "7c40f5baab7926435b58d2992ae20ca4eb07e1c72a4b59d9e1e377cde3b8e576"
+    },
+    {
+      "task_id": "webshop.156",
+      "target_identity": "webshop.synthetic.phase2v3.seed3912433121.index156.858ad5a47f9c03b5",
+      "server_goal_index": 156,
+      "asin": "B07BB1FJV8",
+      "instruction_text": "Find me long lasting, high quality hair loss products with color: 3t280, and price lower than 50.00 dollars",
+      "goal": {
+        "asin": "B07BB1FJV8",
+        "category": "beauty",
+        "query": "hair loss products",
+        "name": "Edna Wig Color FS4/30 - Foxy Silver Wigs Short Pixie Wispy Fringe Synthetic Straight Layers African American Women's Machine Wefted Lightweight Average Cap Bundle with MaxWigs Hairloss Booklet",
+        "product_category": "Beauty & Personal Care › Hair Care › Hair Extensions, Wigs & Accessories › Wigs",
+        "instruction_text": "Find me long lasting, high quality hair loss products with color: 3t280, and price lower than 50.00 dollars",
+        "attributes": [
+          "long lasting",
+          "high quality"
+        ],
+        "price_upper": 50.0,
+        "goal_options": {
+          "color": "3t280"
+        },
+        "weight": 0.011058162267839688
+      },
+      "goal_sha256": "858ad5a47f9c03b592222ea44034d837fb08cb10c2d89bf9a812f2abf4d281d7",
+      "selected_target_previously_executed": false,
+      "source_game": "candy_crush",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/candy_crush.json",
+      "source_artifact_sha256": "6f80cf4d4a8f4f5d9964680949bd55938d584165aab939b2f028c22649e2ea4d",
+      "source_artifact_file_sha256": "ebab70c63ade7ab5c888630cddb4c395f9f14eed5b460bf958de5095946369f2"
+    },
+    {
+      "task_id": "webshop.158",
+      "target_identity": "webshop.synthetic.phase2v3.seed3912433121.index158.b22eeef6ffc317a5",
+      "server_goal_index": 158,
+      "asin": "B00B04344Y",
+      "instruction_text": "Find me rich creamy, ready use deli & prepared foods, and price lower than 70.00 dollars",
+      "goal": {
+        "asin": "B00B04344Y",
+        "category": "grocery",
+        "query": "deli & prepared foods",
+        "name": "Rich's JW Allen Filling, Bavarian Cream, 496 Oz",
+        "product_category": "Grocery & Gourmet Food › Pantry Staples › Cooking & Baking › Pie & Pastry Fillings",
+        "instruction_text": "Find me rich creamy, ready use deli & prepared foods, and price lower than 70.00 dollars",
+        "attributes": [
+          "rich creamy",
+          "ready use"
+        ],
+        "price_upper": 70.0,
+        "goal_options": {},
+        "weight": 0.5555555555555556
+      },
+      "goal_sha256": "b22eeef6ffc317a526e14550ed31068ac62c0e3a085f87b3609ffc2b2d27888d",
+      "selected_target_previously_executed": false,
+      "source_game": "gymv_columns",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_columns.json",
+      "source_artifact_sha256": "39c5194016c037072aaa4a82137a8d242ceda17ed7ccd72caf16b495784000d0",
+      "source_artifact_file_sha256": "0a47aa22c60266226132e667dbfaf16c03382ca03fd730d95afc751be878255e"
+    },
+    {
+      "task_id": "webshop.160",
+      "target_identity": "webshop.synthetic.phase2v3.seed3912433121.index160.84fe688d2594bd82",
+      "server_goal_index": 160,
+      "asin": "B01DJGWDBA",
+      "instruction_text": "Find me men's fashion sneakers with memory foam, rubber sole with color: gray | navy, and size: 11.5, and price lower than 80.00 dollars",
+      "goal": {
+        "asin": "B01DJGWDBA",
+        "category": "fashion",
+        "query": "men's fashion sneakers",
+        "name": "Skechers Originals Men's Retros OG 90 Fashion Sneaker",
+        "product_category": "Clothing, Shoes & Jewelry › Men › Shoes › Fashion Sneakers",
+        "instruction_text": "Find me men's fashion sneakers with memory foam, rubber sole with color: gray | navy, and size: 11.5, and price lower than 80.00 dollars",
+        "attributes": [
+          "memory foam",
+          "rubber sole"
+        ],
+        "price_upper": 80.0,
+        "goal_options": {
+          "color": "gray | navy",
+          "size": "11.5"
+        },
+        "weight": 0.005776194455439739
+      },
+      "goal_sha256": "84fe688d2594bd8215db867d8403e9b9f76c4b397c9e32bff2e4f9b6a6ae2846",
+      "selected_target_previously_executed": false,
+      "source_game": "gymv_streets_of_rage_2",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_streets_of_rage_2.json",
+      "source_artifact_sha256": "0811312fd98f697b572a72e5c1d2da4417ec6ec35c9db00e51d8f1bb4d1123d6",
+      "source_artifact_file_sha256": "a66acf806e6188a22782054520f00a1a8142e79874fef5b7f8cc42b9f82dbc54"
+    },
+    {
+      "task_id": "webshop.198",
+      "target_identity": "webshop.synthetic.phase2v3.seed3912433121.index198.241548aabfb949b7",
+      "server_goal_index": 198,
+      "asin": "B004A9L7ZO",
+      "instruction_text": "Find me assembly required bedframes with box spring, and price lower than 260.00 dollars",
+      "goal": {
+        "asin": "B004A9L7ZO",
+        "category": "garden",
+        "query": "bedframes",
+        "name": "Hillsdale Furniture Hillsdale Cole Frame Queen Bed, Black twinkle",
+        "product_category": "Home & Kitchen › Furniture › Bedroom Furniture › Beds, Frames & Bases › Beds",
+        "instruction_text": "Find me assembly required bedframes with box spring, and price lower than 260.00 dollars",
+        "attributes": [
+          "assembly required",
+          "box spring"
+        ],
+        "price_upper": 260.0,
+        "goal_options": {},
+        "weight": 0.03774928774928775
+      },
+      "goal_sha256": "241548aabfb949b76673dc96d34efa20af78f2da819cd825bf8d6766f3bd4634",
+      "selected_target_previously_executed": false,
+      "source_game": "gymv_thunder_force_iii",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_thunder_force_iii.json",
+      "source_artifact_sha256": "78ccd564e5453fa33a2b34eb2edf46263f025ec45eae2c1bbdf3017cc7d695d8",
+      "source_artifact_file_sha256": "0b52167b9259d6304950766e94d7e1a3d764ad241af1dfbff658fccc7cebb070"
+    },
+    {
+      "task_id": "webshop.203",
+      "target_identity": "webshop.synthetic.phase2v3.seed3912433121.index203.d4ccda50322d1a50",
+      "server_goal_index": 203,
+      "asin": "B09B7551X2",
+      "instruction_text": "Find me easy install, compatible apple wearable technology, and price lower than 50.00 dollars",
+      "goal": {
+        "asin": "B09B7551X2",
+        "category": "electronics",
+        "query": "wearable technology",
+        "name": "MNBVCXZ Watch Bands Compatible for Apple Watch Band 44mm 45mm 40mm 41mm with Protective Case for Men & Women, Sport Waterproof Strap for iWatch SE Series 7/6/5/4 (40mm 41mm,Midnight blue)",
+        "product_category": "Cell Phones & Accessories › Accessories › Smartwatch Accessories › Smartwatch Bands",
+        "instruction_text": "Find me easy install, compatible apple wearable technology, and price lower than 50.00 dollars",
+        "attributes": [
+          "easy install",
+          "compatible apple"
+        ],
+        "price_upper": 50.0,
+        "goal_options": {},
+        "weight": 0.02687074829931973
+      },
+      "goal_sha256": "d4ccda50322d1a502953ea6ef9379e86d4594acc1dd1aca2239b3f5c9de1510b",
+      "selected_target_previously_executed": false,
+      "source_game": "gymv_strider",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_strider.json",
+      "source_artifact_sha256": "9993c7b0d04d2e090f1b20f89b6c4b90f697a8b36f598869e45141a9b5b00ccf",
+      "source_artifact_file_sha256": "4d6aa2ce61c70c3023c41435d337925289cc9c0e179381e6285492f33a095c5e"
+    },
+    {
+      "task_id": "webshop.224",
+      "target_identity": "webshop.synthetic.phase2v3.seed3912433121.index224.43e5f578f40c0970",
+      "server_goal_index": 224,
+      "asin": "B07ZBCF88X",
+      "instruction_text": "Find me height adjustable dining tables with glass shade, contemporary design, clear glass for dining room with color: black, and price lower than 210.00 dollars",
+      "goal": {
+        "asin": "B07ZBCF88X",
+        "category": "garden",
+        "query": "dining tables",
+        "name": "VINLUZ Farmhouse Chandeliers Rectangle Black 5 Light Dining Room Lighting Fixtures Hanging, Kitchen Island Cage Pendant Lights Contemporary Modern Ceiling Light with Glass Shade Adjustable Rods",
+        "product_category": "Tools & Home Improvement › Lighting & Ceiling Fans › Ceiling Lights › Island Lights",
+        "instruction_text": "Find me height adjustable dining tables with glass shade, contemporary design, clear glass for dining room with color: black, and price lower than 210.00 dollars",
+        "attributes": [
+          "height adjustable",
+          "glass shade",
+          "contemporary design",
+          "clear glass",
+          "dining room"
+        ],
+        "price_upper": 210.0,
+        "goal_options": {
+          "color": "black"
+        },
+        "weight": 0.059882492071171314
+      },
+      "goal_sha256": "43e5f578f40c0970d8dc4a7e89c9a56005712577e173c1b43e09e0a3432e8126",
+      "selected_target_previously_executed": false,
+      "source_game": "tetris",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/tetris.json",
+      "source_artifact_sha256": "585e5b29303fcbe23e8f8b5414ea389ea6257c96f55fa64897661fe2e2b306e7",
+      "source_artifact_file_sha256": "7c40f5baab7926435b58d2992ae20ca4eb07e1c72a4b59d9e1e377cde3b8e576"
+    },
+    {
+      "task_id": "webshop.235",
+      "target_identity": "webshop.synthetic.phase2v3.seed3912433121.index235.fdfae756d26d8fb4",
+      "server_goal_index": 235,
+      "asin": "B09F6SCW47",
+      "instruction_text": "Find me wall mounted, white item, easy clean tv stands for living room with color: concrete gray, and price lower than 120.00 dollars",
+      "goal": {
+        "asin": "B09F6SCW47",
+        "category": "garden",
+        "query": "tv stands",
+        "name": "hongxinq Floating TV Stand with Storage Shelves, Chipboard Wall Mounted Hanging Television Cabinet, Modern Storage Cabinet for Living Room, Bedroom, 12Inx11.8Inx35.4In, White",
+        "product_category": "Home & Kitchen › Furniture › Living Room Furniture › TV & Media Furniture › Television Stands & Entertainment Centers",
+        "instruction_text": "Find me wall mounted, white item, easy clean tv stands for living room with color: concrete gray, and price lower than 120.00 dollars",
+        "attributes": [
+          "wall mounted",
+          "white item",
+          "easy clean",
+          "living room"
+        ],
+        "price_upper": 120.0,
+        "goal_options": {
+          "color": "concrete gray"
+        },
+        "weight": 0.0354800618170737
+      },
+      "goal_sha256": "fdfae756d26d8fb4f13b3746e35b457fa2742293a7d31d86bce9b6d9941eb75a",
+      "selected_target_previously_executed": false,
+      "source_game": "candy_crush",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/candy_crush.json",
+      "source_artifact_sha256": "6f80cf4d4a8f4f5d9964680949bd55938d584165aab939b2f028c22649e2ea4d",
+      "source_artifact_file_sha256": "ebab70c63ade7ab5c888630cddb4c395f9f14eed5b460bf958de5095946369f2"
+    },
+    {
+      "task_id": "webshop.243",
+      "target_identity": "webshop.synthetic.phase2v3.seed3912433121.index243.b860ed60d25737d9",
+      "server_goal_index": 243,
+      "asin": "B085RRL27J",
+      "instruction_text": "Find me soy free, plant based, dairy free, non gmo, gluten free wasabi peas with artificial flavors with flavor: 3-flavor variety, and size: 2.3 ounce (pack of 4), and price lower than 60.00 dollars",
+      "goal": {
+        "asin": "B085RRL27J",
+        "category": "grocery",
+        "query": "wasabi peas",
+        "name": "Taali NEW Sweet and Savory Variety Popped Water Lily Pops (6 Resealable Bags) - Try 6 Flavors! | Sweet, Salty, Savory Assortment | Protein Boost | Snack on the Go (2 oz/2.3 oz. bags)",
+        "product_category": "Grocery & Gourmet Food › Snacks & Sweets › Snack Foods › Puffed Snacks",
+        "instruction_text": "Find me soy free, plant based, dairy free, non gmo, gluten free wasabi peas with artificial flavors with flavor: 3-flavor variety, and size: 2.3 ounce (pack of 4), and price lower than 60.00 dollars",
+        "attributes": [
+          "soy free",
+          "plant based",
+          "dairy free",
+          "non gmo",
+          "gluten free",
+          "artificial flavors"
+        ],
+        "price_upper": 60.0,
+        "goal_options": {
+          "flavor": "3-flavor variety",
+          "size": "2.3 ounce (pack of 4)"
+        },
+        "weight": 0.04469397090364832
+      },
+      "goal_sha256": "b860ed60d25737d985263828a2ef67a42fc37dab888c9c5d60c11b14e25c199f",
+      "selected_target_previously_executed": false,
+      "source_game": "gymv_columns",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_columns.json",
+      "source_artifact_sha256": "39c5194016c037072aaa4a82137a8d242ceda17ed7ccd72caf16b495784000d0",
+      "source_artifact_file_sha256": "0a47aa22c60266226132e667dbfaf16c03382ca03fd730d95afc751be878255e"
+    },
+    {
+      "task_id": "webshop.251",
+      "target_identity": "webshop.synthetic.phase2v3.seed3912433121.index251.b5e39f8143ff1782",
+      "server_goal_index": 251,
+      "asin": "B0859PP21L",
+      "instruction_text": "Find me easy care women's activewear with quality materials, polyester spandex, and price lower than 50.00 dollars",
+      "goal": {
+        "asin": "B0859PP21L",
+        "category": "fashion",
+        "query": "women's activewear",
+        "name": "EttelLut Joggers Exercise Yoga Light Sweatpants Pajama Activewear Pockets Pants with Drawstring",
+        "product_category": "Clothing, Shoes & Jewelry › Women › Clothing › Active › Active Pants › Sweatpants",
+        "instruction_text": "Find me easy care women's activewear with quality materials, polyester spandex, and price lower than 50.00 dollars",
+        "attributes": [
+          "easy care",
+          "quality materials",
+          "polyester spandex"
+        ],
+        "price_upper": 50.0,
+        "goal_options": {},
+        "weight": 0.04151422374788395
+      },
+      "goal_sha256": "b5e39f8143ff17828886387813b111a040ee540a43e07445743a4826af87b643",
+      "selected_target_previously_executed": false,
+      "source_game": "gymv_streets_of_rage_2",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_streets_of_rage_2.json",
+      "source_artifact_sha256": "0811312fd98f697b572a72e5c1d2da4417ec6ec35c9db00e51d8f1bb4d1123d6",
+      "source_artifact_file_sha256": "a66acf806e6188a22782054520f00a1a8142e79874fef5b7f8cc42b9f82dbc54"
+    },
+    {
+      "task_id": "webshop.254",
+      "target_identity": "webshop.synthetic.phase2v3.seed3912433121.index254.4fd9fcb513e1f691",
+      "server_goal_index": 254,
+      "asin": "B085S5P7WB",
+      "instruction_text": "Find me machine washable, hand wash, machine wash women's pants with tummy control, high waist for daily wear with size: large, and price lower than 40.00 dollars",
+      "goal": {
+        "asin": "B085S5P7WB",
+        "category": "fashion",
+        "query": "women's pants",
+        "name": "Women High Waist Tummy Control Fitness Yoga Pants Mesh Patchwork Leggings Sexy Lace Stitching Tights",
+        "product_category": "",
+        "instruction_text": "Find me machine washable, hand wash, machine wash women's pants with tummy control, high waist for daily wear with size: large, and price lower than 40.00 dollars",
+        "attributes": [
+          "machine washable",
+          "hand wash",
+          "machine wash",
+          "tummy control",
+          "high waist",
+          "daily wear"
+        ],
+        "price_upper": 40.0,
+        "goal_options": {
+          "size": "large"
+        },
+        "weight": 0.003602930644618176
+      },
+      "goal_sha256": "4fd9fcb513e1f6910f4f87175c5ce9a9baa7925ac9f1ac61fbbc9c1d0b479d4f",
+      "selected_target_previously_executed": false,
+      "source_game": "gymv_thunder_force_iii",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_thunder_force_iii.json",
+      "source_artifact_sha256": "78ccd564e5453fa33a2b34eb2edf46263f025ec45eae2c1bbdf3017cc7d695d8",
+      "source_artifact_file_sha256": "0b52167b9259d6304950766e94d7e1a3d764ad241af1dfbff658fccc7cebb070"
+    },
+    {
+      "task_id": "webshop.264",
+      "target_identity": "webshop.synthetic.phase2v3.seed3912433121.index264.52c3a6aebdccb2da",
+      "server_goal_index": 264,
+      "asin": "B015PWVRPO",
+      "instruction_text": "Find me non gmo dried fruits & raisins with dietary fiber with size: 2 pound (pack of 1), and price lower than 60.00 dollars",
+      "goal": {
+        "asin": "B015PWVRPO",
+        "category": "grocery",
+        "query": "dried fruits & raisins",
+        "name": "Organic Medjool Dates, 2 Pounds – Non-GMO, Whole Dried Dated with Pits, Large Size, Unsweetened, Unsulphured, Vegan, Sirtfood, Bulk. Good Source of Potassium, Magnesium, and Dietary Fiber. Perfect Dried Fruit Snack.",
+        "product_category": "Grocery & Gourmet Food › Produce › Dried Fruits & Vegetables › Dried Fruits › Dried Dates",
+        "instruction_text": "Find me non gmo dried fruits & raisins with dietary fiber with size: 2 pound (pack of 1), and price lower than 60.00 dollars",
+        "attributes": [
+          "non gmo",
+          "dietary fiber"
+        ],
+        "price_upper": 60.0,
+        "goal_options": {
+          "size": "2 pound (pack of 1)"
+        },
+        "weight": 0.08755760368663594
+      },
+      "goal_sha256": "52c3a6aebdccb2da1efe02cc76ac5f8150662186e36562fe795f94a63bd295b4",
+      "selected_target_previously_executed": false,
+      "source_game": "gymv_strider",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_strider.json",
+      "source_artifact_sha256": "9993c7b0d04d2e090f1b20f89b6c4b90f697a8b36f598869e45141a9b5b00ccf",
+      "source_artifact_file_sha256": "4d6aa2ce61c70c3023c41435d337925289cc9c0e179381e6285492f33a095c5e"
+    },
+    {
+      "task_id": "webshop.298",
+      "target_identity": "webshop.synthetic.phase2v3.seed3912433121.index298.d89767954bd212f2",
+      "server_goal_index": 298,
+      "asin": "B0769HRGD2",
+      "instruction_text": "Find me beds with wood frame, box spring, solid wood with color: natural, and size: queen, and price lower than 390.00 dollars",
+      "goal": {
+        "asin": "B0769HRGD2",
+        "category": "garden",
+        "query": "beds",
+        "name": "Abbey Avenue Grace Upholstered Queen Platform Bed, Blue",
+        "product_category": "Home & Kitchen › Furniture › Bedroom Furniture › Beds, Frames & Bases › Beds",
+        "instruction_text": "Find me beds with wood frame, box spring, solid wood with color: natural, and size: queen, and price lower than 390.00 dollars",
+        "attributes": [
+          "wood frame",
+          "box spring",
+          "solid wood"
+        ],
+        "price_upper": 390.0,
+        "goal_options": {
+          "color": "natural",
+          "size": "queen"
+        },
+        "weight": 0.02866512345679012
+      },
+      "goal_sha256": "d89767954bd212f283a8e75d6ba004617dbe537614ca3b60009184f84d9e5c51",
+      "selected_target_previously_executed": false,
+      "source_game": "tetris",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/tetris.json",
+      "source_artifact_sha256": "585e5b29303fcbe23e8f8b5414ea389ea6257c96f55fa64897661fe2e2b306e7",
+      "source_artifact_file_sha256": "7c40f5baab7926435b58d2992ae20ca4eb07e1c72a4b59d9e1e377cde3b8e576"
+    },
+    {
+      "task_id": "webshop.343",
+      "target_identity": "webshop.synthetic.phase2v3.seed3912433121.index343.783e493de4823fa7",
+      "server_goal_index": 343,
+      "asin": "B09DVQ3646",
+      "instruction_text": "Find me eco friendly, white item, easy install nightstands with storage space for living room with color: grey, and price lower than 500.00 dollars",
+      "goal": {
+        "asin": "B09DVQ3646",
+        "category": "garden",
+        "query": "nightstands",
+        "name": "YEK Modern Style Italian Elm Matte Nightstand with Self Closing, Ball Bearing Drawer Glides Nordic Minimalism Bedside Table White (Color : White)",
+        "product_category": "Home & Kitchen › Furniture › Bedroom Furniture › Nightstands",
+        "instruction_text": "Find me eco friendly, white item, easy install nightstands with storage space for living room with color: grey, and price lower than 500.00 dollars",
+        "attributes": [
+          "eco friendly",
+          "white item",
+          "easy install",
+          "storage space",
+          "living room"
+        ],
+        "price_upper": 500.0,
+        "goal_options": {
+          "color": "grey"
+        },
+        "weight": 0.0281012764689699
+      },
+      "goal_sha256": "783e493de4823fa7b93d6dc526a300307d3b6fbdcac28bf36a16a854756b243c",
+      "selected_target_previously_executed": false,
+      "source_game": "candy_crush",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/candy_crush.json",
+      "source_artifact_sha256": "6f80cf4d4a8f4f5d9964680949bd55938d584165aab939b2f028c22649e2ea4d",
+      "source_artifact_file_sha256": "ebab70c63ade7ab5c888630cddb4c395f9f14eed5b460bf958de5095946369f2"
+    }
+  ],
+  "parameters": {
+    "model": "openai/gpt-4.1-mini",
+    "base_url": "https://openrouter.ai/api/v1",
+    "maximum_output_tokens": 1200,
+    "maximum_steps": 12,
+    "candidate_count": 5,
+    "schema_retries": 3,
+    "timeout_seconds": 180
+  },
+  "one_shot_execution_rule": "Each target-condition cell may be reset/executed once. Existing valid receipts may be resumed; a start marker without a receipt is consumed incomplete and must not be rerun.",
+  "success_gates": {
+    "exact_32x5_receipt_matrix": true,
+    "all_receipt_hashes_valid": true,
+    "all_receipts_complete": true,
+    "matched_initial_state_hashes": true,
+    "all_six_source_lineages_exercised": true,
+    "all_three_symbolic_actions_exercised": true,
+    "zero_authentic_unsafe_commits": true,
+    "authentic_strict_success_gain_over_raw": true,
+    "authentic_vs_raw_significant": "paired exact two-sided p <= .05",
+    "zero_strict_negative_transfer_vs_raw": true,
+    "authentic_pass_success_not_below_raw": true,
+    "authentic_mean_reward_not_below_raw": true,
+    "authentic_reward_pairing_net_nonnegative": true,
+    "authentic_significantly_beats_event_permuted": true,
+    "authentic_significantly_beats_ledger_blind": true,
+    "authentic_matches_target_native_ceiling_exactly": true,
+    "every_lineage_has_zero_strict_losses_vs_raw": true
+  },
+  "runtime_file_sha256": {
+    "src/motif_transfer/phase2_webshop_utility_v1.py": "7b30994bd6b293af713e4b6ab414e16adc94ae02fdc943f4106f514668bfda85",
+    "src/motif_transfer/webshop_candidate_failclosed_v3.py": "dfdb28a6554e4598e769041eb866e353a4d80e84f7ab9f94ac935d2b77aaeac2",
+    "src/motif_transfer/webshop_search_automaton_v16.py": "478994c5da56ee783e59823a79f026dfa2f7185d0f733a835bfe11e5cdd46c38",
+    "src/motif_transfer/webshop_coverage_transfer_v14.py": "56d28e46d073a0563d3e13884c7ad1dc70491259af61bdea24329b41d97580fe",
+    "src/motif_transfer/webshop_constraint_coverage_v14.py": "4d743c512f5508ffdb3a8ecf11aba27ad6dc55e724d3e050b7b92daed35ed384",
+    "src/motif_transfer/webshop_unique_goal_server_v14.py": "dfa7aefa70584ba1d0cb3c82aedb7c48939ba1b5eb8609c5a86abb75eee8cf25",
+    "scripts/check_phase2_webshop_runtime_v3.py": "e1b965c7b97d2c473e45f786d25f1ec2e997cf68f38b49433e2452ce8599a542",
+    "scripts/freeze_phase2_webshop_utility_v2.py": "f79040ee442c706c7d65bf1847d9fc817c54d8d371474f299ad90c73d6458d08",
+    "scripts/freeze_phase2_webshop_utility_v3.py": "6a1bd99391cf9c4cf83c9b441e5ba17e5e33348b34ad53d21bea1ca46b3b0451",
+    "scripts/run_phase2_webshop_utility_v1.py": "0cf4f0c993f7b13915df4c5acf3455e1a5fd6b4d8db561972b4f7575536ccd81",
+    "scripts/run_phase2_webshop_utility_v3.py": "72bcd90a86e25ff0150a59016fd06913e0dde023d3f5144755acf645e7531d6d",
+    "scripts/run_webshop_direct_server_v1.py": "4c6cc5787fcfd32448073ce06de5db4daa9a7feaad995afdd7a775370e18279b",
+    "scripts/run_webshop_search_automaton_v16.py": "b21567e4b02937d84283eb3b0d821443507f048ff945aa29fd9f3294541768ed",
+    "scripts/run_webshop_neural_symbolic_v9.py": "a07a1dd48b7ae69149d47f228ab4985cfe11e1b17ed5c3843f22bf302330757e",
+    "scripts/run_webshop_transfer_qualification_v5.py": "70b2a6f2f117e1a2508afc95367607d9776c599dbe519c33d8278bb6482944f1"
+  },
+  "vendor_runtime_file_sha256": {
+    "/fs/gamma-projects/vlm-robot/emnlp2026_download/workspace/vendor/WebShop/data/items_shuffle_1000.json": "30a4765c3a327af72d9a9a95a6b2486d516f0fa1d3ecd83681901ce82a21b269",
+    "/fs/gamma-projects/vlm-robot/emnlp2026_download/workspace/vendor/WebShop/data/items_human_ins.json": "cf78667548a71786e1d9049c24b802e48e1084ad4bb021cae56ce1f6d96954a3",
+    "/fs/gamma-projects/vlm-robot/emnlp2026_download/workspace/vendor/WebShop/web_agent_site/engine/engine.py": "4af84efef1401c3735296201afc397be54015ff9b169c2c6bfe5f5bc90dc31e6",
+    "/fs/gamma-projects/vlm-robot/emnlp2026_download/workspace/vendor/WebShop/web_agent_site/engine/goal.py": "9703c8583244e2041182eb14856186b998145ab16ce2ba9aef8cb680877c8ed5",
+    "/fs/gamma-projects/vlm-robot/emnlp2026_download/workspace/vendor/WebShop/web_agent_site/app.py": "2161ee48cea38a8d8e0dfa2e386f059bd006af47e5549ea41051e26f3d553d24"
+  },
+  "manifest_sha256": "ea5191f65341c45845a6e7ae1180d7f9bd4d8e1aa78e807043f8a6a256061cb8"
+}

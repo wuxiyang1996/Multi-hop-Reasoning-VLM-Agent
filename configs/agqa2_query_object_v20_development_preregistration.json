@@ -1,0 +1,24 @@
+{
+  "atomic_route_artifacts_modified": false,
+  "claim_boundary": "AGQA_TRAIN_ONLY_DEVELOPMENT;ATOMIC_QUERY_OBJECT_WITHOUT_TEMPORAL_SUBQUERY;18_VIDEO_DISJOINT_ROWS;NOT_CONFIRMATORY",
+  "confirmatory_claim_allowed": false,
+  "development_adaptation_allowed": true,
+  "evaluation_protocol_sha256": "bafec9b1e071d09dac8fdcec02b01629a227fd5cd22ae98c886fdc93efb97bc7",
+  "grounder_sha256": "95ad941e64b7ec4c809120cc589ae3fddfd84a400e0b8ebd1582c4c4541eff69",
+  "qualification_gates": {
+    "maximum_reported_provider_cost_usd": 0.3,
+    "maximum_typed_vs_direct_losses": 0,
+    "minimum_decisive_accuracy": 0.75,
+    "minimum_decisive_executions": 10,
+    "minimum_route_correct": 18,
+    "minimum_typed_vs_direct_wins": 2,
+    "required_source_permuted_abstentions": 18,
+    "required_target_written_equivalent_matches": 18,
+    "required_valid_runtime_rows": 18
+  },
+  "reserve_policy": "ONLY_FREEZE_A_NEW_TEST_VIDEO_DISJOINT_RESERVE_IF_ALL_DEVELOPMENT_GATES_PASS;DO_NOT_REUSE_V14_V19_FORMAL_ROWS",
+  "sample_count": 18,
+  "schema_version": "agqa2-query-object-development-preregistration-v20",
+  "status": "FROZEN_BEFORE_ANY_V20_QUERY_OBJECT_CALL",
+  "unique_video_count": 18
+}

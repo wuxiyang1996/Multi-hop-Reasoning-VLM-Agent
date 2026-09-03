@@ -1,0 +1,47 @@
+{
+  "schema_version": "discoveryworld-sokoban-frozen-fork-v2",
+  "status": "FORMAL_RESERVE_FROZEN_NO_ADAPTATION",
+  "claim_boundary": "Powered fresh causal utility estimate on 36 Proteomics Easy forks; the 30 historical eligible forks used for power planning are excluded.",
+  "reference_episode": "runs/phase2_discoveryworld_utility_v1/target_only/proteomics.easy.seed74.json",
+  "reference_episode_sha256": "b24d66a1681207c1725665d84328d6acd0947de3615c23ce46afe746faedbe65",
+  "fork_after_episode_step": 44,
+  "recovery_horizon": 8,
+  "conditions": [
+    "target_native_myopic",
+    "authentic_sokoban_effect_plus_target",
+    "commit_availability_control_plus_target",
+    "inverted_effect_control_plus_target",
+    "position_prior_control_plus_target"
+  ],
+  "source_contract": {
+    "compact_receipt": "docs/results/sokoban_effect_program_v2_compact_receipt.json",
+    "require_source_gate_passed": true,
+    "source_confirmation_sha256": "d64606c916ce6e812ae1b920771d5175cb48983a2f141b2dab6f43d491a6c1ed",
+    "source_program_sha256": "6b02dc1d7271bbd435e90539cedd7d56d04fcc1ad03798dd6dd06146d67f1fcd",
+    "transferred_structure": "DIRECT_PROGRESS_AVAILABLE_OR_ASSIGNMENT_IMPROVEMENT_AVAILABLE_THEN_COMMIT_AND_VERIFY_ELSE_POSITION_AND_RECOMPUTE"
+  },
+  "selector": {
+    "positive_effect_threshold": 0.65,
+    "prerequisite_threshold": 0.9
+  },
+  "model": {
+    "api_key_name": "OPENROUTER_API_KEY",
+    "base_url": "https://openrouter.ai/api/v1",
+    "hidden_reasoning_effort": "none",
+    "maximum_output_tokens": 2000,
+    "model": "openai/gpt-4.1-mini",
+    "provider": "openrouter",
+    "schema_attempts": 3,
+    "temperature": 0
+  },
+  "qualification_protocol_sha256": "0d3f7311b3ea7c68b1321479cee537f8ae2c3dd1b298b19f50a7838d9c076ad7",
+  "fork_receipt_sha256": "856794df53d82b37727d17fe3f63afb1d788ef85c4139420c34f4e8fd964c273",
+  "target_native_spatial_realizer": {
+    "activation": "AFTER_SUCCESSFUL_TARGET_BOUND_TELEPORT",
+    "enabled": true,
+    "may_select_commit": false,
+    "objective": "STRICT_WORST_CASE_RELATION_ERROR_REDUCTION_OVER_UI_COMPATIBLE_VECTORS",
+    "schema_version": "discoveryworld-local-spatial-realization-v1",
+    "shared_across_all_conditions": true
+  }
+}

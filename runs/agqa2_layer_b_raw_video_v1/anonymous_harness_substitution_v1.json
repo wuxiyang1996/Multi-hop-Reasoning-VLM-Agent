@@ -1,0 +1,51 @@
+{
+  "claim_boundary": "Controller-substitution audit over two already-consumed raw-video results; not a new untouched AGQA official-test formal.",
+  "cohorts": [
+    {
+      "anonymous_commits": 232,
+      "anonymous_fallbacks": 280,
+      "gates": {
+        "abstention_uses_shared_neural_fallback": true,
+        "all_tasks_routed": true,
+        "anonymous_controller_qualified": true,
+        "commit_count_matches_frozen_result": true,
+        "matched_permuted_fails_closed": true,
+        "source_isomorphic_equivalence": true
+      },
+      "input_result_report_sha256": "c030229390ea080e7b4b803853ef454c261fe53f1071242ce7700d81385864cd",
+      "kind": "broad",
+      "mismatches": [],
+      "tasks": 512
+    },
+    {
+      "anonymous_commits": 107,
+      "anonymous_fallbacks": 149,
+      "gates": {
+        "abstention_uses_shared_neural_fallback": true,
+        "all_tasks_routed": true,
+        "anonymous_controller_qualified": true,
+        "commit_count_matches_frozen_result": true,
+        "matched_permuted_fails_closed": true,
+        "source_isomorphic_equivalence": true
+      },
+      "input_result_report_sha256": "9b2e955a5daed242dc8077dfb60adf448de15ae92f8b50b939414dc83d02e6b3",
+      "kind": "temporal",
+      "mismatches": [],
+      "tasks": 256
+    }
+  ],
+  "controller_artifact_sha256": "cd48690e64392f8702e1a239afa1739c25863ce4bd6ae2efea355ac70467bfe6",
+  "controller_file_sha256": "698d3f377366d5cd8ae278461c2a29466d3a6f1af8885aa8fd6373139309a82e",
+  "fresh_evaluation": false,
+  "gates": {
+    "both_existing_replications_equivalent": true,
+    "fresh_official_test_claim_forbidden": true
+  },
+  "input_file_sha256s": {
+    "broad": "0d27cc211a36a41aa77c974e30076079f8184fc998bf7ba49d8b3dd9c6bf9b00",
+    "temporal": "3455bbd917d49690c043e397cb22725951b029f29db479e6868b5ac6c373af0c"
+  },
+  "report_sha256": "bd4e607b226f0569e5aff3d598b4383a5063a2f35f8e22a9af4a6a3dba2c076e",
+  "schema_version": "agqa-anonymous-harness-substitution-v1",
+  "status": "AGQA_EXISTING_LAYER_B_ANONYMOUS_SUBSTITUTION_VERIFIED"
+}

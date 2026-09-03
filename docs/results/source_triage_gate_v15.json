@@ -1,0 +1,524 @@
+{
+  "branches": {
+    "FEASIBLE_AND_UNTRIED__EXPLORE": {
+      "evidence": {
+        "matched_cells": 32,
+        "matched_estimand": "ALWAYS_SWITCH_MINUS_ALWAYS_PERSIST_H8",
+        "prior_controller_status": "SOURCE_CANDIDATE_REJECTED_BY_MATCHED_SMOKE",
+        "reason_if_failed": "NO_POSITIVE_SWITCH_EFFECT_IN_BLIND_COMMON_CONTINUATION",
+        "split_mode_summary": {
+          "held_out.common_hash_continuation": {
+            "cells": 8,
+            "games_with_switch_win": [],
+            "mean_switch_minus_persist": 0.0,
+            "persist_better": 0,
+            "switch_better": 0,
+            "ties": 8
+          },
+          "held_out.full_treatment_regime": {
+            "cells": 8,
+            "games_with_switch_win": [],
+            "mean_switch_minus_persist": -13.625,
+            "persist_better": 3,
+            "switch_better": 0,
+            "ties": 5
+          },
+          "qualification.common_hash_continuation": {
+            "cells": 8,
+            "games_with_switch_win": [],
+            "mean_switch_minus_persist": -19.875,
+            "persist_better": 4,
+            "switch_better": 0,
+            "ties": 4
+          },
+          "qualification.full_treatment_regime": {
+            "cells": 8,
+            "games_with_switch_win": [
+              "gymv_streets_of_rage_2"
+            ],
+            "mean_switch_minus_persist": -14.875,
+            "persist_better": 3,
+            "switch_better": 1,
+            "ties": 4
+          }
+        }
+      },
+      "source_qualified": false
+    },
+    "INFEASIBLE__BACKTRACK_REPLAN": {
+      "evidence": {
+        "intervention_labeled_examples": 0,
+        "reason_if_failed": "REPLAN_OR_REFUTE_IS_RECOGNITION_CONTROL_FLOW_NOT_A_QUALIFIED_BACKTRACK_INTERVENTION",
+        "rule_written_in_source_program": true,
+        "topology_backtrack_intervention_examples": 0,
+        "topology_evidence_boundary": "FRESH_SOURCE_CONFIRMATION_ONLY_NO_TARGET_EVIDENCE",
+        "topology_recognition_gate_passed": true,
+        "topology_refute_sequence_rule_written": true
+      },
+      "source_qualified": false
+    },
+    "READY_AND_POSITIVE_EFFECT__COMMIT_VERIFY": {
+      "evidence": {
+        "authentic_accuracy": 0.9895833333333334,
+        "fresh_confirmation_examples": 96,
+        "maximum_control_accuracy": 0.75,
+        "optimal_option_counts": {
+          "COMMIT": 24,
+          "POSITION": 72
+        }
+      },
+      "source_qualified": true
+    }
+  },
+  "claim_boundary": "SOURCE_ONLY_AUDIT; NO_TARGET_OUTCOMES_READ; NO_WEBSHOP_V15_CONTROLLER_AUTHORIZED_UNLESS_ALL_THREE_BRANCHES_PASS",
+  "diagnosis": [
+    "Sokoban qualifies a two-option COMMIT/POSITION effect guard.",
+    "The source confirmation contains no labeled REPLAN/BACKTRACK option.",
+    "The topology executor confirms sequence recognition/refutation, but does not compare a BACKTRACK intervention with alternatives.",
+    "Matched real-game SWITCH/PERSIST forks do not identify a recurring positive EXPLORE effect on the blind common-continuation estimand.",
+    "Splitting target POSITION into BACKTRACK and EXPLORE would therefore be target-authored, not demonstrated source skill transfer."
+  ],
+  "experiment": "SOURCE_TRIAGE_GATE_V15",
+  "failed_branches": [
+    "INFEASIBLE__BACKTRACK_REPLAN",
+    "FEASIBLE_AND_UNTRIED__EXPLORE"
+  ],
+  "input_provenance": {
+    "microcontroller_rows": {
+      "path": "runs/source_microcontroller_v1_gymv/execution/microcontroller_rows.jsonl",
+      "sha256": "fb24b4543dcd73a5fe8ec6fd53d1d065b61faf224856d896ada201ac4b9d8b7c"
+    },
+    "microcontroller_summary": {
+      "path": "docs/results/source_microcontroller_v1_summary.json",
+      "sha256": "751adc2a43820026f1c70179bc88a86fabe652b94416c8db314401852adf0aee"
+    },
+    "sokoban_artifact": {
+      "path": "runs/sokoban_effect_program_v2/discovery_artifact.json",
+      "sha256": "95fea4cfc4e00819956b08d372723171b8807f11d7ac68d3700be260307e62de"
+    },
+    "sokoban_confirmation": {
+      "path": "runs/sokoban_effect_program_v2/fresh_confirmation_report.json",
+      "sha256": "ab288adf1359beb262c25e7314d80adad136c464558987577e313eb198edc914"
+    },
+    "topology_artifact": {
+      "path": "runs/sokoban_topology_skill_v1/discovery_artifact.json",
+      "sha256": "12da519aa68896a501834915f1eea5c600cc3c45c6b8a9296714a8daee656963"
+    },
+    "topology_confirmation": {
+      "path": "runs/sokoban_topology_skill_v1/fresh_confirmation_report.json",
+      "sha256": "d3c69a4ccce16b4e344eafefd0d8ade7145692aa44ecb9e491ece5b144330ee7"
+    }
+  },
+  "matched_effect_cells": [
+    {
+      "event": "STALL",
+      "game": "gymv_streets_of_rage_2",
+      "horizon": 8,
+      "mode": "COMMON_HASH_CONTINUATION",
+      "persist_return": 0.0,
+      "snapshot_id": "02fb8cee100d19e9fe37e4e285b438b33cb32f9466fe701a97b3abad920b44ea",
+      "split": "held_out",
+      "switch_minus_persist": 0.0,
+      "switch_return": 0.0,
+      "winner": "TIE"
+    },
+    {
+      "event": "STALL",
+      "game": "gymv_columns",
+      "horizon": 8,
+      "mode": "COMMON_HASH_CONTINUATION",
+      "persist_return": 0.0,
+      "snapshot_id": "712fbad2e73b33f06c5ce6e1f88c04ad32a9ea564d50ec8a84566733442542d2",
+      "split": "held_out",
+      "switch_minus_persist": 0.0,
+      "switch_return": 0.0,
+      "winner": "TIE"
+    },
+    {
+      "event": "PROGRESS",
+      "game": "gymv_streets_of_rage_2",
+      "horizon": 8,
+      "mode": "COMMON_HASH_CONTINUATION",
+      "persist_return": 50.0,
+      "snapshot_id": "7b021c47e587f9bcc01c2b7312c51967cfbb1324b2c51ccadb723b509f1e5421",
+      "split": "held_out",
+      "switch_minus_persist": 0.0,
+      "switch_return": 50.0,
+      "winner": "TIE"
+    },
+    {
+      "event": "PROGRESS",
+      "game": "gymv_strider",
+      "horizon": 8,
+      "mode": "COMMON_HASH_CONTINUATION",
+      "persist_return": 0.0,
+      "snapshot_id": "963885b0ef7be6da99e005d37026b6543039a9954e2939c28886480dee9693a2",
+      "split": "held_out",
+      "switch_minus_persist": 0.0,
+      "switch_return": 0.0,
+      "winner": "TIE"
+    },
+    {
+      "event": "STALL",
+      "game": "gymv_thunder_force_iii",
+      "horizon": 8,
+      "mode": "COMMON_HASH_CONTINUATION",
+      "persist_return": 600.0,
+      "snapshot_id": "98c4cacd0ba9dfb1b6b003f1a5855383034beeab0fd4070ccb591d0924a25511",
+      "split": "held_out",
+      "switch_minus_persist": 0.0,
+      "switch_return": 600.0,
+      "winner": "TIE"
+    },
+    {
+      "event": "PROGRESS",
+      "game": "gymv_thunder_force_iii",
+      "horizon": 8,
+      "mode": "COMMON_HASH_CONTINUATION",
+      "persist_return": 400.0,
+      "snapshot_id": "9f1c085dd7eff0245293488432c1f9ba428d1a058536bff83f1c6a0af1ae3dab",
+      "split": "held_out",
+      "switch_minus_persist": 0.0,
+      "switch_return": 400.0,
+      "winner": "TIE"
+    },
+    {
+      "event": "PROGRESS",
+      "game": "gymv_columns",
+      "horizon": 8,
+      "mode": "COMMON_HASH_CONTINUATION",
+      "persist_return": 0.0,
+      "snapshot_id": "ac13163480c6355ff119b7bd2150b22b5acd70a1fe7b94a2fae66a659cc02f45",
+      "split": "held_out",
+      "switch_minus_persist": 0.0,
+      "switch_return": 0.0,
+      "winner": "TIE"
+    },
+    {
+      "event": "STALL",
+      "game": "gymv_strider",
+      "horizon": 8,
+      "mode": "COMMON_HASH_CONTINUATION",
+      "persist_return": 0.0,
+      "snapshot_id": "b6a3d2c1010d17f8315955acc1f91f89f943288eacd5966c813eb61a6844b9dd",
+      "split": "held_out",
+      "switch_minus_persist": 0.0,
+      "switch_return": 0.0,
+      "winner": "TIE"
+    },
+    {
+      "event": "STALL",
+      "game": "gymv_streets_of_rage_2",
+      "horizon": 8,
+      "mode": "FULL_TREATMENT_REGIME",
+      "persist_return": 0.0,
+      "snapshot_id": "02fb8cee100d19e9fe37e4e285b438b33cb32f9466fe701a97b3abad920b44ea",
+      "split": "held_out",
+      "switch_minus_persist": 0.0,
+      "switch_return": 0.0,
+      "winner": "TIE"
+    },
+    {
+      "event": "STALL",
+      "game": "gymv_columns",
+      "horizon": 8,
+      "mode": "FULL_TREATMENT_REGIME",
+      "persist_return": 8.0,
+      "snapshot_id": "712fbad2e73b33f06c5ce6e1f88c04ad32a9ea564d50ec8a84566733442542d2",
+      "split": "held_out",
+      "switch_minus_persist": -8.0,
+      "switch_return": 0.0,
+      "winner": "PERSIST"
+    },
+    {
+      "event": "PROGRESS",
+      "game": "gymv_streets_of_rage_2",
+      "horizon": 8,
+      "mode": "FULL_TREATMENT_REGIME",
+      "persist_return": 50.0,
+      "snapshot_id": "7b021c47e587f9bcc01c2b7312c51967cfbb1324b2c51ccadb723b509f1e5421",
+      "split": "held_out",
+      "switch_minus_persist": 0.0,
+      "switch_return": 50.0,
+      "winner": "TIE"
+    },
+    {
+      "event": "PROGRESS",
+      "game": "gymv_strider",
+      "horizon": 8,
+      "mode": "FULL_TREATMENT_REGIME",
+      "persist_return": 0.0,
+      "snapshot_id": "963885b0ef7be6da99e005d37026b6543039a9954e2939c28886480dee9693a2",
+      "split": "held_out",
+      "switch_minus_persist": 0.0,
+      "switch_return": 0.0,
+      "winner": "TIE"
+    },
+    {
+      "event": "STALL",
+      "game": "gymv_thunder_force_iii",
+      "horizon": 8,
+      "mode": "FULL_TREATMENT_REGIME",
+      "persist_return": 700.0,
+      "snapshot_id": "98c4cacd0ba9dfb1b6b003f1a5855383034beeab0fd4070ccb591d0924a25511",
+      "split": "held_out",
+      "switch_minus_persist": -100.0,
+      "switch_return": 600.0,
+      "winner": "PERSIST"
+    },
+    {
+      "event": "PROGRESS",
+      "game": "gymv_thunder_force_iii",
+      "horizon": 8,
+      "mode": "FULL_TREATMENT_REGIME",
+      "persist_return": 400.0,
+      "snapshot_id": "9f1c085dd7eff0245293488432c1f9ba428d1a058536bff83f1c6a0af1ae3dab",
+      "split": "held_out",
+      "switch_minus_persist": 0.0,
+      "switch_return": 400.0,
+      "winner": "TIE"
+    },
+    {
+      "event": "PROGRESS",
+      "game": "gymv_columns",
+      "horizon": 8,
+      "mode": "FULL_TREATMENT_REGIME",
+      "persist_return": 1.0,
+      "snapshot_id": "ac13163480c6355ff119b7bd2150b22b5acd70a1fe7b94a2fae66a659cc02f45",
+      "split": "held_out",
+      "switch_minus_persist": -1.0,
+      "switch_return": 0.0,
+      "winner": "PERSIST"
+    },
+    {
+      "event": "STALL",
+      "game": "gymv_strider",
+      "horizon": 8,
+      "mode": "FULL_TREATMENT_REGIME",
+      "persist_return": 0.0,
+      "snapshot_id": "b6a3d2c1010d17f8315955acc1f91f89f943288eacd5966c813eb61a6844b9dd",
+      "split": "held_out",
+      "switch_minus_persist": 0.0,
+      "switch_return": 0.0,
+      "winner": "TIE"
+    },
+    {
+      "event": "STALL",
+      "game": "gymv_strider",
+      "horizon": 8,
+      "mode": "COMMON_HASH_CONTINUATION",
+      "persist_return": 0.0,
+      "snapshot_id": "0142f415ea8a370b47d8b330633a04856f67f09649e1264882e3b0ead972a41c",
+      "split": "qualification",
+      "switch_minus_persist": 0.0,
+      "switch_return": 0.0,
+      "winner": "TIE"
+    },
+    {
+      "event": "PROGRESS",
+      "game": "gymv_streets_of_rage_2",
+      "horizon": 8,
+      "mode": "COMMON_HASH_CONTINUATION",
+      "persist_return": 20.0,
+      "snapshot_id": "0cffe5e019de2aa063f897389b12390b673e50a0d94bc1f777366f545559a5f0",
+      "split": "qualification",
+      "switch_minus_persist": 0.0,
+      "switch_return": 20.0,
+      "winner": "TIE"
+    },
+    {
+      "event": "STALL",
+      "game": "gymv_streets_of_rage_2",
+      "horizon": 8,
+      "mode": "COMMON_HASH_CONTINUATION",
+      "persist_return": 50.0,
+      "snapshot_id": "4a4025cc26a0328371ece94742c1d1ea681d46d25ae9e1ba12a6471a95849276",
+      "split": "qualification",
+      "switch_minus_persist": -50.0,
+      "switch_return": 0.0,
+      "winner": "PERSIST"
+    },
+    {
+      "event": "PROGRESS",
+      "game": "gymv_columns",
+      "horizon": 8,
+      "mode": "COMMON_HASH_CONTINUATION",
+      "persist_return": 7.0,
+      "snapshot_id": "95eda9260c938c48c943680fd9362fd2e63f148b84d28869486db429616aa8df",
+      "split": "qualification",
+      "switch_minus_persist": -1.0,
+      "switch_return": 6.0,
+      "winner": "PERSIST"
+    },
+    {
+      "event": "STALL",
+      "game": "gymv_thunder_force_iii",
+      "horizon": 8,
+      "mode": "COMMON_HASH_CONTINUATION",
+      "persist_return": 0.0,
+      "snapshot_id": "b8a2129929e3bbf3d1a79815b11a24f5819db6c4de15932104a3cf774b717756",
+      "split": "qualification",
+      "switch_minus_persist": 0.0,
+      "switch_return": 0.0,
+      "winner": "TIE"
+    },
+    {
+      "event": "PROGRESS",
+      "game": "gymv_strider",
+      "horizon": 8,
+      "mode": "COMMON_HASH_CONTINUATION",
+      "persist_return": 0.0,
+      "snapshot_id": "c521a31e52976a3f569e20d45400b1442379a16b13958aced13ad067e9f73e35",
+      "split": "qualification",
+      "switch_minus_persist": 0.0,
+      "switch_return": 0.0,
+      "winner": "TIE"
+    },
+    {
+      "event": "STALL",
+      "game": "gymv_columns",
+      "horizon": 8,
+      "mode": "COMMON_HASH_CONTINUATION",
+      "persist_return": 8.0,
+      "snapshot_id": "dd9f950aa0ee5eb91072fcd93d5424363bdc284ee428e0aeec90cbabe9e405aa",
+      "split": "qualification",
+      "switch_minus_persist": -8.0,
+      "switch_return": 0.0,
+      "winner": "PERSIST"
+    },
+    {
+      "event": "PROGRESS",
+      "game": "gymv_thunder_force_iii",
+      "horizon": 8,
+      "mode": "COMMON_HASH_CONTINUATION",
+      "persist_return": 100.0,
+      "snapshot_id": "fe9b07f59f1afc03540940657eb99dbcc6b6a137908f1e277f4b0b07ea0f8754",
+      "split": "qualification",
+      "switch_minus_persist": -100.0,
+      "switch_return": 0.0,
+      "winner": "PERSIST"
+    },
+    {
+      "event": "STALL",
+      "game": "gymv_strider",
+      "horizon": 8,
+      "mode": "FULL_TREATMENT_REGIME",
+      "persist_return": 0.0,
+      "snapshot_id": "0142f415ea8a370b47d8b330633a04856f67f09649e1264882e3b0ead972a41c",
+      "split": "qualification",
+      "switch_minus_persist": 0.0,
+      "switch_return": 0.0,
+      "winner": "TIE"
+    },
+    {
+      "event": "PROGRESS",
+      "game": "gymv_streets_of_rage_2",
+      "horizon": 8,
+      "mode": "FULL_TREATMENT_REGIME",
+      "persist_return": 0.0,
+      "snapshot_id": "0cffe5e019de2aa063f897389b12390b673e50a0d94bc1f777366f545559a5f0",
+      "split": "qualification",
+      "switch_minus_persist": 20.0,
+      "switch_return": 20.0,
+      "winner": "SWITCH"
+    },
+    {
+      "event": "STALL",
+      "game": "gymv_streets_of_rage_2",
+      "horizon": 8,
+      "mode": "FULL_TREATMENT_REGIME",
+      "persist_return": 0.0,
+      "snapshot_id": "4a4025cc26a0328371ece94742c1d1ea681d46d25ae9e1ba12a6471a95849276",
+      "split": "qualification",
+      "switch_minus_persist": 0.0,
+      "switch_return": 0.0,
+      "winner": "TIE"
+    },
+    {
+      "event": "PROGRESS",
+      "game": "gymv_columns",
+      "horizon": 8,
+      "mode": "FULL_TREATMENT_REGIME",
+      "persist_return": 26.0,
+      "snapshot_id": "95eda9260c938c48c943680fd9362fd2e63f148b84d28869486db429616aa8df",
+      "split": "qualification",
+      "switch_minus_persist": -20.0,
+      "switch_return": 6.0,
+      "winner": "PERSIST"
+    },
+    {
+      "event": "STALL",
+      "game": "gymv_thunder_force_iii",
+      "horizon": 8,
+      "mode": "FULL_TREATMENT_REGIME",
+      "persist_return": 0.0,
+      "snapshot_id": "b8a2129929e3bbf3d1a79815b11a24f5819db6c4de15932104a3cf774b717756",
+      "split": "qualification",
+      "switch_minus_persist": 0.0,
+      "switch_return": 0.0,
+      "winner": "TIE"
+    },
+    {
+      "event": "PROGRESS",
+      "game": "gymv_strider",
+      "horizon": 8,
+      "mode": "FULL_TREATMENT_REGIME",
+      "persist_return": 0.0,
+      "snapshot_id": "c521a31e52976a3f569e20d45400b1442379a16b13958aced13ad067e9f73e35",
+      "split": "qualification",
+      "switch_minus_persist": 0.0,
+      "switch_return": 0.0,
+      "winner": "TIE"
+    },
+    {
+      "event": "STALL",
+      "game": "gymv_columns",
+      "horizon": 8,
+      "mode": "FULL_TREATMENT_REGIME",
+      "persist_return": 19.0,
+      "snapshot_id": "dd9f950aa0ee5eb91072fcd93d5424363bdc284ee428e0aeec90cbabe9e405aa",
+      "split": "qualification",
+      "switch_minus_persist": -19.0,
+      "switch_return": 0.0,
+      "winner": "PERSIST"
+    },
+    {
+      "event": "PROGRESS",
+      "game": "gymv_thunder_force_iii",
+      "horizon": 8,
+      "mode": "FULL_TREATMENT_REGIME",
+      "persist_return": 100.0,
+      "snapshot_id": "fe9b07f59f1afc03540940657eb99dbcc6b6a137908f1e277f4b0b07ea0f8754",
+      "split": "qualification",
+      "switch_minus_persist": -100.0,
+      "switch_return": 0.0,
+      "winner": "PERSIST"
+    }
+  ],
+  "next_source_experiment": {
+    "name": "RELATIVE_FEASIBILITY_AND_NOVELTY_FORKS_V16",
+    "required_design": "REAL_REPLAYABLE_GAME_STATES_WITH_MATCHED_ACTION_FORKS_AND_BLIND_HELD_OUT_GAMES_OR_LEVELS",
+    "required_treatments": [
+      "BACKTRACK",
+      "EXPLORE_UNTRIED",
+      "COMMIT"
+    ],
+    "target_adaptation_allowed": "ONLY_AFTER_EACH_BRANCH_HAS_NONZERO_SUPPORT_AND_AUTHENTIC_ROUTING_BEATS_STATIC_AND_PERMUTED_CONTROLS"
+  },
+  "proposed_controller": [
+    "INFEASIBLE -> BACKTRACK_REPLAN",
+    "FEASIBLE_AND_UNTRIED -> EXPLORE",
+    "READY_AND_POSITIVE_EFFECT -> COMMIT_THEN_VERIFY"
+  ],
+  "schema_version": 1,
+  "source_gate_passed": false,
+  "status": "SOURCE_TRIAGE_GATE_V15_FAILED_CLOSED",
+  "target_execution": {
+    "authorized": false,
+    "decision": "STOP_BEFORE_TARGET_ADAPTER",
+    "formal_reserve_opened": false,
+    "provider_calls": 0,
+    "target_domain": "webshop",
+    "target_files_read": []
+  }
+}

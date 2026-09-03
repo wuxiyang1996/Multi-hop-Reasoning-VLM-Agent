@@ -1,5 +1,135 @@
 # Implementation Status
 
+## AGQA Qwen32 compositional raw-video V17b（2026-09-03）
+
+在旧 query-conditioned single-candidate V14 negative ablation 之后，新的 multi-event
+duration-compositional 路线已完成 development -> frozen protocol -> one-shot fresh formal。
+256 个 video/task-disjoint balanced-train tasks 上，shared Qwen3.5-9B neural-only 与
+matched-permuted 均为 107/256，game source-induced 为 **123/256**（`+6.25 pp`，
+`20W/4L`，two-sided exact `p=.00154388`），negative transfer 1.56%，target-written
+isomorphic 100%；generic target-native ceiling 为 132/256。五臂共享 48+96-frame
+Qwen3-VL-32B grounding、parser、executor 与 fallback，grounder 不读取 answer/STSG/program/
+source/outcome。该结果验证 selective duration-compositional transfer，不是 full AGQA test 或
+SOTA；absolute `>55%` secondary target 未达到。完整协议、失败版本、cost、taxonomy 与主表行见
+[`AGQA_QWEN32_COMPOSITIONAL_RAW_VIDEO_V17B_RESULTS.md`](AGQA_QWEN32_COMPOSITIONAL_RAW_VIDEO_V17B_RESULTS.md)，
+机器总审计见
+[`results/two_video_transfer_bundle_v3.json`](results/two_video_transfer_bundle_v3.json)。
+
+## AGQA typed-evidence V13/V14（2026-09-03）
+
+V13 的 800-video / 1,600-task answer-blind typed-evidence grounding qualification
+已通过：460 个 supported candidates，precision 67.61%，Wilson lower 63.20%，coverage
+28.75%。随后一次性运行的 V14 512-video / 1,024-task untouched formal 没有验证增量
+transfer：source 246/1024、neural/permuted 245/1024，仅 1W/0L，`p=1.0`。285 次
+source commits 中 283 次直接复现 shared 9B fallback；query-conditioned grounder 已基本把
+single-hop answer 做完，Harness 没有非平凡的组合决策空间。
+
+V14 保留为 negative ablation，不在该 cohort 上调参。未来 formal 已新增 outcome-blind
+prediction-disagreement opportunity gate；下一条 AGQA 路线必须使用 question-blind multi-event
+graph 与 compositional/temporal task。详见
+[`AGQA_QUERY_GROUNDER_V2_TYPED_EVIDENCE_V13_V14_RESULTS.md`](AGQA_QUERY_GROUNDER_V2_TYPED_EVIDENCE_V13_V14_RESULTS.md)。
+
+## Full video source algebra + CLEVRER/AGQA2 Layer B（2026-09-02）
+
+Anonymous controller gap 已关闭：六个 source-game `(state, action, effect, next_state)` lineage
+自动汇总出 3 个 content-addressed state-delta operators 与 3 条 observed transitions；held-out
+closed loop `58/58`，effect-shuffled `0/58`，alpha-renaming invariance 通过。相同 controller
+artifact 未经修改 replay CLEVRER 1,600 tasks 与 AGQA 512+256 tasks，所有 commit/fallback、
+isomorphic 与 fail-closed permuted decisions 100% 等价。Universal video VM 与 target-native
+grounding/binding 明确列为 designer-specified，不再把其 29 个 opcode 误称为 ontology-free
+source induction。
+
+Source-only video algebra 已从六类 source intervention evidence 自动汇总为 29 个 typed
+primitives 与 73 条 composition edges；held-out/shuffled controls、source abstention 与新的
+capacity-matched semantic permutation control 均已接入。
+
+CLEVRER V2 在 400 个全新 videos / 1,600 题上通过 raw-video-grounded 五臂 formal：Qwen3.5-9B
+neural-only 556/1600，source-induced 997/1600（+27.56 pp），source-permuted 556/1600，
+464W/23L，`p=3.91e-108`，negative transfer 1.44%，isomorphic equivalence 100%；generic
+target-native ceiling 为 1123/1600。Source 按预冻结 grounder fidelity 只在 descriptive 与
+explanatory commit，另外两类 fail closed。
+
+AGQA2 fresh powered broad formal 也已通过。先封存 24-video / 240-task 正向但不显著的 diagnostic，
+不改方法，只据此扩大独立样本；随后从 1,573 个未进入历史 raw runtime 的合格 official
+balanced-train videos 中哈希选择并 range-download 180 个。Question-only parser gate 后整体排除
+一个 invalid video block，最终 179 videos / 1,790 tasks。Neural-only 803/1790，source-induced
+832/1790（+1.62 pp），matched-permuted 803/1790，69W/40L，exact two-sided `p=.00704`，loss
+2.23%，commit coverage 30.28%，isomorphic equivalence 100%；generic ceiling 833/1790。完整结果、
+早期 diagnostics、cost 与 paper-safe claim 见
+[`FULL_VIDEO_SOURCE_ALGEBRA_LAYER_B_V1_RESULTS.md`](FULL_VIDEO_SOURCE_ALGEBRA_LAYER_B_V1_RESULTS.md)。
+机器可读总审计为
+[`results/two_video_transfer_bundle_v2.json`](results/two_video_transfer_bundle_v2.json)，状态
+`BOTH_VIDEO_BENCHMARKS_FRESH_LAYER_B_VALIDATED`。AGQA fresh result 来自 official
+balanced-train，不声称 official-test SOTA。
+
+## Phase 17 V28 prospective target reserve（2026-08-20）
+
+Phase 16 的最高优先级边界已关闭。V28 从 official-Tetris fresh intervention forks 在 `K=3` 自动归纳的
+同一个 `COMPOSE(PROBE_EFFECT, RECOVERY_EFFECT)==IDENTITY` program，现已在冻结后的新 MiniGrid
+orientation-recovery target 上完成 development → fresh qualification → untouched formal reserve。
+
+Target-native MLP 只用 64 development tasks 的 rendered orientation labels 训练，不读 target success、完整
+trajectory、source program 或 source identity；formal grounding 为 336/336 panels、48/48 exact effect
+bindings。Native success：source 48/48、64-label neural-only direct 16/48（32W/0L，`p=4.66e-10`），
+copy/fixed/shuffled controls 为 26/12/13。独立 target-written isomorphic 也是 48/48，所以结果验证的是
+source-acquired program content 的 prospective transfer，而不是 provenance necessity。状态为
+`PROSPECTIVE_V28_TARGET_RESERVE_VALIDATED`。完整协议、排除 pilot 与边界见
+[`PHASE17_PROSPECTIVE_V28_TARGET_RESERVE_RESULTS.md`](PHASE17_PROSPECTIVE_V28_TARGET_RESERVE_RESULTS.md)。
+
+## Phase 16 acquisition gaps closure（2026-08-19）
+
+Phase 14–15 声明的四个后续实验已全部执行。ALFWorld source K=4 的完整 candidate-fork cost 由冻结
+pre-compression dataset 精确重建为 16 forks / 108 primitive transitions，其中成功路径 27、失败 forks
+81；target K=1 为 15–39 transitions。现在有共同的句法 step count，但不把不同环境解释成相同经济成本。
+
+Zero-trajectory target-only LLM baseline 已冻结完成：3 targets × 4 calls，0 target trajectory/outcome，
+总成本 $0.0036568。Strict exact program 为 0/12；ALFWorld 与 TIR 的 family/core constraints 为 8/8，
+但均遗漏 fail-closed contract，DiscoveryWorld 4/4 选错 family。这个结果说明 target prior 能恢复 partial
+structure，但本 baseline 未合成 exact safe program；不能外推到所有 LLM/人类。
+
+第三个 algebraic family 已真正 source-induced：official Tetris fresh forks 在 K=3 唯一归纳
+`COMPOSE(PROBE_EFFECT, RECOVERY_EFFECT)==IDENTITY`，不提供 inverse formula 或 raw action token。23 个
+qualification episodes 的 92/92 forks 与 qualification 后才打开的 18 个 reserve episodes 的 72/72 forks
+全部分类正确，0 false positive；effect/label controls 都 abstain。综合状态为
+`DECLARED_PHASE14_15_GAPS_CLOSED_WITH_BOUNDARIES`。完整结果见
+[`PHASE16_GAP_CLOSURE_RESULTS.md`](PHASE16_GAP_CLOSURE_RESULTS.md)。
+
+## Phase 14–15 matched acquisition 与第二程序族（2026-08-19）
+
+ALFWorld matched acquisition audit 已冻结通过：source 主排序在 `K=4` 恢复完整 normal form，64/64
+确定性重排均在 `K≤9` 恢复；9/9 个 target 单-demo 各自于 `K=1` 恢复相同 execution normal form，
+并在 11/11 later held-out paths 上成立，shuffled/permuted support 为 0。旧小样本 terminal learner 的
+spurious entity-count predicate 已由 source-only intervention-linked causal restriction 修复。
+
+第二个非 recurrent family 也已通过：MiniGrid PutNear 的有限
+`ADD ENTITY_SLOT → REMOVE ENTITY_SLOT` program 在 source `K=2` 恢复；DiscoveryWorld target-only
+`K=0` abstain，3/3 个单-demo 在 `K=1` 独立恢复包含该 subprogram 的同一 partial-order normal form。
+这排除了“只有一套 canonical recurrent controller”的解释。完整结果与剩余成本边界见
+[`PHASE14_PHASE15_MATCHED_ACQUISITION_AND_SECOND_FAMILY_RESULTS.md`](PHASE14_PHASE15_MATCHED_ACQUISITION_AND_SECOND_FAMILY_RESULTS.md)。
+
+## Phase 13 ALFWorld program acquisition value（2026-08-19）
+
+Source-provenance identifiability concern 已在 ALFWorld 内完成 matched acquisition-cost control。
+Fresh compiler-valid 14-task matrix 中，raw/generic/permuted 为 `4/14`，source-induced 与
+source-blind target-only `K=1` 均为 `9/14`，14/14 action/state/effect traces 完全相同；target-only
+`K=0` abstain，需 1 条完整 target trajectory 才恢复 source 用 0 条 target trajectory 得到的
+program。正确解释是 symbolic content 有执行效用、source interventions 有 acquisition value，
+而 source provenance 本身没有额外 execution effect。完整结果、schema-recovery audit 与 claim
+boundary 见
+[`PHASE13_ALFWORLD_SOURCE_ACQUISITION_VALUE_RESULTS.md`](PHASE13_ALFWORLD_SOURCE_ACQUISITION_VALUE_RESULTS.md)。
+
+## Harness retargeting 跨版本审计（2026-08-11）
+
+五个历史工作目录的 docs、raw reports 与关键 logs 已完成只读审计。审计结论、负结果、
+受限正结果及 frozen-skill/target-harness 权限边界见
+[`HARNESS_RETARGETING_BITTER_LESSONS.md`](HARNESS_RETARGETING_BITTER_LESSONS.md)。后续实验必须
+固定同一个 target Harness，对比 null、shuffled/wrong、authentic frozen source skill 与
+target-written oracle；仅 `skill+Harness > raw target-only` 不足以归因 source skill transfer。
+权限矩阵、fail-closed invariants、paired gates 与实现入口见
+[`HARNESS_RETARGETING_PROTOCOL.md`](HARNESS_RETARGETING_PROTOCOL.md)。
+Controlled cross-semantic reference run 已通过完整五条件矩阵；结果与严格 claim boundary 见
+[`HARNESS_RETARGETING_SMOKE_V1_RESULTS.md`](HARNESS_RETARGETING_SMOKE_V1_RESULTS.md)。
+
 ## 主 claim 与 weak-prior contract 更新（2026-07-23）
 
 主问题已从 `skill/motif transfer` 改为：target MDP 的 test-time reasoning 能否从异构 source

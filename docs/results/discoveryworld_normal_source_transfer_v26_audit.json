@@ -1,0 +1,54 @@
+{
+  "all_audit_gates_passed": true,
+  "audit_sha256": "fd5684df452deb2862300d0c0ae8dd7e654e5396b8fda8566bd0392c4c2bdd17",
+  "claim_boundary": "The audit validates prospective lineage, online typed-program conformance, common random numbers, nonnegative transfer, and destructive-control separation. Because authentic and neural-only action traces and success are identical, it explicitly rejects an incremental success-rate claim.",
+  "gates": {
+    "authentic_and_neural_only_actions_match": true,
+    "authentic_full_success": true,
+    "authentic_monitor_has_no_abstention": true,
+    "authentic_nonnegative_vs_neural_only": true,
+    "authentic_program_conformance": true,
+    "authentic_strictly_beats_permuted": true,
+    "common_random_numbers": true,
+    "episode_self_hashes": true,
+    "formal_config_frozen": true,
+    "formal_report_self_hash": true,
+    "monitor_self_hashes": true,
+    "permuted_fails_closed": true,
+    "permuted_first_denial_is_binding": true,
+    "qualification_authorized_formal": true,
+    "qualification_report_self_hash": true,
+    "runner_reported_all_gates": true,
+    "runtime_lineage": true,
+    "source_artifact_self_hash": true,
+    "task_identities": true,
+    "zero_oracle_exposure": true
+  },
+  "integrity": {
+    "formal_config_file_sha256": "cb728199b07df54741aa34b141dc908ca6a30fadefece11ab6c21fb5e040d4a4",
+    "formal_report_sha256": "2ab566dbd8502c0ef76c0478ba1294f4507b3e1ef9a29d6fe85b0d2e8d8bee47",
+    "qualification_report_sha256": "de2d3c6baed5b4fe3afdff63afa3f0c078a041c8ee5e3fbf09fe4393a4be0b2b",
+    "source_artifact_sha256": "7ff3e950f3eebaf75cca015df88ab6a01f2f364fe246102984a3cb4ee095f0d7"
+  },
+  "interpretation": {
+    "incremental_success_rate_gain_validated": false,
+    "program_transfer_validated": true,
+    "source_information_value": "ONE_COMPLETE_ORDERED_SUCCESSFUL_TARGET_TRAJECTORY",
+    "source_provenance_identifiable_from_behavior_alone": false,
+    "what_remained_target_native": "PROTEOMICS_PERCEPTION_ACTION_CANDIDATES_AND_NEURAL_GROUNDING",
+    "what_transferred": "SOURCE_INDUCED_ACQUISITION_BINDING_RELATION_PROGRAM"
+  },
+  "metrics": {
+    "authentic_minus_neural_only": 0,
+    "authentic_minus_source_permuted": 24,
+    "authentic_source_successes": 24,
+    "complete_target_trajectories_replaced": 1,
+    "neural_only_successes": 24,
+    "paired_one_sided_sign_test_p_authentic_vs_permuted": 5.960464477539063e-08,
+    "qualification_grounder_exact_accuracy": 1.0,
+    "source_permuted_successes": 0,
+    "tasks_per_condition": 24
+  },
+  "schema_version": "discoveryworld-normal-source-transfer-v26-independent-audit",
+  "status": "DISCOVERYWORLD_NORMAL_V26_INDEPENDENT_AUDIT_PASSED"
+}

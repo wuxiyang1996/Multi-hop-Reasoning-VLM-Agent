@@ -1,0 +1,99 @@
+{
+  "schema_version": 35,
+  "status": "FROZEN_BEFORE_V35_PROSPECTIVE_FORMAL_OUTCOMES",
+  "claim_boundary": "Prospective evaluation on 126 reserve questions from 14 videos that have zero sample and zero video overlap with V34 adaptation. The real Sokoban source contributes only COMMIT -> VERIFY_EXPECTED_EFFECT; EXPECTED_EFFECT_REFUTED -> REPLAN_OR_ABSTAIN. GPT-5.4 direct beliefs and Gemini 3.1 Pro typed proofs are target-native neural groundings. A V34-frozen neural CATE estimates proof-versus-direct uplift without runtime gold or official STAR/NExT-QA structure. Passing every gate supports adaptation-based game-to-natural-video neural-symbolic transfer, not zero-shot transfer and not unique Sokoban provenance versus an extensionally identical target-only controller. Historical raw-video reuse outside V34 is disclosed.",
+  "source_receipt": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/docs/results/sokoban_effect_program_v2_compact_receipt.json",
+  "cate_artifact": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/natural_video_proof_cate_v34_training/frozen_artifact.json",
+  "development_receipts": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/natural_video_v19_expanded_formal/formal_receipts.json",
+  "formal_manifest": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/configs/natural_video_v22_expanded_reserve_manifest.json",
+  "wrapper_root": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent",
+  "benchmarks": {
+    "star": {
+      "root": "/fs/gamma-projects/vlm-robot/datasets/STAR-official",
+      "annotation_split": "val"
+    },
+    "nextqa": {
+      "root": "/fs/gamma-projects/vlm-robot/datasets/NExT-QA-official",
+      "annotation_split": "val"
+    }
+  },
+  "primary_model": {
+    "provider": "openai",
+    "api_key_name": "OPENAI_API_KEY",
+    "id": "gpt-5.4",
+    "base_url": "https://us.api.openai.com/v1",
+    "timeout_seconds": 300,
+    "max_retries": 2,
+    "schema_retries": 3,
+    "max_primary_tokens": 1200
+  },
+  "proof_model": {
+    "provider": "openrouter",
+    "api_key_name": "OPENROUTER_API_KEY",
+    "id": "google/gemini-3.1-pro-preview",
+    "base_url": "https://openrouter.ai/api/v1",
+    "timeout_seconds": 300,
+    "max_retries": 2,
+    "schema_retries": 3,
+    "max_proof_tokens": 5200,
+    "transport_fallback_max_tokens": 16000,
+    "transport_fallback_hidden_reasoning_effort": "low"
+  },
+  "media": {
+    "primary_frame_count": 12,
+    "proof_frame_count": 24,
+    "proof_frames_per_panel": 12,
+    "proxy_frame_max_side": 720,
+    "primary_frame_width": 224,
+    "proof_frame_width": 192,
+    "jpeg_quality": 88
+  },
+  "controls": {
+    "binding_rotation_seed": 35017,
+    "marginal_salt": "natural-video-v35-same-rate-marginal-20260813",
+    "conditions": [
+      "primary",
+      "always_proof",
+      "source_proof_cate",
+      "base_only_cate",
+      "permuted_uplift_cate",
+      "shuffled_proof_training_cate",
+      "binding_rotation_cate",
+      "inverted_source_contract",
+      "same_rate_marginal"
+    ]
+  },
+  "formal_gates": {
+    "minimum_source_net_wins_pooled": 5,
+    "minimum_source_net_wins_each_benchmark": 1,
+    "maximum_question_level_exact_two_sided_p": 0.05,
+    "cluster_bootstrap_lower_bound_must_exceed": 0.0,
+    "minimum_positive_minus_negative_video_clusters_pooled": 1,
+    "minimum_positive_minus_negative_video_clusters_each_benchmark": 0,
+    "source_strictly_above_primary": true,
+    "source_strictly_above_always_proof": true,
+    "source_strictly_above_base_only": true,
+    "source_strictly_above_permuted_uplift": true,
+    "source_strictly_above_shuffled_proof_training": true,
+    "source_strictly_above_binding_rotation": true,
+    "source_strictly_above_inverted_contract": true,
+    "source_strictly_above_same_rate_marginal": true
+  },
+  "cluster_inference": {
+    "bootstrap_resamples": 20000,
+    "bootstrap_seed": 35043
+  },
+  "frozen_lineage": {
+    "source_receipt_sha256": "8f175c0edda951eba2064e9c53a8db6a25cdfa9fb0de8049d371dbf5335c9e80",
+    "formal_manifest_sha256": "c5bbd45b918c0fa3eb7e05df8aebf55680240b7be77e59620f6dd879815b64e7",
+    "cate_artifact_sha256": "6777fbd5f992d377217b669cabc8b530cf244ae997985ead3491e562b6b0a517",
+    "development_receipts_sha256": "50011ed4a8ec645b5652220bfcc61f18ddb816b6bb3c49f20a7f445be5d8090d",
+    "collector_sha256": "0d9f7cf9b3e3cf563256da2485c70acfc37e5ce3611c7c5dec8777ca23fa73cb",
+    "v19_collector_sha256": "2675beb07d86fe31124c9588b4dde61ff86c1915b31dd829e57f90b8c058f335",
+    "v15_collector_sha256": "1a2cba5619aee6a767cf73bcbaa7044594911f5c5903ef65ae98e6e62921bee1",
+    "transport_module_sha256": "db737df608164f8cc3b14df823b55a0a5697abb1c02fcfeb1df8da6c7e68c8bf",
+    "contract_module_sha256": "bdca859acc73384b66799d73e4b16845151bc195e65aa7ce9ae4178b22965f7c",
+    "cate_module_sha256": "34bf5fcf44a029e12452f94e5e5918cf2db074d045ca5e1ab1ebab3cac96458b",
+    "analyzer_sha256": "61b5074697861de8fc487c67bbc75cb1d3e02d159638da4dbe898a9a42c192e6"
+  }
+}

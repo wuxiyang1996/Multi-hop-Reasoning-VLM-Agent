@@ -1,0 +1,59 @@
+{
+  "schema_version": "agqa-query-conditioned-typed-binding-v3-development-protocol-v1",
+  "status": "FROZEN_ON_CONSUMED_DEVELOPMENT_AFTER_V2_GATE_FAILURE_NOT_TRANSFER_EVIDENCE",
+  "claim_boundary": "Grounder repair on an already consumed AGQA balanced-train development cohort only. No row is transfer evidence and no fresh qualification is authorized by this file.",
+  "failure_evidence": {
+    "v2_development_report": "runs/agqa2_query_grounder_v2_development_v2/development_qualification_report.json",
+    "v2_status": "V5_STAGE_A_DEVELOPMENT_NOT_QUALIFIED",
+    "v2_entity_candidate_pool_recall": 0.9208333333333333,
+    "v2_binary_supported": 30,
+    "v2_binary_correct": 9,
+    "diagnosis": "Public detector tracks contain the gold entity, but question-blind event induction does not bind the correct predicate, temporal scope, and typed role. A confidence threshold cannot repair missing relation bindings."
+  },
+  "repair_hypothesis": "Execute the answer-blind temporal scope first, then let one frozen off-the-shelf VLM bind a label-unique public detector inventory ID to the requested typed role. Require a later independent one-candidate pixel verification before any Harness arm may consume the binding.",
+  "immutable_inputs": {
+    "cohort_file_sha256": "4a41e3389aa146ce3d39b88402e94c08c05c144aaa7ffe7426c35f635cf861eb",
+    "sgdet_file_sha256": "37d59769f73087f3a7d295db2622e1aa86ea2e44be4f5391f037972d00561813",
+    "query_grounding_file_sha256": "efaf584c3f272d869121a68505d8ef249018c2e15d6f782621812a1114cbedca",
+    "collector_sha256": "782fe953ca2605e8f7c834dcbc98729c096c8eb8a55bcec8717cfae04f425749"
+  },
+  "query_conditioned_typed_binding": {
+    "model": "qwen/qwen3-vl-235b-a22b-instruct",
+    "provider": "parasail",
+    "provider_allow_fallbacks": false,
+    "seed": 0,
+    "maximum_frames": 24,
+    "temporal_uncertainty_frames": 4,
+    "minimum_object_score": 0.05,
+    "frames_per_panel": 4,
+    "panel_frame_width": 256,
+    "jpeg_quality": 90,
+    "max_tokens": 128,
+    "maximum_contract_attempts": 2,
+    "temperature": 0,
+    "thinking": false,
+    "candidate_source": "label-unique stable tracks from frozen prediction-only public detector",
+    "candidate_output": "inventory ID only, never an AGQA alternative answer",
+    "independent_binary_verification_required": true
+  },
+  "authority": {
+    "public_question_read": true,
+    "parser_derived_predicate_role_temporal_operator_read": true,
+    "answer_blind_anchor_intervals_read": true,
+    "raw_video_frames_read": true,
+    "prediction_only_public_detector_tracks_read": true,
+    "agqa_answer_read": false,
+    "agqa_answer_alternatives_read": false,
+    "official_scene_graph_read": false,
+    "official_stsg_read": false,
+    "functional_program_read": false,
+    "source_controller_read": false,
+    "target_outcome_read": false
+  },
+  "development_policy": {
+    "this_cohort_is_permanently_consumed": true,
+    "provider_or_prompt_selection_from_fresh_outcomes_forbidden": true,
+    "fresh_video_and_task_disjoint_qualification_required_after_development": true,
+    "all_harness_arms_must_share_exact_final_grounding_receipts": true
+  }
+}

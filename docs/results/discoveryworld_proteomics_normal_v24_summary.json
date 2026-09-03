@@ -1,0 +1,53 @@
+{
+  "schema_version": "discoveryworld-proteomics-normal-v24-summary",
+  "status": "CONSUMED_NORMAL_NEGATIVE_TRANSFER_DIAGNOSED",
+  "claim_boundary": "Consumed-development diagnosis on Proteomics Normal seed2 after a source-blind target-native survey reached the first DROP interface. This is not fresh confirmation and does not validate DiscoveryWorld Normal transfer.",
+  "target_acquisition": {
+    "status": "TARGET_ACQUISITION_GATE_PASSED",
+    "tasks": 2,
+    "commit_coverage": 2,
+    "official_successes": 2,
+    "zero_source_input": true,
+    "zero_policy_oracle_scorecard_use": true
+  },
+  "matched_diagnostic": {
+    "task_id": "proteomics.normal.seed2",
+    "fork_after_episode_step": 23,
+    "outcome_fields_read_for_fork_eligibility": false,
+    "all_matched_forks": true,
+    "all_selection_receipts_valid": true,
+    "policy_runtime_saw_oracle_scorecard": false,
+    "successes": {
+      "target_only_recorded": 1,
+      "target_native_myopic": 1,
+      "authentic_sokoban_effect_plus_target": 0,
+      "commit_availability_control_plus_target": 1,
+      "inverted_effect_control_plus_target": 1,
+      "position_prior_control_plus_target": 0
+    }
+  },
+  "paired_authentic_vs_target": {
+    "wins": 0,
+    "losses": 1,
+    "ties": 0,
+    "exact_two_sided_p": 1.0
+  },
+  "diagnosis": {
+    "target_native_behavior": "The myopic target policy selected the native DROP and completed in one recovery step.",
+    "authentic_behavior": "The source effect guard rejected COMMIT for all eight recovery steps and failed.",
+    "representation_gap": "The target task says directly beside, while the binder encoded same_location at distance zero and the exact target facts placed the statue one square north. The current symbolic vocabulary cannot express undirected adjacency.",
+    "target_ceiling": "The source-blind target-native acquisition succeeded on both development seeds and the matched target comparator was already 1/1, so success-rate improvement is not identifiable at this fork.",
+    "conclusion": "Do not open a fresh Normal reserve for this effect-guard route. Add a target-native adjacency predicate only as future representation development, then seek an earlier decision point where target performance is below ceiling."
+  },
+  "operational_disclosure": {
+    "binder_contract_fix": "The first binder response used same_location with null distance. Before any matched arm ran, the neural-symbolic parser was given the logically unique normalization same_location -> distance zero and a regression test.",
+    "invalid_python_launches": "Two later launches used Python environments missing termcolor or the DiscoveryWorld module and failed at import before reset; neither made a target decision.",
+    "selective_scientific_retry": false
+  },
+  "integrity": {
+    "target_acquisition_summary_file_sha256": "31f919e13c0cdab032d9d9f1a12a7070e97611d2b3d13215585aa7a608710f80",
+    "fork_freeze_receipt_file_sha256": "203146ad23c371994a23a66fd7de8e4c221ff9e5de35e7fba762c4decb672550",
+    "matched_result_file_sha256": "dc78c00b525769acf73a76572445d92affc7ba44d9f40d0d544bde9d45cdd8cd",
+    "matched_result_sha256": "5ba72c6b327819afdbc7c604934e9382d5c461382dc598edf12452bf8554c689"
+  }
+}

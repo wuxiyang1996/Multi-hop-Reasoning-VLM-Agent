@@ -1,0 +1,87 @@
+{
+  "adaptation_results": [
+    {
+      "authentic_changed_effects": 3,
+      "authentic_successes": 13,
+      "report_sha256": "fedb84eed48788a9af7104bbbe4bc8f1c1b3d921c5bc191daccd6f76ab2bb79b",
+      "status": "ADAPTATION_GATE_FAILED_STOP",
+      "target_only_successes": 12,
+      "tasks": 18,
+      "transfer_scope": "full"
+    },
+    {
+      "authentic_changed_effects": 13,
+      "authentic_successes": 17,
+      "report_sha256": "f7b86568459b4cd84be5fb351caf1849a3515a2580b26b62e42748a7e9c8fa5b",
+      "status": "ADAPTATION_GATE_FAILED_STOP",
+      "target_only_successes": 17,
+      "tasks": 30,
+      "transfer_scope": "full"
+    },
+    {
+      "authentic_changed_by_effect": {
+        "BIND": 1,
+        "MUTATE": 0,
+        "RELATE": 3
+      },
+      "authentic_changed_effects": 4,
+      "authentic_successes": 15,
+      "report_sha256": "57adfba48ff01c0ecc31ef5c3bf575fb702271b01b32fc95ac13ab8dd7771bd1",
+      "status": "ADAPTATION_GATE_PASSED",
+      "target_only_successes": 14,
+      "tasks": 16,
+      "transfer_scope": "relational"
+    }
+  ],
+  "code_audit": {
+    "central_failure": "SOURCE_IR_VALIDATED_BUT_NODES_AND_EDGES_NOT_EXECUTED",
+    "edge_control_failure": "HARDCODED_EFFECT_PERMUTATION_NOT_TRANSFORMED_SOURCE_GRAPH_EXECUTION",
+    "interpretation": "V8_TARGET_NATIVE_SLOT_CONTROLLER_RESULT_NOT_CROSS_DOMAIN_SOURCE_SKILL_TRANSFER",
+    "property_control_scope_leak": true,
+    "router_confidence_disabled_completed_slot_safety": true
+  },
+  "existing_valid_unseen_heldout_read": false,
+  "fresh_confirmation": {
+    "authentic_admitted_by_effect": {
+      "BIND": 6,
+      "MUTATE": 0,
+      "RELATE": 5
+    },
+    "authentic_changed_action_count": 0,
+    "authentic_changed_effect_count": 0,
+    "authentic_reopened_completed_slots": 2,
+    "authentic_source_admission_rate": 0.007203667321545514,
+    "gates": {
+      "all_claimed_effects_intervened": false,
+      "authentic_nontrivial": false,
+      "no_failed_selected_postconditions": true,
+      "no_reopened_completed_slots": false,
+      "paired_net_win_over_target_only": false,
+      "required_option_invariance": true,
+      "strict_success_superiority_to_all_controls": false
+    },
+    "paired_authentic_vs_target_only": {
+      "losses": 0,
+      "ties": 24,
+      "wins": 0
+    },
+    "report_sha256": "1a40a9db97bc072723d144a568c858da2353f9f25826d8cccd56b2f1019e42dd",
+    "status": "FRESH_CONFIRMATION_NEGATIVE_STOP",
+    "successes": {
+      "authentic_slot_ir": 17,
+      "edge_permuted_ir": 17,
+      "property_permuted_router": 17,
+      "target_only": 17
+    },
+    "tasks": 24
+  },
+  "frozen_hashes": {
+    "authorized_harness_sha256": "c6835fdaa98cf6f1652b6bd88cc594fc541c51f33899d46d2cf6f4b2ab464bca",
+    "candidate_sha256": "7b710937f9aeda9fd97b1b5a85869144962d5366ae5a8cbe02d3c353193d63fa",
+    "original_manifest_sha256": "f7f211717fb0b952592ac02ba7d2a2eb86539c71f14798244d5954caf2976f17",
+    "relational_manifest_sha256": "b80717d1fd19fb4013d0f2a2b46c21ff5af38fe5958f4af81ad98a426b7a1973"
+  },
+  "schema_version": "slot-aware-alfworld-v8-result-summary",
+  "transfer_claim_supported": false,
+  "verdict": "NEGATIVE_CONFIRMATION_AND_SOURCE_IR_EXECUTION_INVALIDATION"
+}

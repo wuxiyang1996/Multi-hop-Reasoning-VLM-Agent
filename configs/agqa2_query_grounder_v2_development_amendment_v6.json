@@ -1,0 +1,57 @@
+{
+  "schema_version": "agqa-query-grounder-v2-development-amendment-v3",
+  "status": "DEVELOPMENT_METHOD_REVISION_AFTER_CONSUMED_DEVELOPMENT_ONLY",
+  "parent_protocol": "configs/agqa2_query_grounder_v2_development_protocol.json",
+  "supersedes": "configs/agqa2_query_grounder_v2_development_amendment_v5.json",
+  "formal_reserve_consumed": false,
+  "frozen_qualification_thresholds_changed": false,
+  "formal_secondary_target_changed": false,
+  "consumed_diagnostics": [
+    {
+      "artifact": "runs/agqa2_query_grounder_v2_development/tempura_dense_caption_pilot_v1.json",
+      "finding": "Question-independent TEMPURA-Qwen2.5-VL-3B dense captions missed the fine-grained AGQA entities and relations on the five consumed development queries."
+    },
+    {
+      "artifact": "runs/agqa2_query_grounder_v2_development/gdino_dense48_pilot_v1_evaluation.json",
+      "finding": "Dense 48-of-64-frame GroundingDINO acquisition recovered all five gold entity labels but produced many low-confidence false detections, so label recall alone was insufficient."
+    },
+    {
+      "artifact": "runs/agqa2_query_grounder_v2_development/qwen235_candidate_crop_pilot_v3_full5_evaluation.json",
+      "finding": "High-resolution candidate-isolated Qwen-235B verification obtained 0.0526 supported precision, 0.2 gold supported recall, and 0.2 top-1 accuracy."
+    }
+  ],
+  "diagnosis": "The remaining error is annotation-aligned object-relation grounding, not generic caption generation or source-induced symbolic execution.",
+  "method_change_under_development": {
+    "route": "Frozen pretrained Action-Genome-native SGDET model over raw sampled frames, exporting predicted objects and attention/spatial/contact relations into the existing shared typed receipt.",
+    "implementation": "Official TEMPURA/unbiasedSGG prediction-only SGDET path at git commit 976babd45f1d14f6d7386188e9265507cf0f07dc.",
+    "vendor_runtime_patch": "Removed a committed unconditional debug exit() and adjacent diagnostic prints from lib/transformer.py; no tensor operation, weight, threshold, or model decision was changed.",
+    "patched_transformer_sha256": "8ce982855fd02b2ab116c7414726034003fa9364cda6617c478221f4246cebcf",
+    "ontology": "configs/agqa2_action_genome_sgdet_ontology_v1.json",
+    "detector_checkpoint_sha256": "41584fb2e53013cc68db617333efcf4bb4e18d812f71670516414b14002e6222",
+    "relation_checkpoint_sha256": "81b8b19d88f2b73ca03549cb4febb0fc511cd0deca2750caf83aceaddbe5d7ee",
+    "mode": "sgdet",
+    "forbidden_modes": [
+      "predcls",
+      "sgcls"
+    ],
+    "maximum_model_visible_frame_budget": 64,
+    "answers_visible_to_grounder": false,
+    "official_stsg_visible_to_grounder": false,
+    "functional_program_visible_to_grounder": false,
+    "per_video_action_genome_boxes_visible_to_grounder": false,
+    "source_controller_visible_to_grounder": false,
+    "target_outcome_visible_to_grounder": false,
+    "shared_across_all_five_arms": true
+  },
+  "overlap_policy": {
+    "consumed_current_five_video_pilot": "Engineering development only; it is not admissible evidence because Action Genome pretraining-video overlap has not yet been excluded.",
+    "qualification": "Must use videos proven disjoint from the pretrained SGDET training split.",
+    "formal": "Must additionally be disjoint from development and all previously consumed AGQA reserves."
+  },
+  "pending_before_method_freeze": [
+    "Run prediction-only SGDET on raw frames without loading any per-video annotation artifact.",
+    "Measure entity and typed relation fidelity only after each development receipt is frozen.",
+    "Audit Action Genome training-video overlap and construct a disjoint development qualification cohort.",
+    "Do not allocate a new formal reserve unless every unchanged qualification gate passes."
+  ]
+}

@@ -1,0 +1,84 @@
+{
+  "claim_boundary": {
+    "agqa_before_after_temporal_transfer_confirmed": false,
+    "agqa_query_object_v32_remains_confirmed": true,
+    "full_agqa_solved": false,
+    "second_source_program_family_success_validated": false,
+    "source_beats_generic_scaffold": false,
+    "source_provenance_is_necessary": false
+  },
+  "completion_integrity": {
+    "all_runtime_receipts_frozen_before_outcome_access": true,
+    "completion_config_file_sha256": "81e16c36c341ed342a558a22863f16ebb6ec3d70f71f5633c1945293bf9f3ea2",
+    "formal_metrics_externalized_before_schema_repair": false,
+    "method_gate_sample_or_prediction_change": false,
+    "schema_alias_only": true,
+    "v40_runtime_abort_result_sha256": "d4c759ebf514d1ceacb701062dccc170e82f0b920ede868df5fee4b980d1ef1e"
+  },
+  "confirmatory_claim": false,
+  "effect_shuffled_abstentions": 100,
+  "formal_report_file_sha256": "db41d62c0e2c0ea87c882f5d55e9bef6c050c7c32f38ab74a49d3b2c4caa3b55",
+  "formal_report_sha256": "45015d0bdf7c1157044c4786af4437f8b526bfa80215aa741580e0b83437b03f",
+  "posthoc_failure_localization_not_a_claim": {
+    "aggregate_only_incremental_losses": 2,
+    "aggregate_only_incremental_wins": 2,
+    "original_two_views_per_operand_authorizations": 16,
+    "original_two_views_per_operand_losses": 0,
+    "original_two_views_per_operand_wins": 3
+  },
+  "provider_calls": 586,
+  "qualification_gates": {
+    "current_outcome_never_used_for_authorization": true,
+    "maximum_exact_one_sided_pvalue": false,
+    "maximum_reported_provider_cost_usd": true,
+    "maximum_source_losses": false,
+    "minimum_source_authorizations": true,
+    "minimum_source_minus_target_correct": false,
+    "minimum_source_wins": false,
+    "required_effect_shuffled_abstentions": true,
+    "required_generic_scaffold_matches": true,
+    "required_target_written_equivalent_matches": true,
+    "required_unique_videos": true,
+    "required_valid_rows": true,
+    "required_wrong_source_abstentions": true,
+    "runtime_integrity_qualified": true
+  },
+  "reported_provider_cost_usd": 0.700141124,
+  "rows": 100,
+  "schema_version": "agqa2-aggregate-temporal-v40-formal-summary-v1",
+  "source_executor_authorizations": 33,
+  "source_program_sha256": "cc5f177fd54a2f17ccaa688ea1ecf6d0ae2395554a97a921563e70c32721601d",
+  "source_vs_generic_scaffold": {
+    "exact_one_sided_pvalue": 1.0,
+    "left_correct": 68,
+    "left_minus_right_correct": 0,
+    "losses": 0,
+    "right_correct": 68,
+    "ties": 100,
+    "wins": 0
+  },
+  "source_vs_target_native": {
+    "exact_one_sided_pvalue": 0.2265625,
+    "left_correct": 68,
+    "left_minus_right_correct": 3,
+    "losses": 2,
+    "right_correct": 65,
+    "ties": 93,
+    "wins": 5
+  },
+  "source_vs_target_written_equivalent": {
+    "exact_one_sided_pvalue": 1.0,
+    "left_correct": 68,
+    "left_minus_right_correct": 0,
+    "losses": 0,
+    "right_correct": 68,
+    "ties": 100,
+    "wins": 0
+  },
+  "status": "AGQA2_AGGREGATE_TEMPORAL_V40_FORMAL_NOT_QUALIFIED",
+  "summary_sha256": "0fc08cd904344a4d403c4cb55178ad7419e5ebd3c3487d5d07964fac1118f8ed",
+  "target_executor_sha256": "ff7b92a29b28b4c90c1bb511ae995b9c6b7b31c32ff0890455bd05b2dee92ece",
+  "target_grounder_sha256": "22b1d6c7b6cf42806ce7813f118d1a5fe59269686059d09dcd64cb01e7ffbb54",
+  "unique_video_count": 100,
+  "wrong_source_abstentions": 100
+}

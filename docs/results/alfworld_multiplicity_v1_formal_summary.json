@@ -1,0 +1,114 @@
+{
+  "claim_boundary": "Prospective six-task test of game-derived procedural option value after replacing PLACE-event counts with an ALFWorld-native set of distinct object bindings. The source selects an abstract option only; the frozen target neural grounder retains native action authority. This evaluates multiplicity in the pinned valid_unseen installation and does not establish arbitrary counts or zero-shot grounding.",
+  "config_sha256": "282369b4ae528e2fc7137bae9aad5dcfb0b8161526beef0ef3f4487b39dfdc88",
+  "gates": {
+    "authentic_more_efficient_than_target": true,
+    "authentic_strictly_above_destructive_controls": true,
+    "authentic_strictly_above_target": true,
+    "exact_paired_task_count": true,
+    "identity_set_invariant": true,
+    "minimum_authentic_successes": true,
+    "paired_wins_above_losses": true,
+    "task_level_binding_intervention": true
+  },
+  "identity_audit": [
+    {
+      "final_distinct_placed": 2,
+      "maximum_distinct_placed": 2,
+      "official_success": true,
+      "task_id": "pick_two_obj_and_place-PepperShaker-None-Drawer-10/trial_T20190908_010306_215435/game.tw-pddl"
+    },
+    {
+      "final_distinct_placed": 2,
+      "maximum_distinct_placed": 2,
+      "official_success": true,
+      "task_id": "pick_two_obj_and_place-SoapBar-None-GarbageCan-424/trial_T20190909_064053_839817/game.tw-pddl"
+    },
+    {
+      "final_distinct_placed": 1,
+      "maximum_distinct_placed": 1,
+      "official_success": false,
+      "task_id": "pick_two_obj_and_place-Pillow-None-Sofa-219/trial_T20190907_163240_345855/game.tw-pddl"
+    },
+    {
+      "final_distinct_placed": 2,
+      "maximum_distinct_placed": 2,
+      "official_success": true,
+      "task_id": "pick_two_obj_and_place-SoapBar-None-Cabinet-424/trial_T20190909_081720_491733/game.tw-pddl"
+    },
+    {
+      "final_distinct_placed": 2,
+      "maximum_distinct_placed": 2,
+      "official_success": true,
+      "task_id": "pick_two_obj_and_place-SoapBar-None-GarbageCan-424/trial_T20190909_064221_368939/game.tw-pddl"
+    },
+    {
+      "final_distinct_placed": 1,
+      "maximum_distinct_placed": 1,
+      "official_success": false,
+      "task_id": "pick_two_obj_and_place-Pillow-None-Sofa-219/trial_T20190907_163327_486300/game.tw-pddl"
+    }
+  ],
+  "minimum_changed_option_tasks": 4,
+  "paired_authentic_vs_target": {
+    "exact_two_sided_p": 0.25,
+    "losses": 0,
+    "ties": 3,
+    "wins": 3
+  },
+  "raw_report_sha256": "856648fa65a615a1b486532dbf4c98d721b8a8e6d86c8e520186bee38e417f92",
+  "raw_runner_status_preserved": "FINAL_HELDOUT_FAILED",
+  "role": "formal",
+  "schema_version": "alfworld-multiplicity-v1-summary",
+  "status": "FRESH_MULTIPLICITY_TRANSFER_VALIDATED",
+  "summaries": {
+    "authentic_source_plus_target": {
+      "changed_action_rate": 0.2826086956521739,
+      "changed_option_rate": 0.021739130434782608,
+      "mean_steps": 46.0,
+      "source_admission_rate": 0.34782608695652173,
+      "success_rate": 0.6666666666666666,
+      "successes": 4,
+      "tasks": 6
+    },
+    "phase_permuted_source_plus_target": {
+      "changed_action_rate": 0.58994708994709,
+      "changed_option_rate": 0.48148148148148145,
+      "mean_steps": 63.0,
+      "source_admission_rate": 0.6243386243386243,
+      "success_rate": 0.5,
+      "successes": 3,
+      "tasks": 6
+    },
+    "shuffled_source_plus_target": {
+      "changed_action_rate": 0.1976190476190476,
+      "changed_option_rate": 0.08333333333333333,
+      "mean_steps": 70.0,
+      "source_admission_rate": 0.21904761904761905,
+      "success_rate": 0.0,
+      "successes": 0,
+      "tasks": 6
+    },
+    "source_marginal_plus_target": {
+      "changed_action_rate": 0.0,
+      "changed_option_rate": 0.0,
+      "mean_steps": 69.66666666666667,
+      "source_admission_rate": 0.0,
+      "success_rate": 0.16666666666666666,
+      "successes": 1,
+      "tasks": 6
+    },
+    "target_only": {
+      "changed_action_rate": 0.0,
+      "changed_option_rate": 0.0,
+      "mean_steps": 69.66666666666667,
+      "source_admission_rate": 0.0,
+      "success_rate": 0.16666666666666666,
+      "successes": 1,
+      "tasks": 6
+    }
+  },
+  "summary_sha256": "e412fd7629bb7e9ab113e9ad5ebf8718914247166ba0288971f8cd108248a826",
+  "task_level_changed_option_tasks": 4,
+  "tasks": 6
+}

@@ -1,0 +1,57 @@
+{
+  "schema_version": 18,
+  "status": "FROZEN_BEFORE_V18_ACTIVE_DEVELOPMENT_OUTCOMES",
+  "claim_boundary": "Development-only active verification on the consumed V15/V17 rows. The real-Sokoban source transfers COMMIT -> VERIFY_EXPECTED_EFFECT and REFUTED -> REPLAN, including abstention when an effect is not observable. STAR Interaction/Sequence and NExT-QA Causal/Temporal are source-compatible; descriptive states and unexecuted prediction/feasibility effects are fail-closed. A blind Gemini proof may trigger a real wrapper sample_frames action, Gemini plans a discriminative time window without gold or prior-answer identity, and a blind Claude visual arbiter verifies the newly acquired evidence. Target formal/reserve remain unopened.",
+  "source_receipt": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/docs/results/sokoban_effect_program_v2_compact_receipt.json",
+  "input_v15_receipts": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/natural_video_recovery_v15_development/paired_receipts.json",
+  "input_v17_receipts": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/natural_video_cross_model_proof_v17_development/proof_receipts.json",
+  "wrapper_root": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent",
+  "api_key_name": "OPENROUTER_API_KEY",
+  "expected_active_rows": 16,
+  "selection_rule": "source_compatible(benchmark,family) AND primary_answer != blind_cross_model_proof_answer; no gold/correctness/uplift field is consulted",
+  "planner_model": {
+    "provider": "openrouter",
+    "id": "google/gemini-3.1-pro-preview",
+    "base_url": "https://openrouter.ai/api/v1",
+    "timeout_seconds": 300,
+    "max_retries": 2,
+    "schema_retries": 3,
+    "transport_retries": 3,
+    "max_tokens": 8000,
+    "hidden_reasoning_effort": "low"
+  },
+  "arbiter_model": {
+    "provider": "openrouter",
+    "id": "anthropic/claude-sonnet-4.6",
+    "base_url": "https://openrouter.ai/api/v1",
+    "timeout_seconds": 300,
+    "max_retries": 2,
+    "schema_retries": 3,
+    "transport_retries": 3,
+    "max_tokens": 5000
+  },
+  "media": {
+    "proof_frame_count": 24,
+    "proof_frames_per_panel": 12,
+    "proxy_frame_max_side": 720,
+    "proof_frame_width": 192,
+    "jpeg_quality": 88
+  },
+  "active_sensing": {
+    "proxy_frame_count": 128,
+    "proxy_frame_max_side": 960,
+    "frames_per_probe": 24,
+    "focused_frame_width": 224,
+    "jpeg_quality": 90,
+    "maximum_window_fraction": 0.5,
+    "maximum_window_seconds": 12.0
+  },
+  "frozen_lineage": {
+    "source_receipt_sha256": "8f175c0edda951eba2064e9c53a8db6a25cdfa9fb0de8049d371dbf5335c9e80",
+    "input_v15_receipts_sha256": "9b23f20d736d87930cf72167245573420d98cb67769547b85f58be36a1ff7b4d",
+    "input_v17_receipts_sha256": "aea71cce2eba0c29d61321cddfb6652aa66443075248813d18ea6566ff2c55ba",
+    "collector_sha256": "db737df608164f8cc3b14df823b55a0a5697abb1c02fcfeb1df8da6c7e68c8bf",
+    "contract_module_sha256": "4abd7fca97ae235ec57753c45753bbb5199503e0682aab87321524f88e913961",
+    "wrapper_bridge_sha256": "2c99933ef1a738eb5e086c388580cb38f29d081f45672c5d4a2ad2cdf7bfc53a"
+  }
+}

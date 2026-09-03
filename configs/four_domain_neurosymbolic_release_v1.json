@@ -1,0 +1,70 @@
+{
+  "schema_version": "four-domain-neurosymbolic-release-v1",
+  "status": "PORTABLE_AUDIT_AND_ALFWORLD_ARTIFACT_BUNDLE_FROZEN",
+  "claim_boundary": "The bundle makes the four-route evidence audit portable and packages every large ALFWorld artifact needed for a target replay. Compact receipts, rather than full target trajectories, remain authoritative for WebShop, DiscoveryWorld, and TIR. Dataset installation is not redistributed.",
+  "audit": {
+    "minimum_python": "3.10",
+    "third_party_runtime_dependencies": [],
+    "registry": {
+      "path": "configs/neurosymbolic_skill_library_v1.json",
+      "file_sha256": "36d669b6ee10a45dea6b6f8f2e018df46a014960d01a1f4315a67085c15dca4a"
+    },
+    "frozen_summary": {
+      "path": "docs/results/four_domain_neurosymbolic_harness_v1_summary.json",
+      "file_sha256": "fa710aeabd83cc42368faf9960cc12671d261bd4c5033887574a35e74da167e8",
+      "required_status": "FOUR_DOMAIN_FRESH_FORMAL_SKILL_DISPATCH_VALIDATED"
+    },
+    "expected_domains": ["webshop", "alfworld", "discoveryworld", "tir"],
+    "expected_positive_dispatches": 4,
+    "expected_negative_dispatches": 3
+  },
+  "bundled_artifacts": [
+    {
+      "role": "alfworld_frozen_candidate",
+      "path": "artifacts/four_domain_neurosymbolic_v1/alfworld_candidate.json.gz",
+      "compression": "gzip-no-name",
+      "file_sha256": "cfa3479406b3a1274ae1fe8f8cbcc212689b6839d6a1bd9ce1052fbcb3e38b74",
+      "uncompressed_sha256": "5f54973b8f46b977a5339bfb608215703a72ecf7a38e626ed36598256f47e81f"
+    },
+    {
+      "role": "alfworld_development_report",
+      "path": "artifacts/four_domain_neurosymbolic_v1/alfworld_development_report.json.gz",
+      "compression": "gzip-no-name",
+      "file_sha256": "f350f360b1ad3fc78e0a9b77f6767cd1356d4a06168c3280943dd1699f5ff3f0",
+      "uncompressed_sha256": "9d81a16167fdb50f6182d1eb522d627f632178a189e1bf50a97a26a76c8c1a8b"
+    },
+    {
+      "role": "alfworld_final_report",
+      "path": "artifacts/four_domain_neurosymbolic_v1/alfworld_final_report.json.gz",
+      "compression": "gzip-no-name",
+      "file_sha256": "7cc55fa4e899b1a702031c502c2ed6c57ef7fdab75c915b8b687f26cd261e28e",
+      "uncompressed_sha256": "0c42871e89a39555571df026767578d5618ad2340d8eda4ad3a66ddf69c2c860"
+    }
+  ],
+  "alfworld_replay": {
+    "frozen_config": "configs/procedural_game_alfworld_v1_frozen.json",
+    "manifest": "configs/procedural_game_alfworld_v1_final_manifest.json",
+    "runner": "scripts/run_multisource_alfworld_v2_qualification.py",
+    "resource_environment_variables": {
+      "ALFWORLD_CONFIG": "Path to an installed alfworld_base_config.yaml",
+      "ALFWORLD_DATA": "Path to an installed ALFWorld data root",
+      "ALFWORLD_PYTHON": "Python executable with the target execution environment"
+    },
+    "frozen_execution_environment": {
+      "python": "3.9.23",
+      "numpy": "1.26.4",
+      "alfworld": "0.4.2",
+      "textworld": "1.7.0"
+    },
+    "candidate_build_environment": {
+      "python": "3.13.5",
+      "numpy": "2.1.3",
+      "scikit_learn": "1.6.1"
+    }
+  },
+  "limitations": [
+    "ALFWorld code and dataset assets must be installed separately.",
+    "A materialized replay config necessarily changes machine-local resource paths and is a reproduction replay, not the byte-identical original final config.",
+    "Provider-backed WebShop and TIR execution and DiscoveryWorld installation are not vendored; their hash-bound compact receipts are portable and auditable."
+  ]
+}

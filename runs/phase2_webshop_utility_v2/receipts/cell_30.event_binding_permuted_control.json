@@ -1,0 +1,2284 @@
+{
+  "schema_version": 1,
+  "task_id": "webshop.242",
+  "condition": "event_binding_permuted_control",
+  "goal": "Find me tv stands with exquisite workmanship for living room with size: 4pcs, and price lower than 30.00 dollars",
+  "initial_state_hash": "507d307fd333a84495a45a67a6e7aac4a060a29eafb37a2192cca37dbe2c3174",
+  "maximum_steps": 12,
+  "steps": [
+    {
+      "step": 0,
+      "prompt_sha256": "be2b515bc50fcb6477ed1987c349e3ae41a053c65553e422ddda720f3ecde6ec",
+      "response_sha256": "07ba003e4adabf28a3bccf20bc3b5e66517d069c8439a736b3654651d802a87d",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "07ba003e4adabf28a3bccf20bc3b5e66517d069c8439a736b3654651d802a87d",
+          "completion_diagnostic": {
+            "character_count": 130,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": true,
+            "original_usage": {
+              "prompt_tokens": 399,
+              "completion_tokens": 33,
+              "total_tokens": 432,
+              "cost": 0.0002124,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0002124,
+                "upstream_inference_prompt_cost": 0.0001596,
+                "upstream_inference_completions_cost": 5.28e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 3
+        }
+      ],
+      "before_hash": "c0c8a8a23779ea6d5e630e9fd1512a9f31f3b44ad895eb03309b121ca4cfa5d4",
+      "candidates": [
+        "fill('18','tv stand exquisite workmanship living room')",
+        "click('20')",
+        "noop()"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "fill",
+          "url_phase": "landing",
+          "element_role": "textbox",
+          "element_text": "[18] textbox 'Search...', required",
+          "action_bid": "18",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "landing",
+          "element_role": "button",
+          "element_text": "[20] button 'Search'",
+          "action_bid": "20",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "noop",
+          "url_phase": "landing",
+          "element_role": "other",
+          "element_text": "",
+          "action_bid": null,
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": true
+        }
+      ],
+      "target_features": [
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.9809542664690936,
+          0.008910126680510508,
+          0.008915589732162521,
+          0.007047382472608437
+        ],
+        [
+          0.9846674961208645,
+          0.007583367206358838,
+          0.0075877340312340905,
+          0.007246160598430901
+        ],
+        [
+          0.9809542664690936,
+          0.008910126680510508,
+          0.008915589732162521,
+          0.007047382472608437
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": false,
+        "visible_goal_constraint_unsatisfied": false,
+        "prior_action_had_no_effect": false
+      },
+      "selected_index": 0,
+      "selected_action": "fill('18','tv stand exquisite workmanship living room')",
+      "changed_from_target_rank_zero": false,
+      "abstract_kind": "TARGET",
+      "source_abstained": true,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "event_permuted_source_abstain_to_raw_target",
+      "reward": 0.0,
+      "terminated": false,
+      "truncated": false,
+      "after_hash": "7766ab81c67b6df0eb082cd643a25e13594efa8411fc2ec44dc0b0be60a0dc98"
+    },
+    {
+      "step": 1,
+      "prompt_sha256": "3c7e197cf5ba646f6c283f17f0dfae4668d898c812ee293686b1eddf2cf4fbd2",
+      "response_sha256": "4a7b7183c4cf732cc37dfd48337e555a384660ce39267673ae15d9aed644327d",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "4a7b7183c4cf732cc37dfd48337e555a384660ce39267673ae15d9aed644327d",
+          "completion_diagnostic": {
+            "character_count": 61,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": true,
+            "original_usage": {
+              "prompt_tokens": 477,
+              "completion_tokens": 19,
+              "total_tokens": 496,
+              "cost": 0.0002212,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0002212,
+                "upstream_inference_prompt_cost": 0.0001908,
+                "upstream_inference_completions_cost": 3.04e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 2
+        }
+      ],
+      "before_hash": "7766ab81c67b6df0eb082cd643a25e13594efa8411fc2ec44dc0b0be60a0dc98",
+      "candidates": [
+        "click('20')",
+        "noop()"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "click",
+          "url_phase": "landing",
+          "element_role": "button",
+          "element_text": "[20] button 'Search'",
+          "action_bid": "20",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "noop",
+          "url_phase": "landing",
+          "element_role": "other",
+          "element_text": "",
+          "action_bid": null,
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": true
+        }
+      ],
+      "target_features": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.09090909090909091
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.09090909090909091
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.9838093043631316,
+          0.007810760169351171,
+          0.007815314258614531,
+          0.007254276463657209
+        ],
+        [
+          0.9794556923764357,
+          0.009232307754060344,
+          0.009238037421806178,
+          0.007036402034354836
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": false,
+        "visible_goal_constraint_unsatisfied": false,
+        "prior_action_had_no_effect": false
+      },
+      "selected_index": 0,
+      "selected_action": "click('20')",
+      "changed_from_target_rank_zero": false,
+      "abstract_kind": "TARGET",
+      "source_abstained": true,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "event_permuted_source_abstain_to_raw_target",
+      "reward": 0.0,
+      "terminated": false,
+      "truncated": false,
+      "after_hash": "1da72ceb758904ee67de9f3894db4e11fea2dce2e2f2ffea99f3ad95499ed8aa"
+    },
+    {
+      "step": 2,
+      "prompt_sha256": "92990e7756964f77cb75a54efb19b89140647eaf47b4367dc3b0ae2faf1b2339",
+      "response_sha256": "1e23feeec35cc7eeb937ad1e6ea4e6fda28c2352e0c2d2c60fd6a16f8ffa1877",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "1e23feeec35cc7eeb937ad1e6ea4e6fda28c2352e0c2d2c60fd6a16f8ffa1877",
+          "completion_diagnostic": {
+            "character_count": 141,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": true,
+            "original_usage": {
+              "prompt_tokens": 3297,
+              "completion_tokens": 42,
+              "total_tokens": 3339,
+              "cost": 0.001386,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.001386,
+                "upstream_inference_prompt_cost": 0.0013188,
+                "upstream_inference_completions_cost": 6.72e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 5
+        }
+      ],
+      "before_hash": "1da72ceb758904ee67de9f3894db4e11fea2dce2e2f2ffea99f3ad95499ed8aa",
+      "candidates": [
+        "click('47')",
+        "click('59')",
+        "click('71')",
+        "click('83')",
+        "click('95')"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[47] link 'B09MNNBDTJ', url=\"http://127.0.0.1:3000/item_page/fixed_242/B09MNNBDTJ/%5B'tv',%20'stand',%20'exquisite',%20'workmanship',%20'living',%20'room'%5D/1/%7B%7D\"",
+          "action_bid": "47",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "exquisite",
+            "living",
+            "room",
+            "tv",
+            "workmanship"
+          ],
+          "goal_overlap": 0.22727272727272727,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[59] link 'B09F6SCW47', url=\"http://127.0.0.1:3000/item_page/fixed_242/B09F6SCW47/%5B'tv',%20'stand',%20'exquisite',%20'workmanship',%20'living',%20'room'%5D/1/%7B%7D\"",
+          "action_bid": "59",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "exquisite",
+            "living",
+            "room",
+            "tv",
+            "workmanship"
+          ],
+          "goal_overlap": 0.22727272727272727,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[71] link 'B09BKPV8LR', url=\"http://127.0.0.1:3000/item_page/fixed_242/B09BKPV8LR/%5B'tv',%20'stand',%20'exquisite',%20'workmanship',%20'living',%20'room'%5D/1/%7B%7D\"",
+          "action_bid": "71",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "exquisite",
+            "living",
+            "room",
+            "tv",
+            "workmanship"
+          ],
+          "goal_overlap": 0.22727272727272727,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[83] link 'B07GZLDJMC', url=\"http://127.0.0.1:3000/item_page/fixed_242/B07GZLDJMC/%5B'tv',%20'stand',%20'exquisite',%20'workmanship',%20'living',%20'room'%5D/1/%7B%7D\"",
+          "action_bid": "83",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "exquisite",
+            "living",
+            "room",
+            "tv",
+            "workmanship"
+          ],
+          "goal_overlap": 0.22727272727272727,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[95] link 'B07PXMFDQ3', url=\"http://127.0.0.1:3000/item_page/fixed_242/B07PXMFDQ3/%5B'tv',%20'stand',%20'exquisite',%20'workmanship',%20'living',%20'room'%5D/1/%7B%7D\"",
+          "action_bid": "95",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "exquisite",
+            "living",
+            "room",
+            "tv",
+            "workmanship"
+          ],
+          "goal_overlap": 0.22727272727272727,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        }
+      ],
+      "target_features": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.22727272727272727,
+          0.0,
+          0.0,
+          0.0,
+          0.18181818181818182
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.22727272727272727,
+          0.0,
+          0.0,
+          0.0,
+          0.18181818181818182
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.22727272727272727,
+          0.0,
+          0.0,
+          0.0,
+          0.18181818181818182
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.22727272727272727,
+          0.0,
+          0.0,
+          0.0,
+          0.18181818181818182
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.22727272727272727,
+          0.0,
+          0.0,
+          0.0,
+          0.18181818181818182
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.9542681188326073,
+          0.007159815137849783,
+          0.0071648321600240985,
+          0.005870432834772446
+        ],
+        [
+          0.9542681188326073,
+          0.007159815137849783,
+          0.0071648321600240985,
+          0.005870432834772446
+        ],
+        [
+          0.9542681188326073,
+          0.007159815137849783,
+          0.0071648321600240985,
+          0.005870432834772446
+        ],
+        [
+          0.9542681188326073,
+          0.007159815137849783,
+          0.0071648321600240985,
+          0.005870432834772446
+        ],
+        [
+          0.9542681188326073,
+          0.007159815137849783,
+          0.007164832160024105,
+          0.005870432834772446
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": false,
+        "visible_goal_constraint_unsatisfied": false,
+        "prior_action_had_no_effect": false
+      },
+      "selected_index": 0,
+      "selected_action": "click('47')",
+      "changed_from_target_rank_zero": false,
+      "abstract_kind": "TARGET",
+      "source_abstained": true,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "event_permuted_source_abstain_to_raw_target",
+      "reward": 0.0,
+      "terminated": false,
+      "truncated": false,
+      "after_hash": "0e2be3f054986765afe67ee0a7c943cc873b8d66d80c6bde719d0d9eed03b5a0"
+    },
+    {
+      "step": 3,
+      "prompt_sha256": "7372b89adc82b06c9f0bce3c47b48a220a73aa283afd03ba166478376ce62345",
+      "response_sha256": "b3428614cc005b0408ed358756c3ac638d95c9cea4a475aaa6a2454097c30a53",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "b3428614cc005b0408ed358756c3ac638d95c9cea4a475aaa6a2454097c30a53",
+          "completion_diagnostic": {
+            "character_count": 86,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": true,
+            "original_usage": {
+              "prompt_tokens": 743,
+              "completion_tokens": 26,
+              "total_tokens": 769,
+              "cost": 0.0003388,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0003388,
+                "upstream_inference_prompt_cost": 0.0002972,
+                "upstream_inference_completions_cost": 4.16e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 3
+        }
+      ],
+      "before_hash": "0e2be3f054986765afe67ee0a7c943cc873b8d66d80c6bde719d0d9eed03b5a0",
+      "candidates": [
+        "click('17')",
+        "click('20')",
+        "noop()",
+        "go_back()"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[17] button 'Back to Search'",
+          "action_bid": "17",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[20] button '< Prev'",
+          "action_bid": "20",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "noop",
+          "url_phase": "item_page",
+          "element_role": "other",
+          "element_text": "",
+          "action_bid": null,
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": true
+        },
+        {
+          "verb": "go_back",
+          "url_phase": "item_page",
+          "element_role": "other",
+          "element_text": "",
+          "action_bid": null,
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        }
+      ],
+      "target_features": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.2727272727272727
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.2727272727272727
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.2727272727272727
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.2727272727272727
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.981637754133237,
+          0.00832013658879997,
+          0.00832510698187581,
+          0.0072617329483947385
+        ],
+        [
+          0.981637754133237,
+          0.00832013658879997,
+          0.00832510698187581,
+          0.0072617329483947385
+        ],
+        [
+          0.9755988086182656,
+          0.009958421402996217,
+          0.009964748979975478,
+          0.007003146224615175
+        ],
+        [
+          0.7172731004354966,
+          0.00409714339221366,
+          0.004101192257724013,
+          0.004113872349845248
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": false,
+        "visible_goal_constraint_unsatisfied": false,
+        "prior_action_had_no_effect": false
+      },
+      "selected_index": 0,
+      "selected_action": "click('17')",
+      "changed_from_target_rank_zero": false,
+      "abstract_kind": "TARGET",
+      "source_abstained": true,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "event_permuted_source_abstain_to_raw_target",
+      "reward": 0.0,
+      "terminated": false,
+      "truncated": false,
+      "after_hash": "c0c8a8a23779ea6d5e630e9fd1512a9f31f3b44ad895eb03309b121ca4cfa5d4"
+    },
+    {
+      "step": 4,
+      "prompt_sha256": "71f006626f05d1fbb48f702d8c3c1ba377b9e5f533e2fb0dd70964f1d85584b9",
+      "response_sha256": "70ab0970cebb7e7f682b436e27b821a4a39b1842e1e36319e54c5156306ca21a",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "70ab0970cebb7e7f682b436e27b821a4a39b1842e1e36319e54c5156306ca21a",
+          "completion_diagnostic": {
+            "character_count": 194,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": true,
+            "original_usage": {
+              "prompt_tokens": 478,
+              "completion_tokens": 54,
+              "total_tokens": 532,
+              "cost": 0.0002776,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0002776,
+                "upstream_inference_prompt_cost": 0.0001912,
+                "upstream_inference_completions_cost": 8.64e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 5
+        }
+      ],
+      "before_hash": "c0c8a8a23779ea6d5e630e9fd1512a9f31f3b44ad895eb03309b121ca4cfa5d4",
+      "candidates": [
+        "fill('18','tv stand exquisite workmanship living room 4pcs under 30')",
+        "click('20')",
+        "scroll(0,200)",
+        "noop()",
+        "go_back()"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "fill",
+          "url_phase": "landing",
+          "element_role": "textbox",
+          "element_text": "[18] textbox 'Search...', required",
+          "action_bid": "18",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "landing",
+          "element_role": "button",
+          "element_text": "[20] button 'Search'",
+          "action_bid": "20",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "scroll",
+          "url_phase": "landing",
+          "element_role": "other",
+          "element_text": "",
+          "action_bid": null,
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "noop",
+          "url_phase": "landing",
+          "element_role": "other",
+          "element_text": "",
+          "action_bid": null,
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": true
+        },
+        {
+          "verb": "go_back",
+          "url_phase": "landing",
+          "element_role": "other",
+          "element_text": "",
+          "action_bid": null,
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        }
+      ],
+      "target_features": [
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.36363636363636365
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.36363636363636365
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.36363636363636365
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.36363636363636365
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.36363636363636365
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.973118689162396,
+          0.010367098674337114,
+          0.010373761830888126,
+          0.006981067201526698
+        ],
+        [
+          0.9802640490384626,
+          0.008605772294379978,
+          0.008610974368465113,
+          0.007260560038687044
+        ],
+        [
+          0.6723082645802358,
+          0.004160212396281418,
+          0.0041644061820198235,
+          0.004023773630391233
+        ],
+        [
+          0.973118689162396,
+          0.010367098674337114,
+          0.010373761830888126,
+          0.006981067201526698
+        ],
+        [
+          0.6723082645802358,
+          0.004160212396281418,
+          0.0041644061820198235,
+          0.004023773630391233
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": false,
+        "visible_goal_constraint_unsatisfied": false,
+        "prior_action_had_no_effect": false
+      },
+      "selected_index": 0,
+      "selected_action": "fill('18','tv stand exquisite workmanship living room 4pcs under 30')",
+      "changed_from_target_rank_zero": false,
+      "abstract_kind": "TARGET",
+      "source_abstained": true,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "event_permuted_source_abstain_to_raw_target",
+      "reward": 0.0,
+      "terminated": false,
+      "truncated": false,
+      "after_hash": "9480432fe413f5f946df602513ee810c112f54035b6abaaa4c30b205213f053d"
+    },
+    {
+      "step": 5,
+      "prompt_sha256": "81bb2effaad10c3c3c32d7c5f1327b661d7c047d7e67120f96a8543a95d50f3f",
+      "response_sha256": "4a7b7183c4cf732cc37dfd48337e555a384660ce39267673ae15d9aed644327d",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "4a7b7183c4cf732cc37dfd48337e555a384660ce39267673ae15d9aed644327d",
+          "completion_diagnostic": {
+            "character_count": 61,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": true,
+            "original_usage": {
+              "prompt_tokens": 582,
+              "completion_tokens": 19,
+              "total_tokens": 601,
+              "cost": 0.0002632,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0002632,
+                "upstream_inference_prompt_cost": 0.0002328,
+                "upstream_inference_completions_cost": 3.04e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 2
+        }
+      ],
+      "before_hash": "9480432fe413f5f946df602513ee810c112f54035b6abaaa4c30b205213f053d",
+      "candidates": [
+        "click('20')",
+        "noop()"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "click",
+          "url_phase": "landing",
+          "element_role": "button",
+          "element_text": "[20] button 'Search'",
+          "action_bid": "20",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "noop",
+          "url_phase": "landing",
+          "element_role": "other",
+          "element_text": "",
+          "action_bid": null,
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": true
+        }
+      ],
+      "target_features": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.45454545454545453
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.45454545454545453
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.9786469553025196,
+          0.008914678826339544,
+          0.008920130271225804,
+          0.0072558890148496456
+        ],
+        [
+          0.9701668343236565,
+          0.010809366769757927,
+          0.010816393146213158,
+          0.006955750404529124
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": false,
+        "visible_goal_constraint_unsatisfied": false,
+        "prior_action_had_no_effect": false
+      },
+      "selected_index": 0,
+      "selected_action": "click('20')",
+      "changed_from_target_rank_zero": false,
+      "abstract_kind": "TARGET",
+      "source_abstained": true,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "event_permuted_source_abstain_to_raw_target",
+      "reward": 0.0,
+      "terminated": false,
+      "truncated": false,
+      "after_hash": "d9c01246d3816411017d1633e77eae8992111e49b47e328197174cab185bb156"
+    },
+    {
+      "step": 6,
+      "prompt_sha256": "d71e657da7cd0250989019e0402a8e5b332482fea4147117eda2aaf1ec135055",
+      "response_sha256": "3cd92c6343d6ef7291366195bcfe00502435013298113f0bcd08f775ea690bfc",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "3cd92c6343d6ef7291366195bcfe00502435013298113f0bcd08f775ea690bfc",
+          "completion_diagnostic": {
+            "character_count": 86,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": true,
+            "original_usage": {
+              "prompt_tokens": 3570,
+              "completion_tokens": 26,
+              "total_tokens": 3596,
+              "cost": 0.0014696,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0014696,
+                "upstream_inference_prompt_cost": 0.001428,
+                "upstream_inference_completions_cost": 4.16e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 3
+        }
+      ],
+      "before_hash": "d9c01246d3816411017d1633e77eae8992111e49b47e328197174cab185bb156",
+      "candidates": [
+        "click('25')",
+        "click('17')",
+        "noop()"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "button",
+          "element_text": "[25] button 'Next >'",
+          "action_bid": "25",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "button",
+          "element_text": "[17] button 'Back to Search'",
+          "action_bid": "17",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "noop",
+          "url_phase": "search_results",
+          "element_role": "other",
+          "element_text": "",
+          "action_bid": null,
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": true
+        }
+      ],
+      "target_features": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.5454545454545454
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.5454545454545454
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.5454545454545454
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.9767371712310633,
+          0.00924895686257258,
+          0.009254677074404635,
+          0.007247668548559116
+        ],
+        [
+          0.9767371712310633,
+          0.00924895686257258,
+          0.009254677074404635,
+          0.007247668548559116
+        ],
+        [
+          0.9666440278816746,
+          0.011287512934309837,
+          0.011294932884367838,
+          0.00692772494209406
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": false,
+        "visible_goal_constraint_unsatisfied": false,
+        "prior_action_had_no_effect": false
+      },
+      "selected_index": 0,
+      "selected_action": "click('25')",
+      "changed_from_target_rank_zero": false,
+      "abstract_kind": "TARGET",
+      "source_abstained": true,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "event_permuted_source_abstain_to_raw_target",
+      "reward": 0.0,
+      "terminated": false,
+      "truncated": false,
+      "after_hash": "a6baf0a5f267b967035c640f544a822ddb7a3c39495f66ff73cf5e69da94baf4"
+    },
+    {
+      "step": 7,
+      "prompt_sha256": "8dfc3f93fee553c5d39d093c195dfbe0455e73bf43919aa7aec439289e508df8",
+      "response_sha256": "d2915cb118ec84d085fb6f6fc9abb626cc3954134bdc3b4ce448c506f66c0a2c",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "d2915cb118ec84d085fb6f6fc9abb626cc3954134bdc3b4ce448c506f66c0a2c",
+          "completion_diagnostic": {
+            "character_count": 141,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": true,
+            "original_usage": {
+              "prompt_tokens": 3381,
+              "completion_tokens": 42,
+              "total_tokens": 3423,
+              "cost": 0.0014196,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0014196,
+                "upstream_inference_prompt_cost": 0.0013524,
+                "upstream_inference_completions_cost": 6.72e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 5
+        }
+      ],
+      "before_hash": "a6baf0a5f267b967035c640f544a822ddb7a3c39495f66ff73cf5e69da94baf4",
+      "candidates": [
+        "click('37')",
+        "click('49')",
+        "click('61')",
+        "click('73')",
+        "click('85')"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[37] link 'B09BYX42DW', url=\"http://127.0.0.1:3000/item_page/fixed_242/B09BYX42DW/%5B'tv',%20'stand',%20'exquisite',%20'workmanship',%20'living',%20'room',%20'4pcs',%20'under',%20'30'%5D/2/%7B%7D\"",
+          "action_bid": "37",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "4pcs",
+            "exquisite",
+            "living",
+            "room",
+            "tv",
+            "workmanship"
+          ],
+          "goal_overlap": 0.24,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[49] link 'B09LHM4WQS', url=\"http://127.0.0.1:3000/item_page/fixed_242/B09LHM4WQS/%5B'tv',%20'stand',%20'exquisite',%20'workmanship',%20'living',%20'room',%20'4pcs',%20'under',%20'30'%5D/2/%7B%7D\"",
+          "action_bid": "49",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "4pcs",
+            "exquisite",
+            "living",
+            "room",
+            "tv",
+            "workmanship"
+          ],
+          "goal_overlap": 0.24,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[61] link 'B09JC84P1M', url=\"http://127.0.0.1:3000/item_page/fixed_242/B09JC84P1M/%5B'tv',%20'stand',%20'exquisite',%20'workmanship',%20'living',%20'room',%20'4pcs',%20'under',%20'30'%5D/2/%7B%7D\"",
+          "action_bid": "61",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "4pcs",
+            "exquisite",
+            "living",
+            "room",
+            "tv",
+            "workmanship"
+          ],
+          "goal_overlap": 0.24,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[73] link 'B07DRFDWVT', url=\"http://127.0.0.1:3000/item_page/fixed_242/B07DRFDWVT/%5B'tv',%20'stand',%20'exquisite',%20'workmanship',%20'living',%20'room',%20'4pcs',%20'under',%20'30'%5D/2/%7B%7D\"",
+          "action_bid": "73",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "4pcs",
+            "exquisite",
+            "living",
+            "room",
+            "tv",
+            "workmanship"
+          ],
+          "goal_overlap": 0.24,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[85] link 'B079N3VLRJ', url=\"http://127.0.0.1:3000/item_page/fixed_242/B079N3VLRJ/%5B'tv',%20'stand',%20'exquisite',%20'workmanship',%20'living',%20'room',%20'4pcs',%20'under',%20'30'%5D/2/%7B%7D\"",
+          "action_bid": "85",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "4pcs",
+            "exquisite",
+            "living",
+            "room",
+            "tv",
+            "workmanship"
+          ],
+          "goal_overlap": 0.24,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        }
+      ],
+      "target_features": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.24,
+          0.0,
+          0.0,
+          0.0,
+          0.6363636363636364
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.24,
+          0.0,
+          0.0,
+          0.0,
+          0.6363636363636364
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.24,
+          0.0,
+          0.0,
+          0.0,
+          0.6363636363636364
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.24,
+          0.0,
+          0.0,
+          0.0,
+          0.6363636363636364
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.24,
+          0.0,
+          0.0,
+          0.0,
+          0.6363636363636364
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.8987472927639578,
+          0.008387651674304617,
+          0.008394127142530421,
+          0.005391615591985136
+        ],
+        [
+          0.8987472927639578,
+          0.008387651674304617,
+          0.008394127142530421,
+          0.005391615591985136
+        ],
+        [
+          0.8987472927639578,
+          0.008387651674304617,
+          0.008394127142530421,
+          0.005391615591985136
+        ],
+        [
+          0.8987472927639578,
+          0.008387651674304617,
+          0.008394127142530421,
+          0.005391615591985136
+        ],
+        [
+          0.8987472927639578,
+          0.008387651674304617,
+          0.008394127142530405,
+          0.005391615591985141
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": false,
+        "visible_goal_constraint_unsatisfied": false,
+        "prior_action_had_no_effect": false
+      },
+      "selected_index": 0,
+      "selected_action": "click('37')",
+      "changed_from_target_rank_zero": false,
+      "abstract_kind": "TARGET",
+      "source_abstained": true,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "event_permuted_source_abstain_to_raw_target",
+      "reward": 0.0,
+      "terminated": false,
+      "truncated": false,
+      "after_hash": "196284c45cdd31816a212e011d12b78793ee5b2a3df911351f7d60426b3abd6f"
+    },
+    {
+      "step": 8,
+      "prompt_sha256": "366766be340f4b6dc7d39287fcc402c28d7d544108a492898e191c6c453829de",
+      "response_sha256": "bca83e56d2ae658832d49d204c8cd52d5d2f313c2ded3e68cb68a8230c209408",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "bca83e56d2ae658832d49d204c8cd52d5d2f313c2ded3e68cb68a8230c209408",
+          "completion_diagnostic": {
+            "character_count": 141,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": true,
+            "original_usage": {
+              "prompt_tokens": 1246,
+              "completion_tokens": 42,
+              "total_tokens": 1288,
+              "cost": 0.0005656,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0005656,
+                "upstream_inference_prompt_cost": 0.0004984,
+                "upstream_inference_completions_cost": 6.72e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 5
+        }
+      ],
+      "before_hash": "196284c45cdd31816a212e011d12b78793ee5b2a3df911351f7d60426b3abd6f",
+      "candidates": [
+        "click('61')",
+        "click('51')",
+        "click('54')",
+        "click('57')",
+        "click('20')",
+        "go_back()"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[61] button 'Buy Now'",
+          "action_bid": "61",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": true,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[51] button 'Description'",
+          "action_bid": "51",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[54] button 'Features'",
+          "action_bid": "54",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[57] button 'Reviews'",
+          "action_bid": "57",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[20] button '< Prev'",
+          "action_bid": "20",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "go_back",
+          "url_phase": "item_page",
+          "element_role": "other",
+          "element_text": "",
+          "action_bid": null,
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        }
+      ],
+      "target_features": [
+        [
+          1.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.7272727272727273
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.7272727272727273
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.7272727272727273
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.7272727272727273
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.7272727272727273
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.7272727272727273
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.9937297095044567,
+          0.954343401577513,
+          0.9543783113540608,
+          0.00855163986932871
+        ],
+        [
+          0.9717855757953867,
+          0.010002260962983588,
+          0.010008584640046244,
+          0.00722104990290191
+        ],
+        [
+          0.9717855757953867,
+          0.010002260962983588,
+          0.010008584640046244,
+          0.00722104990290191
+        ],
+        [
+          0.9717855757953867,
+          0.010002260962983588,
+          0.010008584640046244,
+          0.00722104990290191
+        ],
+        [
+          0.9717855757953867,
+          0.010002260962983588,
+          0.010008584640046244,
+          0.00722104990290191
+        ],
+        [
+          0.46067614558982684,
+          0.004425460312044109,
+          0.004430285477370015,
+          0.0037192913022105365
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": false,
+        "visible_goal_constraint_unsatisfied": false,
+        "prior_action_had_no_effect": false
+      },
+      "selected_index": 0,
+      "selected_action": "click('61')",
+      "changed_from_target_rank_zero": false,
+      "abstract_kind": "TARGET",
+      "source_abstained": true,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "event_permuted_source_abstain_to_raw_target",
+      "reward": 0.5,
+      "terminated": true,
+      "truncated": false,
+      "after_hash": "4f29191817d65f5ebdd8e436336403fb2c8e24a79419235fd6cdc1deb4d26ba1"
+    }
+  ],
+  "step_count": 9,
+  "official_reward": 0.5,
+  "strict_success": false,
+  "pass_success": true,
+  "terminated": true,
+  "truncated": false,
+  "failure": null,
+  "failure_traceback": null,
+  "changed_from_target_rank_zero_count": 0,
+  "source_decision_count": 0,
+  "session_namespace": "phase2-ws-83be4ad55f-c30-event-binding-permuted-control",
+  "manifest_sha256": "83be4ad55fd78eacbdf7bae1bdee675676a566a3060f76034ea8d658fb6e19f8",
+  "target_identity": "webshop.synthetic.phase2v2.seed4145324235.index242.033af76bf3ed82d9",
+  "goal_sha256": "033af76bf3ed82d9ad8a85addd5a958cebcb31333b19d93fece5eea9df7b03e6",
+  "source_game": "tetris",
+  "source_artifact_sha256": "585e5b29303fcbe23e8f8b5414ea389ea6257c96f55fa64897661fe2e2b306e7",
+  "v16_controller": {
+    "condition": "event_binding_permuted_control",
+    "source_artifact_sha256": "585e5b29303fcbe23e8f8b5414ea389ea6257c96f55fa64897661fe2e2b306e7",
+    "source_decisions": 9,
+    "source_action_counts": {
+      "BACKTRACK_REPLAN": 9
+    },
+    "target_fallbacks": 9,
+    "coverage_controller": {
+      "condition": "target_only",
+      "coverage_enabled": false,
+      "coverage_ready": false,
+      "goal_option_signatures": [
+        "size:4pcs"
+      ],
+      "coverage_interventions": 0,
+      "source_calls_after_coverage": 0,
+      "rejected_product_ids": [],
+      "last_selected_product_id": "B09BYX42DW",
+      "anytime_reward_salvage": false,
+      "maximum_steps": 12,
+      "budget_abstentions": 0,
+      "product_ledger_resets": 1,
+      "ledger": {
+        "required": [
+          "size:4pcs"
+        ],
+        "verified": [],
+        "missing": [
+          "size:4pcs"
+        ],
+        "commit_authorized": false,
+        "pending_signature": null
+      }
+    },
+    "source_trace": [
+      {
+        "domain": "webshop",
+        "episode_id": "webshop.synthetic.phase2v2.seed4145324235.index242.033af76bf3ed82d9",
+        "decision_index": 0,
+        "target_event": "ACTIVE_CANDIDATE_REFUTED",
+        "source_action": "BACKTRACK_REPLAN",
+        "native_action_id": "abstain_to_raw_target",
+        "native_action": {
+          "operation": "target_fallback"
+        },
+        "admitted": true,
+        "reason": "SOURCE_EVENT_ROUTE_TARGET_NATIVE_REALIZATION",
+        "source_artifact_sha256": "585e5b29303fcbe23e8f8b5414ea389ea6257c96f55fa64897661fe2e2b306e7",
+        "target_evidence_sha256": "6367838cea5faea24b01a35c625036e3534de55bfe4c445b2f37db88753149ee",
+        "receipt_sha256": "0e7820d9709ab4ed4f7dbbc1fa63579b0bc8535f90efa40a1cbe7418ad4c98de"
+      },
+      {
+        "domain": "webshop",
+        "episode_id": "webshop.synthetic.phase2v2.seed4145324235.index242.033af76bf3ed82d9",
+        "decision_index": 1,
+        "target_event": "ACTIVE_CANDIDATE_REFUTED",
+        "source_action": "BACKTRACK_REPLAN",
+        "native_action_id": "abstain_to_raw_target",
+        "native_action": {
+          "operation": "target_fallback"
+        },
+        "admitted": true,
+        "reason": "SOURCE_EVENT_ROUTE_TARGET_NATIVE_REALIZATION",
+        "source_artifact_sha256": "585e5b29303fcbe23e8f8b5414ea389ea6257c96f55fa64897661fe2e2b306e7",
+        "target_evidence_sha256": "80cc8fc519316fd4245c37a4ffd444e0f4b6764329009b504532a6c6284e2ca8",
+        "receipt_sha256": "836c747f0b0288644aaf321eebd75869bc798c5ad61b6dd9d85d8f1b50ccc243"
+      },
+      {
+        "domain": "webshop",
+        "episode_id": "webshop.synthetic.phase2v2.seed4145324235.index242.033af76bf3ed82d9",
+        "decision_index": 2,
+        "target_event": "ACTIVE_CANDIDATE_REFUTED",
+        "source_action": "BACKTRACK_REPLAN",
+        "native_action_id": "abstain_to_raw_target",
+        "native_action": {
+          "operation": "target_fallback"
+        },
+        "admitted": true,
+        "reason": "SOURCE_EVENT_ROUTE_TARGET_NATIVE_REALIZATION",
+        "source_artifact_sha256": "585e5b29303fcbe23e8f8b5414ea389ea6257c96f55fa64897661fe2e2b306e7",
+        "target_evidence_sha256": "abb44dfab05975b7938570f020af6eee8a3d470e4d8ed03300a6cada35b24ad9",
+        "receipt_sha256": "e06268fac0be8ddeae0d09ea9c66b05042dd5bcf9e25490dc53400cc0c524a81"
+      },
+      {
+        "domain": "webshop",
+        "episode_id": "webshop.synthetic.phase2v2.seed4145324235.index242.033af76bf3ed82d9",
+        "decision_index": 3,
+        "target_event": "ACTIVE_CANDIDATE_REFUTED",
+        "source_action": "BACKTRACK_REPLAN",
+        "native_action_id": "abstain_to_raw_target",
+        "native_action": {
+          "operation": "target_fallback"
+        },
+        "admitted": true,
+        "reason": "SOURCE_EVENT_ROUTE_TARGET_NATIVE_REALIZATION",
+        "source_artifact_sha256": "585e5b29303fcbe23e8f8b5414ea389ea6257c96f55fa64897661fe2e2b306e7",
+        "target_evidence_sha256": "9af12432f837ace5a6b991886462d6b6742774859b88de9d07389fe2b5f05e99",
+        "receipt_sha256": "c2e198f61166c6d40e140b4381233d0401de82e89dbba5e92dbbc9d9ac03189b"
+      },
+      {
+        "domain": "webshop",
+        "episode_id": "webshop.synthetic.phase2v2.seed4145324235.index242.033af76bf3ed82d9",
+        "decision_index": 4,
+        "target_event": "ACTIVE_CANDIDATE_REFUTED",
+        "source_action": "BACKTRACK_REPLAN",
+        "native_action_id": "abstain_to_raw_target",
+        "native_action": {
+          "operation": "target_fallback"
+        },
+        "admitted": true,
+        "reason": "SOURCE_EVENT_ROUTE_TARGET_NATIVE_REALIZATION",
+        "source_artifact_sha256": "585e5b29303fcbe23e8f8b5414ea389ea6257c96f55fa64897661fe2e2b306e7",
+        "target_evidence_sha256": "9bb7126f429500cd41feb8cda7fc4869e27e2df96a31941c1f099a66bbc1782b",
+        "receipt_sha256": "58e1c9d29b5748a003bdaa0b20bde7f024ed75c3a7166cd5617ad6c9383aa4b8"
+      },
+      {
+        "domain": "webshop",
+        "episode_id": "webshop.synthetic.phase2v2.seed4145324235.index242.033af76bf3ed82d9",
+        "decision_index": 5,
+        "target_event": "ACTIVE_CANDIDATE_REFUTED",
+        "source_action": "BACKTRACK_REPLAN",
+        "native_action_id": "abstain_to_raw_target",
+        "native_action": {
+          "operation": "target_fallback"
+        },
+        "admitted": true,
+        "reason": "SOURCE_EVENT_ROUTE_TARGET_NATIVE_REALIZATION",
+        "source_artifact_sha256": "585e5b29303fcbe23e8f8b5414ea389ea6257c96f55fa64897661fe2e2b306e7",
+        "target_evidence_sha256": "87cbe23f295734f1aa2e4c7c6da60514cd13a0770b16c8f5610198286a4f0c36",
+        "receipt_sha256": "2c0b6e75aaa72d363f3c1394be01fc9f90cbd39144837b9b7a89c783498d414d"
+      },
+      {
+        "domain": "webshop",
+        "episode_id": "webshop.synthetic.phase2v2.seed4145324235.index242.033af76bf3ed82d9",
+        "decision_index": 6,
+        "target_event": "ACTIVE_CANDIDATE_REFUTED",
+        "source_action": "BACKTRACK_REPLAN",
+        "native_action_id": "abstain_to_raw_target",
+        "native_action": {
+          "operation": "target_fallback"
+        },
+        "admitted": true,
+        "reason": "SOURCE_EVENT_ROUTE_TARGET_NATIVE_REALIZATION",
+        "source_artifact_sha256": "585e5b29303fcbe23e8f8b5414ea389ea6257c96f55fa64897661fe2e2b306e7",
+        "target_evidence_sha256": "c6ab10ed77d95e8af1bce3a9b3422e915c5db8785d1e589b81c5c6d974b1ca3b",
+        "receipt_sha256": "f349071e03ec22c3cd8ee230b64b84a66aed2972bbf38d9f82bc71a32b16d3ca"
+      },
+      {
+        "domain": "webshop",
+        "episode_id": "webshop.synthetic.phase2v2.seed4145324235.index242.033af76bf3ed82d9",
+        "decision_index": 7,
+        "target_event": "ACTIVE_CANDIDATE_REFUTED",
+        "source_action": "BACKTRACK_REPLAN",
+        "native_action_id": "abstain_to_raw_target",
+        "native_action": {
+          "operation": "target_fallback"
+        },
+        "admitted": true,
+        "reason": "SOURCE_EVENT_ROUTE_TARGET_NATIVE_REALIZATION",
+        "source_artifact_sha256": "585e5b29303fcbe23e8f8b5414ea389ea6257c96f55fa64897661fe2e2b306e7",
+        "target_evidence_sha256": "67b691fe2b0d5febd60b5e9f332ee6a3671fcf18c1ac9564dc714b42f6663017",
+        "receipt_sha256": "5e4e4cbc63c9423a6f26b20488ee5b8303bdef31faa12979b7920d04cac44a04"
+      },
+      {
+        "domain": "webshop",
+        "episode_id": "webshop.synthetic.phase2v2.seed4145324235.index242.033af76bf3ed82d9",
+        "decision_index": 8,
+        "target_event": "ACTIVE_CANDIDATE_REFUTED",
+        "source_action": "BACKTRACK_REPLAN",
+        "native_action_id": "abstain_to_raw_target",
+        "native_action": {
+          "operation": "target_fallback"
+        },
+        "admitted": true,
+        "reason": "SOURCE_EVENT_ROUTE_TARGET_NATIVE_REALIZATION",
+        "source_artifact_sha256": "585e5b29303fcbe23e8f8b5414ea389ea6257c96f55fa64897661fe2e2b306e7",
+        "target_evidence_sha256": "40557001d08fc39478d25cc471152121d84f669eff904c420dc0aeedcbe85a12",
+        "receipt_sha256": "913ab049b2004f766aec24569c613feac18bcd7dbb2f98e7ccb0709a483ec64f"
+      }
+    ]
+  },
+  "commit_audit": [
+    {
+      "step": 8,
+      "selected_action": "click('61')",
+      "authorized": false,
+      "coverage": {
+        "required": [],
+        "verified": [],
+        "missing": [],
+        "commit_authorized": false,
+        "pending_signature": null
+      }
+    }
+  ],
+  "unsafe_commits": [],
+  "historical_target_outcome_reused": false,
+  "target_reset_or_sample_open_count": 1,
+  "runtime_hashes": {
+    "runner": "0cf4f0c993f7b13915df4c5acf3455e1a5fd6b4d8db561972b4f7575536ccd81",
+    "controller": "478994c5da56ee783e59823a79f026dfa2f7185d0f733a835bfe11e5cdd46c38",
+    "utility_contract": "7b30994bd6b293af713e4b6ab414e16adc94ae02fdc943f4106f514668bfda85",
+    "source_artifact": "7c40f5baab7926435b58d2992ae20ca4eb07e1c72a4b59d9e1e377cde3b8e576",
+    "target_grounder": "bbf8a22ebec8e7ab6d55e570f230ba4fcb2b8630d1dc81bd24ba103f68701782"
+  },
+  "receipt_sha256": "eacec7f9e07be75fe5a1fb60351b093e62df5c5202ff8c0b9bf3bdccb82929ec"
+}

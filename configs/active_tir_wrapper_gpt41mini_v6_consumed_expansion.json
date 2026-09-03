@@ -1,0 +1,77 @@
+{
+  "schema_version": 6,
+  "status": "DEVELOPMENT_ON_PREVIOUSLY_CONSUMED_TIR_IDS",
+  "claim_boundary": "TARGET_NATIVE_GPT41MINI_MATCHED_RECEIPT_EXPANSION_ON_SIXTEEN_PREVIOUSLY_CONSUMED_TIR_ADAPTATION_IDS; NO_CONFIRMATORY_CLAIM; V3_HELDOUT_UNREAD",
+  "source": {
+    "controlled_v3_config": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/configs/controlled_neural_symbolic_transfer_v3_formal.json",
+    "controlled_v3_config_content_sha256": "d5fb9c1976c1ac735d7efa4b0d8291dfc603b32f47a3ac6cf045519e3888d940",
+    "transferred_structure": "POSITION_THEN_VERIFY_EFFECT_THEN_COMMIT_OR_REPLAN",
+    "target_objective_test_cost": 0.0,
+    "model_seed": 2026081321
+  },
+  "target": {
+    "benchmark": "TIR-Bench",
+    "families": ["maze", "refcoco", "rotation_game", "visual_search"],
+    "official_evaluator": "exact_answer_letter",
+    "target_native_actions": ["zoom_region", "read_text_region", "describe_region", "commit_answer_slot"]
+  },
+  "wrapper": {
+    "root": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent",
+    "package": "visual_reasoning_wrapper",
+    "execution_authority": "WRAPPER_TOOL_REGISTRY_AND_QUESTION_ROUTER"
+  },
+  "model": {
+    "provider": "openrouter",
+    "id": "openai/gpt-4.1-mini",
+    "base_url": "https://openrouter.ai/api/v1",
+    "timeout_seconds": 180,
+    "max_retries": 2,
+    "temperature": 0
+  },
+  "media": {
+    "overview_max_side": 768,
+    "evidence_max_side": 1280,
+    "jpeg_quality": 86
+  },
+  "interventions": {
+    "candidate_count": 4,
+    "minimum_overview_crop_side": 16,
+    "matched_fork_contract": "BASE_OVERVIEW_PLUS_EXACTLY_ONE_PARAMETERIZED_WRAPPER_INTERVENTION"
+  },
+  "target_grounder": {
+    "kind": "target_native_candidate_intervention_uplift_mlp",
+    "belief_seed": 2026081320,
+    "candidate_seed": 2026081322,
+    "candidate_hidden_units": 16,
+    "candidate_epochs": 600,
+    "training_authority": "CONSUMED_TIR_DEVELOPMENT_MATCHED_FORKS_ONLY"
+  },
+  "policy": {
+    "uncertainty_scale": 0.5,
+    "decision_margin": 0.0025,
+    "fallback_commit_threshold": 0.72,
+    "target_quality_threshold": 0.0,
+    "information_gain_threshold": 0.025
+  },
+  "conditions": [
+    "target_only",
+    "authentic_source_plus_target",
+    "shuffled_source_plus_target",
+    "source_marginal_plus_target",
+    "target_native_information_gain",
+    "target_native_candidate_uplift"
+  ],
+  "splits": {
+    "adaptation": ["158", "721", "1122", "622", "423", "49", "474", "958", "800", "516", "785", "270", "713", "735", "1110", "532"],
+    "consumed_companion": ["1092", "596", "224", "223", "321", "1178", "360", "1109"],
+    "held_out_unread": ["1162", "911", "808", "1009", "1103", "751", "651", "233", "318", "462", "939", "795", "1157", "561", "1144", "1005", "768", "1024", "1132", "842", "22", "1029", "879", "834"]
+  },
+  "development_preflight": {
+    "minimum_samples_with_candidate_effect_variation": 4,
+    "minimum_authentic_action_contrasts": 2,
+    "require_oracle_candidate_headroom": true,
+    "require_cross_fitted_positive_response": true,
+    "require_source_control_contrast": true,
+    "require_authentic_source_accuracy_superiority": true
+  }
+}

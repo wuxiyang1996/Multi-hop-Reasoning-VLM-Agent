@@ -1,0 +1,39 @@
+{
+  "schema_version": "phase2-tirbench-causal-utility-independent-audit-v1",
+  "status": "PHASE2_TIRBENCH_V1_INDEPENDENT_AUDIT_PASSED",
+  "compact_sha256": "63f58b9fd092ceb01e107209d3d176218c0d473fe4cb69a34291911d0a823484",
+  "original_report_sha256": "d5acf80ecca5d6f7f24c4934e0b0c4f7fc3aafc9c692400c450243dac13ba036",
+  "independent_condition_successes": {
+    "raw_target_only": 19,
+    "authentic_sokoban_topology_plus_target": 41,
+    "alpha_renamed_authentic": 41,
+    "direction_permuted_source_control": 19,
+    "endpoint_only_target_control": 31,
+    "path_length_marginal_control": 14
+  },
+  "independent_authentic_vs_raw": {
+    "wins": 22,
+    "losses": 0,
+    "ties": 26,
+    "exact_two_sided_sign_test_p": 4.76837158203125e-07
+  },
+  "gates": {
+    "prospective_config_and_48_fresh_ids": true,
+    "config_hash_matches_frozen_report": true,
+    "raw_receipts_file_hash_matches_report": true,
+    "source_artifact_and_confirmation_match": true,
+    "exact_48_receipts_and_288_traces": true,
+    "receipt_trace_and_native_self_hashes_valid": true,
+    "all_target_neural_bindings_valid": true,
+    "alpha_rename_invariance": true,
+    "independent_success_counts_match_report": true,
+    "independent_paired_statistics_match_report": true,
+    "authentic_significantly_beats_raw": true,
+    "zero_strict_negative_transfer_vs_raw": true,
+    "authentic_strictly_beats_all_nonisomorphic_controls": true,
+    "report_self_hash_status_and_original_gates_valid": true
+  },
+  "passed_gates": 14,
+  "required_gates": 14,
+  "audit_sha256": "d8175e3a4b432e72726a8a161f0d9ea1b3957dd38af607358fc1067efb3d4c49"
+}

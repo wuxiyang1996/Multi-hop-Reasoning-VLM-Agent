@@ -1,0 +1,30 @@
+{
+  "schema_version": "agqa-full-train-broad-anonymous-runtime-amendment-v1",
+  "status": "FROZEN_BEFORE_ANY_PARSER_GROUNDER_FALLBACK_OR_OUTCOME_RUNTIME",
+  "parent_preregistration_sha256": "81163627aa431d2ae0afbce4f6822d1b75fb11280e5368e3239f76d9536d8d1f",
+  "parent_preregistration_file_sha256": "3c17f66888767dbc14d74fe7cf2e2d4b897c9ab32cb9edae96e1dc2c4947f952",
+  "reason": "Pre-runtime wiring audit found that the frozen evaluator hash named the anonymous controller in prose but did not require its artifact argument. The implementation is amended before any reserve inference or outcome access so source_induced must actually execute the anonymous attempt/commit-or-release route.",
+  "runtime_change": {
+    "preoutcome_command_requires": "--anonymous-controller runs/anonymous_video_harness_v1/controller.json",
+    "evaluator_command_requires": "--anonymous-controller runs/anonymous_video_harness_v1/controller.json",
+    "source_commit_definition": "TARGET_NATIVE_STRICT_CANDIDATE_QUALIFIED_THEN_ANONYMOUS_SOURCE_ROUTE_ENDS_COMMIT",
+    "source_permuted_definition": "FAILED_SOURCE_CONTROL_ABSTAINS_TO_IDENTICAL_NEURAL_FALLBACK",
+    "target_written_isomorphic_definition": "INDEPENDENT_CLONE_OF_THE_SAME_FINAL_COMMIT_DISPOSITION"
+  },
+  "replacement_implementation_file_sha256s": {
+    "scripts/freeze_agqa_layer_b_epistemic_preoutcome.py": "afed43df6e85586a2c767cfdb4765679a63dc9e96b636397a366b9382c3ed962",
+    "scripts/evaluate_agqa_layer_b_epistemic_five_arm.py": "8e02d3b4c062df062c93353cc7c7441872716e1a302a5d7c06418ffe4845d6d4",
+    "src/motif_transfer/anonymous_video_harness.py": "e4c58bbfb48debd5600552f491e64a8ead86e65505f2fd83359910ee3751187b"
+  },
+  "authority": {
+    "provider_calls_before_amendment": 0,
+    "reserve_parser_outputs_read": 0,
+    "reserve_grounding_outputs_read": 0,
+    "reserve_answers_read": false,
+    "reserve_functional_programs_read": false,
+    "reserve_scene_graphs_read": false,
+    "source_or_threshold_changed": false,
+    "cohort_changed": false,
+    "formal_gates_changed": false
+  }
+}

@@ -1,0 +1,212 @@
+{
+  "schema_version": "neurosymbolic-skill-library-v1",
+  "status": "FOUR_EXACT_TARGET_ROUTES_FRESH_FORMAL_VALIDATED",
+  "dispatch_authority": "SELECT_SKILL_OR_ABSTAIN_ONLY",
+  "skills": [
+    {
+      "skill_id": "sokoban-positive-effect-guard-v2",
+      "source_domains": ["sokoban"],
+      "symbolic_payload": "COMMIT only when direct progress or assignment improvement is available, verify its effect, otherwise POSITION and recompute; abstain on refutation.",
+      "source_artifact_sha256": "6b02dc1d7271bbd435e90539cedd7d56d04fcc1ad03798dd6dd06146d67f1fcd",
+      "source_artifact_hash_path": "artifact.artifact_sha256",
+      "source_receipt": {
+        "path": "docs/results/sokoban_effect_program_v2_compact_receipt.json",
+        "file_sha256": "8f175c0edda951eba2064e9c53a8db6a25cdfa9fb0de8049d371dbf5335c9e80",
+        "claims": [
+          {"path": "fresh_confirmation.source_gate_passed", "equals": true},
+          {"path": "fresh_confirmation.gates.control_superiority", "equals": true}
+        ]
+      },
+      "evidence_tier": "FRESH_FORMAL",
+      "evidence_status": "REAL_SOKOBAN_TO_WEBSHOP_NEURAL_SYMBOLIC_TRANSFER_VALIDATED",
+      "evidence_status_path": "scientific_status",
+      "evidence_receipt": {
+        "path": "docs/results/webshop_sokoban_effect_transfer_v13_summary.json",
+        "file_sha256": "0cc9bbd04e52cae1e0a3cdf79744de03300091b676b1160e01788802e18e2500",
+        "claims": [
+          {"path": "primary_gates.all_comparator_gates", "equals": true},
+          {"path": "primary_gates.zero_final_failures", "equals": true}
+        ]
+      },
+      "adapter_files": [
+        {"path": "src/motif_transfer/webshop_sokoban_effect_transfer.py", "file_sha256": "68c2e2daba3d764a9286130a07a4e274b5f976c010f2bd4d6b362c0a94836126"},
+        {"path": "src/motif_transfer/webshop_neural_symbolic_v9.py", "file_sha256": "55897748720f573eca59dff93e6a88d53f54cd0dd1bff55b0a9512ea80777c25"}
+      ],
+      "routes": [
+        {
+          "target_domain": "webshop",
+          "target_interface": "product_search_and_option_commit",
+          "required_capabilities": ["candidate_outcomes", "effect_verification", "native_commit", "native_search"],
+          "target_adapter": "webshop-sokoban-effect-v13",
+          "target_grounder": "motif_transfer.webshop_neural_symbolic_v9.TargetOutcomeMLP",
+          "target_executor": "motif_transfer.webshop_sokoban_effect_transfer.choose_sokoban_effect_action",
+          "action_authority": "TARGET_NATIVE_GROUNDER_AND_EXECUTOR"
+        }
+      ]
+    },
+    {
+      "skill_id": "procedural-game-typed-workflow-value-v1",
+      "source_domains": ["grid_quest", "factory_quest", "dungeon_quest", "space_quest", "island_quest", "circuit_quest"],
+      "symbolic_payload": "Transfer matched-intervention value over the typed SEARCH-ACQUIRE-TRANSFORM-PLACE-VERIFY workflow automaton; alpha-renamed source-native actions never cross the boundary, while target-native neural heads bind and rank admissible ALFWorld actions.",
+      "source_artifact_sha256": "5f54973b8f46b977a5339bfb608215703a72ecf7a38e626ed36598256f47e81f",
+      "source_artifact_hash_path": "source.frozen_candidate_artifact_file_sha256",
+      "source_receipt": {
+        "path": "docs/results/procedural_game_alfworld_v1_summary.json",
+        "file_sha256": "cc6e37cee45a5d505f39f1a4172ceb9e2fc1d5351b98d184467c1e371e4da0ef",
+        "claims": [
+          {"path": "source.source_gate_passed", "equals": true},
+          {"path": "source.raw_action_tokens_transferred", "equals": false},
+          {"path": "source.candidate_rebuilt_exactly_from_current_code", "equals": true}
+        ]
+      },
+      "evidence_tier": "FRESH_FORMAL",
+      "evidence_status": "PROCEDURAL_GAME_TO_ALFWORLD_FRESH_FORMAL_VALIDATED",
+      "evidence_status_path": "status",
+      "evidence_receipt": {
+        "path": "docs/results/procedural_game_alfworld_v1_summary.json",
+        "file_sha256": "cc6e37cee45a5d505f39f1a4172ceb9e2fc1d5351b98d184467c1e371e4da0ef",
+        "claims": [
+          {"path": "formal.all_frozen_gates_passed", "equals": true},
+          {"path": "formal.nontriviality_gate_passed", "equals": true},
+          {"path": "formal.efficiency_gate_passed", "equals": true},
+          {"path": "formal.superiority_gate_passed", "equals": true},
+          {"path": "operational_disclosure.scientific_configuration_changed_after_partial_outcomes", "equals": false}
+        ]
+      },
+      "adapter_files": [
+        {"path": "src/motif_transfer/procedural_workflow_game.py", "file_sha256": "acdf8b2e2e484208f8695c1448f447fec856d411917be7f476a6b66fc5c22e68"},
+        {"path": "src/motif_transfer/alfworld_hierarchical_grounder.py", "file_sha256": "b6eec64dcdff75f4ae11d6d38ddec9bd6ef8e6fe10a2feee8b78b211e7f7997e"},
+        {"path": "src/motif_transfer/hierarchical_skill_transfer.py", "file_sha256": "cf9a7e2e4dcdcffa252bc6d83b45a8cd4dad7e4ffaec888fef851db4722719cb"},
+        {"path": "scripts/train_procedural_game_alfworld_candidate.py", "file_sha256": "dc12e40ab5fb54d611e646400b496d63767350e335204cc6c222d3a9509f48d0"},
+        {"path": "scripts/run_multisource_alfworld_v2_qualification.py", "file_sha256": "1a829f289ceb92954286cb3bb5afbe387017558ea00ae1d6fbde08651db44e0e"},
+        {"path": "scripts/summarize_procedural_game_alfworld_v1.py", "file_sha256": "f2af732535fbc66140650c0e88c8d6118dda77a47e2f296b4cbdcec5e2f648ae"}
+      ],
+      "routes": [
+        {
+          "target_domain": "alfworld",
+          "target_interface": "text_household_workflow",
+          "required_capabilities": ["admissible_actions", "effect_prediction", "goal_binding", "workflow_state"],
+          "target_adapter": "alfworld-procedural-game-neurosymbolic-v1",
+          "target_grounder": "motif_transfer.alfworld_hierarchical_grounder.score_actions",
+          "target_executor": "scripts.run_multisource_alfworld_v2_qualification._choose_action",
+          "action_authority": "TARGET_NATIVE_GROUNDER_AND_EXECUTOR"
+        }
+      ]
+    },
+    {
+      "skill_id": "sokoban-positive-effect-guard-v2-discoveryworld",
+      "source_domains": ["sokoban"],
+      "symbolic_payload": "Apply the source-qualified positive-effect COMMIT guard to target-bound scientific placement, otherwise POSITION and recompute, with target-native spatial realization.",
+      "source_artifact_sha256": "6b02dc1d7271bbd435e90539cedd7d56d04fcc1ad03798dd6dd06146d67f1fcd",
+      "source_artifact_hash_path": "artifact.artifact_sha256",
+      "source_receipt": {
+        "path": "docs/results/sokoban_effect_program_v2_compact_receipt.json",
+        "file_sha256": "8f175c0edda951eba2064e9c53a8db6a25cdfa9fb0de8049d371dbf5335c9e80",
+        "claims": [
+          {"path": "fresh_confirmation.source_gate_passed", "equals": true}
+        ]
+      },
+      "evidence_tier": "FRESH_FORMAL",
+      "evidence_status": "FRESH_FORMAL_TRANSFER_VALIDATED",
+      "evidence_status_path": "status",
+      "evidence_receipt": {
+        "path": "docs/results/discoveryworld_v23_fresh_easy_formal_summary.json",
+        "file_sha256": "4d1aacd8c3491b9ae53e47d7bc06271af0ebc7709aa3e01b81bd2c19c19edd96",
+        "claims": [
+          {"path": "outcome_blind_fork_freeze.outcome_fields_read_for_eligibility", "equals": false},
+          {"path": "formal_matched_results.all_predeclared_gates_passed", "equals": true},
+          {"path": "operational_disclosure.scientific_configuration_changed", "equals": false}
+        ]
+      },
+      "adapter_files": [
+        {"path": "src/motif_transfer/discoveryworld_sokoban_transfer.py", "file_sha256": "8d50120bacf89ceca5a6884f6ba90f55a9147a945f5008c9fbbf25ac260af2b7"},
+        {"path": "scripts/run_discoveryworld_commit_recovery_v1.py", "file_sha256": "14a768760c4a327c2486a3400310a771f9074ebe69ead83c848c425b2d54527d"}
+      ],
+      "routes": [
+        {
+          "target_domain": "discoveryworld",
+          "target_interface": "scientific_spatial_commit",
+          "required_capabilities": ["commit_effect_prediction", "inventory_state", "object_relation_state", "spatial_realization"],
+          "target_adapter": "discoveryworld-sokoban-effect-v23",
+          "target_grounder": "motif_transfer.discoveryworld_sokoban_transfer.parse_grounded_candidates",
+          "target_executor": "motif_transfer.discoveryworld_sokoban_transfer.select_candidate",
+          "action_authority": "TARGET_NATIVE_GROUNDER_AND_EXECUTOR"
+        }
+      ]
+    },
+    {
+      "skill_id": "sokoban-anonymous-topology-executor-v1",
+      "source_domains": ["sokoban"],
+      "symbolic_payload": "Bind anonymous topology, execute candidate edges, refute blocked sequences, verify a unique goal-reaching sequence, then commit or abstain.",
+      "source_artifact_sha256": "bdbfd067f77a75ed87a815050e52556aad509812270b1d9e214476f4382525a9",
+      "source_artifact_hash_path": "artifact.content_sha256",
+      "source_receipt": {
+        "path": "docs/results/sokoban_topology_skill_v1_compact_receipt.json",
+        "file_sha256": "66bb46eda4a245566aa229b021fde377e51004108c6c125dd55422c5ac48d77f",
+        "claims": [
+          {"path": "fresh_confirmation.all_source_gates_passed", "equals": true}
+        ]
+      },
+      "evidence_tier": "FRESH_FORMAL",
+      "evidence_status": "FRESH_FORMAL_TRANSFER_VALIDATED",
+      "evidence_status_path": "status",
+      "evidence_receipt": {
+        "path": "docs/results/tir_maze_topology_v2_summary.json",
+        "file_sha256": "69a4516235a41557da948b5d9820e3e7366f128226da7c476baa5c12bf36e347",
+        "claims": [
+          {"path": "fresh_formal.all_frozen_gates_passed", "equals": true}
+        ]
+      },
+      "adapter_files": [
+        {"path": "src/motif_transfer/tir_maze_topology.py", "file_sha256": "9df1d5eb2bb73c5106a9247695b3e8dcf21e7c0fe56c78338395ef119870cfdd"},
+        {"path": "scripts/run_tir_maze_topology_v2.py", "file_sha256": "8d7c32221f5273970ebecf03049b649f071dc38a82aa0ebdbbc4e1afdf98c31d"}
+      ],
+      "routes": [
+        {
+          "target_domain": "tir",
+          "target_interface": "single_image_maze",
+          "required_capabilities": ["direction_binding", "pixel_graph", "sequence_execution", "unique_goal_verification"],
+          "target_adapter": "tir-maze-topology-v2",
+          "target_grounder": "scripts.run_tir_maze_topology_v2._bind",
+          "target_executor": "motif_transfer.tir_maze_topology.execute_maze_topology",
+          "action_authority": "TARGET_NATIVE_GROUNDER_AND_EXECUTOR"
+        }
+      ]
+    }
+  ],
+  "verification_requests": [
+    {
+      "domain": "webshop",
+      "interface": "product_search_and_option_commit",
+      "capabilities": ["candidate_outcomes", "effect_verification", "native_commit", "native_search"],
+      "minimum_evidence": "FRESH_FORMAL",
+      "expected_skill_id": "sokoban-positive-effect-guard-v2"
+    },
+    {
+      "domain": "alfworld",
+      "interface": "text_household_workflow",
+      "capabilities": ["admissible_actions", "effect_prediction", "goal_binding", "workflow_state"],
+      "minimum_evidence": "FRESH_FORMAL",
+      "expected_skill_id": "procedural-game-typed-workflow-value-v1"
+    },
+    {
+      "domain": "discoveryworld",
+      "interface": "scientific_spatial_commit",
+      "capabilities": ["commit_effect_prediction", "inventory_state", "object_relation_state", "spatial_realization"],
+      "minimum_evidence": "FRESH_FORMAL",
+      "expected_skill_id": "sokoban-positive-effect-guard-v2-discoveryworld"
+    },
+    {
+      "domain": "tir",
+      "interface": "single_image_maze",
+      "capabilities": ["direction_binding", "pixel_graph", "sequence_execution", "unique_goal_verification"],
+      "minimum_evidence": "FRESH_FORMAL",
+      "expected_skill_id": "sokoban-anonymous-topology-executor-v1"
+    }
+  ],
+  "negative_verification_requests": [
+    {"domain": "tir", "interface": "rotation", "capabilities": ["direction_binding", "pixel_graph"]},
+    {"domain": "video", "interface": "causal_video_qa", "capabilities": ["event_graph"]},
+    {"domain": "discoveryworld", "interface": "scientific_spatial_commit", "capabilities": ["inventory_state", "spatial_realization"]}
+  ]
+}

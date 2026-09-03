@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "task_id": "webshop.73",
+  "reason": "All five matched conditions encountered the same cached target-planner schema failure: Decision model exhausted its output budget before emitting candidates.",
+  "retry_policy": "Retry the complete five-condition matched group once with an empty decision cache and unchanged frozen runner, grounder, model, environment seed, task, and thresholds. Never retry a condition selectively.",
+  "original_attempt": {
+    "directory": "runs/webshop_neurosymbolic_applicability_v11/operational_archive/goal73_attempt1",
+    "conditions_failed": 5,
+    "initial_state_sha256": "4db6704c3454c3b5ce91564e7f4938d0d6ce7e81ce5bfb50b57bffd67e0d9c4f",
+    "receipt_file_sha256": {
+      "target_only": "83632f2d31f1b36e8a43e6e19d467b01df15421b6bce35294ff2e800b6649555",
+      "target_native_myopic": "ad6577d77d42d4a1f7992858a7d8cacd7288609cfb5a5a7c2592e6ec29fea7cd",
+      "authentic_source_plus_target": "d433cd627437100d6f64c6411b2b69f197925a8067fe0210c4150d5294665a1c",
+      "shuffled_source_plus_target": "2cbaec98b76c84d1d6eda29daa28293667ed8fdc1da497622a806babf4bee5fe",
+      "source_marginal_plus_target": "05139c5001fdda34bb8547b44cd9c2b55dcada7fde82060711ed81ab2ad6b68b"
+    }
+  },
+  "retry_attempt": {
+    "directory": "runs/webshop_neurosymbolic_applicability_v11/goal73_operational_retry",
+    "conditions_failed": 0,
+    "initial_state_sha256": "4db6704c3454c3b5ce91564e7f4938d0d6ce7e81ce5bfb50b57bffd67e0d9c4f",
+    "strict_success_by_condition": {
+      "target_only": false,
+      "target_native_myopic": false,
+      "authentic_source_plus_target": false,
+      "shuffled_source_plus_target": false,
+      "source_marginal_plus_target": false
+    },
+    "reward_by_condition": {
+      "target_only": 0.6666666666666666,
+      "target_native_myopic": 0.6666666666666666,
+      "authentic_source_plus_target": 0.6666666666666666,
+      "shuffled_source_plus_target": 0.6666666666666666,
+      "source_marginal_plus_target": 0.6666666666666666
+    },
+    "receipt_file_sha256": {
+      "target_only": "fa6450bce152d87d978dd21a51a5a7246ce79c9054ef2b6391c28bf78a5c8694",
+      "target_native_myopic": "bf1e2c71d6b8b399e5df986cc4446bc97df8bbe6bd3a35815aa624a550acca8f",
+      "authentic_source_plus_target": "d1e65337fe8240b723b885d1f653083bd90568daaae85c77a6023ae30cbdd38f",
+      "shuffled_source_plus_target": "eddd80b215ff221d2829205514937f97d9bd46dd679e40b0302b4b1a46d66191",
+      "source_marginal_plus_target": "c66f071d7fe5621093f18f704f4691325ab0dc01713775cf47e6511eb8f715b6"
+    }
+  },
+  "paired_effect_contribution": "Tie for authentic versus every control under both strict success and reward.",
+  "interpretation": "The retry removes an operational provider failure but contributes zero to every paired transfer effect. The original failed receipts remain retained for audit."
+}

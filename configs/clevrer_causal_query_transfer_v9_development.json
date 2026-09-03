@@ -1,0 +1,40 @@
+{
+  "schema_version": 9,
+  "status": "DEVELOPMENT_ADAPTATION_ONLY",
+  "claim_boundary": "Controlled causal-game representation values route two target-native CLEVRER neural dynamics representations. Question and choice programs are compiled from public text; official programs and answers are evaluator-only. This is not real-game source transfer and does not authorize confirmation unless every adaptation gate passes.",
+  "source": {
+    "kind": "CONTROLLED_CAUSAL_GAME_MATCHED_REPRESENTATION_VALUES",
+    "seed": 901,
+    "control_seed": 902,
+    "heldout_seed": 903,
+    "train_states": 4096,
+    "heldout_states": 1024,
+    "ridge_alpha": 0.1,
+    "minimum_authentic_accuracy": 0.95,
+    "minimum_control_margin": 0.15
+  },
+  "target": {
+    "split_manifest": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/configs/three_video_benchmark_splits_v1.json",
+    "official_root": "/fs/gamma-projects/vlm-robot/datasets/CLEVRER-official",
+    "split": "adaptation",
+    "explicit_relation_prediction_directory": "with_edge_supervision_old",
+    "trajectory_prediction_directory": "without_edge_supervision",
+    "explicit_relation_reliability": 0.86,
+    "trajectory_reliability": 0.68,
+    "predicted_intervention_shift": 0.55
+  },
+  "conditions": [
+    "target_always_explicit_relation",
+    "target_always_trajectory",
+    "authentic_source_router",
+    "shuffled_source_router",
+    "source_marginal_router",
+    "intervention_semantics_inverted"
+  ],
+  "gates": {
+    "require_compiler_exact_on_adaptation": true,
+    "require_source_gate_pass": true,
+    "require_authentic_action_contrast": true,
+    "require_authentic_strictly_above_all_controls": true
+  }
+}

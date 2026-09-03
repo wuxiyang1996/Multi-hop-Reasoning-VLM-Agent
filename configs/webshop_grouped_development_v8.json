@@ -1,0 +1,115 @@
+{
+  "schema_version": 1,
+  "artifact_role": "WEBSHOP_CONSUMED_SEMANTIC_GROUP_SPLIT_V8",
+  "claim_limit": "Consumed WebShop goals only; held-out remains unread.",
+  "group_key": "goal.asin",
+  "selection_rule": "V7 diagnosed ASIN groups are diagnostic; remaining ASIN groups are sha256-ranked into 2 adaptation, 1 calibration, and 1 confirmation group",
+  "namespace": "webshop-v8-clean-confirmation",
+  "diagnostic_task_ids": [
+    "webshop.1",
+    "webshop.6",
+    "webshop.13",
+    "webshop.24",
+    "webshop.28",
+    "webshop.31",
+    "webshop.34",
+    "webshop.49"
+  ],
+  "groups_by_role": {
+    "adaptation": [
+      "B09NTCCVGX",
+      "B07FYPSNH8"
+    ],
+    "calibration": [
+      "B087Y28XLM"
+    ],
+    "confirmation": [
+      "B09HX5CD2D"
+    ],
+    "diagnostic": [
+      "B09R4RJSFP",
+      "B099231V35",
+      "B003I567W4",
+      "B08G14B779",
+      "B09MW563KN",
+      "B07S7HDC88",
+      "B09PY89B1S",
+      "B005X7IXTK"
+    ]
+  },
+  "representative_tasks_by_role": {
+    "adaptation": [
+      "webshop.29",
+      "webshop.43"
+    ],
+    "calibration": [
+      "webshop.12"
+    ],
+    "confirmation": [
+      "webshop.7"
+    ],
+    "diagnostic": [
+      "webshop.31",
+      "webshop.10",
+      "webshop.1",
+      "webshop.6",
+      "webshop.13",
+      "webshop.15",
+      "webshop.8",
+      "webshop.11"
+    ]
+  },
+  "tasks_by_group": {
+    "B003I567W4": [
+      "webshop.1",
+      "webshop.14"
+    ],
+    "B005X7IXTK": [
+      "webshop.11",
+      "webshop.24",
+      "webshop.37"
+    ],
+    "B07FYPSNH8": [
+      "webshop.43"
+    ],
+    "B07S7HDC88": [
+      "webshop.15",
+      "webshop.28"
+    ],
+    "B087Y28XLM": [
+      "webshop.12",
+      "webshop.38"
+    ],
+    "B08G14B779": [
+      "webshop.6"
+    ],
+    "B099231V35": [
+      "webshop.10",
+      "webshop.36",
+      "webshop.49"
+    ],
+    "B09HX5CD2D": [
+      "webshop.7"
+    ],
+    "B09MW563KN": [
+      "webshop.13",
+      "webshop.26"
+    ],
+    "B09NTCCVGX": [
+      "webshop.29"
+    ],
+    "B09PY89B1S": [
+      "webshop.8",
+      "webshop.21",
+      "webshop.34",
+      "webshop.47"
+    ],
+    "B09R4RJSFP": [
+      "webshop.31",
+      "webshop.44"
+    ]
+  },
+  "goal_manifest_artifact_sha256": "60b735ed2f0063bf1ea7f8d4323b0c284ab4be8408e54d0c27a22f6ca9f57d6e",
+  "held_out_read_or_run": false,
+  "artifact_sha256": "6fe91a78b31545a9b88e953fa9973d70ed1b652d6bafca34e854a80a6132f3a5"
+}

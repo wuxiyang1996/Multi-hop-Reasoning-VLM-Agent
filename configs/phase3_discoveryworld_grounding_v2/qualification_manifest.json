@@ -1,0 +1,46 @@
+{
+  "schema_version": "phase3-discoveryworld-grounding-freeze-v2",
+  "status": "FROZEN_BEFORE_V2_QUALIFICATION_TASK_RESET",
+  "supersedes_prelaunch_manifest_sha256": "bea187f944a33038e572928433921e66be653725ee7921aee1bbf8589317d8bf",
+  "supersession_reason": "The first launch was rejected during config validation before environment construction because its wire schema was labelled v2; no qualification task was reset or observed.",
+  "development_config_path": "configs/phase3_discoveryworld_grounding_v2/development_consumed_v1.json",
+  "development_config_file_sha256": "d8a667a80d49933b86952a4db8eee33510279d34a6a9fb54e2fa66df2592d761",
+  "development_summary_path": "runs/phase3_discoveryworld_grounding_v2_development_consumed_v1/summary.json",
+  "development_summary_file_sha256": "72e51fc1eff3d4d4f7fadd2c6d930acc396c9e6038bf3be4c56e7017226f887b",
+  "development_summary_sha256": "6bedfb5238537e75d863609690b59932b6d01900e4701312d359f6f6596398c6",
+  "development_schema_fallback_rate": 0.026041666666666668,
+  "development_invalid_native_actions": 0,
+  "v1_failure_summary_path": "runs/phase3_discoveryworld_grounding_v1_qualification/summary.json",
+  "v1_failure_summary_file_sha256": "dd2f69064849443720ab8774f073d90c5475be799dc0841d89eb965ff7ad7e8f",
+  "v1_failure_summary_sha256": "ffac4b9603d6da83fb4a49b3bf290a8f67a90dfb8959d110d61d667b97048fa0",
+  "v1_schema_fallback_rate": 0.1875,
+  "qualification_config_path": "configs/phase3_discoveryworld_grounding_v2/qualification.json",
+  "qualification_config_file_sha256": "7a6b2089aecab127902dda1ba1e7341f595a422bc6e2727dff23d5e40196de23",
+  "qualification_seeds": [
+    89,
+    90,
+    91,
+    92,
+    93,
+    94,
+    95,
+    96
+  ],
+  "qualification_tasks_previously_executed": false,
+  "development_seeds_disjoint_from_qualification": true,
+  "frozen_qualification_gates": {
+    "minimum_steps": 128,
+    "maximum_schema_fallback_rate": 0.1,
+    "maximum_invalid_native_actions": 0
+  },
+  "runtime_file_sha256": {
+    "src/motif_transfer/phase3_discoveryworld_grounding.py": "e53e71997eb1e5cab575f748161eef544095937bfc93fdb1eaaea288431b8477",
+    "src/motif_transfer/discoveryworld_policy.py": "7d054c6ffe8dac48283f4f99be067ffe9a1be9eb985419c3fa78ebdeef54857d",
+    "src/motif_transfer/discoveryworld_env.py": "4bace77f80ca7710b7107b8bbc896d8f12649a3725d38c6071c446d7184e2cb8",
+    "scripts/run_phase3_discoveryworld_grounding_qualification_v1.py": "2cf1f4dce5f8d1f07192cecd52f3cefbc2dafa0c68275bb8d41c27d09502445b"
+  },
+  "formal_target_outcome_read_for_freeze": false,
+  "formal_reserve_task_opened": false,
+  "claim_boundary": "Untouched component-only qualification of the V2 target-native grounder on Proteomics Easy seeds89-96; fixed horizon and frozen V1 qualification thresholds; no evaluator, official success persistence, source program, or Phase-3 formal-reserve task.",
+  "manifest_sha256": "ae3d20174dffaaed7001da8801719d25e10d31277e7f7e7c69dc1d3d50cbafc1"
+}

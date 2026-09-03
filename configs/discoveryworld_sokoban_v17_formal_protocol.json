@@ -1,0 +1,72 @@
+{
+  "schema_version": "discoveryworld-sokoban-formal-protocol-v17",
+  "status": "FROZEN_BEFORE_FORMAL_RESERVE_OPEN",
+  "evaluation_stage": "FORMAL_RESERVE",
+  "claim_boundary": "Formal game-to-DiscoveryWorld neural-symbolic transfer evaluation on six untouched Easy instances from two target themes. Target-native neural binding and exact target symbols instantiate a source-qualified Sokoban effect program. Eligibility is outcome-blind; code, prompts, task set, conditions, horizon, and gates are frozen before the reserve is opened.",
+  "target_baseline_config": "configs/discoveryworld_target_only_v5_formal_reserve.json",
+  "task_ids": [
+    "space_sick.easy.seed2",
+    "proteomics.easy.seed2",
+    "space_sick.easy.seed3",
+    "proteomics.easy.seed3",
+    "space_sick.easy.seed4",
+    "proteomics.easy.seed4"
+  ],
+  "adaptation_receipts": {
+    "v16_qualification_summary": "docs/results/discoveryworld_v16_qualification_summary.json",
+    "v17_space_sick_result_sha256": "b2bc63cc5638c124a0ab3d49bdaf1d4c88deccb245c9ee985a5aa80870618d7c",
+    "v17_change": "Accept one strictly valid remaining candidate and audit choice_set_degenerate; no native precondition, binding, witness, or selector rule changed."
+  },
+  "fork_rule": {
+    "name": "FIRST_PREDECLARED_NATIVE_COMMIT_PROPOSAL",
+    "allowed_commit_actions": ["DROP", "PUT"],
+    "reads_action_success": false,
+    "reads_terminal_outcome": false,
+    "reads_evaluation_or_scorecard": false,
+    "minimum_fork_after_episode_step": 1
+  },
+  "recovery_horizon": 6,
+  "conditions": [
+    "target_native_myopic",
+    "authentic_sokoban_effect_plus_target",
+    "commit_availability_control_plus_target",
+    "inverted_effect_control_plus_target",
+    "position_prior_control_plus_target"
+  ],
+  "source_contract": {
+    "compact_receipt": "docs/results/sokoban_effect_program_v2_compact_receipt.json",
+    "source_program_sha256": "6b02dc1d7271bbd435e90539cedd7d56d04fcc1ad03798dd6dd06146d67f1fcd",
+    "source_confirmation_sha256": "d64606c916ce6e812ae1b920771d5175cb48983a2f141b2dab6f43d491a6c1ed",
+    "require_source_gate_passed": true,
+    "transferred_structure": "DIRECT_PROGRESS_AVAILABLE_OR_ASSIGNMENT_IMPROVEMENT_AVAILABLE_THEN_COMMIT_AND_VERIFY_ELSE_POSITION_AND_RECOMPUTE"
+  },
+  "selector": {
+    "prerequisite_threshold": 0.9,
+    "positive_effect_threshold": 0.65
+  },
+  "model": {
+    "provider": "openrouter",
+    "base_url": "https://openrouter.ai/api/v1",
+    "model": "qwen/qwen3.5-35b-a3b",
+    "api_key_name": "OPENROUTER_API_KEY",
+    "temperature": 0,
+    "maximum_output_tokens": 1600,
+    "hidden_reasoning_effort": "none",
+    "schema_attempts": 4
+  },
+  "pre_registered_gates": {
+    "minimum_eligible_forks": 4,
+    "both_target_themes_have_an_eligible_fork": true,
+    "zero_runtime_or_receipt_failures": true,
+    "zero_authentic_negative_transfer_vs_target_native": true,
+    "minimum_authentic_success_gain_over_target_native": 2,
+    "minimum_authentic_success_rate_gain_over_target_native": 0.25,
+    "authentic_successes_strictly_greater_than_each_source_control": true,
+    "all_policy_and_audit_forks_matched": true
+  },
+  "interpretation": {
+    "all_gates_pass": "Cross-domain effect-program transfer is validated for these two DiscoveryWorld interfaces and Easy seeds2-4; it is not a claim about all DiscoveryWorld tasks.",
+    "any_gate_fails": "Formal transfer validation fails; report individual mechanistic signals without opening Normal seeds or changing this run."
+  },
+  "normal_seed_reserve_remains_unopened": true
+}

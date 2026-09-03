@@ -1,0 +1,449 @@
+{
+  "schema_version": "phase1-direct-prospective-composite-audit-v4",
+  "status": "DIRECT_PROSPECTIVE_24_OF_24_VALIDATED",
+  "claim_boundary": "24 direct source-lineage×target-domain mechanism executions. This is operational mechanism validation, not 24 powered success-rate estimates and not evidence that every source improves every task.",
+  "core_v1_manifest_sha256": "7a0d600bc3c9c3ec5ff4c7bb2384e5740cbbb5b6aba8918962faa57b5468f5a1",
+  "discoveryworld_v4_manifest_sha256": "a37256458e4ac07da5b2ae761395c70ac0841436998165745ca918bc5241b2f1",
+  "discoveryworld_v1_v2_v3_counted": false,
+  "historical_target_outcomes_counted": false,
+  "discoveryworld_v4_preparation": {
+    "status": "SIX_TARGETS_COLLECTED_ONCE_AND_SIX_FORKS_FROZEN",
+    "preparation_receipt_sha256": "e7804ab99e807f81a317df417b0ab64ee0a6eef26ffeb0e02e2795f469d74c47",
+    "target_process_count_per_task": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "fork_status": "FORMAL_RESERVE_FORKS_FROZEN",
+    "fork_summary_sha256": "c91b007f1fa50fd4bf5e375fad31b3de403c85cfccb272be472027ffff11cacd",
+    "eligible_forks": 6,
+    "outcome_fields_read_for_eligibility": false
+  },
+  "direct_new_joint_execution_cells": 24,
+  "passed_cells": 24,
+  "required_cells": 24,
+  "domain_passed_cells": {
+    "webshop": 6,
+    "alfworld": 6,
+    "discoveryworld": 6,
+    "tirbench": 6
+  },
+  "exact_cartesian_coverage": true,
+  "unique_execution_fingerprints": true,
+  "cells": [
+    {
+      "cell_id": "tetris__to__webshop",
+      "source_game": "tetris",
+      "target_domain": "webshop",
+      "target_task_id": "webshop.0",
+      "evidence_protocol": "CORE_V1",
+      "passed": true,
+      "reasons": [],
+      "authentic_source_decision_count": 12,
+      "authentic_source_actions": [
+        "EXPLORE_UNTRIED"
+      ],
+      "cell_receipt_sha256": "0893fadb6112c0fe4e270720b35d53ae0b9378fa40603d4f820763271c29a461",
+      "report": "runs/phase1_direct_prospective_v1/webshop/tetris/direct_report.json",
+      "report_file_sha256": "1aa029d3d9363ccc4010f0a86b405ec59f1f7172ac4538cc16a82391169c9fb1"
+    },
+    {
+      "cell_id": "candy_crush__to__webshop",
+      "source_game": "candy_crush",
+      "target_domain": "webshop",
+      "target_task_id": "webshop.2",
+      "evidence_protocol": "CORE_V1",
+      "passed": true,
+      "reasons": [],
+      "authentic_source_decision_count": 12,
+      "authentic_source_actions": [
+        "EXPLORE_UNTRIED"
+      ],
+      "cell_receipt_sha256": "58ebeb6e9cd1d92f1b0f57d9d5ad8eacc783cde31eb33840e3ff7eef725a9e3a",
+      "report": "runs/phase1_direct_prospective_v1/webshop/candy_crush/direct_report.json",
+      "report_file_sha256": "064514b72bb4be5c03a5b73b4bb28959822252b363ade2c8e33a352b639f28a8"
+    },
+    {
+      "cell_id": "gymv_columns__to__webshop",
+      "source_game": "gymv_columns",
+      "target_domain": "webshop",
+      "target_task_id": "webshop.8",
+      "evidence_protocol": "CORE_V1",
+      "passed": true,
+      "reasons": [],
+      "authentic_source_decision_count": 12,
+      "authentic_source_actions": [
+        "BACKTRACK_REPLAN",
+        "EXPLORE_UNTRIED"
+      ],
+      "cell_receipt_sha256": "34bb9d95d5b2e8269ef7bdd09a301bddc31441eb0f6276bc72c36b6ed2c35c46",
+      "report": "runs/phase1_direct_prospective_v1/webshop/gymv_columns/direct_report.json",
+      "report_file_sha256": "97bbfe83c1388af6e603f77aa369e7d8a34dedbaeed235a64671e741ec936341"
+    },
+    {
+      "cell_id": "gymv_streets_of_rage_2__to__webshop",
+      "source_game": "gymv_streets_of_rage_2",
+      "target_domain": "webshop",
+      "target_task_id": "webshop.9",
+      "evidence_protocol": "CORE_V1",
+      "passed": true,
+      "reasons": [],
+      "authentic_source_decision_count": 6,
+      "authentic_source_actions": [
+        "COMMIT_VERIFY",
+        "EXPLORE_UNTRIED"
+      ],
+      "cell_receipt_sha256": "24bff41fa693531b96c70cd387d2fe50f016f6564b9613e2b201dba97aac410c",
+      "report": "runs/phase1_direct_prospective_v1/webshop/gymv_streets_of_rage_2/direct_report.json",
+      "report_file_sha256": "88ca346cf92ae48adbf72882f3dc50fcd4c6d501562287ba46dc776a0c93f63b"
+    },
+    {
+      "cell_id": "gymv_thunder_force_iii__to__webshop",
+      "source_game": "gymv_thunder_force_iii",
+      "target_domain": "webshop",
+      "target_task_id": "webshop.10",
+      "evidence_protocol": "CORE_V1",
+      "passed": true,
+      "reasons": [],
+      "authentic_source_decision_count": 12,
+      "authentic_source_actions": [
+        "EXPLORE_UNTRIED"
+      ],
+      "cell_receipt_sha256": "e3e547dd62098a42e40b0cce3e762e4d13f7413468dc62211e340906dbd605b7",
+      "report": "runs/phase1_direct_prospective_v1/webshop/gymv_thunder_force_iii/direct_report.json",
+      "report_file_sha256": "969334ecd04492f8a3daec2b4409c6fe962bbd5d8d864a096e3a698c5c84b94c"
+    },
+    {
+      "cell_id": "gymv_strider__to__webshop",
+      "source_game": "gymv_strider",
+      "target_domain": "webshop",
+      "target_task_id": "webshop.12",
+      "evidence_protocol": "CORE_V1",
+      "passed": true,
+      "reasons": [],
+      "authentic_source_decision_count": 12,
+      "authentic_source_actions": [
+        "EXPLORE_UNTRIED"
+      ],
+      "cell_receipt_sha256": "84211d9cecf390a14d7c929d5b121a3b5836c24cfd4eb24413268a427b04809d",
+      "report": "runs/phase1_direct_prospective_v1/webshop/gymv_strider/direct_report.json",
+      "report_file_sha256": "4af61415a9b52e484a49141007680471f680ae682f3853547816b0f569ef09fb"
+    },
+    {
+      "cell_id": "tetris__to__alfworld",
+      "source_game": "tetris",
+      "target_domain": "alfworld",
+      "target_task_id": "look_at_obj_in_light-Book-None-DeskLamp-308/trial_T20190908_020048_814402/game.tw-pddl",
+      "evidence_protocol": "CORE_V1",
+      "passed": true,
+      "reasons": [],
+      "authentic_source_decision_count": 21,
+      "authentic_source_actions": [
+        "BACKTRACK_REPLAN",
+        "COMMIT_VERIFY",
+        "EXPLORE_UNTRIED"
+      ],
+      "cell_receipt_sha256": "0b3f001e85300c35320d7b2ed807cbb2b921f0a7e3614abe1f2f00859a1aee18",
+      "report": "runs/phase1_direct_prospective_v1/alfworld/tetris/report.json",
+      "report_file_sha256": "c15043e46a4edfd40cd13705e4e52eee14b8bb8b35dc7c1d737a861d26bd95cc"
+    },
+    {
+      "cell_id": "candy_crush__to__alfworld",
+      "source_game": "candy_crush",
+      "target_domain": "alfworld",
+      "target_task_id": "pick_and_place_simple-Vase-None-Safe-219/trial_T20190908_205221_748352/game.tw-pddl",
+      "evidence_protocol": "CORE_V1",
+      "passed": true,
+      "reasons": [],
+      "authentic_source_decision_count": 33,
+      "authentic_source_actions": [
+        "BACKTRACK_REPLAN",
+        "COMMIT_VERIFY",
+        "EXPLORE_UNTRIED"
+      ],
+      "cell_receipt_sha256": "9351482752ad3e9a21c4db4f90d383a21fbeed7d0872868e6ffd6a55752c4dc7",
+      "report": "runs/phase1_direct_prospective_v1/alfworld/candy_crush/report.json",
+      "report_file_sha256": "0c9a2eed13a297587a28caeb45d6f5b388e47aeea9080553ed9f78f6eda7e44d"
+    },
+    {
+      "cell_id": "gymv_columns__to__alfworld",
+      "source_game": "gymv_columns",
+      "target_domain": "alfworld",
+      "target_task_id": "pick_clean_then_place_in_recep-Egg-None-Microwave-10/trial_T20190909_120554_888709/game.tw-pddl",
+      "evidence_protocol": "CORE_V1",
+      "passed": true,
+      "reasons": [],
+      "authentic_source_decision_count": 33,
+      "authentic_source_actions": [
+        "BACKTRACK_REPLAN",
+        "COMMIT_VERIFY",
+        "EXPLORE_UNTRIED"
+      ],
+      "cell_receipt_sha256": "1d96d166db13769252a0a408c13aa790f69fac1adb947efbcc7a938ab5570cd2",
+      "report": "runs/phase1_direct_prospective_v1/alfworld/gymv_columns/report.json",
+      "report_file_sha256": "52b5de218d52ff33237ef0621661d7e22d499c27aea20583fe4f17116c229c08"
+    },
+    {
+      "cell_id": "gymv_streets_of_rage_2__to__alfworld",
+      "source_game": "gymv_streets_of_rage_2",
+      "target_domain": "alfworld",
+      "target_task_id": "pick_cool_then_place_in_recep-Mug-None-CoffeeMachine-10/trial_T20190907_183807_477267/game.tw-pddl",
+      "evidence_protocol": "CORE_V1",
+      "passed": true,
+      "reasons": [],
+      "authentic_source_decision_count": 138,
+      "authentic_source_actions": [
+        "BACKTRACK_REPLAN",
+        "EXPLORE_UNTRIED"
+      ],
+      "cell_receipt_sha256": "c6eee60b02af63c8193dc7d03406fd9e88547109ec77e4c5e6b2999ea629ad50",
+      "report": "runs/phase1_direct_prospective_v1/alfworld/gymv_streets_of_rage_2/report.json",
+      "report_file_sha256": "cb195c6e07746e8b12856fe797b5698f12ca156b7b6f17fc118e5dbbc1ca1070"
+    },
+    {
+      "cell_id": "gymv_thunder_force_iii__to__alfworld",
+      "source_game": "gymv_thunder_force_iii",
+      "target_domain": "alfworld",
+      "target_task_id": "pick_heat_then_place_in_recep-Apple-None-GarbageCan-10/trial_T20190908_145356_918528/game.tw-pddl",
+      "evidence_protocol": "CORE_V1",
+      "passed": true,
+      "reasons": [],
+      "authentic_source_decision_count": 50,
+      "authentic_source_actions": [
+        "BACKTRACK_REPLAN",
+        "EXPLORE_UNTRIED"
+      ],
+      "cell_receipt_sha256": "ec0f0b46117100a603ed5d395ba16198dcff764f2faf649939b3d0b6211dd175",
+      "report": "runs/phase1_direct_prospective_v1/alfworld/gymv_thunder_force_iii/report.json",
+      "report_file_sha256": "11c20971f07a1b62c210320296f8988a100b28e9b750da49163c4b9e1f7d3245"
+    },
+    {
+      "cell_id": "gymv_strider__to__alfworld",
+      "source_game": "gymv_strider",
+      "target_domain": "alfworld",
+      "target_task_id": "pick_heat_then_place_in_recep-Egg-None-GarbageCan-10/trial_T20190908_113610_425142/game.tw-pddl",
+      "evidence_protocol": "CORE_V1",
+      "passed": true,
+      "reasons": [],
+      "authentic_source_decision_count": 49,
+      "authentic_source_actions": [
+        "BACKTRACK_REPLAN",
+        "COMMIT_VERIFY",
+        "EXPLORE_UNTRIED"
+      ],
+      "cell_receipt_sha256": "cd0349602d1d994602c549494709bc654360932c0bf236a0e9c17fd2708259c0",
+      "report": "runs/phase1_direct_prospective_v1/alfworld/gymv_strider/report.json",
+      "report_file_sha256": "cb19252570525a1f5e58978623a5d3198f5e66018e64b868b3a0b07819bfafea"
+    },
+    {
+      "cell_id": "tetris__to__discoveryworld",
+      "source_game": "tetris",
+      "target_domain": "discoveryworld",
+      "target_task_id": "proteomics.easy.seed39",
+      "evidence_protocol": "DISCOVERYWORLD_V4",
+      "passed": true,
+      "reasons": [],
+      "authentic_source_decision_count": 5,
+      "authentic_source_actions": [
+        "COMMIT_VERIFY",
+        "EXPLORE_UNTRIED"
+      ],
+      "cell_receipt_sha256": "5af7eb28f664427955abdd9d5b9f8ab60c9a3bb1af6ba0ca232f5737515beaa2",
+      "report": "runs/phase1_direct_prospective_v4/discoveryworld/cells/tetris/direct_report.json",
+      "report_file_sha256": "48fe6ffd1f8f67f7eefcf680eb13fb047255433140904a01159028faa4951747"
+    },
+    {
+      "cell_id": "candy_crush__to__discoveryworld",
+      "source_game": "candy_crush",
+      "target_domain": "discoveryworld",
+      "target_task_id": "proteomics.easy.seed40",
+      "evidence_protocol": "DISCOVERYWORLD_V4",
+      "passed": true,
+      "reasons": [],
+      "authentic_source_decision_count": 4,
+      "authentic_source_actions": [
+        "COMMIT_VERIFY",
+        "EXPLORE_UNTRIED"
+      ],
+      "cell_receipt_sha256": "b12862168484d10a672b54105727e50313ee6b351c530dc104d7f537e42a7821",
+      "report": "runs/phase1_direct_prospective_v4/discoveryworld/cells/candy_crush/direct_report.json",
+      "report_file_sha256": "cf897d876f794198b08335c7ec0bebf3e15b2a5489d806b36e02682cbd75a4df"
+    },
+    {
+      "cell_id": "gymv_columns__to__discoveryworld",
+      "source_game": "gymv_columns",
+      "target_domain": "discoveryworld",
+      "target_task_id": "proteomics.easy.seed41",
+      "evidence_protocol": "DISCOVERYWORLD_V4",
+      "passed": true,
+      "reasons": [],
+      "authentic_source_decision_count": 2,
+      "authentic_source_actions": [
+        "COMMIT_VERIFY",
+        "EXPLORE_UNTRIED"
+      ],
+      "cell_receipt_sha256": "36e1370cc3123a51c6150cffd5f0f8b3e00cce1456ffd6118d19e5467ccaac3d",
+      "report": "runs/phase1_direct_prospective_v4/discoveryworld/cells/gymv_columns/direct_report.json",
+      "report_file_sha256": "8bcd3f4f36d0cee3a4e5b7c1be13a17b232ddf04f1c5766305c3523d6bb5d011"
+    },
+    {
+      "cell_id": "gymv_streets_of_rage_2__to__discoveryworld",
+      "source_game": "gymv_streets_of_rage_2",
+      "target_domain": "discoveryworld",
+      "target_task_id": "proteomics.easy.seed42",
+      "evidence_protocol": "DISCOVERYWORLD_V4",
+      "passed": true,
+      "reasons": [],
+      "authentic_source_decision_count": 8,
+      "authentic_source_actions": [
+        "EXPLORE_UNTRIED"
+      ],
+      "cell_receipt_sha256": "43d9e1ec39e6a1c3de423f64ae48c1eedede6cf253f141f41f2711a0c068c066",
+      "report": "runs/phase1_direct_prospective_v4/discoveryworld/cells/gymv_streets_of_rage_2/direct_report.json",
+      "report_file_sha256": "1b1f4ad7f4ee2d86242a08041af84f7c33d659e55b65cc8f2673c293423ac06f"
+    },
+    {
+      "cell_id": "gymv_thunder_force_iii__to__discoveryworld",
+      "source_game": "gymv_thunder_force_iii",
+      "target_domain": "discoveryworld",
+      "target_task_id": "proteomics.easy.seed43",
+      "evidence_protocol": "DISCOVERYWORLD_V4",
+      "passed": true,
+      "reasons": [],
+      "authentic_source_decision_count": 8,
+      "authentic_source_actions": [
+        "EXPLORE_UNTRIED"
+      ],
+      "cell_receipt_sha256": "3b496d4fae95cd64ed83181a0831153cca5a5905d553aaffa3f45c1edc78f9ee",
+      "report": "runs/phase1_direct_prospective_v4/discoveryworld/cells/gymv_thunder_force_iii/direct_report.json",
+      "report_file_sha256": "34725760c8c2329716588309d7efbe7ffea0750363d2808c4105638d987557bc"
+    },
+    {
+      "cell_id": "gymv_strider__to__discoveryworld",
+      "source_game": "gymv_strider",
+      "target_domain": "discoveryworld",
+      "target_task_id": "proteomics.easy.seed44",
+      "evidence_protocol": "DISCOVERYWORLD_V4",
+      "passed": true,
+      "reasons": [],
+      "authentic_source_decision_count": 4,
+      "authentic_source_actions": [
+        "COMMIT_VERIFY",
+        "EXPLORE_UNTRIED"
+      ],
+      "cell_receipt_sha256": "e13586cf21600530d9b47c86166450b073c154a4de2663ea86a1bdcc8faf463c",
+      "report": "runs/phase1_direct_prospective_v4/discoveryworld/cells/gymv_strider/direct_report.json",
+      "report_file_sha256": "92faba986cf785d9301525d3bc3c715ee0994539de6c26ec69dd10b968dd49c0"
+    },
+    {
+      "cell_id": "tetris__to__tirbench",
+      "source_game": "tetris",
+      "target_domain": "tirbench",
+      "target_task_id": "382",
+      "evidence_protocol": "CORE_V1",
+      "passed": true,
+      "reasons": [],
+      "authentic_source_decision_count": 500,
+      "authentic_source_actions": [
+        "BACKTRACK_REPLAN",
+        "EXPLORE_UNTRIED"
+      ],
+      "cell_receipt_sha256": "ad6967ea10488893426e1f9f283ba725988f205eac0d458cc4f4cc3cf07b90ec",
+      "report": "runs/phase1_direct_prospective_v1/tirbench/tetris/report.json",
+      "report_file_sha256": "6f37063c96330af125af4a5a94737ccb66383b5b71c2a9c71f35bdecffee64b3"
+    },
+    {
+      "cell_id": "candy_crush__to__tirbench",
+      "source_game": "candy_crush",
+      "target_domain": "tirbench",
+      "target_task_id": "674",
+      "evidence_protocol": "CORE_V1",
+      "passed": true,
+      "reasons": [],
+      "authentic_source_decision_count": 500,
+      "authentic_source_actions": [
+        "BACKTRACK_REPLAN",
+        "COMMIT_VERIFY",
+        "EXPLORE_UNTRIED"
+      ],
+      "cell_receipt_sha256": "4bd56f603a982dbfc37c71ebff93f01732dbe5383bfca22b40910333777e80c1",
+      "report": "runs/phase1_direct_prospective_v1/tirbench/candy_crush/report.json",
+      "report_file_sha256": "10389179a7d364fc6701578a5f8883022d3bfb9fabed392d0088a56897f34755"
+    },
+    {
+      "cell_id": "gymv_columns__to__tirbench",
+      "source_game": "gymv_columns",
+      "target_domain": "tirbench",
+      "target_task_id": "497",
+      "evidence_protocol": "CORE_V1",
+      "passed": true,
+      "reasons": [],
+      "authentic_source_decision_count": 500,
+      "authentic_source_actions": [
+        "BACKTRACK_REPLAN",
+        "COMMIT_VERIFY",
+        "EXPLORE_UNTRIED"
+      ],
+      "cell_receipt_sha256": "f29e30377ae25fd0ef00bf7e73308a20041ab2e7eeeb41f0f06cec03aa8fd3dd",
+      "report": "runs/phase1_direct_prospective_v1/tirbench/gymv_columns/report.json",
+      "report_file_sha256": "5dbef0a95ae82b918f2ba5db170b8e9337f80d37917ea25247d10741d3c24a87"
+    },
+    {
+      "cell_id": "gymv_streets_of_rage_2__to__tirbench",
+      "source_game": "gymv_streets_of_rage_2",
+      "target_domain": "tirbench",
+      "target_task_id": "979",
+      "evidence_protocol": "CORE_V1",
+      "passed": true,
+      "reasons": [],
+      "authentic_source_decision_count": 500,
+      "authentic_source_actions": [
+        "BACKTRACK_REPLAN",
+        "EXPLORE_UNTRIED"
+      ],
+      "cell_receipt_sha256": "579f4f7ef982a41108baf549fa4b6063246630258a6ec9c3a743dcbbb0cb62b5",
+      "report": "runs/phase1_direct_prospective_v1/tirbench/gymv_streets_of_rage_2/report.json",
+      "report_file_sha256": "877d1d57027694cd91e29929e0e83f586b472f1920a6dc0313e5de0035b85510"
+    },
+    {
+      "cell_id": "gymv_thunder_force_iii__to__tirbench",
+      "source_game": "gymv_thunder_force_iii",
+      "target_domain": "tirbench",
+      "target_task_id": "488",
+      "evidence_protocol": "CORE_V1",
+      "passed": true,
+      "reasons": [],
+      "authentic_source_decision_count": 500,
+      "authentic_source_actions": [
+        "BACKTRACK_REPLAN",
+        "COMMIT_VERIFY",
+        "EXPLORE_UNTRIED"
+      ],
+      "cell_receipt_sha256": "dcbc707cdcd23eac703cc165ec38e24ab7be6cc56578eba631d59ef80c74058e",
+      "report": "runs/phase1_direct_prospective_v1/tirbench/gymv_thunder_force_iii/report.json",
+      "report_file_sha256": "d306f652239b365510d49ec951934af7d546576b79aa6068f17f53ff07427b66"
+    },
+    {
+      "cell_id": "gymv_strider__to__tirbench",
+      "source_game": "gymv_strider",
+      "target_domain": "tirbench",
+      "target_task_id": "625",
+      "evidence_protocol": "CORE_V1",
+      "passed": true,
+      "reasons": [],
+      "authentic_source_decision_count": 500,
+      "authentic_source_actions": [
+        "BACKTRACK_REPLAN",
+        "COMMIT_VERIFY",
+        "EXPLORE_UNTRIED"
+      ],
+      "cell_receipt_sha256": "956ebfb5d9c0e1f9e101a34350779e370881afc054c5498a0b145868dd7cf32a",
+      "report": "runs/phase1_direct_prospective_v1/tirbench/gymv_strider/report.json",
+      "report_file_sha256": "20351331ba9431c454889a8739c5b4ff4e07fc5740de351715839bf4d1899f81"
+    }
+  ],
+  "audit_sha256": "9df87079672378370ae2db3a2acdcd817a220cb07d0465fe0a9c68bfb518bba7"
+}

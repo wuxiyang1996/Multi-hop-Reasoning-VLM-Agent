@@ -1,0 +1,39 @@
+{
+  "schema_version": "phase3-alfworld-intervention-grounder-v9",
+  "status": "FROZEN_BEFORE_INTERVENTION_ACQUISITION_COMPLETION_FORMAL_UNOPENED",
+  "intervention_receipts": "runs/phase3_alfworld_intervention_acquisition_v9/receipts.json",
+  "source_programs": [
+    "configs/phase3_source_induction_v3/frozen_reserve/programs/candy_crush.json",
+    "configs/phase3_source_induction_v3/frozen_reserve/programs/gymv_columns.json",
+    "configs/phase3_source_induction_v3/frozen_reserve/programs/gymv_streets_of_rage_2.json",
+    "configs/phase3_source_induction_v3/frozen_reserve/programs/gymv_strider.json",
+    "configs/phase3_source_induction_v3/frozen_reserve/programs/gymv_thunder_force_iii.json",
+    "configs/phase3_source_induction_v3/frozen_reserve/programs/tetris.json"
+  ],
+  "model": {
+    "seed": 2026081610,
+    "hidden_units": 16,
+    "alpha": 0.5,
+    "maximum_iterations": 300
+  },
+  "policy_support_exponent_grid": [0.0, 1.0, 4.0, 16.0, 64.0],
+  "train_selection": {
+    "minimum_source_neural_option_change_rate": 0.02,
+    "minimum_source_permuted_option_contrast_rate": 0.20
+  },
+  "frozen_validation_thresholds": {
+    "minimum_each_head_auc": 0.65,
+    "minimum_applicability_rate": 0.90,
+    "minimum_source_selected_effect_accuracy": 0.45,
+    "maximum_h8_drop_vs_neural": 0.02,
+    "minimum_source_neural_option_change_rate": 0.02,
+    "minimum_source_permuted_option_contrast_rate": 0.20,
+    "minimum_selected_effect_types": 2
+  },
+  "forbidden": [
+    "FUTURE_EXPERT_OCCURRENCE_LABELS",
+    "FORMAL_SUCCESS_AS_GROUNDER_LABEL",
+    "SOURCE_IDENTITY_FEATURE",
+    "CHANGE_SOURCE_PROGRAM_OR_EFFECT_VOCABULARY"
+  ]
+}

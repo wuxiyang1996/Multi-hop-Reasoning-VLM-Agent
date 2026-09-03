@@ -1,0 +1,22 @@
+Traceback (most recent call last):
+  File "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/scripts/run_phase1_common_search_ir.py", line 377, in <module>
+    main()
+  File "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/scripts/run_phase1_common_search_ir.py", line 359, in main
+    prepare(config, args.config, args.output)
+  File "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/scripts/run_phase1_common_search_ir.py", line 59, in prepare
+    plan = build_observed_prefix_plan(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/src/motif_transfer/phase1_common_search_ir.py", line 292, in build_observed_prefix_plan
+    adapter = adapter_class(game, max_steps)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-source-fresh-v1/scripts/run_instrumented_source_smoke.py", line 290, in __init__
+    self._env = SubprocessEnv(
+                ^^^^^^^^^^^^^^
+  File "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-source-fresh-v1/env_wrappers/subprocess_env.py", line 112, in __init__
+    self._start(startup_timeout)
+  File "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-source-fresh-v1/env_wrappers/subprocess_env.py", line 146, in _start
+    resp = self._read_response(timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-source-fresh-v1/env_wrappers/subprocess_env.py", line 174, in _read_response
+    raise TimeoutError(
+TimeoutError: SubprocessEnv(gymv_columns): no response within 120.0s

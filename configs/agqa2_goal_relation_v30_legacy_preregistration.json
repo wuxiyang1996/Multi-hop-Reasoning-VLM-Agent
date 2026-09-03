@@ -1,0 +1,41 @@
+{
+  "calibration": {
+    "authenticity_vs_effect_shuffled": {
+      "losses": 0,
+      "ties": 146,
+      "wins": 4
+    },
+    "utility_vs_target_native": {
+      "losses": 0,
+      "ties": 146,
+      "wins": 4
+    }
+  },
+  "claim_boundary": "119_OF_120_V27_RUNTIME_RECEIPTS_FROZEN_BEFORE_ANY_FORMAL_GOLD_READ;ONE_TRANSPORT_MISSING_ROW_EXCLUDED;ZERO_NEW_PROVIDER_CALLS;VIDEO_DISJOINT_FROM_V29_DEVELOPMENT",
+  "confirmatory_endpoint": "SOURCE_INDUCED_VS_TARGET_NATIVE_PAIRED_CORRECTNESS",
+  "controls": {
+    "generic_scaffold": "TWO_OF_THREE_NEURAL_MAJORITY_ELSE_NEURAL_ONLY",
+    "neural_only": "TWO_ONTOLOGY_AGREEMENT_ELSE_MATCHED_DIRECT",
+    "source_effect_shuffled": "SOURCE_HELDOUT_SHUFFLED_EFFECT_FAIL_CLOSED_ELSE_NEURAL_ONLY",
+    "source_induced": "UNIQUE_BINDING_SOURCE_PROGRAM_ELSE_NEURAL_ONLY",
+    "target_written_equivalent": "EXTENSIONALLY_IDENTICAL_CEILING_EXPECTED_TO_MATCH_SOURCE"
+  },
+  "development_report_sha256": "3fe65d4aabc91c18d1e2fbe0345e78f4a622e3387c287c6cf4c0b03f7e46e899",
+  "evaluation_protocol_sha256": "2141eec680c44400a2cdd12771d9755da516f6c0d96907a698bc3ff406ab2a22",
+  "failure_policy": "EVALUATE_EXACT_119_ROWS_ONCE;REPORT_ALL_CONTROLS;NO_THRESHOLD_CHANGES;NO_CLAIM_IF_ANY_GATE_FAILS",
+  "formal_gold_read_before_freeze": false,
+  "manifest_sha256": "98455776f1a18dbb7e91931ecb7bf1783914147e1018e293501d5c4b322c320c",
+  "multiplicity_policy": "ONE_PRIMARY_ENDPOINT;CONTROLS_ALWAYS_REPORTED",
+  "preregistration_sha256": "5b31887a94f0625435e22fc1e8d4574215dbb7bbf66ca64c4887dbec65be6b10",
+  "provider_calls_authorized": 0,
+  "qualification_gates": {
+    "maximum_exact_one_sided_pvalue": 0.05,
+    "maximum_source_vs_target_losses": 1,
+    "minimum_source_authorizations": 30,
+    "minimum_source_minus_target_correct": 5,
+    "minimum_source_vs_target_wins": 5,
+    "required_valid_rows": 119
+  },
+  "schema_version": "agqa2-goal-relation-preregistration-v30",
+  "status": "FROZEN_BEFORE_V30_FORMAL_GOLD_READ"
+}

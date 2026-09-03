@@ -1,0 +1,49 @@
+{
+  "schema_version": 31,
+  "status": "POST_V30_MATCHED_GEMINI_DEVELOPMENT_ONLY",
+  "claim_boundary": "Same-model, same-frame-coverage direct baseline for the already-consumed V30 development set. The Gemini direct branch and candidate-isolated typed branch both see the same 48 chronological proxy frames. This removes the V30 cross-model confound but remains development evidence, not fresh confirmation or source-transfer evidence.",
+  "manifest": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/configs/three_video_grounding_qualification_v28_manifest.json",
+  "typed_v30_receipts": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/three_video_typed_claims_v30_development/receipts.json",
+  "typed_v30_receipts_sha256": "87ee45b3053eceef4d87f8b15d13b384db2d6338c0b580d4a1da7e1c70aed85a",
+  "wrapper_root": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent",
+  "benchmarks": {
+    "clevrer": {
+      "root": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent/data/CLEVRER",
+      "annotation_split": "validation"
+    },
+    "star": {
+      "root": "/fs/gamma-projects/vlm-robot/datasets/STAR-official",
+      "annotation_split": "val"
+    },
+    "nextqa": {
+      "root": "/fs/gamma-projects/vlm-robot/datasets/NExT-QA-official",
+      "annotation_split": "val"
+    }
+  },
+  "model": {
+    "provider": "openrouter",
+    "api_key_name": "OPENROUTER_API_KEY",
+    "id": "google/gemini-3.1-pro-preview",
+    "base_url": "https://openrouter.ai/api/v1",
+    "timeout_seconds": 180,
+    "max_retries": 2,
+    "schema_retries": 3,
+    "max_answer_tokens": 900,
+    "temperature": 0
+  },
+  "media": {
+    "proxy_frame_count": 48,
+    "proxy_frame_max_side": 512,
+    "scout_frames_per_panel": 8,
+    "scout_frame_width": 224,
+    "jpeg_quality": 86
+  },
+  "comparison": {
+    "same_model": true,
+    "same_proxy_frames": true,
+    "same_panel_encoding": true,
+    "typed_candidate_calls_per_sample": "one_per_candidate",
+    "direct_calls_per_sample": 1,
+    "gold_available_before_direct_or_execution": false
+  }
+}

@@ -1,0 +1,101 @@
+{
+  "schema_version": "harness-controller-scientific-protocol-v4",
+  "status": "FROZEN_BEFORE_TARGET_ZERO_SHOT_EVALUATION",
+  "scientific_model_role": "SOURCE_ONLY_NEURAL_SYMBOLIC_CONTROLLER",
+  "source_only_supervision": {
+    "build_config": {
+      "path": "configs/harness_controller_sft_v3.json",
+      "sha256": "328d8991240929c3e05a4dd2fac51586052236d30ea70ffe3b408af49683df5a"
+    },
+    "manifest": {
+      "path": "runs/harness_controller_sft_v3/manifest.json",
+      "sha256": "ce0ec71a420059a46266ad35044fc02b6c1d3252093935a79362f4568c85ac9a"
+    },
+    "train": {
+      "path": "runs/harness_controller_sft_v3/train.jsonl",
+      "sha256": "fbc04ac0f60e284f9161a71282b82ad33fcbd25e5ebe265d9405bc8543d14c9b"
+    },
+    "validation": {
+      "path": "runs/harness_controller_sft_v3/validation.jsonl",
+      "sha256": "bdf26bf6a2e9de27cee98d388b77dbf59038988c2d989a493332905cdbb9aacf"
+    },
+    "model_unseen_eval": {
+      "path": "runs/harness_controller_sft_v3/model_unseen_eval.jsonl",
+      "sha256": "8da6a476dd2fca0ab72b960bf0e64596aaca47fa46d8e156d924eb9da7eed7f8"
+    }
+  },
+  "frozen_model": {
+    "base_model": "Qwen/Qwen3.5-9B",
+    "adapter_path": "runs/harness_controller_qwen35_9b_v3/continued_sft_v1/adapter",
+    "adapter_model_sha256": "7e66bfec63787141898642fe85134857c53682742cdd10a536f5eed61635b6a1",
+    "adapter_config_sha256": "137313a167fadfd1e18926fe364ce2b0cb972d92d80064cd8751337af7d347a2",
+    "training_receipt_sha256": "e92ce2269103f83cb39b851cf0d540010382cc9d8ed9071d9fd35738e072e60d",
+    "source_family_heldout_report_sha256": "3d1ba42271b0f74dff00aba3668d8b24bb7c3b811e933f8b5f1dd9ad4c6e86b6",
+    "source_family_gate_status": "SOURCE_FAMILY_HELD_OUT_CONTROLLER_GATE_PASSED",
+    "target_examples_used_for_weight_updates": 0
+  },
+  "initial_source_only_adapter_lineage": {
+    "training_receipt": {
+      "path": "runs/harness_controller_qwen35_9b_v2/sft_v2/training_receipt.json",
+      "sha256": "77330a4994b55bb0f5938820a56bf4f5a5b0b26746866b40cc39856c7c392892"
+    },
+    "adapter_model": {
+      "path": "runs/harness_controller_qwen35_9b_v2/sft_v2/adapter/adapter_model.safetensors",
+      "sha256": "23855275c9da6d3a5c5c2126a52a33e5155f679dd6d54383280127179c63a3f4"
+    },
+    "dataset_manifest": {
+      "path": "runs/harness_controller_sft_v2_final/manifest.json",
+      "sha256": "2f19f28ce0d3e24891e5deff4760f0e69ebcdc8b267e27fa26b1d3cd363e5e2b"
+    },
+    "train": {
+      "path": "runs/harness_controller_sft_v2_final/train.jsonl",
+      "sha256": "5d2166d5deb8a34d9189c0a78afd427f780d00af11a6e7b980f8fad000b616c8"
+    },
+    "validation": {
+      "path": "runs/harness_controller_sft_v2_final/validation.jsonl",
+      "sha256": "bdf26bf6a2e9de27cee98d388b77dbf59038988c2d989a493332905cdbb9aacf"
+    },
+    "source_held_out": {
+      "path": "runs/harness_controller_sft_v2_final/source_held_out.jsonl",
+      "sha256": "59ed64c8b00483152f4f5df24af212ed09bc1aa8429dcff607d2b2e991f98f3d"
+    },
+    "target_data_used": false
+  },
+  "target_zero_shot_evaluation": {
+    "input_validation": {
+      "path": "runs/target_harness_sft_five_domain_v1/validation.jsonl",
+      "sha256": "30479b181b5dc68fcf4f76fbf3fd3a0337727f1b9444cec4af21580cf8d40f15"
+    },
+    "expected_rows": 1500,
+    "expected_groups": {
+      "alfworld": 300,
+      "discoveryworld": 300,
+      "tirbench": 300,
+      "video/agqa2": 150,
+      "video/clevrer": 150,
+      "webshop": 300
+    },
+    "selection": "ALL_FROZEN_VALIDATION_ROWS",
+    "decoding": "GREEDY_JSON_ONLY",
+    "target_training_before_evaluation": false,
+    "formal_or_reserve_targets_used": false,
+    "target_native_actions_exposed": false,
+    "target_domain_identity_exposed_to_model": false
+  },
+  "preregistered_gates": {
+    "source_target_prompt_intersection": 0,
+    "source_target_example_id_intersection": 0,
+    "strict_json_accuracy_minimum": 0.98,
+    "overall_decision_accuracy_minimum": 0.95,
+    "overall_exact_symbolic_output_accuracy_minimum": 0.90,
+    "every_target_group_decision_accuracy_minimum": 0.90,
+    "every_target_group_exact_symbolic_output_accuracy_minimum": 0.80,
+    "every_control_variant_decision_accuracy_minimum": 0.90,
+    "controller_exact_accuracy_minus_base_minimum": 0.20
+  },
+  "evaluation_axes": {
+    "axis_a": "Frozen source-only 9B controller exact execution on target-grounded anonymous symbolic IR.",
+    "axis_b": "Existing frozen downstream target evaluations with symbolic verifier and target-native grounder; never inferred from axis A."
+  },
+  "claim_boundary": "A_PASS_PROVES_TARGET_DATA_FREE_CONTROLLER_EXECUTION_ON_TARGET_GROUNDED_IR;IT_DOES_NOT_PROVE_GROUNDER_CAUSALITY_OR_DOWNSTREAM_SUCCESS;VIDEO_V1_REMAINS_HEURISTIC_UNTIL_INTERVENTION_GROUNDER_V2_QUALIFIES"
+}

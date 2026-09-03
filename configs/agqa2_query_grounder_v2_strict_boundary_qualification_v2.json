@@ -1,0 +1,100 @@
+{
+  "schema_version": "agqa-query-grounder-v2-strict-boundary-qualification-v2",
+  "status": "FROZEN_BEFORE_QUALIFICATION_SELECTION_VIDEO_ACQUISITION_GROUNDING_OR_OUTCOMES",
+  "purpose": "Independent qualification of the answer-blind boundary-degeneracy temporal projection and fixed global candidate threshold before allocating another formal transfer reserve",
+  "development_basis": {
+    "candidate_threshold_report": "runs/agqa2_query_grounder_v2_strict_boundary_center_development_v8/global_threshold_diagnostic.json",
+    "candidate_threshold_report_file_sha256": "edd060f5af61cd6b995762926407dea828691dab2026b65f08c4805977ea5dd1",
+    "outcome_blind_coverage_report": "runs/agqa2_query_grounder_v2_strict_boundary_center_development_v8/preoutcome_coverage_diagnostic.json",
+    "outcome_blind_coverage_report_file_sha256": "e6d61c74658f1dbac2e3c590544f385a61595048c3011d50bc5cefd30a5f3fd3",
+    "development_tasks": 640,
+    "selected_global_candidate_threshold": 0.625,
+    "source_commit_fraction": 0.2203125,
+    "source_permuted_commit_fraction": 0.0,
+    "claim_boundary": "Consumed development evidence only; never transfer evidence."
+  },
+  "qualification_cohort": {
+    "source_split": "AGQA balanced train / Action Genome train",
+    "structural_type": "query",
+    "semantic_type": "object",
+    "videos": 320,
+    "tasks_per_video": 2,
+    "query_tasks": 640,
+    "selection_salt": "agqa-query-grounder-v2-strict-boundary-qualification-v2-20260903",
+    "video_disjoint_from_all_prior_raw_runtime": true,
+    "task_outcomes_unavailable_until_grounding_and_preoutcome_routes_are_immutable": true,
+    "transfer_evidence": false,
+    "checkpoint_overlap_boundary": "This qualifies an off-the-shelf target-native grounder; Action Genome training overlap is permitted here but this cohort is never transfer evidence."
+  },
+  "frozen_grounder": {
+    "public_ontology": "configs/agqa2_action_genome_sgdet_ontology_v1.json",
+    "public_ontology_sha256": "3459d6bdeb642e8b6d49a80fcb020d751a1079c5042ed0fee7369206cff186de",
+    "frame_budget_sgdet": 64,
+    "frame_budget_slowfast_unique": 48,
+    "frame_budget_slowfast_presentations": 96,
+    "slowfast_sampling": "uniform48",
+    "candidate_generation_threshold": 0.0,
+    "candidate_support_threshold": 0.625,
+    "minimum_object_score": 0.05,
+    "sgdet_rank_weight": 0.6,
+    "typed_event_dedup_minimum_interval_iou": 0.5,
+    "native_window_projection": "LOWER_CEIL_UPPER_FLOOR_FAIL_CLOSED",
+    "track_evidence_policy": "IN_WINDOW_REQUIRED",
+    "nested_action_patient_coreference": true,
+    "direct_action_lexicalization": "PARSER_PREDICATE_EXACT",
+    "action_event_temporal_representation": "BOUNDARY_DEGENERACY_CENTER_POINT",
+    "boundary_degeneracy_rule": "BEFORE_AND_CLIP_START_ZERO_OR_AFTER_AND_CLIP_END_LAST",
+    "candidate_support_required_for_symbolic_commit": true,
+    "detector_checkpoint_sha256": "41584fb2e53013cc68db617333efcf4bb4e18d812f71670516414b14002e6222",
+    "relation_checkpoint_sha256": "81b8b19d88f2b73ca03549cb4febb0fc511cd0deca2750caf83aceaddbe5d7ee",
+    "slowfast_checkpoint_sha256": "7bc14aea79ce29e5292c412fac729aef4e7d0f20ea93e559392861d0ad8754b0",
+    "component_sha256s": {
+      "sgdet_collector": "b0be450129a8562f52388fc3de3956a6496a43777e8124d59af8ffcc33d3055e",
+      "slowfast_probe": "083f5e3387c82466f2f2c2fc51d295f0ea314b312e582e13ea8c1eaf58661f14",
+      "query_grounder_compiler_parent": "c264ad8225326ec5a7e0db4c2bf221a577f7c5b19fe5182a34ce8deee28beb74",
+      "strict_temporal_compiler": "0754ec21d23b3c71ffeef970da9789e4d4013cc307eb04270cfc793562660361",
+      "strict_temporal_projection": "fefc382bc845eb240e8f51d2f7a53197db3250d74fa7a15019ea1f5f5483d4bc",
+      "typed_executor_v2": "6ce65d9efdc68e0d55e81b46bafa1383f912eccb32251606a585549f42b8679f",
+      "preoutcome_coverage_audit": "0c7e727e4be8fa04a88c833aeb5e30f3fcdea695e39581e32d0fe454b886b924"
+    }
+  },
+  "qualification_gates": {
+    "provider_and_contract_success_fraction_minimum": 0.95,
+    "entity_candidate_pool_recall_minimum": 0.75,
+    "typed_role_binding_fidelity_minimum": 0.8,
+    "cross_frame_dedup_fidelity_minimum": 0.9,
+    "unique_supported_count_minimum": 128,
+    "unique_supported_precision_wilson_95_lower_bound_minimum": 0.6,
+    "unique_supported_coverage_fraction_minimum": 0.2,
+    "residual_duplicate_typed_event_key_count_maximum": 0,
+    "authority_safe_receipt_fraction": 1.0,
+    "full_preregistered_query_cohort_required": true,
+    "one_fixed_global_threshold_required": true,
+    "outcome_blind_source_symbolic_commit_fraction_minimum": 0.2,
+    "outcome_blind_source_permuted_commit_fraction_maximum": 0.05,
+    "candidate_support_required_for_every_symbolic_commit": true
+  },
+  "source_harness": {
+    "source_capability_file": "runs/agqa2_full_operator_transfer_v1/source_capabilities_v2.json",
+    "source_capability_file_sha256": "2f11b31b41a8ca72ee7c889d4fba00b8103599ce885269eb845ae89c0e78d31c",
+    "source_capability_sha256": "8db5041579e8d5a69c5612247d62803ada2d98e745734fd9fac8cc3d7ca7902d",
+    "anonymous_controller_file": "runs/anonymous_video_harness_v1/controller.json",
+    "anonymous_controller_file_sha256": "698d3f377366d5cd8ae278461c2a29466d3a6f1af8885aa8fd6373139309a82e",
+    "anonymous_controller_sha256": "cd48690e64392f8702e1a239afa1739c25863ce4bd6ae2efea355ac70467bfe6"
+  },
+  "forbidden_grounder_inputs": [
+    "task_answer",
+    "official_stsg",
+    "functional_program",
+    "source_controller",
+    "target_outcome"
+  ],
+  "decision": {
+    "if_all_gates_pass": "Freeze exact code, thresholds, checkpoints, frame budgets, source IR, executor, and allocate one new video/task-disjoint five-arm AGQA broad reserve.",
+    "if_any_gate_fails": "Do not allocate a new formal reserve and do not tune on qualification outcomes."
+  },
+  "formal_secondary_target": {
+    "overall_source_induced_accuracy_strictly_above": 0.55,
+    "is_a_qualification_or_primary_formal_gate": false
+  }
+}

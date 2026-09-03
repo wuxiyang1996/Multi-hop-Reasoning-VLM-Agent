@@ -1,0 +1,82 @@
+{
+  "claim_boundary": "Fresh source-structure policy qualification with official target-native STSG tools. It isolates controller transfer from visual perception and does not claim raw-pixel AGQA accuracy or uniqueness over a hand-written isomorphic target controller.",
+  "gates": {
+    "all_videos_unseen_in_v62_and_v2": true,
+    "isomorphic_target_equivalence_disclosed": true,
+    "matched_maximum_tool_budget_respected": true,
+    "minimum_localized_committed_accuracy": true,
+    "minimum_public_compiler_coverage": true,
+    "source_correct_strictly_above_generic": true,
+    "source_correct_strictly_above_temporal_permutation": true,
+    "zero_runtime_answer_program_grounding_read": true
+  },
+  "lineage": {
+    "evaluator_artifact_sha256": "b0c6bcac5d59359e7c4b166dfd7a99d1082ffe85d721326c50ca9fd2e7ff376c",
+    "official_ontology_sha256": "d35dbc5edfa1f9839e77070160db7d23d19d6c4bfe248b638fd1fce3bbd01b07",
+    "official_stsg_sha256": "9273ec6055df1c4730b9ea971994ae6f552a14620711273da81eab9d11d85061",
+    "preregistration_sha256": "7a4c439b45be621e54ff33c44dcc92f021b3f61f38da2f535436c295956a82f7",
+    "public_artifact_sha256": "2584c47909961a75cb5b86b76e68759a6239714408653dec01597d1c035ab7e4",
+    "runtime_artifact_sha256": "ab6d19f7f0f44df0aaab394ae7873f2951d6035247b3ba0bd95dee64f84d998c",
+    "source_artifact_sha256": "7ff3e950f3eebaf75cca015df88ab6a01f2f364fe246102984a3cb4ee095f0d7"
+  },
+  "localized_committed": 246,
+  "localized_committed_accuracy": 1.0,
+  "localized_committed_correct": 246,
+  "metrics": {
+    "generic_scaffold": {
+      "accuracy": 0.35777777777777775,
+      "committed": 322,
+      "conditional_accuracy": 1.0,
+      "correct": 322,
+      "coverage": 0.35777777777777775
+    },
+    "isomorphic_target_controller": {
+      "accuracy": 0.4288888888888889,
+      "committed": 386,
+      "conditional_accuracy": 1.0,
+      "correct": 386,
+      "coverage": 0.4288888888888889
+    },
+    "source_induced": {
+      "accuracy": 0.4288888888888889,
+      "committed": 386,
+      "conditional_accuracy": 1.0,
+      "correct": 386,
+      "coverage": 0.4288888888888889
+    },
+    "source_permuted": {
+      "accuracy": 0.36777777777777776,
+      "committed": 335,
+      "conditional_accuracy": 0.9880597014925373,
+      "correct": 331,
+      "coverage": 0.37222222222222223
+    }
+  },
+  "public_compiler_coverage": 0.47,
+  "report_sha256": "cb28600a528a8b5bcc7b0a21fc00c65c775143181f3b3e272ceb2dfd56b82473",
+  "schema_version": "agqa2-oracle-query-transfer-qualification-v3",
+  "source_paired": {
+    "generic_scaffold": {
+      "losses": 0,
+      "net_wins": 64,
+      "ties": 836,
+      "wins": 64
+    },
+    "isomorphic_target_controller": {
+      "losses": 0,
+      "net_wins": 0,
+      "ties": 900,
+      "wins": 0
+    },
+    "source_permuted": {
+      "losses": 0,
+      "net_wins": 55,
+      "ties": 845,
+      "wins": 55
+    }
+  },
+  "source_specific_transfer_validated": true,
+  "status": "PASSED",
+  "tasks": 900,
+  "unique_videos": 300
+}

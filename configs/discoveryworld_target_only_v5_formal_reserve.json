@@ -1,0 +1,19 @@
+{
+  "schema_version": "discoveryworld-target-only-config-v5-formal",
+  "manifest": "configs/discoveryworld_v1_manifest.json",
+  "task_indices": [5, 6, 13, 14, 21, 22],
+  "claim_boundary": "Frozen formal evaluation on six previously unopened Easy instances: Space Sick and Proteomics seeds2-4. The target-only policy receives no source program or evaluator scorecard. Outcome-blind first-commit forks are selected under the separately frozen V17 formal protocol; no mechanism adaptation is permitted after opening the reserve.",
+  "model": {
+    "provider": "openrouter",
+    "base_url": "https://openrouter.ai/api/v1",
+    "model": "qwen/qwen3.5-35b-a3b",
+    "api_key_name": "OPENROUTER_API_KEY",
+    "temperature": 0,
+    "maximum_output_tokens": 1200,
+    "schema_attempts": 3
+  },
+  "runtime": {
+    "maximum_steps": 32,
+    "include_vision": false
+  }
+}

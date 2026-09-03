@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "status": "FROZEN_BEFORE_ANY_SELECTED_QUALIFICATION_OR_HELDOUT_COLLECTION",
+  "selection_rule": "ascending_sha256(namespace:family\\0sample_id), two qualification and six held-out per family",
+  "namespace": "tir-wrapper-v3-formal",
+  "dataset_sha256": "e764c780c53fdce2e0bb64846a8119b48b731c90c7168c6c202f270062684bc8",
+  "eligibility": {
+    "families": ["maze", "refcoco", "rotation_game", "visual_search"],
+    "single_image_only": true,
+    "native_answer_contract": "A_TO_F_MULTIPLE_CHOICE_ONLY",
+    "selection_uses_model_outcome": false
+  },
+  "excluded_consumed_ids": [
+    "49", "158", "270", "423", "474", "516", "532", "622", "668",
+    "713", "721", "735", "785", "800", "958", "1001", "1110", "1122"
+  ],
+  "splits": {
+    "qualification": ["1092", "596", "224", "223", "321", "1178", "360", "1109"],
+    "held_out": [
+      "1162", "911", "808", "1009", "1103", "751",
+      "651", "233", "318", "462", "939", "795",
+      "1157", "561", "1144", "1005", "768", "1024",
+      "1132", "842", "22", "1029", "879", "834"
+    ]
+  }
+}

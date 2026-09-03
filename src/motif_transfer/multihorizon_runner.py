@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import Any, Protocol, Sequence
+from dataclasses import asdict, dataclass, field
+from typing import Any, Mapping, Protocol, Sequence
 
 from .multihorizon_replay import (
     HORIZONS,
@@ -19,6 +19,9 @@ class ForkState:
     state: Any
     admissible_actions: tuple[str, ...]
     terminal: bool = False
+    truncated: bool = False
+    observable: Any | None = None
+    official_value: float | None = None
 
     @property
     def receipt_hash(self) -> str:
@@ -26,14 +29,46 @@ class ForkState:
             "state": self.state,
             "admissible_actions": self.admissible_actions,
             "terminal": self.terminal,
+            "truncated": self.truncated,
+            "official_value": self.official_value,
         })
+
+    @property
+    def observable_hash(self) -> str:
+        return stable_hash(self.state if self.observable is None else self.observable)
 
 
 @dataclass(frozen=True)
 class ForkStep:
     state: ForkState
     reward: float
-    official_success: bool = False
+    official_success: bool | None = None
+    official_value: float | None = None
+    metadata: Mapping[str, Any] = field(default_factory=dict)
+
+
+@dataclass(frozen=True)
+class PolicyHistoryStep:
+    decision_index: int
+    treatment: str
+    action: str
+    reward: float
+    before_state_hash: str
+    after_state_hash: str
+    official_value: float | None = None
+    official_success: bool | None = None
+
+
+@dataclass(frozen=True)
+class PolicyDecision:
+    action: str
+    prompt_sha256: str | None = None
+    raw_response_sha256: str | None = None
+    requested_adapter: str | None = None
+    used_adapter: str | None = None
+    request_seed: int | None = None
+    source: str = "LIVE_POLICY"
+    metadata: Mapping[str, Any] = field(default_factory=dict)
 
 
 class ForkEnvironment(Protocol):
@@ -49,7 +84,8 @@ class TreatmentPolicy(Protocol):
         *,
         treatment: str,
         decision_index: int,
-    ) -> str: ...
+        history: Sequence[PolicyHistoryStep],
+    ) -> str | PolicyDecision: ...
 
 
 def run_matched_multihorizon_snapshot(
@@ -60,7 +96,9 @@ def run_matched_multihorizon_snapshot(
     episode_id: str,
     fork_step: int,
     prefix_actions: Sequence[str],
-    expected_fork_state_hash: str,
+    expected_fork_state_hash: str | None = None,
+    expected_fork_observable_hash: str | None = None,
+    split: str | None = None,
     maximum_horizon: int = max(HORIZONS),
 ) -> tuple[dict[str, Any], ...]:
     """Run both causal estimands from the same replay-verified snapshot.
@@ -73,6 +111,11 @@ def run_matched_multihorizon_snapshot(
 
     if maximum_horizon < max(HORIZONS):
         raise ValueError("maximum_horizon must cover the frozen h8 primary endpoint")
+    if (expected_fork_state_hash is None) == (expected_fork_observable_hash is None):
+        raise ValueError(
+            "supply exactly one of expected_fork_state_hash or "
+            "expected_fork_observable_hash"
+        )
     rows: list[dict[str, Any]] = []
     for mode in MODES:
         for treatment in TREATMENTS:
@@ -97,9 +140,17 @@ def run_matched_multihorizon_snapshot(
                     "prefix_actions": list(prefix_actions),
                     "prefix_state_hashes": prefix_receipts,
                     "expected_fork_state_hash": expected_fork_state_hash,
+                    "expected_fork_observable_hash": expected_fork_observable_hash,
                     "observed_fork_state_hash": state.receipt_hash,
+                    "observed_fork_observable_hash": state.observable_hash,
+                    **({"split": split} if split is not None else {}),
                 }
-                if replay_failed or state.receipt_hash != expected_fork_state_hash:
+                state_matches = (
+                    state.receipt_hash == expected_fork_state_hash
+                    if expected_fork_state_hash is not None
+                    else state.observable_hash == expected_fork_observable_hash
+                )
+                if replay_failed or not state_matches:
                     rows.append(base | {
                         "status": "REPLAY_MISMATCH",
                         "actions": [],
@@ -108,20 +159,29 @@ def run_matched_multihorizon_snapshot(
                     continue
                 actions: list[str] = []
                 rewards: list[float] = []
-                success = False
+                history: list[PolicyHistoryStep] = []
+                success: bool | None = None
+                official_values = [state.official_value]
+                step_receipts: list[dict[str, Any]] = []
                 for decision_index in range(maximum_horizon):
-                    if state.terminal:
+                    if state.terminal or state.truncated:
                         break
                     active_treatment = (
                         treatment
                         if decision_index == 0 or mode == "FULL_TREATMENT_REGIME"
                         else "G_MINUS_S"
                     )
-                    action = policy.choose_action(
+                    proposal = policy.choose_action(
                         state,
                         treatment=active_treatment,
                         decision_index=decision_index,
+                        history=tuple(history),
                     )
+                    decision = (
+                        proposal if isinstance(proposal, PolicyDecision)
+                        else PolicyDecision(action=str(proposal))
+                    )
+                    action = decision.action
                     if action not in state.admissible_actions:
                         rows.append(base | {
                             "status": "POLICY_ACTION_INADMISSIBLE",
@@ -129,13 +189,47 @@ def run_matched_multihorizon_snapshot(
                             "step_rewards": rewards,
                             "failed_decision_index": decision_index,
                             "active_treatment": active_treatment,
+                            "policy_decision": asdict(decision),
                         })
                         break
+                    before_hash = state.receipt_hash
                     result = env.step(action)
                     actions.append(action)
                     rewards.append(float(result.reward))
                     state = result.state
-                    success |= bool(result.official_success)
+                    official_value = (
+                        result.official_value
+                        if result.official_value is not None
+                        else state.official_value
+                    )
+                    official_values.append(official_value)
+                    if result.official_success is not None:
+                        success = bool(success) or bool(result.official_success)
+                    history_step = PolicyHistoryStep(
+                        decision_index=decision_index,
+                        treatment=active_treatment,
+                        action=action,
+                        reward=float(result.reward),
+                        before_state_hash=before_hash,
+                        after_state_hash=state.receipt_hash,
+                        official_value=official_value,
+                        official_success=result.official_success,
+                    )
+                    history.append(history_step)
+                    step_receipts.append({
+                        "decision": asdict(decision),
+                        "transition": asdict(history_step),
+                        "state_terminal": state.terminal,
+                        "state_truncated": state.truncated,
+                        "metadata": dict(result.metadata),
+                        "receipt_sha256": stable_hash({
+                            "decision": asdict(decision),
+                            "transition": asdict(history_step),
+                            "state_terminal": state.terminal,
+                            "state_truncated": state.truncated,
+                            "metadata": dict(result.metadata),
+                        }),
+                    })
                 else:
                     result = None
                 if rows and rows[-1].get("episode_id") == episode_id \
@@ -151,7 +245,20 @@ def run_matched_multihorizon_snapshot(
                     "cumulative_returns": cumulative_returns(rewards or [0.0]),
                     "final_state_hash": state.receipt_hash,
                     "official_success": success,
+                    "official_values": official_values,
+                    "official_value_delta": (
+                        official_values[-1] - official_values[0]
+                        if official_values
+                        and official_values[0] is not None
+                        and official_values[-1] is not None
+                        else None
+                    ),
                     "observed_horizon": len(rewards),
+                    "first_positive_reward_step": next(
+                        (index + 1 for index, reward in enumerate(rewards) if reward > 0),
+                        None,
+                    ),
+                    "step_receipts": step_receipts,
                 })
             finally:
                 env.close()
@@ -159,6 +266,7 @@ def run_matched_multihorizon_snapshot(
 
 
 __all__ = [
-    "ForkState", "ForkStep", "ForkEnvironment", "TreatmentPolicy",
+    "ForkState", "ForkStep", "PolicyHistoryStep", "PolicyDecision",
+    "ForkEnvironment", "TreatmentPolicy",
     "run_matched_multihorizon_snapshot",
 ]

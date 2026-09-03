@@ -1,0 +1,47 @@
+{
+  "schema_version": "discoveryworld-sokoban-frozen-fork-v2",
+  "status": "ADAPTATION_FROZEN_CONSUMED",
+  "claim_boundary": "Matched game-transfer diagnostic at the first native DROP of the already-consumed Proteomics Normal seed2 symbolic-survey baseline. This can diagnose ceiling or negative transfer but cannot establish fresh Normal transfer.",
+  "reference_episode": "runs/discoveryworld_proteomics_normal_v24_development/proteomics.normal.seed2.json",
+  "reference_episode_sha256": "168cd28a4a11079758a76a4a7a09ba0367c5c913d4539c15a13fbf7d6ba40aec",
+  "fork_after_episode_step": 23,
+  "recovery_horizon": 8,
+  "conditions": [
+    "target_native_myopic",
+    "authentic_sokoban_effect_plus_target",
+    "commit_availability_control_plus_target",
+    "inverted_effect_control_plus_target",
+    "position_prior_control_plus_target"
+  ],
+  "source_contract": {
+    "compact_receipt": "docs/results/sokoban_effect_program_v2_compact_receipt.json",
+    "require_source_gate_passed": true,
+    "source_program_sha256": "6b02dc1d7271bbd435e90539cedd7d56d04fcc1ad03798dd6dd06146d67f1fcd",
+    "source_confirmation_sha256": "d64606c916ce6e812ae1b920771d5175cb48983a2f141b2dab6f43d491a6c1ed",
+    "transferred_structure": "DIRECT_PROGRESS_AVAILABLE_OR_ASSIGNMENT_IMPROVEMENT_AVAILABLE_THEN_COMMIT_AND_VERIFY_ELSE_POSITION_AND_RECOMPUTE"
+  },
+  "selector": {
+    "prerequisite_threshold": 0.9,
+    "positive_effect_threshold": 0.65
+  },
+  "model": {
+    "provider": "openrouter",
+    "base_url": "https://openrouter.ai/api/v1",
+    "api_key_name": "OPENROUTER_API_KEY",
+    "model": "qwen/qwen3.5-35b-a3b",
+    "temperature": 0,
+    "maximum_output_tokens": 1600,
+    "schema_attempts": 4,
+    "hidden_reasoning_effort": "none"
+  },
+  "qualification_protocol_sha256": "932fb9cd9dd4dd8f990a6b7fb27a5bdb6c7a5cb9596ea13ada898663222eca03",
+  "fork_receipt_sha256": "8299f1debf2336537ad6f8a7cbdafd724ed93ac4530086aa0c6cee25d66e39e4",
+  "target_native_spatial_realizer": {
+    "schema_version": "discoveryworld-local-spatial-realization-v1",
+    "enabled": true,
+    "shared_across_all_conditions": true,
+    "activation": "AFTER_SUCCESSFUL_TARGET_BOUND_TELEPORT",
+    "objective": "STRICT_WORST_CASE_RELATION_ERROR_REDUCTION_OVER_UI_COMPATIBLE_VECTORS",
+    "may_select_commit": false
+  }
+}

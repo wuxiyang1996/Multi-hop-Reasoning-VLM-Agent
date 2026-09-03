@@ -1,0 +1,25 @@
+{
+  "claim_boundary": "UNCHANGED_V22_QUERY_OBJECT_GROUNDER;30_NEW_CROSS_EXPERIMENT_VIDEO_DISJOINT_TEST_ROWS;ONE_OUTCOME_BLIND_CONFIRMATION;NOT_UNTOUCHED_METADATA",
+  "development_qualification_summary": "docs/results/agqa2_query_object_v22_development_summary.json",
+  "development_qualification_summary_file_sha256": "d5cc500f297d29d1a82b1c8dcfcfb0dfd8d4a65ad732de50abbf17dd3af28f61",
+  "download_receipt_file_sha256": "e268c55f3b5eeb1d4a6c9a5a15cdca553ab5260b528d5fc5eeb9260869c8a102",
+  "failure_policy": "RUN_ONCE;FAIL_CLOSED_TO_MATCHED_DIRECT;NO_POST_RESERVE_TUNING_OR_ADDITIONAL_FRESH_SEED",
+  "grounder_changed_after_development": false,
+  "qualified_grounder_sha256": "9034fd2d58e6b055f0d8f0cb0291ff0e7804603917d9659632ce83f834409cda",
+  "reserve_evaluation_protocol_sha256": "a8be43778774bfd9aa06710ddebd46d0c7ea778390fdf1c65858caf10db6d65b",
+  "reserve_gates": {
+    "maximum_reported_provider_cost_usd": 0.35,
+    "maximum_typed_vs_direct_losses": 0,
+    "minimum_decisive_accuracy": 0.75,
+    "minimum_decisive_executions": 15,
+    "minimum_route_correct": 30,
+    "minimum_typed_vs_direct_wins": 2,
+    "required_source_permuted_abstentions": 30,
+    "required_target_written_equivalent_matches": 30,
+    "required_valid_runtime_rows": 30
+  },
+  "schema_version": "agqa2-query-object-reserve-preregistration-v23",
+  "sealed_manifest_sha256": "4874a8fc61706c73a7a55acfc9b2e32e34370387b0ecd901832ea4680705c6b5",
+  "selection_manifest_sha256": "5c8211360a62bd37d4bcb5bbec56f4112062cf8b9f593d65d991d9c54fcb886a",
+  "status": "FROZEN_BEFORE_ANY_V23_RESERVE_CALL"
+}

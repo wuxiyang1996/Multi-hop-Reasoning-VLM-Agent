@@ -1,0 +1,76 @@
+{
+  "schema_version": "agqa-query-conditioned-typed-binding-v3d-verifier-development-protocol-v1",
+  "status": "FROZEN_ON_CONSUMED_DEVELOPMENT_BEFORE_QUERY_ROLE_VERIFIER_CALLS",
+  "claim_boundary": "Consumed AGQA balanced-train development only. The proposal was frozen before this protocol; verifier outcomes are diagnostic and cannot become transfer evidence.",
+  "failure_evidence": {
+    "v3c_verification_file_sha256": "7dea8ac7e90fb65708937bcf3d683c486925625a18e9b54cd3537678682c3c57",
+    "v3c_supported": 8,
+    "v3c_supported_correct": 7,
+    "failure_pair": "W2LM5-832 and W2LM5-838",
+    "diagnosis": "A verifier that omitted the public question could not distinguish the object in the temporal anchor from the object filling the queried role. It also erased an otherwise supported decision when one of several cited frames lacked a fragmented detector track."
+  },
+  "scientific_change": {
+    "method": "Verify exactly one frozen candidate against the public question and raw pixels. Retain only same-frame track-corroborated positive citations, but do not erase other valid citations when one detector frame is missing.",
+    "answer_blind": true,
+    "alternative_candidate_selection": false,
+    "free_form_answer_generation": false,
+    "proposal_status_has_harness_authority": false,
+    "only_supported_verifier_status_may_be_compiled": true
+  },
+  "immutable_inputs": {
+    "cohort_file_sha256": "4a41e3389aa146ce3d39b88402e94c08c05c144aaa7ffe7426c35f635cf861eb",
+    "sgdet_file_sha256": "37d59769f73087f3a7d295db2622e1aa86ea2e44be4f5391f037972d00561813",
+    "proposal_file_sha256": "9cfd16548305b70c0a8d5b4b5e62a28c86ad9f2b0dcbb88e50e32e499b755f79",
+    "verifier_sha256": "c748cca0c034940e42aa9c3a031ce13d49713fd131987c9240104d286ac2962e"
+  },
+  "independent_binary_verifier": {
+    "model": "qwen/qwen3-vl-235b-a22b-instruct",
+    "provider": "parasail",
+    "provider_allow_fallbacks": false,
+    "seed": 0,
+    "maximum_frames": 12,
+    "minimum_object_score": 0.05,
+    "frames_per_panel": 2,
+    "panel_frame_width": 448,
+    "jpeg_quality": 90,
+    "max_tokens": 160,
+    "maximum_contract_attempts": 2,
+    "temperature": 0,
+    "thinking": false,
+    "candidate_count_per_task": 1,
+    "supported_evidence_retains_only_same_frame_person_and_candidate_tracks": true
+  },
+  "qualification_gates_for_full_240_development": {
+    "entity_candidate_pool_recall_minimum": 0.75,
+    "typed_role_fidelity_minimum": 0.8,
+    "cross_frame_dedup_fidelity_minimum": 0.9,
+    "provider_and_contract_success_fraction_minimum": 0.99,
+    "authority_safe_receipt_fraction": 1.0,
+    "unique_supported_count_minimum": 40,
+    "unique_supported_coverage_minimum": 0.2,
+    "unique_supported_precision_wilson_95_lower_bound_minimum": 0.6,
+    "one_global_threshold_required": true
+  },
+  "threshold_selection": {
+    "candidate_grid": [
+      0.5, 0.525, 0.55, 0.575, 0.6, 0.625, 0.65, 0.675,
+      0.7, 0.725, 0.75, 0.775, 0.8, 0.825, 0.85, 0.875,
+      0.9, 0.925, 0.95, 0.975
+    ],
+    "objective": "maximum unique-supported coverage subject to frozen gates",
+    "tie_break": "higher threshold"
+  },
+  "authority": {
+    "public_question_read": true,
+    "typed_predicate_role_scope_read": true,
+    "single_candidate_label_and_tracks_read": true,
+    "raw_video_frames_read": true,
+    "agqa_answer_read": false,
+    "agqa_answer_alternatives_read": false,
+    "official_scene_graph_read": false,
+    "official_stsg_read": false,
+    "functional_program_read": false,
+    "source_controller_read": false,
+    "target_outcome_read": false
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "experiment": "webshop_selective_neurosymbolic_v6",
+  "development_evidence": {
+    "source": "V5 WebShop qualification only",
+    "diagnosis": [
+      "unrestricted authentic source reduced mean reward",
+      "harmful overrides occurred before target constraint completion",
+      "the one useful override escaped a repeated target action"
+    ]
+  },
+  "selective_intervention_gate": {
+    "target_native_signal": "predicted action_repeated effect",
+    "rank_zero_minimum_repeat_probability": 0.5,
+    "alternative_minimum_repeat_reduction": 0.2,
+    "source_may_override_only_when_gate_is_open": true,
+    "source_cannot_generate_target_actions": true
+  },
+  "splits": {
+    "adaptation": "V5 WebShop adaptation IDs",
+    "development": "V5 WebShop qualification IDs",
+    "fresh_qualification": "V5 WebShop reserve IDs",
+    "held_out": "V5 WebShop held_out IDs; remain unread"
+  },
+  "fresh_qualification_conditions": [
+    "target_only",
+    "selective_authentic_source",
+    "selective_phase_permuted_source",
+    "selective_other_game_source"
+  ],
+  "gates": {
+    "minimum_intervention_rate": 0.05,
+    "authentic_must_not_reduce_strict_or_pass_success": true,
+    "authentic_must_improve_mean_reward_or_matched_steps": true,
+    "authentic_must_beat_or_match_destructive_controls": true,
+    "held_out_runs_only_after_all_gates_pass": true
+  }
+}

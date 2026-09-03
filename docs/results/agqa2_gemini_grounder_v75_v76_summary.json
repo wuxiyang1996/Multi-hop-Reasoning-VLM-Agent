@@ -1,0 +1,68 @@
+{
+  "schema_version": "agqa2-gemini-grounder-v75-v76-summary-v1",
+  "status": "POSITIVE_DEVELOPMENT_SIGNAL_BUT_RESERVE_NOT_AUTHORIZED",
+  "claim_boundary": "POST_V74_EXPLORATORY_OFF_THE_SHELF_GROUNDER_REPLACEMENT;DOES_NOT_CHANGE_V74_NEGATIVE_VERDICT",
+  "grounder": {
+    "model": "google/gemini-3.1-pro-preview",
+    "training": "NONE_OFF_THE_SHELF",
+    "reasoning": {
+      "effort": "minimal",
+      "exclude": true
+    },
+    "source_ir_changed": false
+  },
+  "transport_history": {
+    "v75": "ABORTED_WITH_ZERO_COMPLETE_RUNTIME_RECEIPTS",
+    "v75b": "ABORTED_WITH_14_OF_16_COMPLETE_RECEIPTS_BEFORE_OUTCOME_ACCESS",
+    "v75c": "CLEAN_RERUN_ALL_16_WITH_FROZEN_SUFFICIENT_JSON_TOKEN_LIMITS"
+  },
+  "v75c_consumed_development_pilot": {
+    "sample_count": 16,
+    "neural_only_correct": 6,
+    "source_induced_correct": 11,
+    "wins": 6,
+    "losses": 1,
+    "net_gain": 5,
+    "accuracy_delta_pp": 31.25,
+    "route_accuracy": 1.0,
+    "source_permuted_abstention_rate": 1.0,
+    "target_written_equivalent_rate": 1.0,
+    "reported_provider_cost_usd": 0.6968664,
+    "status": "PILOT_QUALIFIED",
+    "artifact": "runs/agqa2_gemini_grounder_v16c_development/report.json"
+  },
+  "v76_pilot_disjoint_consumed_development_qualification": {
+    "sample_count": 48,
+    "neural_only_correct": 23,
+    "neural_only_accuracy": 0.4791666666666667,
+    "source_induced_correct": 32,
+    "source_induced_accuracy": 0.6666666666666666,
+    "wins": 15,
+    "losses": 6,
+    "net_gain": 9,
+    "accuracy_delta_pp": 18.75,
+    "one_sided_exact_binomial_pvalue": 0.03917694091796875,
+    "route_accuracy": 1.0,
+    "source_permuted_abstention_rate": 1.0,
+    "target_written_equivalent_rate": 1.0,
+    "reported_provider_cost_usd": 2.3768,
+    "passed_gates": [
+      "minimum_wins_12",
+      "minimum_net_gain_8",
+      "maximum_one_sided_exact_pvalue_0.05",
+      "minimum_decisive_accuracy_0.65",
+      "route_and_controls_1.0",
+      "maximum_cost_usd_3.5"
+    ],
+    "failed_gate": "MAXIMUM_LOSSES_4_OBSERVED_6",
+    "status": "FAILED",
+    "base_artifact": "runs/agqa2_gemini_grounder_v17_qualification/base_report.json",
+    "evaluation_artifact": "runs/agqa2_gemini_grounder_v17_qualification/evaluation_report.json"
+  },
+  "decision": {
+    "open_96_video_exploratory_reserve": false,
+    "reason": "FROZEN_V76_MAXIMUM_LOSSES_GATE_FAILED",
+    "agqa2_raw_video_success_transfer_claim": "NOT_VALIDATED",
+    "interpretation": "INDEPENDENT_GEMINI_GROUNDING_IMPROVES_MEAN_DEVELOPMENT_SUCCESS_BUT_NEGATIVE_TRANSFER_REMAINS_ABOVE_THE_PREREGISTERED_SAFETY_LIMIT"
+  }
+}

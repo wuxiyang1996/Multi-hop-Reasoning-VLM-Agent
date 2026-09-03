@@ -1,0 +1,944 @@
+{
+  "episode_audit": [
+    {
+      "eligible_prefixes": 18,
+      "observed_steps": 20,
+      "seed": 92201,
+      "selected_steps": [
+        13,
+        14
+      ],
+      "split": "heldout",
+      "terminated_or_truncated_before_rollout_limit": false
+    },
+    {
+      "eligible_prefixes": 18,
+      "observed_steps": 20,
+      "seed": 92202,
+      "selected_steps": [
+        2,
+        4
+      ],
+      "split": "qualification",
+      "terminated_or_truncated_before_rollout_limit": false
+    },
+    {
+      "eligible_prefixes": 18,
+      "observed_steps": 20,
+      "seed": 92203,
+      "selected_steps": [
+        10,
+        12
+      ],
+      "split": "development",
+      "terminated_or_truncated_before_rollout_limit": false
+    },
+    {
+      "eligible_prefixes": 18,
+      "observed_steps": 20,
+      "seed": 92204,
+      "selected_steps": [
+        4,
+        14
+      ],
+      "split": "heldout",
+      "terminated_or_truncated_before_rollout_limit": false
+    },
+    {
+      "eligible_prefixes": 18,
+      "observed_steps": 20,
+      "seed": 92205,
+      "selected_steps": [
+        8,
+        19
+      ],
+      "split": "qualification",
+      "terminated_or_truncated_before_rollout_limit": false
+    },
+    {
+      "eligible_prefixes": 18,
+      "observed_steps": 20,
+      "seed": 92206,
+      "selected_steps": [
+        10,
+        15
+      ],
+      "split": "heldout",
+      "terminated_or_truncated_before_rollout_limit": false
+    },
+    {
+      "eligible_prefixes": 18,
+      "observed_steps": 20,
+      "seed": 92207,
+      "selected_steps": [
+        16,
+        18
+      ],
+      "split": "qualification",
+      "terminated_or_truncated_before_rollout_limit": false
+    },
+    {
+      "eligible_prefixes": 18,
+      "observed_steps": 20,
+      "seed": 92208,
+      "selected_steps": [
+        15,
+        18
+      ],
+      "split": "development",
+      "terminated_or_truncated_before_rollout_limit": false
+    },
+    {
+      "eligible_prefixes": 18,
+      "observed_steps": 20,
+      "seed": 92209,
+      "selected_steps": [
+        8,
+        10
+      ],
+      "split": "heldout",
+      "terminated_or_truncated_before_rollout_limit": false
+    },
+    {
+      "eligible_prefixes": 18,
+      "observed_steps": 20,
+      "seed": 92210,
+      "selected_steps": [
+        8,
+        17
+      ],
+      "split": "development",
+      "terminated_or_truncated_before_rollout_limit": false
+    },
+    {
+      "eligible_prefixes": 18,
+      "observed_steps": 20,
+      "seed": 92211,
+      "selected_steps": [
+        2,
+        8
+      ],
+      "split": "qualification",
+      "terminated_or_truncated_before_rollout_limit": false
+    },
+    {
+      "eligible_prefixes": 18,
+      "observed_steps": 20,
+      "seed": 92212,
+      "selected_steps": [
+        2,
+        18
+      ],
+      "split": "development",
+      "terminated_or_truncated_before_rollout_limit": false
+    }
+  ],
+  "plan_sha256": "bed6891202649497491fc0c1ffd51b859b4d9fd2e542b9b1965fb1227c49607d",
+  "schema_version": "real-source-intervention-plan-v1",
+  "selection": {
+    "actions_per_snapshot": 4,
+    "content_or_outcome_used_for_selection": false,
+    "minimum_step": 2,
+    "namespace": "phase1-common-search-ir-pilot-v5:gymv_strider",
+    "reward_read_during_plan_collection": false,
+    "rollout_steps": 20,
+    "rule": "observe reward-blind hash-policy prefixes; rank available snapshots by sha256(namespace, seed, step)",
+    "seed_splits": {
+      "92201": "heldout",
+      "92202": "qualification",
+      "92203": "development",
+      "92204": "heldout",
+      "92205": "qualification",
+      "92206": "heldout",
+      "92207": "qualification",
+      "92208": "development",
+      "92209": "heldout",
+      "92210": "development",
+      "92211": "qualification",
+      "92212": "development"
+    },
+    "snapshots_per_episode": 2,
+    "terminal_status_used_only_to_stop_invalid_future_steps": true,
+    "trajectory_policy": "lowest sha256(namespace, seed, step, rollout, native_action)"
+  },
+  "snapshots": [
+    {
+      "condition": "observed_reward_blind_hash_policy",
+      "episode_id": "gymv_strider_observed_seed_92201",
+      "expected_fork_state_sha256": "9933fa40225c9f506b4d4c7137cda5c5360318280a718a9a8f5de0dd42f07a49",
+      "expected_native_actions_sha256": "041cc9405cef01b1f30ecbdefa2b330dc141a93eda6413eb999bf51ce1cc33c5",
+      "grounding_state": "Game: Strider-Genesis-v0 | Score: 0 | Lives: 3 | Health: 1110 | Frame: 104 | StepReward: 0.000 | EpReward: 0.000 | LastAction: LEFT | Recent: [LEFT,LEFT,LEFT,LEFT,LEFT,LEFT,LEFT,LEFT]\n\nValid actions: B, A, MODE, START, UP, DOWN, LEFT, RIGHT, C, Y, X, Z. Choose one.",
+      "logged_action": "RIGHT",
+      "max_steps": 50,
+      "prefix_actions": [
+        "Z",
+        "RIGHT",
+        "RIGHT",
+        "X",
+        "UP",
+        "LEFT",
+        "DOWN",
+        "LEFT",
+        "B",
+        "START",
+        "RIGHT",
+        "UP",
+        "LEFT"
+      ],
+      "seed": 92201,
+      "selected_actions": [
+        "RIGHT",
+        "C",
+        "Y",
+        "LEFT"
+      ],
+      "snapshot_id": "gymv_strider.observed_hash_policy.92201.step_13",
+      "split": "heldout",
+      "step": 13
+    },
+    {
+      "condition": "observed_reward_blind_hash_policy",
+      "episode_id": "gymv_strider_observed_seed_92201",
+      "expected_fork_state_sha256": "b96f667546b842e079c97ec091b88bd5e6c034add5fee7db60ee05d7c752eac6",
+      "expected_native_actions_sha256": "041cc9405cef01b1f30ecbdefa2b330dc141a93eda6413eb999bf51ce1cc33c5",
+      "grounding_state": "Game: Strider-Genesis-v0 | Score: 0 | Lives: 3 | Health: 1110 | Frame: 112 | StepReward: 0.000 | EpReward: 0.000 | LastAction: RIGHT | Recent: [RIGHT,RIGHT,RIGHT,RIGHT,RIGHT,RIGHT,RIGHT,RIGHT]\n\nValid actions: B, A, MODE, START, UP, DOWN, LEFT, RIGHT, C, Y, X, Z. Choose one.",
+      "logged_action": "UP",
+      "max_steps": 50,
+      "prefix_actions": [
+        "Z",
+        "RIGHT",
+        "RIGHT",
+        "X",
+        "UP",
+        "LEFT",
+        "DOWN",
+        "LEFT",
+        "B",
+        "START",
+        "RIGHT",
+        "UP",
+        "LEFT",
+        "RIGHT"
+      ],
+      "seed": 92201,
+      "selected_actions": [
+        "UP",
+        "DOWN",
+        "A",
+        "Y"
+      ],
+      "snapshot_id": "gymv_strider.observed_hash_policy.92201.step_14",
+      "split": "heldout",
+      "step": 14
+    },
+    {
+      "condition": "observed_reward_blind_hash_policy",
+      "episode_id": "gymv_strider_observed_seed_92202",
+      "expected_fork_state_sha256": "fd0e76a2a661238984f33288e4b4eddd328b745f1acfa86f4b26724ce5799901",
+      "expected_native_actions_sha256": "041cc9405cef01b1f30ecbdefa2b330dc141a93eda6413eb999bf51ce1cc33c5",
+      "grounding_state": "Game: Strider-Genesis-v0 | Score: 0 | Lives: 3 | Health: 1110 | Frame: 16 | StepReward: 0.000 | EpReward: 0.000 | LastAction: X | Recent: [X,X,X,X,X,X,X,X]\n\nValid actions: B, A, MODE, START, UP, DOWN, LEFT, RIGHT, C, Y, X, Z. Choose one.",
+      "logged_action": "Y",
+      "max_steps": 50,
+      "prefix_actions": [
+        "LEFT",
+        "X"
+      ],
+      "seed": 92202,
+      "selected_actions": [
+        "Y",
+        "LEFT",
+        "X",
+        "START"
+      ],
+      "snapshot_id": "gymv_strider.observed_hash_policy.92202.step_2",
+      "split": "qualification",
+      "step": 2
+    },
+    {
+      "condition": "observed_reward_blind_hash_policy",
+      "episode_id": "gymv_strider_observed_seed_92202",
+      "expected_fork_state_sha256": "6773577ade2ace742231a2f79c1c0c475609780a6629703b1ba14be5a2c2d149",
+      "expected_native_actions_sha256": "041cc9405cef01b1f30ecbdefa2b330dc141a93eda6413eb999bf51ce1cc33c5",
+      "grounding_state": "Game: Strider-Genesis-v0 | Score: 0 | Lives: 3 | Health: 1110 | Frame: 32 | StepReward: 0.000 | EpReward: 0.000 | LastAction: Y | Recent: [Y,Y,Y,Y,Y,Y,Y,Y]\n\nValid actions: B, A, MODE, START, UP, DOWN, LEFT, RIGHT, C, Y, X, Z. Choose one.",
+      "logged_action": "LEFT",
+      "max_steps": 50,
+      "prefix_actions": [
+        "LEFT",
+        "X",
+        "Y",
+        "Y"
+      ],
+      "seed": 92202,
+      "selected_actions": [
+        "LEFT",
+        "A",
+        "START",
+        "RIGHT"
+      ],
+      "snapshot_id": "gymv_strider.observed_hash_policy.92202.step_4",
+      "split": "qualification",
+      "step": 4
+    },
+    {
+      "condition": "observed_reward_blind_hash_policy",
+      "episode_id": "gymv_strider_observed_seed_92203",
+      "expected_fork_state_sha256": "732891833bb7c3b93b6123fd101d50f40a1962189f6fc85f2a903f441b959431",
+      "expected_native_actions_sha256": "041cc9405cef01b1f30ecbdefa2b330dc141a93eda6413eb999bf51ce1cc33c5",
+      "grounding_state": "Game: Strider-Genesis-v0 | Score: 0 | Lives: 3 | Health: 1110 | Frame: 80 | StepReward: 0.000 | EpReward: 0.000 | LastAction: MODE | Recent: [MODE,MODE,MODE,MODE,MODE,MODE,MODE,MODE]\n\nValid actions: B, A, MODE, START, UP, DOWN, LEFT, RIGHT, C, Y, X, Z. Choose one.",
+      "logged_action": "LEFT",
+      "max_steps": 50,
+      "prefix_actions": [
+        "UP",
+        "Y",
+        "MODE",
+        "Y",
+        "X",
+        "Y",
+        "DOWN",
+        "UP",
+        "MODE",
+        "MODE"
+      ],
+      "seed": 92203,
+      "selected_actions": [
+        "LEFT",
+        "START",
+        "UP",
+        "Z"
+      ],
+      "snapshot_id": "gymv_strider.observed_hash_policy.92203.step_10",
+      "split": "development",
+      "step": 10
+    },
+    {
+      "condition": "observed_reward_blind_hash_policy",
+      "episode_id": "gymv_strider_observed_seed_92203",
+      "expected_fork_state_sha256": "a49c2ac8089106eb3a07aaf0df96b970faffa0763e7296d848b65f3dc826acdd",
+      "expected_native_actions_sha256": "041cc9405cef01b1f30ecbdefa2b330dc141a93eda6413eb999bf51ce1cc33c5",
+      "grounding_state": "Game: Strider-Genesis-v0 | Score: 0 | Lives: 3 | Health: 1110 | Frame: 96 | StepReward: 0.000 | EpReward: 0.000 | LastAction: Y | Recent: [Y,Y,Y,Y,Y,Y,Y,Y]\n\nValid actions: B, A, MODE, START, UP, DOWN, LEFT, RIGHT, C, Y, X, Z. Choose one.",
+      "logged_action": "Y",
+      "max_steps": 50,
+      "prefix_actions": [
+        "UP",
+        "Y",
+        "MODE",
+        "Y",
+        "X",
+        "Y",
+        "DOWN",
+        "UP",
+        "MODE",
+        "MODE",
+        "LEFT",
+        "Y"
+      ],
+      "seed": 92203,
+      "selected_actions": [
+        "Y",
+        "LEFT",
+        "X",
+        "C"
+      ],
+      "snapshot_id": "gymv_strider.observed_hash_policy.92203.step_12",
+      "split": "development",
+      "step": 12
+    },
+    {
+      "condition": "observed_reward_blind_hash_policy",
+      "episode_id": "gymv_strider_observed_seed_92204",
+      "expected_fork_state_sha256": "a75a7b52ee2e73e58f0872d11dab7769710ab742cd4371a0cfdd7609f8cb59bd",
+      "expected_native_actions_sha256": "041cc9405cef01b1f30ecbdefa2b330dc141a93eda6413eb999bf51ce1cc33c5",
+      "grounding_state": "Game: Strider-Genesis-v0 | Score: 0 | Lives: 3 | Health: 1110 | Frame: 32 | StepReward: 0.000 | EpReward: 0.000 | LastAction: START | Recent: [START,START,START,START,START,START,START,START]\n\nValid actions: B, A, MODE, START, UP, DOWN, LEFT, RIGHT, C, Y, X, Z. Choose one.",
+      "logged_action": "RIGHT",
+      "max_steps": 50,
+      "prefix_actions": [
+        "LEFT",
+        "MODE",
+        "B",
+        "START"
+      ],
+      "seed": 92204,
+      "selected_actions": [
+        "RIGHT",
+        "DOWN",
+        "MODE",
+        "B"
+      ],
+      "snapshot_id": "gymv_strider.observed_hash_policy.92204.step_4",
+      "split": "heldout",
+      "step": 4
+    },
+    {
+      "condition": "observed_reward_blind_hash_policy",
+      "episode_id": "gymv_strider_observed_seed_92204",
+      "expected_fork_state_sha256": "b96f667546b842e079c97ec091b88bd5e6c034add5fee7db60ee05d7c752eac6",
+      "expected_native_actions_sha256": "041cc9405cef01b1f30ecbdefa2b330dc141a93eda6413eb999bf51ce1cc33c5",
+      "grounding_state": "Game: Strider-Genesis-v0 | Score: 0 | Lives: 3 | Health: 1110 | Frame: 112 | StepReward: 0.000 | EpReward: 0.000 | LastAction: RIGHT | Recent: [RIGHT,RIGHT,RIGHT,RIGHT,RIGHT,RIGHT,RIGHT,RIGHT]\n\nValid actions: B, A, MODE, START, UP, DOWN, LEFT, RIGHT, C, Y, X, Z. Choose one.",
+      "logged_action": "UP",
+      "max_steps": 50,
+      "prefix_actions": [
+        "LEFT",
+        "MODE",
+        "B",
+        "START",
+        "RIGHT",
+        "Y",
+        "Z",
+        "C",
+        "LEFT",
+        "DOWN",
+        "MODE",
+        "MODE",
+        "UP",
+        "RIGHT"
+      ],
+      "seed": 92204,
+      "selected_actions": [
+        "UP",
+        "RIGHT",
+        "MODE",
+        "Z"
+      ],
+      "snapshot_id": "gymv_strider.observed_hash_policy.92204.step_14",
+      "split": "heldout",
+      "step": 14
+    },
+    {
+      "condition": "observed_reward_blind_hash_policy",
+      "episode_id": "gymv_strider_observed_seed_92205",
+      "expected_fork_state_sha256": "569774b372f7e4b0cccdb61fba4013e32cba0eacaeadb07d91938f621576bbe0",
+      "expected_native_actions_sha256": "041cc9405cef01b1f30ecbdefa2b330dc141a93eda6413eb999bf51ce1cc33c5",
+      "grounding_state": "Game: Strider-Genesis-v0 | Score: 0 | Lives: 3 | Health: 1110 | Frame: 64 | StepReward: 0.000 | EpReward: 0.000 | LastAction: DOWN | Recent: [DOWN,DOWN,DOWN,DOWN,DOWN,DOWN,DOWN,DOWN]\n\nValid actions: B, A, MODE, START, UP, DOWN, LEFT, RIGHT, C, Y, X, Z. Choose one.",
+      "logged_action": "Z",
+      "max_steps": 50,
+      "prefix_actions": [
+        "UP",
+        "RIGHT",
+        "LEFT",
+        "A",
+        "MODE",
+        "START",
+        "UP",
+        "DOWN"
+      ],
+      "seed": 92205,
+      "selected_actions": [
+        "Z",
+        "X",
+        "START",
+        "A"
+      ],
+      "snapshot_id": "gymv_strider.observed_hash_policy.92205.step_8",
+      "split": "qualification",
+      "step": 8
+    },
+    {
+      "condition": "observed_reward_blind_hash_policy",
+      "episode_id": "gymv_strider_observed_seed_92205",
+      "expected_fork_state_sha256": "dac6815e02b424a47b61bdc6bcb5d5c28645d4ff510be4aa8247d000c8b5edba",
+      "expected_native_actions_sha256": "041cc9405cef01b1f30ecbdefa2b330dc141a93eda6413eb999bf51ce1cc33c5",
+      "grounding_state": "Game: Strider-Genesis-v0 | Score: 0 | Lives: 3 | Health: 1110 | Frame: 152 | StepReward: 0.000 | EpReward: 0.000 | LastAction: DOWN | Recent: [DOWN,DOWN,DOWN,DOWN,DOWN,DOWN,DOWN,DOWN]\n\nValid actions: B, A, MODE, START, UP, DOWN, LEFT, RIGHT, C, Y, X, Z. Choose one.",
+      "logged_action": "RIGHT",
+      "max_steps": 50,
+      "prefix_actions": [
+        "UP",
+        "RIGHT",
+        "LEFT",
+        "A",
+        "MODE",
+        "START",
+        "UP",
+        "DOWN",
+        "Z",
+        "B",
+        "X",
+        "LEFT",
+        "LEFT",
+        "RIGHT",
+        "A",
+        "X",
+        "A",
+        "C",
+        "DOWN"
+      ],
+      "seed": 92205,
+      "selected_actions": [
+        "RIGHT",
+        "B",
+        "MODE",
+        "A"
+      ],
+      "snapshot_id": "gymv_strider.observed_hash_policy.92205.step_19",
+      "split": "qualification",
+      "step": 19
+    },
+    {
+      "condition": "observed_reward_blind_hash_policy",
+      "episode_id": "gymv_strider_observed_seed_92206",
+      "expected_fork_state_sha256": "4a6f5da61739f8555f6fb887e67d9e5766dba80d462738ad6b15d40675f29468",
+      "expected_native_actions_sha256": "041cc9405cef01b1f30ecbdefa2b330dc141a93eda6413eb999bf51ce1cc33c5",
+      "grounding_state": "Game: Strider-Genesis-v0 | Score: 0 | Lives: 3 | Health: 1110 | Frame: 80 | StepReward: 0.000 | EpReward: 0.000 | LastAction: RIGHT | Recent: [RIGHT,RIGHT,RIGHT,RIGHT,RIGHT,RIGHT,RIGHT,RIGHT]\n\nValid actions: B, A, MODE, START, UP, DOWN, LEFT, RIGHT, C, Y, X, Z. Choose one.",
+      "logged_action": "Y",
+      "max_steps": 50,
+      "prefix_actions": [
+        "LEFT",
+        "C",
+        "DOWN",
+        "UP",
+        "Z",
+        "B",
+        "B",
+        "MODE",
+        "Z",
+        "RIGHT"
+      ],
+      "seed": 92206,
+      "selected_actions": [
+        "Y",
+        "LEFT",
+        "Z",
+        "UP"
+      ],
+      "snapshot_id": "gymv_strider.observed_hash_policy.92206.step_10",
+      "split": "heldout",
+      "step": 10
+    },
+    {
+      "condition": "observed_reward_blind_hash_policy",
+      "episode_id": "gymv_strider_observed_seed_92206",
+      "expected_fork_state_sha256": "8a18ceb5917beb1a3284c7dfb3e91fddfcb2ab7c583c33a1881aa0399c901bc9",
+      "expected_native_actions_sha256": "041cc9405cef01b1f30ecbdefa2b330dc141a93eda6413eb999bf51ce1cc33c5",
+      "grounding_state": "Game: Strider-Genesis-v0 | Score: 0 | Lives: 3 | Health: 1110 | Frame: 120 | StepReward: 0.000 | EpReward: 0.000 | LastAction: Y | Recent: [Y,Y,Y,Y,Y,Y,Y,Y]\n\nValid actions: B, A, MODE, START, UP, DOWN, LEFT, RIGHT, C, Y, X, Z. Choose one.",
+      "logged_action": "C",
+      "max_steps": 50,
+      "prefix_actions": [
+        "LEFT",
+        "C",
+        "DOWN",
+        "UP",
+        "Z",
+        "B",
+        "B",
+        "MODE",
+        "Z",
+        "RIGHT",
+        "Y",
+        "LEFT",
+        "X",
+        "C",
+        "Y"
+      ],
+      "seed": 92206,
+      "selected_actions": [
+        "C",
+        "A",
+        "LEFT",
+        "Y"
+      ],
+      "snapshot_id": "gymv_strider.observed_hash_policy.92206.step_15",
+      "split": "heldout",
+      "step": 15
+    },
+    {
+      "condition": "observed_reward_blind_hash_policy",
+      "episode_id": "gymv_strider_observed_seed_92207",
+      "expected_fork_state_sha256": "ec495547c1961c306068868621cd44e84e8854713ee2552ea0d386cc526c555a",
+      "expected_native_actions_sha256": "041cc9405cef01b1f30ecbdefa2b330dc141a93eda6413eb999bf51ce1cc33c5",
+      "grounding_state": "Game: Strider-Genesis-v0 | Score: 0 | Lives: 3 | Health: 1110 | Frame: 128 | StepReward: 0.000 | EpReward: 0.000 | LastAction: MODE | Recent: [MODE,MODE,MODE,MODE,MODE,MODE,MODE,MODE]\n\nValid actions: B, A, MODE, START, UP, DOWN, LEFT, RIGHT, C, Y, X, Z. Choose one.",
+      "logged_action": "UP",
+      "max_steps": 50,
+      "prefix_actions": [
+        "UP",
+        "RIGHT",
+        "B",
+        "Y",
+        "X",
+        "Z",
+        "DOWN",
+        "START",
+        "DOWN",
+        "UP",
+        "UP",
+        "LEFT",
+        "DOWN",
+        "A",
+        "START",
+        "MODE"
+      ],
+      "seed": 92207,
+      "selected_actions": [
+        "UP",
+        "Z",
+        "LEFT",
+        "A"
+      ],
+      "snapshot_id": "gymv_strider.observed_hash_policy.92207.step_16",
+      "split": "qualification",
+      "step": 16
+    },
+    {
+      "condition": "observed_reward_blind_hash_policy",
+      "episode_id": "gymv_strider_observed_seed_92207",
+      "expected_fork_state_sha256": "ec72c08cc0881344ea983cec8726df66b5ac44664d91e76d9225d823bc6c8243",
+      "expected_native_actions_sha256": "041cc9405cef01b1f30ecbdefa2b330dc141a93eda6413eb999bf51ce1cc33c5",
+      "grounding_state": "Game: Strider-Genesis-v0 | Score: 0 | Lives: 3 | Health: 1110 | Frame: 144 | StepReward: 0.000 | EpReward: 0.000 | LastAction: B | Recent: [B,B,B,B,B,B,B,B]\n\nValid actions: B, A, MODE, START, UP, DOWN, LEFT, RIGHT, C, Y, X, Z. Choose one.",
+      "logged_action": "Z",
+      "max_steps": 50,
+      "prefix_actions": [
+        "UP",
+        "RIGHT",
+        "B",
+        "Y",
+        "X",
+        "Z",
+        "DOWN",
+        "START",
+        "DOWN",
+        "UP",
+        "UP",
+        "LEFT",
+        "DOWN",
+        "A",
+        "START",
+        "MODE",
+        "UP",
+        "B"
+      ],
+      "seed": 92207,
+      "selected_actions": [
+        "Z",
+        "RIGHT",
+        "MODE",
+        "Y"
+      ],
+      "snapshot_id": "gymv_strider.observed_hash_policy.92207.step_18",
+      "split": "qualification",
+      "step": 18
+    },
+    {
+      "condition": "observed_reward_blind_hash_policy",
+      "episode_id": "gymv_strider_observed_seed_92208",
+      "expected_fork_state_sha256": "a9d011cb82dc3db00f87c34aad7b5eb25bb42a660100be371962d719ea373859",
+      "expected_native_actions_sha256": "041cc9405cef01b1f30ecbdefa2b330dc141a93eda6413eb999bf51ce1cc33c5",
+      "grounding_state": "Game: Strider-Genesis-v0 | Score: 0 | Lives: 3 | Health: 1110 | Frame: 120 | StepReward: 0.000 | EpReward: 0.000 | LastAction: C | Recent: [C,C,C,C,C,C,C,C]\n\nValid actions: B, A, MODE, START, UP, DOWN, LEFT, RIGHT, C, Y, X, Z. Choose one.",
+      "logged_action": "RIGHT",
+      "max_steps": 50,
+      "prefix_actions": [
+        "X",
+        "RIGHT",
+        "X",
+        "LEFT",
+        "START",
+        "START",
+        "UP",
+        "C",
+        "RIGHT",
+        "B",
+        "START",
+        "B",
+        "Y",
+        "DOWN",
+        "C"
+      ],
+      "seed": 92208,
+      "selected_actions": [
+        "RIGHT",
+        "A",
+        "Y",
+        "LEFT"
+      ],
+      "snapshot_id": "gymv_strider.observed_hash_policy.92208.step_15",
+      "split": "development",
+      "step": 15
+    },
+    {
+      "condition": "observed_reward_blind_hash_policy",
+      "episode_id": "gymv_strider_observed_seed_92208",
+      "expected_fork_state_sha256": "1f877d48417f4ef4bf3b8b5299479c084de758b7e136ecd9c446b11e5640e032",
+      "expected_native_actions_sha256": "041cc9405cef01b1f30ecbdefa2b330dc141a93eda6413eb999bf51ce1cc33c5",
+      "grounding_state": "Game: Strider-Genesis-v0 | Score: 0 | Lives: 3 | Health: 1110 | Frame: 144 | StepReward: 0.000 | EpReward: 0.000 | LastAction: DOWN | Recent: [DOWN,DOWN,DOWN,DOWN,DOWN,DOWN,DOWN,DOWN]\n\nValid actions: B, A, MODE, START, UP, DOWN, LEFT, RIGHT, C, Y, X, Z. Choose one.",
+      "logged_action": "Y",
+      "max_steps": 50,
+      "prefix_actions": [
+        "X",
+        "RIGHT",
+        "X",
+        "LEFT",
+        "START",
+        "START",
+        "UP",
+        "C",
+        "RIGHT",
+        "B",
+        "START",
+        "B",
+        "Y",
+        "DOWN",
+        "C",
+        "RIGHT",
+        "START",
+        "DOWN"
+      ],
+      "seed": 92208,
+      "selected_actions": [
+        "Y",
+        "DOWN",
+        "START",
+        "C"
+      ],
+      "snapshot_id": "gymv_strider.observed_hash_policy.92208.step_18",
+      "split": "development",
+      "step": 18
+    },
+    {
+      "condition": "observed_reward_blind_hash_policy",
+      "episode_id": "gymv_strider_observed_seed_92209",
+      "expected_fork_state_sha256": "569774b372f7e4b0cccdb61fba4013e32cba0eacaeadb07d91938f621576bbe0",
+      "expected_native_actions_sha256": "041cc9405cef01b1f30ecbdefa2b330dc141a93eda6413eb999bf51ce1cc33c5",
+      "grounding_state": "Game: Strider-Genesis-v0 | Score: 0 | Lives: 3 | Health: 1110 | Frame: 64 | StepReward: 0.000 | EpReward: 0.000 | LastAction: DOWN | Recent: [DOWN,DOWN,DOWN,DOWN,DOWN,DOWN,DOWN,DOWN]\n\nValid actions: B, A, MODE, START, UP, DOWN, LEFT, RIGHT, C, Y, X, Z. Choose one.",
+      "logged_action": "RIGHT",
+      "max_steps": 50,
+      "prefix_actions": [
+        "MODE",
+        "C",
+        "X",
+        "RIGHT",
+        "A",
+        "DOWN",
+        "C",
+        "DOWN"
+      ],
+      "seed": 92209,
+      "selected_actions": [
+        "RIGHT",
+        "A",
+        "Z",
+        "Y"
+      ],
+      "snapshot_id": "gymv_strider.observed_hash_policy.92209.step_8",
+      "split": "heldout",
+      "step": 8
+    },
+    {
+      "condition": "observed_reward_blind_hash_policy",
+      "episode_id": "gymv_strider_observed_seed_92209",
+      "expected_fork_state_sha256": "09e50bac98446efe5d4fae5fe58392ce49328d63b0c03578c64a4fd9b0af6058",
+      "expected_native_actions_sha256": "041cc9405cef01b1f30ecbdefa2b330dc141a93eda6413eb999bf51ce1cc33c5",
+      "grounding_state": "Game: Strider-Genesis-v0 | Score: 0 | Lives: 3 | Health: 1110 | Frame: 80 | StepReward: 0.000 | EpReward: 0.000 | LastAction: C | Recent: [C,C,C,C,C,C,C,C]\n\nValid actions: B, A, MODE, START, UP, DOWN, LEFT, RIGHT, C, Y, X, Z. Choose one.",
+      "logged_action": "C",
+      "max_steps": 50,
+      "prefix_actions": [
+        "MODE",
+        "C",
+        "X",
+        "RIGHT",
+        "A",
+        "DOWN",
+        "C",
+        "DOWN",
+        "RIGHT",
+        "C"
+      ],
+      "seed": 92209,
+      "selected_actions": [
+        "C",
+        "Y",
+        "DOWN",
+        "X"
+      ],
+      "snapshot_id": "gymv_strider.observed_hash_policy.92209.step_10",
+      "split": "heldout",
+      "step": 10
+    },
+    {
+      "condition": "observed_reward_blind_hash_policy",
+      "episode_id": "gymv_strider_observed_seed_92210",
+      "expected_fork_state_sha256": "df3920b149d1c0a62d594febf87d18618ba306fbf22c2e245340c5829da0f947",
+      "expected_native_actions_sha256": "041cc9405cef01b1f30ecbdefa2b330dc141a93eda6413eb999bf51ce1cc33c5",
+      "grounding_state": "Game: Strider-Genesis-v0 | Score: 0 | Lives: 3 | Health: 1110 | Frame: 64 | StepReward: 0.000 | EpReward: 0.000 | LastAction: UP | Recent: [UP,UP,UP,UP,UP,UP,UP,UP]\n\nValid actions: B, A, MODE, START, UP, DOWN, LEFT, RIGHT, C, Y, X, Z. Choose one.",
+      "logged_action": "UP",
+      "max_steps": 50,
+      "prefix_actions": [
+        "C",
+        "UP",
+        "Z",
+        "UP",
+        "DOWN",
+        "UP",
+        "DOWN",
+        "UP"
+      ],
+      "seed": 92210,
+      "selected_actions": [
+        "UP",
+        "LEFT",
+        "START",
+        "DOWN"
+      ],
+      "snapshot_id": "gymv_strider.observed_hash_policy.92210.step_8",
+      "split": "development",
+      "step": 8
+    },
+    {
+      "condition": "observed_reward_blind_hash_policy",
+      "episode_id": "gymv_strider_observed_seed_92210",
+      "expected_fork_state_sha256": "b957ae56d45db4fc6b64ae51f19238c9970b77150dfa3a9c5de6d3fc84acf09b",
+      "expected_native_actions_sha256": "041cc9405cef01b1f30ecbdefa2b330dc141a93eda6413eb999bf51ce1cc33c5",
+      "grounding_state": "Game: Strider-Genesis-v0 | Score: 0 | Lives: 3 | Health: 1110 | Frame: 136 | StepReward: 0.000 | EpReward: 0.000 | LastAction: RIGHT | Recent: [RIGHT,RIGHT,RIGHT,RIGHT,RIGHT,RIGHT,RIGHT,RIGHT]\n\nValid actions: B, A, MODE, START, UP, DOWN, LEFT, RIGHT, C, Y, X, Z. Choose one.",
+      "logged_action": "X",
+      "max_steps": 50,
+      "prefix_actions": [
+        "C",
+        "UP",
+        "Z",
+        "UP",
+        "DOWN",
+        "UP",
+        "DOWN",
+        "UP",
+        "UP",
+        "Y",
+        "DOWN",
+        "B",
+        "START",
+        "MODE",
+        "X",
+        "UP",
+        "RIGHT"
+      ],
+      "seed": 92210,
+      "selected_actions": [
+        "X",
+        "A",
+        "DOWN",
+        "MODE"
+      ],
+      "snapshot_id": "gymv_strider.observed_hash_policy.92210.step_17",
+      "split": "development",
+      "step": 17
+    },
+    {
+      "condition": "observed_reward_blind_hash_policy",
+      "episode_id": "gymv_strider_observed_seed_92211",
+      "expected_fork_state_sha256": "10dd578f2340e7666d7f602040d260cf0037ec726b56087a2d307743aefdf482",
+      "expected_native_actions_sha256": "041cc9405cef01b1f30ecbdefa2b330dc141a93eda6413eb999bf51ce1cc33c5",
+      "grounding_state": "Game: Strider-Genesis-v0 | Score: 0 | Lives: 3 | Health: 1110 | Frame: 16 | StepReward: 0.000 | EpReward: 0.000 | LastAction: B | Recent: [B,B,B,B,B,B,B,B]\n\nValid actions: B, A, MODE, START, UP, DOWN, LEFT, RIGHT, C, Y, X, Z. Choose one.",
+      "logged_action": "X",
+      "max_steps": 50,
+      "prefix_actions": [
+        "Z",
+        "B"
+      ],
+      "seed": 92211,
+      "selected_actions": [
+        "X",
+        "B",
+        "LEFT",
+        "A"
+      ],
+      "snapshot_id": "gymv_strider.observed_hash_policy.92211.step_2",
+      "split": "qualification",
+      "step": 2
+    },
+    {
+      "condition": "observed_reward_blind_hash_policy",
+      "episode_id": "gymv_strider_observed_seed_92211",
+      "expected_fork_state_sha256": "8f5d5cf388043142ec628f5a12c412e84b696009fdbdad11619137f0c4a529ba",
+      "expected_native_actions_sha256": "041cc9405cef01b1f30ecbdefa2b330dc141a93eda6413eb999bf51ce1cc33c5",
+      "grounding_state": "Game: Strider-Genesis-v0 | Score: 0 | Lives: 3 | Health: 1110 | Frame: 64 | StepReward: 0.000 | EpReward: 0.000 | LastAction: MODE | Recent: [MODE,MODE,MODE,MODE,MODE,MODE,MODE,MODE]\n\nValid actions: B, A, MODE, START, UP, DOWN, LEFT, RIGHT, C, Y, X, Z. Choose one.",
+      "logged_action": "MODE",
+      "max_steps": 50,
+      "prefix_actions": [
+        "Z",
+        "B",
+        "X",
+        "RIGHT",
+        "C",
+        "A",
+        "START",
+        "MODE"
+      ],
+      "seed": 92211,
+      "selected_actions": [
+        "MODE",
+        "Z",
+        "A",
+        "DOWN"
+      ],
+      "snapshot_id": "gymv_strider.observed_hash_policy.92211.step_8",
+      "split": "qualification",
+      "step": 8
+    },
+    {
+      "condition": "observed_reward_blind_hash_policy",
+      "episode_id": "gymv_strider_observed_seed_92212",
+      "expected_fork_state_sha256": "fd0e76a2a661238984f33288e4b4eddd328b745f1acfa86f4b26724ce5799901",
+      "expected_native_actions_sha256": "041cc9405cef01b1f30ecbdefa2b330dc141a93eda6413eb999bf51ce1cc33c5",
+      "grounding_state": "Game: Strider-Genesis-v0 | Score: 0 | Lives: 3 | Health: 1110 | Frame: 16 | StepReward: 0.000 | EpReward: 0.000 | LastAction: X | Recent: [X,X,X,X,X,X,X,X]\n\nValid actions: B, A, MODE, START, UP, DOWN, LEFT, RIGHT, C, Y, X, Z. Choose one.",
+      "logged_action": "C",
+      "max_steps": 50,
+      "prefix_actions": [
+        "B",
+        "X"
+      ],
+      "seed": 92212,
+      "selected_actions": [
+        "C",
+        "B",
+        "UP",
+        "START"
+      ],
+      "snapshot_id": "gymv_strider.observed_hash_policy.92212.step_2",
+      "split": "development",
+      "step": 2
+    },
+    {
+      "condition": "observed_reward_blind_hash_policy",
+      "episode_id": "gymv_strider_observed_seed_92212",
+      "expected_fork_state_sha256": "92a50e049a0e810ad11e3d277cd37d74d989898218865e97bf341c7477645655",
+      "expected_native_actions_sha256": "041cc9405cef01b1f30ecbdefa2b330dc141a93eda6413eb999bf51ce1cc33c5",
+      "grounding_state": "Game: Strider-Genesis-v0 | Score: 0 | Lives: 3 | Health: 1110 | Frame: 144 | StepReward: 0.000 | EpReward: 0.000 | LastAction: UP | Recent: [UP,UP,UP,UP,UP,UP,UP,UP]\n\nValid actions: B, A, MODE, START, UP, DOWN, LEFT, RIGHT, C, Y, X, Z. Choose one.",
+      "logged_action": "Y",
+      "max_steps": 50,
+      "prefix_actions": [
+        "B",
+        "X",
+        "C",
+        "LEFT",
+        "X",
+        "X",
+        "START",
+        "Z",
+        "MODE",
+        "X",
+        "UP",
+        "B",
+        "Y",
+        "Y",
+        "LEFT",
+        "C",
+        "RIGHT",
+        "UP"
+      ],
+      "seed": 92212,
+      "selected_actions": [
+        "Y",
+        "B",
+        "Z",
+        "A"
+      ],
+      "snapshot_id": "gymv_strider.observed_hash_policy.92212.step_18",
+      "split": "development",
+      "step": 18
+    }
+  ],
+  "source": {
+    "collection_kind": "fresh_same_runtime_observed_prefix_reward_blind",
+    "game": "gymv_strider",
+    "runtime_receipt": {
+      "config_path": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/configs/phase1_common_search_ir_v5_pilot/gymv_strider.json",
+      "gymv_python": "/fs/gamma-projects/vlm-robot/conda/envs/gymv/bin/python3.11",
+      "source_runtime_script": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-source-fresh-v1/scripts/run_instrumented_source_smoke.py"
+    }
+  }
+}

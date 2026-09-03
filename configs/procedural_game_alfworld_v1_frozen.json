@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "status": "FINAL_FROZEN_HELDOUT_EVALUATION",
+  "claim_boundary": "One-shot evaluation on 24 previously frozen and unread ALFWorld valid_unseen tasks. The source candidate comes only from matched interventions in procedural games; the ALFWorld neural grounder comes only from target train adaptation. Source native actions never cross the boundary.",
+  "development_evidence": {
+    "origin_config": "configs/procedural_game_alfworld_v1_target_development.json",
+    "origin_config_sha256": "5d9eb8083b1b3df55bb87d37ff768bc739e3f7ef7647fa712d90f75d893bdb1f",
+    "qualification_report": "runs/procedural_game_alfworld_v1_development/target_development_report.json",
+    "qualification_report_sha256": "9d81a16167fdb50f6182d1eb522d627f632178a189e1bf50a97a26a76c8c1a8b",
+    "frozen_artifact_sha256": "5f54973b8f46b977a5339bfb608215703a72ecf7a38e626ed36598256f47e81f",
+    "runner_sha256": "1a829f289ceb92954286cb3bb5afbe387017558ea00ae1d6fbde08651db44e0e"
+  },
+  "source": {
+    "kind": "matched-intervention-procedural-workflow-game-mdp-v1",
+    "train_surfaces": ["grid_quest", "factory_quest", "dungeon_quest", "space_quest"],
+    "heldout_surfaces": ["island_quest", "circuit_quest"],
+    "evaluation_intervention_receipts": 46080,
+    "raw_action_tokens_transferred": false
+  },
+  "target": {
+    "alfworld_config": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-source-fresh-v1/configs/alfworld_base_config.yaml",
+    "alfworld_data": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-github-main/.cache/alfworld_data",
+    "seed": 88601,
+    "artifact": "runs/procedural_game_alfworld_v1_development/frozen_candidate_artifact.json",
+    "qualification_manifest": "configs/procedural_game_alfworld_v1_final_manifest.json",
+    "qualification_split": "eval_out_of_distribution",
+    "qualification_manifest_split": "held_out",
+    "qualification_max_steps": 70,
+    "qualification_report": "runs/procedural_game_alfworld_v1_frozen/heldout_report.json"
+  },
+  "policy": {
+    "controller": "SOURCE_OPTION_ONLY_V3_DIAGNOSTIC",
+    "uncertainty_scale": 0.4,
+    "decision_margin": 0.01,
+    "minimum_authentic_option_change_rate": 0.08,
+    "require_mean_steps_below_target_only": true,
+    "success_gate": "authentic successes strictly greater than target-only, shuffled, marginal, and phase-permuted"
+  }
+}

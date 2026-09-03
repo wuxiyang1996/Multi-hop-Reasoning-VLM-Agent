@@ -1,0 +1,22 @@
+{
+  "schema_version": 36,
+  "status": "FROZEN_MATCHED_MODEL_ADAPTATION_INPUTS",
+  "claim_boundary": "Compile all 505 consumed same-model/same-frame direct-versus-typed-proof pairs from V21, V27, and V35. Target answers are used only for uplift labels. Runtime features contain target-native probability, uncertainty, and typed proof receipts but no gold or official STAR/NExT-QA graph. The independent Sokoban receipt contributes only the COMMIT/VERIFY/REFUTED/REPLAN symbolic contract.",
+  "source_receipt": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/docs/results/sokoban_effect_program_v2_compact_receipt.json",
+  "expected_rows": 505,
+  "inputs": {
+    "v19_proof_receipts": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/natural_video_v19_expanded_formal/formal_receipts.json",
+    "v21_matched_direct": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/natural_video_generic_control_v21_development/generic_receipts.json",
+    "v27_matched_factorial": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/star_interaction_grounding_factorial_v27_development/receipts.json",
+    "v35_proof_receipts": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/natural_video_proof_cate_v35_formal/formal_receipts.json",
+    "v35_matched_direct": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/natural_video_v35_matched_gemini_direct_development/receipts.json"
+  },
+  "frozen_lineage": {
+    "source_receipt_sha256": "8f175c0edda951eba2064e9c53a8db6a25cdfa9fb0de8049d371dbf5335c9e80",
+    "v19_proof_receipts_sha256": "50011ed4a8ec645b5652220bfcc61f18ddb816b6bb3c49f20a7f445be5d8090d",
+    "v21_matched_direct_sha256": "0bdf42575c00ccc2d12c0a7c1bc933245b329d6be2d698849f6b33f08a0af474",
+    "v27_matched_factorial_sha256": "4439e45fea0cb40da21f94b2f7ac809991621e757a9f0f7b11b036d0f3098d1a",
+    "v35_proof_receipts_sha256": "eefe1517facd3b635d5cd7ffb0c348019444472b3a3ea129016be82911938e69",
+    "v35_matched_direct_sha256": "6f3b81cb271820d487fd2f1d36dee0e11fd422bffc66bcdb8653e36e220a5768"
+  }
+}

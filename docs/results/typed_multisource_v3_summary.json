@@ -1,0 +1,44 @@
+{
+  "schema_version": "typed-multisource-summary-v3",
+  "status": "SOURCE_TYPED_GATE_PASSED",
+  "tasks": ["doorkey_5x5", "unlock_pickup", "put_near"],
+  "seeds": [0, 1, 2],
+  "source_split_assignment": {
+    "0": "development",
+    "1": "heldout",
+    "2": "qualification"
+  },
+  "explored_states": 523,
+  "matched_forks": 126,
+  "gate_cells_passed": 18,
+  "gate_cells_total": 18,
+  "replay_mismatches": 0,
+  "effect_positive_forks": {
+    "BIND": 9,
+    "MUTATE": 6,
+    "POSITION": 3,
+    "RELATE": 3
+  },
+  "official_positive_reward_forks": 3,
+  "effect_ir": {
+    "ir_sha256": "88ff2695ecd07ff5cd81035f37d5d6efba1831ebd038e620d9728585dd14ad85",
+    "induction_split": "development",
+    "validation_splits": ["heldout", "qualification"],
+    "edges": [
+      {
+        "from": "BIND",
+        "to": "MUTATE",
+        "guard": "CARRIER_BOUND",
+        "supporting_source_tasks": ["doorkey_5x5", "unlock_pickup"]
+      },
+      {
+        "from": "BIND",
+        "to": "RELATE",
+        "guard": "CARRIER_BOUND",
+        "supporting_source_tasks": ["put_near"]
+      }
+    ]
+  },
+  "deterministic_repeat_identical": true,
+  "claim": "The expanded source suite yields reproducible intervention-grounded typed structure; target-domain success-rate transfer is not yet established."
+}

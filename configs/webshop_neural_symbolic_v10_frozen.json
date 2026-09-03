@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "artifact_role": "FROZEN_BEFORE_ORIGINAL_WEBSHOP_HELDOUT_V10",
+  "status": "FROZEN_BEFORE_QUALIFICATION",
+  "selection_rule": "Sort all 24 original held-out task IDs by sha256 of namespace webshop-v10-original-heldout-v1 and task ID; first 8 are qualification, remaining 16 are replication. No goal text or outcome was read during selection.",
+  "splits": {
+    "qualification": [
+      "webshop.41",
+      "webshop.19",
+      "webshop.18",
+      "webshop.0",
+      "webshop.45",
+      "webshop.3",
+      "webshop.16",
+      "webshop.46"
+    ],
+    "replication": [
+      "webshop.48",
+      "webshop.5",
+      "webshop.20",
+      "webshop.17",
+      "webshop.23",
+      "webshop.35",
+      "webshop.4",
+      "webshop.33",
+      "webshop.2",
+      "webshop.39",
+      "webshop.22",
+      "webshop.25",
+      "webshop.42",
+      "webshop.30",
+      "webshop.9",
+      "webshop.27"
+    ]
+  },
+  "qualification_gate": {
+    "require_zero_failures": true,
+    "require_matched_initial_state_hashes": true,
+    "require_authentic_source_decisions": true,
+    "for_every_control_require_strict_wins_greater_than_losses": true,
+    "for_every_control_require_positive_mean_reward_delta": true,
+    "for_every_control_require_action_contrast": true
+  },
+  "final_gate": {
+    "applies_to_all_24_tasks": true,
+    "require_qualification_gate": true,
+    "require_zero_failures": true,
+    "require_matched_initial_state_hashes": true,
+    "for_every_control_require_strict_wins_greater_than_losses": true,
+    "for_every_control_require_positive_mean_reward_delta": true,
+    "for_every_control_require_paired_exact_two_sided_p_at_most": 0.05,
+    "for_every_control_require_action_contrast": true
+  },
+  "conditions": [
+    "target_only",
+    "target_native_myopic",
+    "authentic_source_plus_target",
+    "shuffled_source_plus_target",
+    "source_marginal_plus_target"
+  ],
+  "claim_boundary": "Original WebShop held-out task IDs under the local 50-goal deterministic benchmark and qwen/qwen3.5-35b-a3b target planner. A pass supports game-derived state-dependent TEST/COMMIT value transfer with target-native neural grounding; it does not establish arbitrary-domain or arbitrary-model generalization.",
+  "runtime": {
+    "maximum_steps": 12,
+    "candidate_count": 5,
+    "schema_retries": 3,
+    "model": "qwen/qwen3.5-35b-a3b",
+    "base_url": "https://openrouter.ai/api/v1"
+  },
+  "runtime_hashes": {
+    "runner": "4b678f004c88040c348ef87cebe81587eee7a979939050759c9bf0c68db62bc3",
+    "core": "55897748720f573eca59dff93e6a88d53f54cd0dd1bff55b0a9512ea80777c25",
+    "summarizer": "a2200d23b7bf6f26dfdcb1aaf2fbf1ac8a2fe69e13b83c30834a5ea7c33bfa47",
+    "grounder": "bbf8a22ebec8e7ab6d55e570f230ba4fcb2b8630d1dc81bd24ba103f68701782",
+    "v10_development_summary": "1c81e14d050e975928b606e246099910f59a2cb8b06c141f047c3a308a89c212",
+    "original_partition_manifest": "812e1378953dcbb9409d547047d645e5710d74a362f4dce4b525cc4116717afb"
+  },
+  "qualification_goal_text_read_or_run": false,
+  "replication_goal_text_read_or_run": false
+}

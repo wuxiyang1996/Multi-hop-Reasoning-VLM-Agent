@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "status": "DEVELOPMENT_ADAPTATION_ONLY",
+  "claim_boundary": "STAR target-native state-transition measurements under the source-validated BIND--CARRIER_BOUND-->MUTATE edge. Existing BIND receipts are reused byte-for-byte; all mutation grounders see one candidate program and no gold or alternative options.",
+  "source": {
+    "typed_summary": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/docs/results/typed_multisource_v4_summary.json",
+    "typed_summary_sha256": "1386d2023dbf1ebac88992dd49cad1aa1e323299a0937c4e2dd3bf4505613969",
+    "required_edge": {
+      "from": "BIND",
+      "to": "MUTATE",
+      "guard": "CARRIER_BOUND"
+    }
+  },
+  "model": {
+    "provider": "openai",
+    "api_key_name": "OPENAI_API_KEY",
+    "id": "gpt-5.4",
+    "base_url": "https://us.api.openai.com/v1",
+    "timeout_seconds": 240,
+    "max_retries": 2,
+    "schema_retries": 3,
+    "max_compile_tokens": 3000,
+    "max_mutation_tokens": 900
+  },
+  "media": {
+    "proxy_frame_count": 48,
+    "proxy_frame_max_side": 720,
+    "program_frame_count": 8,
+    "evidence_frame_width": 256,
+    "jpeg_quality": 88,
+    "binding_observation_mode": "SEPARATE_FRAMES_DUAL_VIEW"
+  },
+  "evaluation": {
+    "candidate_threshold": 0.5,
+    "guard_threshold": 0.5,
+    "minimum_bound_unbound_probability_delta": 0.05,
+    "require_authentic_strictly_above_baseline": true,
+    "require_authentic_strictly_above_target_unbound": true,
+    "require_authentic_strictly_above_all_edge_controls": true
+  }
+}

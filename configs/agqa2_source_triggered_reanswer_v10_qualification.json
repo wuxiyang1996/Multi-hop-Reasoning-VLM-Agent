@@ -1,0 +1,41 @@
+{
+  "schema_version": "agqa2-source-triggered-reanswer-qualification-v10",
+  "status": "FROZEN_AFTER_V70_BASE_BEFORE_REANSWER_CALLS",
+  "claim_boundary": "FRESH_ROUTER_VALIDATION_VIDEO_HELDOUT_QUALIFICATION_AFTER_ALL_KNOWN_PROGRAM_TYPE_FIXES;NO_FORMAL_CLAIM;NO_TRAINING_OR_PARAMETER_UPDATE",
+  "base_report": "runs/agqa2_source_triggered_qualification_v10/base_report.json",
+  "base_report_file_sha256": "e83c9ff238f45b9f71ae07d19b5d083932732ba87fab25f608a94d0204f17467",
+  "manifest": "configs/agqa2_source_triggered_qualification_v10_manifest.json",
+  "manifest_file_sha256": "367d145f207a9f6f39cd77fcecb7d2da82991fb2c0df5009768bd54b75d5917c",
+  "collector": "scripts/collect_agqa2_source_triggered_reanswer_v8.py",
+  "collector_file_sha256": "4c1d6217d6b6051d232b21593a5edd001218d96fbc8b6e833a7e2b80fc9ce009",
+  "wrapper_root": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent",
+  "tool": "sample_frames",
+  "tool_frame_budget": 96,
+  "trigger_rule": "SOURCE_POSITIVE_NO_TIEBREAK_AND_DIRECT_BOOLEAN_DISAGREES_WITH_TYPED_DECISION",
+  "decision_rule": "FROZEN_QWEN235_REANSWERS_PUBLIC_QUESTION_FROM_ADDITIONAL_GLOBAL_TOOL_EVIDENCE",
+  "unsupported_program_abstention": "OBJECT_CHOICE_AND_COMPOSITE_BUT_NOT_PROGRAMS_REJECTED_BEFORE_SELECTION",
+  "model": {
+    "provider": "openrouter",
+    "base_url": "https://openrouter.ai/api/v1",
+    "api_key_name": "OPENROUTER_API_KEY",
+    "id": "qwen/qwen3-vl-235b-a22b-instruct",
+    "temperature": 0,
+    "schema_retries": 2,
+    "timeout_seconds": 240
+  },
+  "runtime_forbidden": [
+    "answer",
+    "functional_program",
+    "scene_graph",
+    "source_identity"
+  ],
+  "qualification_gate": {
+    "minimum_wins": 1,
+    "maximum_losses": 0,
+    "minimum_net_gain": 1,
+    "minimum_route_accuracy": 1.0,
+    "minimum_source_permuted_abstention_rate": 1.0,
+    "minimum_target_written_equivalent_rate": 1.0,
+    "maximum_combined_cost_usd": 0.6
+  }
+}

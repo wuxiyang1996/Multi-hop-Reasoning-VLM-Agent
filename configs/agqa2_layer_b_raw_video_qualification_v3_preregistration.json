@@ -1,0 +1,88 @@
+{
+  "schema_version": "agqa2-layer-b-raw-video-qualification-v3-preregistration",
+  "status": "FROZEN_BEFORE_PARSER_GROUNDER_FALLBACK_OR_OUTCOME",
+  "claim": "game-acquired symbolic skills transfer to raw-video question answering under matched target-native grounding",
+  "cohort": {
+    "rows": 256,
+    "videos": 256,
+    "public_cohort_sha256": "1b72183288aa5bc55bcb3c40bf44dc95f045fb4d7a2378d5820346ee90c6a9af",
+    "public_cohort_file_sha256": "94e0dacf24bfd35d202d9ace509d62b183fba43d80999df583ce94514254ba3f",
+    "manifest_sha256": "30b50d3be4e677deacc2dc31f02cf90c3e102b4a687b47ab7c1d6a783592a6b6",
+    "manifest_file_sha256": "bd3140842819cc64c24058936df4a6d814e32c85dcacee2c3502e2be4fc1a122",
+    "semantic_parser_train_validation_task_overlap": 0,
+    "parser_disjoint_pool_manifest_sha256": "ae9cf157741f3948947697e3750ef4ebc6ef3926386c704134174557196f9919",
+    "parser_disjoint_pool_manifest_file_sha256": "88de030b5e02960fa73fa5a3475e983cb8069611c270a3d60c71ee13ede463f4",
+    "excluded_prior_layer_b_tasks_and_videos": 256,
+    "answers_read": false
+  },
+  "development_selection": {
+    "selected_pipeline": "QWEN32_UNIFORM48_AND96_PLUS_SLOWFAST_FILL_MISSING_SOURCE_BLIND_ROUTE_V3",
+    "development_rows": 32,
+    "source_vs_neural": "3W/0L; exact two-sided p=.25",
+    "source_vs_generic": "1W/0L",
+    "selection_used_development_outcomes_only": true,
+    "qualification_v2_reused_for_selection": false,
+    "rejected_candidates": [
+      "GPT-5.6-Luna event grounder: 2W/2L on development",
+      "Gemini-3.7-Flash event grounder: no positive net development gain",
+      "Gemini event adjudication: rejected outcome-blind at 2/8 execution coverage"
+    ]
+  },
+  "shared_pipeline": {
+    "semantic_parser": "frozen target-native Flan-T5-small question-to-operator-free-semantics parser trained only on disjoint AGQA train/development supervision",
+    "grounder_candidates": [
+      "frozen Qwen3-VL-32B uniform 48 proxy frames",
+      "frozen Qwen3-VL-32B uniform 96 proxy frames"
+    ],
+    "action_tool": "frozen SlowFast-R50 Charades dense10x32; accepted windows are merged only when the VLM did not already bind that action obligation",
+    "slowfast_merge_policy": "FILL_MISSING_ONLY",
+    "slowfast_action_threshold": 0.1,
+    "grounder_router": "FIRST_GENERIC_COMMIT_ELSE_FIRST_CANDIDATE",
+    "grounder_router_may_read_source_capabilities": false,
+    "grounder_router_may_read_answers_or_official_programs_or_scene_graphs": false,
+    "maximum_actual_frame_presentations_per_task": 464,
+    "fallback_actor": "frozen Qwen3.5-9B",
+    "shared_across_all_arms": [
+      "raw videos",
+      "presented frames and hashes",
+      "frame-selection policy and frame budget",
+      "VLM and action-tool grounders",
+      "fill-missing merge and source-blind routing",
+      "question parser and semantic slots",
+      "executor",
+      "fallback actor",
+      "answer normalization and evaluator"
+    ]
+  },
+  "arms": [
+    "neural_only",
+    "generic_scaffold",
+    "source_permuted",
+    "source_induced",
+    "target_written_isomorphic"
+  ],
+  "source_capability_artifact_sha256": "8db5041579e8d5a69c5612247d62803ada2d98e745734fd9fac8cc3d7ca7902d",
+  "source_capability_file_sha256": "2f11b31b41a8ca72ee7c889d4fba00b8103599ce885269eb845ae89c0e78d31c",
+  "implementation_file_sha256s": {
+    "scripts/rebase_agqa_layer_b_charades_actions.py": "9bcffe0927c9da8e1165bdeed1b21b54d4bb54810d4877147f6a8f1f05beb570",
+    "scripts/route_agqa_layer_b_shared_grounding.py": "6429fa0e37ab4df8c5b57cbe57f5bbf0607095861888012cd13a664ec5602220",
+    "scripts/evaluate_agqa_layer_b_five_arm.py": "59d63e9850f43f8b0f62a2b4819fc0dff12de67d8be7981fc5d92dfcd1fc0ceb"
+  },
+  "gates": {
+    "outcome_blind_source_execution_coverage_at_least": 0.5,
+    "source_accuracy_strictly_above_neural_only": true,
+    "source_vs_neural_exact_mcnemar_p_below": 0.05,
+    "source_accuracy_strictly_above_generic_scaffold": true,
+    "source_permuted_not_above_source": true,
+    "negative_transfer_losses_fraction_at_most": 0.05,
+    "target_written_isomorphic_action_equivalence": 1.0,
+    "semantic_parser_supervision_overlap": 0
+  },
+  "decision_rule": "Qualification passes only if every gate passes. Answers are read once, after parser, both grounding candidates, fill-missing merge, routing, fallback, and hashes freeze. A failure seals this reserve and forbids same-reserve tuning.",
+  "layer_boundary": {
+    "official_stsg_runtime_allowed": false,
+    "official_functional_program_runtime_allowed": false,
+    "official_answer_allowed_before_final_evaluator": false,
+    "layer_a_oracle_stsg_results_are_not_layer_b_evidence": true
+  }
+}

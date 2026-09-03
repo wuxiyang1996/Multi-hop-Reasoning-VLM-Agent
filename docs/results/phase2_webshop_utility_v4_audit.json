@@ -1,0 +1,59 @@
+{
+  "schema_version": "phase2-webshop-utility-v4-independent-audit-v1",
+  "status": "PHASE2_WEBSHOP_V4_INDEPENDENT_AUDIT_PASSED",
+  "manifest_sha256": "16a900de39fa78bfbd489c6d95111d65f485fb0405e797d8129f4ea53ca18e2f",
+  "report_sha256": "56d03ada15c5c779d8f750ae110d9373558a17470f22caea1388c6846f7b5666",
+  "receipt_count": 160,
+  "receipt_sha256_aggregate": "c7a188e273dd70c933e6c3b8f1a45f68b8bc77f218c5bf2a29845780b6941bd3",
+  "formal_deterministic_fallback_attempts": 0,
+  "v2_failed_gates": [
+    "all_receipts_complete"
+  ],
+  "v4_result": {
+    "authentic_strict_successes": 19,
+    "raw_strict_successes": 9,
+    "authentic_vs_raw": {
+      "wins": 10,
+      "losses": 0,
+      "ties": 22,
+      "net_wins": 10,
+      "exact_two_sided_p": 0.001953125,
+      "reward_wins": 14,
+      "reward_losses": 1,
+      "reward_ties": 17,
+      "reward_net_wins": 13,
+      "reward_exact_two_sided_p": 0.0009765625,
+      "action_contrast_tasks": 21
+    },
+    "authentic_mean_reward": 0.7250000000000001,
+    "raw_mean_reward": 0.6038059163059164
+  },
+  "gates": {
+    "frozen_manifest_valid": true,
+    "exactly_160_receipts": true,
+    "independent_rebuild_byte_equivalent": true,
+    "saved_report_hash_reproduced": true,
+    "validated_status_reproduced": true,
+    "all_17_preregistered_gates_pass": true,
+    "all_four_phase2_cohorts_pairwise_disjoint": true,
+    "v2_failure_preserved_not_rewritten": true,
+    "v3_threaded_preflight_failure_preserved": true,
+    "singlethread_diagnosis_reproduced_all_goals": true,
+    "v4_singlethread_preflight_passed": true,
+    "singlethread_formal_server_frozen": true,
+    "failclosed_policy_is_task_source_condition_blind": true,
+    "all_formal_fallbacks_audited_safe_noop": true,
+    "six_distinct_source_artifact_hashes": true,
+    "zero_historical_target_outcome_reuse": true,
+    "exactly_one_target_reset_per_receipt": true
+  },
+  "file_sha256": {
+    "manifest": "903b0543d91c5e0268fb45ea70b82c38011b2e878e196ac17747ed50696d91cc",
+    "report": "a5d7654c5111ef30ee4fe24dc504009571a7c8e4b7d7a8d5154b02566d560617",
+    "decision_cache": "79be5f7a1d97cdde41c309fba95406519581eb1f3f1835ac357301e24327bdf9",
+    "formal_log": "f91687ff10dda0e59bb300c19b69229633d90ad7f16384a38369291ee0c19bd9",
+    "server_log": "92655b0c05a49768ba4ab2368f89d2187dd4f8bd6a5568fae4a9d622086a33a5",
+    "v4_preflight": "ebe7ebe23fe6acd569d948286f43a78d52d6c12c9c43d9b03054927897b6847f"
+  },
+  "audit_sha256": "1eb63e955e85eef85ab1642f039490b47a84de0fb745d58e433bb3f272e8aac3"
+}

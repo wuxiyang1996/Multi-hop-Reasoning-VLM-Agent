@@ -1,0 +1,92 @@
+{
+  "schema_version": "agqa-query-grounder-v2-action-genome-qualification-v1",
+  "status": "FROZEN_AFTER_CONSUMED_AGTRAIN_DEVELOPMENT_BEFORE_AGTEST_QUALIFICATION",
+  "parent_protocol": "configs/agqa2_query_grounder_v2_development_protocol.json",
+  "supersedes_development_amendment": "configs/agqa2_query_grounder_v2_development_amendment_v6.json",
+  "formal_reserve_consumed": false,
+  "claim_boundary": "Target-native grounding qualification only; no game-transfer or final-QA claim is authorized by this stage.",
+  "authority": {
+    "task_answers_visible_to_grounder": false,
+    "official_stsg_visible_to_grounder": false,
+    "functional_program_visible_to_grounder": false,
+    "per_video_action_genome_boxes_or_relations_visible_to_grounder": false,
+    "source_controller_visible_to_grounder": false,
+    "target_outcomes_visible_to_grounder": false,
+    "public_action_genome_object_relation_ontology_allowed": true,
+    "public_charades_action_ontology_allowed": true,
+    "official_action_genome_split_metadata_used_by_evaluator_audit_only": true
+  },
+  "held_out_split": {
+    "sgdet_training_split": "Action Genome train",
+    "qualification_split": "AGQA balanced test / Action Genome test",
+    "formal_split": "AGQA balanced test / Action Genome test",
+    "qualification_and_formal_must_be_video_disjoint": true,
+    "action_genome_annotation_sha256_for_split_audit_only": "3a1792f2ad4d5d60547fcdc9f54262844b90a1ace9e7a4fa56d031d3d0cb7960"
+  },
+  "frozen_grounder": {
+    "sgdet": {
+      "implementation": "TEMPURA/unbiasedSGG prediction-only sgdet",
+      "upstream_commit": "976babd45f1d14f6d7386188e9265507cf0f07dc",
+      "detector_checkpoint_sha256": "41584fb2e53013cc68db617333efcf4bb4e18d812f71670516414b14002e6222",
+      "relation_checkpoint_sha256": "81b8b19d88f2b73ca03549cb4febb0fc511cd0deca2750caf83aceaddbe5d7ee",
+      "patched_transformer_sha256": "8ce982855fd02b2ab116c7414726034003fa9364cda6617c478221f4246cebcf",
+      "uniform_frame_budget": 64,
+      "minimum_object_score": 0.05,
+      "forbidden_modes": ["predcls", "sgcls"]
+    },
+    "action_view": {
+      "implementation": "FAIR PyTorchVideo SlowFast-R50 Charades checkpoint",
+      "sampling": "uniform48_three_overlapping_32_frame_views",
+      "unique_sampled_frame_budget": 48,
+      "frame_presentation_budget": 96,
+      "dense_320_frame_variant_rejected_on_consumed_development": true
+    },
+    "stable_tracking": {
+      "same_class_only": true,
+      "within_frame_nms_iou": 0.7,
+      "minimum_track_affinity": 0.15,
+      "maximum_sampled_frame_gap": 6
+    },
+    "typed_event_deduplication": {
+      "predicate_and_typed_track_roles_must_match": true,
+      "minimum_interval_iou": 0.5
+    },
+    "candidate_fusion": {
+      "method": "reciprocal_rank_fusion",
+      "sgdet_weight": 0.6,
+      "slowfast_weight": 0.4,
+      "predicate_specific_whitelist_or_routing": false
+    },
+    "candidate_confidence": {
+      "definition": "minimum of weighted pairwise top share and maximum absolute frozen-neural evidence",
+      "support_threshold": 0.675,
+      "selection_rule": "largest threshold on the consumed 80-row AG-train development diagnostic retaining at least 20 percent coverage; no predicate or answer-conditioned rule",
+      "development_precision_at_threshold": 0.8125,
+      "development_coverage_at_threshold": 0.2
+    }
+  },
+  "qualification_cohort": {
+    "videos": 40,
+    "query_tasks_per_video": 2,
+    "query_tasks": 80,
+    "must_exclude_all_prior_raw_video_exposure": true,
+    "must_be_action_genome_test": true
+  },
+  "qualification_gates": {
+    "provider_and_contract_success_fraction_minimum": 0.95,
+    "gold_entity_present_in_inventory_fraction_minimum": 0.45,
+    "unique_supported_requested_role_precision_minimum": 0.6,
+    "unique_supported_coverage_fraction_minimum": 0.2,
+    "residual_duplicate_typed_event_key_count_maximum": 0,
+    "authority_safe_receipt_fraction": 1.0,
+    "held_out_action_genome_split_fraction": 1.0
+  },
+  "decision": {
+    "if_all_gates_pass": "Freeze code, hashes, thresholds, frame budgets and qualification receipt; then allocate a mutually video-disjoint broad formal reserve.",
+    "if_any_gate_fails": "Do not open a formal reserve and do not tune on qualification outcomes."
+  },
+  "formal_secondary_target": {
+    "overall_source_induced_accuracy_strictly_above": 0.55,
+    "not_a_qualification_gate": true
+  }
+}

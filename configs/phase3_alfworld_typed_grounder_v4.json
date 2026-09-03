@@ -1,0 +1,41 @@
+{
+  "schema_version": "phase3-alfworld-typed-grounder-training-v4",
+  "status": "ADAPTIVE_TARGET_NATIVE_OPTION_EFFECTS_FORMAL_UNOPENED",
+  "claim_boundary": "Adaptive follow-up after exact-action horizon grounding preserved target top1 but produced no positive online transfer. Heads now predict target-native option occurrence over the same 1/4/8 transition horizons; concrete ALFWorld actions remain controlled by the frozen target policy factor. No formal task was reset and source IR is unchanged.",
+  "blocked_predecessors": [
+    "V1 exact-action grounder lacked target-policy support and caused strong negative transfer",
+    "V2/V3 risk-first exact-action grounding matched neural behavior but source-induced achieved 4/11 versus neural 5/11 on consumed qualification"
+  ],
+  "target_adaptation": {
+    "receipts": "runs/multisource_alfworld_neurosymbolic_v2/adaptation_expert_receipts.json",
+    "policy_grounder": "runs/sokoban_alfworld_effect_transfer_v2/masked_target_grounder.json"
+  },
+  "source_programs": [
+    "configs/phase3_source_induction_v3/frozen_reserve/programs/candy_crush.json",
+    "configs/phase3_source_induction_v3/frozen_reserve/programs/gymv_columns.json",
+    "configs/phase3_source_induction_v3/frozen_reserve/programs/gymv_streets_of_rage_2.json",
+    "configs/phase3_source_induction_v3/frozen_reserve/programs/gymv_strider.json",
+    "configs/phase3_source_induction_v3/frozen_reserve/programs/gymv_thunder_force_iii.json",
+    "configs/phase3_source_induction_v3/frozen_reserve/programs/tetris.json"
+  ],
+  "model": {
+    "feature_bins": 192,
+    "hidden_units": 16,
+    "alpha": 0.5,
+    "maximum_iterations": 300,
+    "maximum_per_class_per_state": 8,
+    "seed": 2026081604,
+    "label_granularity": "target_native_option"
+  },
+  "qualification": {
+    "policy_support_exponent_grid": [4.0, 16.0, 32.0, 64.0],
+    "training_minimum_contrast_rate": 0.05,
+    "frozen_thresholds": {
+      "minimum_each_head_auc": 0.65,
+      "minimum_portfolio_applicability_rate": 0.95,
+      "minimum_source_permuted_action_contrast_rate": 0.03,
+      "maximum_source_top1_drop_vs_neural": 0.05,
+      "maximum_source_top1_drop_vs_generic": 0.05
+    }
+  }
+}

@@ -1,0 +1,92 @@
+{
+  "schema_version": "discoveryworld-normal-formal-early-stop-v22",
+  "status": "FORMAL_VALIDATION_FAILED_COVERAGE_IMPOSSIBLE",
+  "claim": "V22 does not validate held-out game-to-DiscoveryWorld transfer. Three completed Normal target rollouts contained zero predeclared DROP/PUT fork actions, making the frozen minimum of four eligible forks impossible even if all three remaining tasks were opened.",
+  "frozen_protocol": {
+    "candidate_commit": "eac08378344b1f8cb2b295b3d4820a1ae4f03fa8",
+    "protocol_file_sha256": "d67751d6ead8d1f1cd4e83d92e900a9eff59f65d28b613f15cec8ad04aa71cee",
+    "preformal_receipt_sha256": "4c4ee380cc75e92c6488535b26809b08b3bfb78f48d098abce26aeed3bb2880f",
+    "authorized_tasks": 6,
+    "minimum_eligible_forks": 4,
+    "target_acquisition_horizon": 96,
+    "allowed_commit_actions": ["DROP", "PUT"]
+  },
+  "early_stop": {
+    "completed_opened_tasks": 3,
+    "observed_eligible_forks": 0,
+    "remaining_unopened_tasks": 3,
+    "maximum_possible_final_eligible_forks": 3,
+    "coverage_gate_passed": false,
+    "reason": "OBSERVED_ELIGIBLE_PLUS_REMAINING_TASKS_BELOW_FROZEN_MINIMUM",
+    "matched_transfer_arms_run": false
+  },
+  "opened_tasks": [
+    {
+      "task_id": "space_sick.normal.seed2",
+      "steps": 96,
+      "official_success": false,
+      "score_normalized": 0.05263157894736842,
+      "invalid_native_actions": 3,
+      "schema_fallback_steps": 7,
+      "policy_oracle_scorecard_use": false,
+      "episode_self_hash_valid": true,
+      "episode_sha256": "10bb39df0e8dafd137bd6bf169b8fd14a210e71661fdf96fd2ef6b3f817e5dcd",
+      "episode_file_sha256": "7e8ccf3bfc92ee1e19be0f177a284c22f35bf283aa261a38568533ff1ad51286",
+      "fork_eligible": false,
+      "fork_reason": "NO_PREDECLARED_COMMIT_ACTION",
+      "fork_receipt_sha256": "1114f16df5060c5ee8b5e42c525ce77a34062593627bab9707831352d8373d74"
+    },
+    {
+      "task_id": "proteomics.normal.seed2",
+      "steps": 96,
+      "official_success": false,
+      "score_normalized": 0.5,
+      "invalid_native_actions": 0,
+      "schema_fallback_steps": 6,
+      "policy_oracle_scorecard_use": false,
+      "episode_self_hash_valid": true,
+      "episode_sha256": "4e3ebe3894542f242f2ca2f691ff1f430bdff0ec98cedeb3750604653c380f1e",
+      "episode_file_sha256": "fc5211c6d8c41fe1c8a02a6aebb4864d22a23433a54d9a162e23efcf763baa58",
+      "fork_eligible": false,
+      "fork_reason": "NO_PREDECLARED_COMMIT_ACTION",
+      "fork_receipt_sha256": "d80034bd7209305ac2bc77a077d5dedb0845e0243059be04f2e2a0004ce302d7"
+    },
+    {
+      "task_id": "space_sick.normal.seed3",
+      "steps": 96,
+      "official_success": false,
+      "score_normalized": 0.10526315789473684,
+      "invalid_native_actions": 6,
+      "schema_fallback_steps": 5,
+      "policy_oracle_scorecard_use": false,
+      "episode_self_hash_valid": true,
+      "episode_sha256": "31861237ab50c84285b2252285aa3577ea3e5e4adb119a0006c7cdc3ec0d48ce",
+      "episode_file_sha256": "4383ce802d469b23c08577238572828737096b999c68700ceb73d260dc206a1b",
+      "fork_eligible": false,
+      "fork_reason": "NO_PREDECLARED_COMMIT_ACTION",
+      "fork_receipt_sha256": "35e5524e8f9afd90bb2f5aa78c34c61545580621b9ff07a6df6a073a37cc4435"
+    }
+  ],
+  "opened_aggregate": {
+    "successes": 0,
+    "mean_score_normalized": 0.21929824561403508,
+    "invalid_native_actions": 9,
+    "schema_fallback_steps": 18,
+    "zero_policy_oracle_scorecard_use": true
+  },
+  "unopened_tasks_preserved": [
+    "proteomics.normal.seed3",
+    "space_sick.normal.seed4",
+    "proteomics.normal.seed4"
+  ],
+  "interpretation": {
+    "adaptation_mechanism_result": "V21 remains a valid 4/4 vs 3/4 matched success rescue on consumed Easy forks.",
+    "held_out_result": "No eligible held-out fork was reached, so V22 supplies no held-out efficacy estimate and fails its pre-registered coverage gate.",
+    "formal_design_error": "Difficulty did not preserve the intervention interface: Space Sick Normal requires ten safe colonist feedings through Chef/dialog dynamics, unlike Space Sick Easy's final PUT into a jar, so a DROP/PUT fork was structurally inapplicable despite the shared scenario name.",
+    "proteomics_blocker": "Proteomics Normal preserves the final DROP interface, but target-native acquisition measured only three of five species and never reached the flag/statue decision state.",
+    "dominant_blocker": "Applicability was assigned by scenario label rather than task-native action/effect schema, compounded by weak target acquisition on the one compatible Normal interface.",
+    "not_supported": "A claim that game-to-DiscoveryWorld transfer is validated on held-out Normal tasks."
+  },
+  "decision_cache_file_sha256": "eddabbba3102f464ec7016ffa05ee3d21d0f3f456dbe11eb818acd7509fd4e51",
+  "summary_sha256": "2bc6181e30e45e888734fb0c69f97976cc2e50ef656ec90767523888cb25cb92"
+}

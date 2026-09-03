@@ -1,0 +1,68 @@
+{
+  "schema_version": "agqa2-program-transfer-development-v1",
+  "status": "CONSUMED_METADATA_DEVELOPMENT_ONLY",
+  "claim_boundary": "PROGRAM_FAMILY_AND_TYPED_APPLICABILITY_AUDIT_ONLY;NO_VIDEO_GROUNDING;NO_QA_SUCCESS;NOT_AN_UNTOUCHED_SPLIT",
+  "dataset": {
+    "archive_path": "/fs/gamma-projects/vlm-robot/datasets/AGQA2-official/AGQA_balanced.zip",
+    "archive_sha256": "3cd4cc741864ac4bb875e3c1dc41d0ddea559259059b01d229527b08323bea0d",
+    "entry": "AGQA_balanced/test_balanced.txt",
+    "official_url": "https://agqa-decomp.cs.washington.edu/data/agqa2/AGQA_balanced.zip",
+    "split_use": "CONSUMED_METADATA_DEVELOPMENT_ONLY",
+    "raw_video_download_authorized": false,
+    "visual_feature_download_authorized": false
+  },
+  "compiler": {
+    "module_path": "src/motif_transfer/agqa_program_transfer.py",
+    "module_sha256": "8bdbb0bc7e0a3fdae0c5df0c5c8c469c009e85062a1999fda79f77874a537b09",
+    "input_fields": [
+      "task_id",
+      "program"
+    ],
+    "forbidden_fields": [
+      "answer",
+      "sg_grounding",
+      "global",
+      "local",
+      "semantic",
+      "structural",
+      "source_game_identity",
+      "video_frames",
+      "target_action"
+    ],
+    "target_grounder_sha256": "agqa2-public-functional-program-obligation-compiler-v1"
+  },
+  "sources": {
+    "goal_relation": {
+      "artifact_path": "runs/sokoban_goal_relation_macro_v3/artifact.json",
+      "artifact_file_sha256": "a0edf3b2f4e095c3e31e1eec45c284aed58d83c8a9b49d0d880cd93027148b1c",
+      "confirmation_path": "runs/sokoban_goal_relation_macro_v3/fresh_confirmation_report.json",
+      "confirmation_file_sha256": "c7e8cd6969eea897513e11e4ac20db27ada1f9d06d69b85e2844020d931e9af7"
+    },
+    "arcade_report": {
+      "path": "runs/phase3_source_function_v4_reserve/report.json",
+      "file_sha256": "86c833250f3555c0548785eeea6373ef0430ee9c51fad314584213fbac92e121"
+    },
+    "temporal_pair": {
+      "source_game": "candy_crush",
+      "artifact_path": "configs/phase3_source_function_v4/frozen_reserve/programs/candy_crush.json",
+      "artifact_file_sha256": "762beb66b1738b5b9deff3b47ddc0e82d708ca33e1125a4b63f0ce1ddbb97741"
+    },
+    "temporal_single": {
+      "source_game": "gymv_columns",
+      "artifact_path": "configs/phase3_source_function_v4/frozen_reserve/programs/gymv_columns.json",
+      "artifact_file_sha256": "c81902a54dcc0fe31b4f50a6b4ca8e79d776ecb82da7d3223e40e014fec04034"
+    }
+  },
+  "development_expectations_from_consumed_test_metadata": {
+    "questions": 669207,
+    "videos": 1814,
+    "routes": {
+      "COMPOSITE_ABSTAIN": 595013,
+      "RELATION_RECURRENT": 25542,
+      "TEMPORAL_PAIR_RECURRENT": 15936,
+      "TEMPORAL_SINGLE_NONRECURRENT": 13255,
+      "NO_EXACT_SOURCE_TYPE": 19461
+    },
+    "selected": 54733
+  }
+}

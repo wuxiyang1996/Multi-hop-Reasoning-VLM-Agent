@@ -1,0 +1,1093 @@
+{
+  "schema_version": 1,
+  "task_id": "webshop.146",
+  "condition": "raw_target_only",
+  "goal": "Find me easy use bathing accessories with long handle for dead skin, and price lower than 40.00 dollars",
+  "initial_state_hash": "f88ca2d9e826fdf24e966f95a12cc0e3d55e0e581027ad5af589741608e1a68d",
+  "maximum_steps": 12,
+  "steps": [
+    {
+      "step": 0,
+      "prompt_sha256": "cf0b87987b3fe2a31c2960c888a1225bb3f2d67018d7ebfc83a8be7a3bc84d2e",
+      "response_sha256": "b089990e6f6a1c8da226f3812ee7a1cd3faa5b9b1c5c755fa4e86d12c91367f2",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "b089990e6f6a1c8da226f3812ee7a1cd3faa5b9b1c5c755fa4e86d12c91367f2",
+          "completion_diagnostic": {
+            "character_count": 273,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": false,
+            "original_usage": {
+              "prompt_tokens": 387,
+              "completion_tokens": 67,
+              "total_tokens": 454,
+              "cost": 0.000262,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.000262,
+                "upstream_inference_prompt_cost": 0.0001548,
+                "upstream_inference_completions_cost": 0.0001072
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 5
+        }
+      ],
+      "before_hash": "7889028686173589c003e1c63727ce2f5cc9194533dcddda91e5b4a65bac8aae",
+      "candidates": [
+        "fill('18','bathing accessories long handle dead skin')",
+        "fill('18','bathing accessories long handle')",
+        "fill('18','bathing accessories dead skin')",
+        "fill('18','bathing accessories under 40')",
+        "noop()"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "fill",
+          "url_phase": "landing",
+          "element_role": "textbox",
+          "element_text": "[18] textbox 'Search...', required",
+          "action_bid": "18",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false
+        },
+        {
+          "verb": "fill",
+          "url_phase": "landing",
+          "element_role": "textbox",
+          "element_text": "[18] textbox 'Search...', required",
+          "action_bid": "18",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false
+        },
+        {
+          "verb": "fill",
+          "url_phase": "landing",
+          "element_role": "textbox",
+          "element_text": "[18] textbox 'Search...', required",
+          "action_bid": "18",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false
+        },
+        {
+          "verb": "fill",
+          "url_phase": "landing",
+          "element_role": "textbox",
+          "element_text": "[18] textbox 'Search...', required",
+          "action_bid": "18",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false
+        },
+        {
+          "verb": "noop",
+          "url_phase": "landing",
+          "element_role": "other",
+          "element_text": "",
+          "action_bid": null,
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": true
+        }
+      ],
+      "target_features": [
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.9809542664690936,
+          0.008910126680510508,
+          0.008915589732162521,
+          0.007047382472608437
+        ],
+        [
+          0.9809542664690936,
+          0.008910126680510508,
+          0.008915589732162521,
+          0.007047382472608437
+        ],
+        [
+          0.9809542664690936,
+          0.008910126680510508,
+          0.008915589732162521,
+          0.007047382472608437
+        ],
+        [
+          0.9809542664690936,
+          0.008910126680510508,
+          0.008915589732162521,
+          0.007047382472608437
+        ],
+        [
+          0.9809542664690936,
+          0.008910126680510508,
+          0.008915589732162521,
+          0.007047382472608437
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": false,
+        "visible_goal_constraint_unsatisfied": false,
+        "prior_action_had_no_effect": false
+      },
+      "selected_index": 0,
+      "selected_action": "fill('18','bathing accessories long handle dead skin')",
+      "changed_from_target_rank_zero": false,
+      "abstract_kind": "TARGET",
+      "source_abstained": true,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "target_rank_zero",
+      "reward": 0.0,
+      "terminated": false,
+      "truncated": false,
+      "after_hash": "78009db42587771d8f8928a63a37bb7e1f7f8ae29c353c7b2f117da884cd66d2"
+    },
+    {
+      "step": 1,
+      "prompt_sha256": "2b8508811c83c01e0c5a937ab5ba2067619bc6b5430baf0825e84ec598849d1d",
+      "response_sha256": "4a7b7183c4cf732cc37dfd48337e555a384660ce39267673ae15d9aed644327d",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "4a7b7183c4cf732cc37dfd48337e555a384660ce39267673ae15d9aed644327d",
+          "completion_diagnostic": {
+            "character_count": 61,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": false,
+            "original_usage": {
+              "prompt_tokens": 470,
+              "completion_tokens": 19,
+              "total_tokens": 489,
+              "cost": 0.0002184,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0002184,
+                "upstream_inference_prompt_cost": 0.000188,
+                "upstream_inference_completions_cost": 3.04e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 2
+        }
+      ],
+      "before_hash": "78009db42587771d8f8928a63a37bb7e1f7f8ae29c353c7b2f117da884cd66d2",
+      "candidates": [
+        "click('20')",
+        "noop()"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "click",
+          "url_phase": "landing",
+          "element_role": "button",
+          "element_text": "[20] button 'Search'",
+          "action_bid": "20",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "noop",
+          "url_phase": "landing",
+          "element_role": "other",
+          "element_text": "",
+          "action_bid": null,
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": true
+        }
+      ],
+      "target_features": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.09090909090909091
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.09090909090909091
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.9838093043631316,
+          0.007810760169351171,
+          0.007815314258614531,
+          0.007254276463657209
+        ],
+        [
+          0.9794556923764357,
+          0.009232307754060344,
+          0.009238037421806178,
+          0.007036402034354836
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": false,
+        "visible_goal_constraint_unsatisfied": false,
+        "prior_action_had_no_effect": false
+      },
+      "selected_index": 0,
+      "selected_action": "click('20')",
+      "changed_from_target_rank_zero": false,
+      "abstract_kind": "TARGET",
+      "source_abstained": true,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "target_rank_zero",
+      "reward": 0.0,
+      "terminated": false,
+      "truncated": false,
+      "after_hash": "fdd84e366c58823af1b24c474808760f0ac51d91ef0850c46456a88cfac537ad"
+    },
+    {
+      "step": 2,
+      "prompt_sha256": "9e2a3363bb0214da8d18ac559fa02a3cbdf32305bc01e49793d6fc0fb2abf56c",
+      "response_sha256": "3c2821ea18c7f33105d6e3a8cc9a981bb98f6ee61688ebe46bd787fe33a5c6b8",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "3c2821ea18c7f33105d6e3a8cc9a981bb98f6ee61688ebe46bd787fe33a5c6b8",
+          "completion_diagnostic": {
+            "character_count": 144,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": false,
+            "original_usage": {
+              "prompt_tokens": 3246,
+              "completion_tokens": 42,
+              "total_tokens": 3288,
+              "cost": 0.0013656,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0013656,
+                "upstream_inference_prompt_cost": 0.0012984,
+                "upstream_inference_completions_cost": 6.72e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 5
+        }
+      ],
+      "before_hash": "fdd84e366c58823af1b24c474808760f0ac51d91ef0850c46456a88cfac537ad",
+      "candidates": [
+        "click('47')",
+        "click('59')",
+        "click('119')",
+        "click('107')",
+        "click('143')"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[47] link 'B09GF68QPJ', url=\"http://127.0.0.1:3000/item_page/fixed_146/B09GF68QPJ/%5B'bathing',%20'accessories',%20'long',%20'handle',%20'dead',%20'skin'%5D/1/%7B%7D\"",
+          "action_bid": "47",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "accessories",
+            "bathing",
+            "dead",
+            "handle",
+            "long",
+            "skin"
+          ],
+          "goal_overlap": 0.2727272727272727,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[59] link 'B08SKT2TCH', url=\"http://127.0.0.1:3000/item_page/fixed_146/B08SKT2TCH/%5B'bathing',%20'accessories',%20'long',%20'handle',%20'dead',%20'skin'%5D/1/%7B%7D\"",
+          "action_bid": "59",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "accessories",
+            "bathing",
+            "dead",
+            "handle",
+            "long",
+            "skin"
+          ],
+          "goal_overlap": 0.2727272727272727,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[119] link 'B083WSK6F2', url=\"http://127.0.0.1:3000/item_page/fixed_146/B083WSK6F2/%5B'bathing',%20'accessories',%20'long',%20'handle',%20'dead',%20'skin'%5D/1/%7B%7D\"",
+          "action_bid": "119",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "accessories",
+            "bathing",
+            "dead",
+            "handle",
+            "long",
+            "skin"
+          ],
+          "goal_overlap": 0.2727272727272727,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[107] link 'B09DD2C1XD', url=\"http://127.0.0.1:3000/item_page/fixed_146/B09DD2C1XD/%5B'bathing',%20'accessories',%20'long',%20'handle',%20'dead',%20'skin'%5D/1/%7B%7D\"",
+          "action_bid": "107",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "accessories",
+            "bathing",
+            "dead",
+            "handle",
+            "long",
+            "skin"
+          ],
+          "goal_overlap": 0.2727272727272727,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[143] link 'B094JTNPWK', url=\"http://127.0.0.1:3000/item_page/fixed_146/B094JTNPWK/%5B'bathing',%20'accessories',%20'long',%20'handle',%20'dead',%20'skin'%5D/1/%7B%7D\"",
+          "action_bid": "143",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "accessories",
+            "bathing",
+            "dead",
+            "handle",
+            "long",
+            "skin"
+          ],
+          "goal_overlap": 0.2727272727272727,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        }
+      ],
+      "target_features": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.2727272727272727,
+          0.0,
+          0.0,
+          0.0,
+          0.18181818181818182
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.2727272727272727,
+          0.0,
+          0.0,
+          0.0,
+          0.18181818181818182
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.2727272727272727,
+          0.0,
+          0.0,
+          0.0,
+          0.18181818181818182
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.2727272727272727,
+          0.0,
+          0.0,
+          0.0,
+          0.18181818181818182
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.2727272727272727,
+          0.0,
+          0.0,
+          0.0,
+          0.18181818181818182
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.9404599485541278,
+          0.006982934725754531,
+          0.006988059669017832,
+          0.005549744939378745
+        ],
+        [
+          0.9404599485541278,
+          0.006982934725754531,
+          0.006988059669017832,
+          0.005549744939378745
+        ],
+        [
+          0.9404599485541278,
+          0.006982934725754531,
+          0.006988059669017832,
+          0.005549744939378745
+        ],
+        [
+          0.9404599485541278,
+          0.006982934725754531,
+          0.006988059669017832,
+          0.005549744939378745
+        ],
+        [
+          0.9404599485541278,
+          0.006982934725754524,
+          0.006988059669017832,
+          0.005549744939378745
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": false,
+        "visible_goal_constraint_unsatisfied": false,
+        "prior_action_had_no_effect": false
+      },
+      "selected_index": 0,
+      "selected_action": "click('47')",
+      "changed_from_target_rank_zero": false,
+      "abstract_kind": "TARGET",
+      "source_abstained": true,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "target_rank_zero",
+      "reward": 0.0,
+      "terminated": false,
+      "truncated": false,
+      "after_hash": "9eeca2daf5922d49715192363d8e50744b5979e6678547e99be1c1054d56443e"
+    },
+    {
+      "step": 3,
+      "prompt_sha256": "5cf96c10750007a2af5ca7e3d26b632fba24e8831344fd4183f8ad3fab79bb16",
+      "response_sha256": "e554ebd30a5f58326ba5de406b63df0d88f4e8063ebd585803c377f1c30e8e4f",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "e554ebd30a5f58326ba5de406b63df0d88f4e8063ebd585803c377f1c30e8e4f",
+          "completion_diagnostic": {
+            "character_count": 141,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": false,
+            "original_usage": {
+              "prompt_tokens": 808,
+              "completion_tokens": 42,
+              "total_tokens": 850,
+              "cost": 0.0003904,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0003904,
+                "upstream_inference_prompt_cost": 0.0003232,
+                "upstream_inference_completions_cost": 6.72e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 5
+        }
+      ],
+      "before_hash": "9eeca2daf5922d49715192363d8e50744b5979e6678547e99be1c1054d56443e",
+      "candidates": [
+        "click('42')",
+        "click('35')",
+        "click('32')",
+        "click('38')",
+        "click('17')",
+        "go_back()"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[42] button 'Buy Now'",
+          "action_bid": "42",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": true,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[35] button 'Features'",
+          "action_bid": "35",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[32] button 'Description'",
+          "action_bid": "32",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[38] button 'Reviews'",
+          "action_bid": "38",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[17] button 'Back to Search'",
+          "action_bid": "17",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "go_back",
+          "url_phase": "item_page",
+          "element_role": "other",
+          "element_text": "",
+          "action_bid": null,
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        }
+      ],
+      "target_features": [
+        [
+          1.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.2727272727272727
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.2727272727272727
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.2727272727272727
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.2727272727272727
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.2727272727272727
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.2727272727272727
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.994885157686231,
+          0.9470821687910175,
+          0.9471222562405014,
+          0.008508245475611022
+        ],
+        [
+          0.981637754133237,
+          0.00832013658879997,
+          0.00832510698187581,
+          0.0072617329483947385
+        ],
+        [
+          0.981637754133237,
+          0.00832013658879997,
+          0.00832510698187581,
+          0.0072617329483947385
+        ],
+        [
+          0.981637754133237,
+          0.00832013658879997,
+          0.00832510698187581,
+          0.0072617329483947385
+        ],
+        [
+          0.981637754133237,
+          0.00832013658879997,
+          0.00832510698187581,
+          0.0072617329483947385
+        ],
+        [
+          0.7172731004354966,
+          0.00409714339221366,
+          0.004101192257724013,
+          0.004113872349845248
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": false,
+        "visible_goal_constraint_unsatisfied": false,
+        "prior_action_had_no_effect": false
+      },
+      "selected_index": 0,
+      "selected_action": "click('42')",
+      "changed_from_target_rank_zero": false,
+      "abstract_kind": "TARGET",
+      "source_abstained": true,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "target_rank_zero",
+      "reward": 1.0,
+      "terminated": true,
+      "truncated": false,
+      "after_hash": "bc316e7cbd8e8aad15ddd4961f5886f23793bcd700dc14ceb9903be4f507a691"
+    }
+  ],
+  "step_count": 4,
+  "official_reward": 1.0,
+  "strict_success": true,
+  "pass_success": true,
+  "terminated": true,
+  "truncated": false,
+  "failure": null,
+  "failure_traceback": null,
+  "changed_from_target_rank_zero_count": 0,
+  "source_decision_count": 0,
+  "session_namespace": "phase2-ws-16a900de39-c12-raw-target-only",
+  "manifest_sha256": "16a900de39fa78bfbd489c6d95111d65f485fb0405e797d8129f4ea53ca18e2f",
+  "target_identity": "webshop.synthetic.phase2v4.seed735575332.index146.5ad66c7f222fadb8",
+  "goal_sha256": "5ad66c7f222fadb8a3087bb5cba542429d2c5f44aa04be244821da1af9c25d70",
+  "source_game": "tetris",
+  "source_artifact_sha256": "585e5b29303fcbe23e8f8b5414ea389ea6257c96f55fa64897661fe2e2b306e7",
+  "v16_controller": {
+    "condition": "raw_target_only",
+    "source_artifact_sha256": "585e5b29303fcbe23e8f8b5414ea389ea6257c96f55fa64897661fe2e2b306e7",
+    "source_decisions": 0,
+    "source_action_counts": {},
+    "target_fallbacks": 0,
+    "coverage_controller": {
+      "condition": "target_only",
+      "coverage_enabled": false,
+      "coverage_ready": true,
+      "goal_option_signatures": [],
+      "coverage_interventions": 0,
+      "source_calls_after_coverage": 0,
+      "rejected_product_ids": [],
+      "last_selected_product_id": "B09GF68QPJ",
+      "anytime_reward_salvage": false,
+      "maximum_steps": 12,
+      "budget_abstentions": 0,
+      "product_ledger_resets": 0,
+      "ledger": {
+        "required": [],
+        "verified": [],
+        "missing": [],
+        "commit_authorized": false,
+        "pending_signature": null
+      }
+    },
+    "source_trace": []
+  },
+  "commit_audit": [
+    {
+      "step": 3,
+      "selected_action": "click('42')",
+      "authorized": false,
+      "coverage": {
+        "required": [],
+        "verified": [],
+        "missing": [],
+        "commit_authorized": false,
+        "pending_signature": null
+      }
+    }
+  ],
+  "unsafe_commits": [],
+  "historical_target_outcome_reused": false,
+  "target_reset_or_sample_open_count": 1,
+  "runtime_hashes": {
+    "runner": "0cf4f0c993f7b13915df4c5acf3455e1a5fd6b4d8db561972b4f7575536ccd81",
+    "controller": "478994c5da56ee783e59823a79f026dfa2f7185d0f733a835bfe11e5cdd46c38",
+    "utility_contract": "7b30994bd6b293af713e4b6ab414e16adc94ae02fdc943f4106f514668bfda85",
+    "source_artifact": "7c40f5baab7926435b58d2992ae20ca4eb07e1c72a4b59d9e1e377cde3b8e576",
+    "target_grounder": "bbf8a22ebec8e7ab6d55e570f230ba4fcb2b8630d1dc81bd24ba103f68701782"
+  },
+  "receipt_sha256": "e8a512828cdbb8103fac335df06d8473e709ca688c12163a8f3aa86bda80aeb4"
+}

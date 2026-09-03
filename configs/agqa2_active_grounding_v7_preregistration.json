@@ -1,0 +1,49 @@
+{
+  "claim_boundary": "V6_ADAPTED_RECURRENT_CONSENSUS;12_FRESH_CANDIDATES;OUTCOME_BLIND_TYPED_EVIDENCE_SELECTS_3_PER_SOURCE_TYPE_BEFORE_GOLD;NOT_UNTOUCHED",
+  "development_gates": {
+    "maximum_reported_provider_cost_usd": 0.1,
+    "maximum_typed_vs_direct_losses": 0,
+    "minimum_decisive_accuracy": 0.6666666666666666,
+    "minimum_decisive_executions": 6,
+    "minimum_route_correct": 8,
+    "minimum_typed_vs_direct_wins": 1,
+    "required_source_permuted_abstentions": 9,
+    "required_target_written_equivalent_matches": 9,
+    "required_valid_runtime_rows": 9
+  },
+  "development_manifest": "configs/agqa2_active_grounding_v3_development_manifest.json",
+  "failure_policy": {
+    "development": "MUST_REQUALIFY_WITHOUT_LOWERING_GATES",
+    "qualification": "FAIL_CLOSED_TO_MATCHED_DIRECT_BASELINE",
+    "reserve": "RUN_ONCE_ON_V7_FRESH_POOL;NO_POST_RESERVE_TUNING"
+  },
+  "reserve_gates": {
+    "maximum_reported_provider_cost_usd": 0.1,
+    "maximum_typed_vs_direct_losses": 0,
+    "minimum_decisive_accuracy": 0.6666666666666666,
+    "minimum_decisive_executions": 6,
+    "minimum_route_correct": 8,
+    "minimum_typed_vs_direct_wins": 1,
+    "required_source_permuted_abstentions": 9,
+    "required_target_written_equivalent_matches": 9,
+    "required_valid_runtime_rows": 9
+  },
+  "reserve_manifest": "configs/agqa2_active_grounding_v7_reserve_manifest.json",
+  "reserve_selection": "configs/agqa2_active_grounding_v7_reserve_selection.json",
+  "reserve_selection_sha256": "de124742cc412c098a9e4911af95efa4bbfcf5f0fa40d902cbe5269f795089d5",
+  "runtime_selection": {
+    "candidate_count": 12,
+    "forbidden": [
+      "direct_response",
+      "answer",
+      "program",
+      "scene_graph"
+    ],
+    "mode": "OUTCOME_BLIND_TYPED_EVIDENCE_RANK_V1",
+    "per_predicted_route": 3
+  },
+  "schema_version": "agqa2-active-grounding-preregistration-v7",
+  "status": "FROZEN_BEFORE_ANY_V7_NEURAL_CALL",
+  "v6_adaptation_result": "docs/results/agqa2_active_grounding_v6_reserve_result.json",
+  "v6_adaptation_result_file_sha256": "c5b4016081732384c407f09e1b8173516f8a8f9f4bfc1fed4ce553d5ba19e64b"
+}

@@ -8,6 +8,23 @@ MDP 中抽取的 motif、receipts 和 experiential knowledge 获得可归因收�
 [`docs/PROJECT_WIDE_EXPERIMENT_LEDGER.html`](docs/PROJECT_WIDE_EXPERIMENT_LEDGER.html)。
 旧 exact-topology motif binding 继续保留为强假设和 ablation，不再代表主 claim。
 
+## Source-only 9B neural-symbolic transfer（当前结果）
+
+独立于上面的 test-time motif 主协议，我们已经完成 source-intervention symbolic program
+transfer 的 9B controller substitution：Qwen3.5-9B LoRA 只使用 source 数据训练，在 WebShop、
+ALFWorld、DiscoveryWorld、TIRBench、CLEVRER、AGQA2 六个 benchmark 的冻结 replay 上达到
+`2,246/2,246` route exact，并保持 `1,864/1,864` success-critical native actions 等价。
+
+这覆盖六个 benchmark、五个 semantic domain（CLEVRER 与 AGQA2 同属 video understanding）。
+正式 success gain 继承自原 content-addressed formal runs，不是新的 live 9B rerun；target-native
+grounder/executor 仍然是 domain-specific。论文表、claim boundary 与 hashes 见
+[`docs/HARNESS_CONTROLLER_QWEN35_9B_SIX_BENCHMARK_V3_RESULTS.md`](docs/HARNESS_CONTROLLER_QWEN35_9B_SIX_BENCHMARK_V3_RESULTS.md)，
+机器可读 evidence map 见
+[`docs/results/harness_controller_qwen35_9b_six_benchmark_v3.json`](docs/results/harness_controller_qwen35_9b_six_benchmark_v3.json)，
+中英文实现网页见
+[`docs/neurosymbolic-skill-transfer-implementation-zh.html`](docs/neurosymbolic-skill-transfer-implementation-zh.html) 与
+[`docs/neurosymbolic-skill-transfer-implementation-en.html`](docs/neurosymbolic-skill-transfer-implementation-en.html)。
+
 当前 ALFWorld one-shot online smoke、失败审计和下一阶段 gates 见
 [`docs/ALFWORLD_ONE_SHOT_STATUS.md`](docs/ALFWORLD_ONE_SHOT_STATUS.md)。
 最新 GPT-5-mini weak-knowledge Harness canonical pilot、六条件结果、接口修复和多 seed

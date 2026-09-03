@@ -1,0 +1,76 @@
+{
+  "schema_version": 7,
+  "status": "FROZEN_BEFORE_FRESH_QUALIFICATION",
+  "claim_boundary": {
+    "qualification": "ONE_SHOT_FRESH_TIR_QUALIFICATION_OF_REAL_SOKOBAN_POSITION_VERIFY_COMMIT_TRANSFER; SUCCESS_AUTHORIZES_BUT_DOES_NOT_ITSELF_CONSUME_THE_PREVIOUSLY_RESERVED_FORMAL_SPLIT",
+    "heldout": "ONE_SHOT_FORMAL_TIR_CONFIRMATION_OF_REAL_SOKOBAN_EFFECT_PROGRAM_WITH_TARGET_NATIVE_GPT41MINI_GROUNDING; LIMITED_TO_FOUR_SINGLE_IMAGE_TIR_FAMILIES_AND_THE_FROZEN_WRAPPER_ACTION_SET"
+  },
+  "source_receipt": "docs/results/sokoban_effect_program_v2_compact_receipt.json",
+  "development_report": "docs/results/tir_sokoban_effect_v6_consumed_development_summary.json",
+  "dataset": {
+    "path": "/fs/gamma-projects/vlm-robot/datasets/TIR-Bench/TIR-Bench.json",
+    "file_sha256": "e764c780c53fdce2e0bb64846a8119b48b731c90c7168c6c202f270062684bc8",
+    "qualification_selection": "For each allowed family, exclude all previously consumed and reserved V3 IDs, require one image and a native A-F answer slot, then take the first three IDs after sorting sha256('tir-v7-fresh-qualification|' + sample_id). No prompt, image, answer value, or model outcome was read for selection."
+  },
+  "target": {
+    "benchmark": "TIR-Bench",
+    "families": ["maze", "refcoco", "rotation_game", "visual_search"],
+    "official_evaluator": "exact_answer_letter",
+    "target_native_actions": ["zoom_region", "read_text_region", "describe_region", "commit_answer_slot"]
+  },
+  "wrapper": {
+    "root": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent",
+    "package": "visual_reasoning_wrapper",
+    "execution_authority": "WRAPPER_TOOL_REGISTRY_AND_QUESTION_ROUTER"
+  },
+  "model": {
+    "provider": "openrouter",
+    "id": "openai/gpt-4.1-mini",
+    "base_url": "https://openrouter.ai/api/v1",
+    "timeout_seconds": 180,
+    "max_retries": 2,
+    "temperature": 0
+  },
+  "media": {
+    "overview_max_side": 768,
+    "evidence_max_side": 1280,
+    "jpeg_quality": 86
+  },
+  "interventions": {
+    "candidate_count": 4,
+    "minimum_overview_crop_side": 16,
+    "matched_fork_contract": "BASE_OVERVIEW_PLUS_EXACTLY_ONE_PARAMETERIZED_WRAPPER_INTERVENTION"
+  },
+  "splits": {
+    "qualification": [
+      "550", "17", "92",
+      "1148", "280", "959",
+      "59", "722", "875",
+      "578", "805", "272"
+    ],
+    "heldout": [
+      "1162", "911", "808", "1009", "1103", "751",
+      "651", "233", "318", "462", "939", "795",
+      "1157", "561", "1144", "1005", "768", "1024",
+      "1132", "842", "22", "1029", "879", "834"
+    ]
+  },
+  "qualification_authority": {
+    "report_path": "runs/tir_sokoban_effect_v7_frozen/qualification_report.json",
+    "required_status": "QUALIFICATION_GATE_PASSED_FREEZE_HELDOUT"
+  },
+  "integrity": {
+    "file_sha256": {
+      "src/motif_transfer/tir_sokoban_effect_harness.py": "085f8ec48cb8c63ed199a05708ecf71c95fd7c4f58dff1be319d075e071ab91a",
+      "scripts/run_tir_sokoban_effect_v7_frozen.py": "017c00264c0af09f40bd69975986e2ef2f99296219ec245581fe0db70f7a1fa4",
+      "scripts/run_active_tir_wrapper_transfer.py": "13bfa6b86550e7e73889e4dfeb42e2ef8097c8c8913a02dd8ea9c1a3fe79dc0b",
+      "src/motif_transfer/active_video_transfer.py": "04983c81d798072f3282329127e4e1d2ab1247dd385dbebb3c516d77e3851c59",
+      "src/motif_transfer/candidate_transfer_experiment.py": "c474486df1fc5d50cc6635e37e8819c089295c7cc8a77f8a9ce4aa3aa5d921f4",
+      "src/motif_transfer/visual_wrapper_bridge.py": "18c6e36ef8cffd7ce0531728459af14593905823d39d27b63985d6b68de1a522",
+      "docs/results/sokoban_effect_program_v2_compact_receipt.json": "8f175c0edda951eba2064e9c53a8db6a25cdfa9fb0de8049d371dbf5335c9e80",
+      "docs/results/tir_sokoban_effect_v6_consumed_development_summary.json": "7cda95f06a0f4426223c6f13f5cf9313815312dd0fd73c428cb21b2cc9b0e009",
+      "../Multi-hop-Reasoning-VLM-Agent/visual_reasoning_wrapper/tools_visual.py": "ea196ee32da95191e09bd798360ff691e2adc4dee627c47132ac9d8ab85f930a",
+      "../Multi-hop-Reasoning-VLM-Agent/visual_reasoning_wrapper/question_router.py": "8924531519aba88647946e9c49d4e9b7b10dbcacecd820336716f0392699b977"
+    }
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "schema_version": "agqa-query-grounder-v2-task-disjoint-qualification-v2-preoutcome-amendment-v1",
+  "status": "FROZEN_AFTER_PUBLIC_PARSER_SHAPE_AUDIT_BEFORE_V2_PIXEL_ACQUISITION_OR_TASK_OUTCOMES",
+  "parent_protocol": "configs/agqa2_query_grounder_v2_task_disjoint_qualification_v2.json",
+  "semantic_runtime": "runs/agqa2_query_grounder_v2_task_disjoint_qualification_v2/semantic_runtime.json",
+  "semantic_runtime_sha256": "236aa1cb8dd2cde2617baed12a93d8d24ad9e20bd34f9fc21cc646edd9bb62ac",
+  "public_shape_audit": {
+    "tasks": 80,
+    "syntactically_valid": 80,
+    "typed_requested_roles": {"patient": 48, "relation_object": 32},
+    "explicit_answer_bearing_predicate": 79,
+    "no_explicit_answer_bearing_predicate": 1,
+    "answers_read": false,
+    "official_programs_read": false,
+    "official_scene_graphs_read": false,
+    "pixels_read_by_this_audit": false
+  },
+  "frozen_structural_resolution": {
+    "rule": "Within the outer root QUERY_GOAL, never traverse nested QUERY_GOAL reference subgraphs; among typed relation descriptions prefer one containing an explicit public predicate and break ties by rightmost traversal order.",
+    "why": "AGQA compact semantics place the answer relation either after a temporal-window sibling or as the final child of a multi-anchor window; endpoint queries also contain a generic presence relation before the answer relation.",
+    "generic_missing_predicate_policy": "ABSTAIN_NO_EXPLICIT_PREDICATE",
+    "default_related_to_fallback_forbidden": true,
+    "task_or_predicate_specific_whitelist": false
+  },
+  "frozen_code_sha256": {
+    "src/motif_transfer/agqa_query_grounder_v2.py": "f2c158b98e09c1a19aeeef2e305d7098e366995fe710c29b57e0d5cd2eef92a5",
+    "scripts/build_agqa_action_genome_sgdet_query_plans.py": "0b660fdba517403398b4aa942c884c75c47fea08d6a554a9d99c42e3cc015418",
+    "scripts/compile_agqa_action_genome_query_grounder_v2.py": "1b976360fe78b2aefb8749c0f8dbe6ded9ba038ba35a16f4112796b9cd128e6f"
+  },
+  "tests": {"focused_passed": 20},
+  "qualification_gates_unchanged": true,
+  "candidate_support_threshold_unchanged": 0.675
+}

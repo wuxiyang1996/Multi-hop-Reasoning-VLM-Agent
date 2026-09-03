@@ -1,0 +1,78 @@
+{
+  "adaptation_gate": {
+    "failed_gates": [
+      "authentic_success_superior_to_edge_control",
+      "changed_tasks"
+    ],
+    "gates": {
+      "authentic_changes_exceed_edge_control": true,
+      "authentic_success_noninferior_to_target_only": true,
+      "authentic_success_superior_to_edge_control": false,
+      "changed_effects_each_claimed_effect": true,
+      "changed_source_edges": true,
+      "changed_tasks": false,
+      "no_failed_selected_postconditions": true,
+      "no_reopened_completed_slots": true,
+      "paired_net_win_nonnegative": true,
+      "required_option_invariance": true,
+      "source_admission_rate_range": true
+    },
+    "paired_authentic_vs_each_control": {
+      "losses": 0,
+      "net_wins": 0,
+      "ties": 16,
+      "wins": 0
+    },
+    "report_sha256": "56ed27678481795e030ab953281bddb6ce640fa17845e800bd2befac1fda754d",
+    "status": "ADAPTATION_GATE_FAILED_STOP",
+    "summaries": {
+      "authentic_slot_ir": {
+        "changed_by_effect": {
+          "BIND": 0,
+          "MUTATE": 0,
+          "RELATE": 3
+        },
+        "changed_effect_count": 3,
+        "changed_task_count": 2,
+        "mean_steps": 32.5,
+        "source_edge_changed_count": 3,
+        "successes": 13,
+        "tasks": 16
+      },
+      "edge_permuted_ir": {
+        "mean_steps": 32.4375,
+        "source_edge_changed_count": 0,
+        "successes": 13,
+        "tasks": 16
+      },
+      "property_permuted_router": {
+        "mean_steps": 32.4375,
+        "successes": 13,
+        "tasks": 16
+      },
+      "target_only": {
+        "mean_steps": 32.4375,
+        "successes": 13,
+        "tasks": 16
+      }
+    }
+  },
+  "confirmation_authorized": false,
+  "existing_valid_unseen_heldout_read": false,
+  "experiment_parameters": {
+    "claimed_changed_effects": [
+      "RELATE"
+    ],
+    "max_steps": 60,
+    "primary_endpoint": "OFFICIAL_SUCCESS_WITHIN_STEP_BUDGET",
+    "runner_seed": 99701
+  },
+  "frozen_hashes": {
+    "candidate_sha256": "bde081c501d389b6bb340b0deed136d6450b05ce21a60527939751125b00e2ac",
+    "manifest_sha256": "3fe6806df95c4d406dcb6b60bfb995e7c1c1e21043825f120afbac62fac0424e"
+  },
+  "schema_version": "budgeted-relation-edge-v11-result-summary",
+  "source_edge_behaviorally_nontrivial": true,
+  "source_edge_success_gain_replicated": false,
+  "verdict": "FRESH_NON_REPLICATION_STOP_BEFORE_CONFIRMATION"
+}

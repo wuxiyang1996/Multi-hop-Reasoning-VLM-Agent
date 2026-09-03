@@ -1,0 +1,1199 @@
+{
+  "schema_version": 1,
+  "task_id": "webshop.142",
+  "condition": "raw_target_only",
+  "goal": "Find me button tufted, mid century, high density, easy assemble dining sets with solid wood, wood frame for dining room with color: green, and price lower than 270.00 dollars",
+  "initial_state_hash": "92cb274097911a370103977b9312d3fc3755d7bd609f8981648beb10f2d5a378",
+  "maximum_steps": 12,
+  "steps": [
+    {
+      "step": 0,
+      "prompt_sha256": "08f42646040346a8fea75de6513a280aacbe23b6d45da36b9ba80c7969ef2d41",
+      "response_sha256": "5b8c2dc2eb9e333d58e0bb76b36573d59c848e1200fb890f1abecd3ce5fc794b",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "5b8c2dc2eb9e333d58e0bb76b36573d59c848e1200fb890f1abecd3ce5fc794b",
+          "completion_diagnostic": {
+            "character_count": 372,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": false,
+            "original_usage": {
+              "prompt_tokens": 447,
+              "completion_tokens": 90,
+              "total_tokens": 537,
+              "cost": 0.0003228,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0003228,
+                "upstream_inference_prompt_cost": 0.0001788,
+                "upstream_inference_completions_cost": 0.000144
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 5
+        }
+      ],
+      "before_hash": "716b8edaf890deffdb8461a4f1bf2ca8709b1feafdab036431304180fa18362a",
+      "candidates": [
+        "fill('18','button tufted mid century high density easy assemble solid wood wood frame dining room green under 270')",
+        "fill('18','button tufted dining sets green under 270')",
+        "fill('18','mid century dining sets green under 270')",
+        "fill('18','easy assemble dining sets green under 270')",
+        "click('20')"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "fill",
+          "url_phase": "landing",
+          "element_role": "textbox",
+          "element_text": "[18] textbox 'Search...', required",
+          "action_bid": "18",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false
+        },
+        {
+          "verb": "fill",
+          "url_phase": "landing",
+          "element_role": "textbox",
+          "element_text": "[18] textbox 'Search...', required",
+          "action_bid": "18",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false
+        },
+        {
+          "verb": "fill",
+          "url_phase": "landing",
+          "element_role": "textbox",
+          "element_text": "[18] textbox 'Search...', required",
+          "action_bid": "18",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false
+        },
+        {
+          "verb": "fill",
+          "url_phase": "landing",
+          "element_role": "textbox",
+          "element_text": "[18] textbox 'Search...', required",
+          "action_bid": "18",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "landing",
+          "element_role": "button",
+          "element_text": "[20] button 'Search'",
+          "action_bid": "20",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "button"
+          ],
+          "goal_overlap": 0.3333333333333333,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        }
+      ],
+      "target_features": [
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.3333333333333333,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.9809542664690936,
+          0.008910126680510508,
+          0.008915589732162521,
+          0.007047382472608437
+        ],
+        [
+          0.9809542664690936,
+          0.008910126680510508,
+          0.008915589732162521,
+          0.007047382472608437
+        ],
+        [
+          0.9809542664690936,
+          0.008910126680510508,
+          0.008915589732162521,
+          0.007047382472608437
+        ],
+        [
+          0.9809542664690936,
+          0.008910126680510508,
+          0.008915589732162521,
+          0.007047382472608437
+        ],
+        [
+          0.934750969295578,
+          0.006373210684481315,
+          0.006378032472863632,
+          0.0052979323035316234
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": false,
+        "visible_goal_constraint_unsatisfied": false,
+        "prior_action_had_no_effect": false
+      },
+      "selected_index": 0,
+      "selected_action": "fill('18','button tufted mid century high density easy assemble solid wood wood frame dining room green under 270')",
+      "changed_from_target_rank_zero": false,
+      "abstract_kind": "TARGET",
+      "source_abstained": true,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "target_rank_zero",
+      "reward": 0.0,
+      "terminated": false,
+      "truncated": false,
+      "after_hash": "6b0ba3b71560f1676e534bc0e3f9b9fbe514d5cec91fca74a369c8f671601ec9"
+    },
+    {
+      "step": 1,
+      "prompt_sha256": "e8a0b45baf5afb5c6a91f64a41cffec11df843af32c3ae3c7ae6bdd5c55e06a7",
+      "response_sha256": "4a7b7183c4cf732cc37dfd48337e555a384660ce39267673ae15d9aed644327d",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "4a7b7183c4cf732cc37dfd48337e555a384660ce39267673ae15d9aed644327d",
+          "completion_diagnostic": {
+            "character_count": 61,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": false,
+            "original_usage": {
+              "prompt_tokens": 590,
+              "completion_tokens": 19,
+              "total_tokens": 609,
+              "cost": 0.0002664,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0002664,
+                "upstream_inference_prompt_cost": 0.000236,
+                "upstream_inference_completions_cost": 3.04e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 2
+        }
+      ],
+      "before_hash": "6b0ba3b71560f1676e534bc0e3f9b9fbe514d5cec91fca74a369c8f671601ec9",
+      "candidates": [
+        "click('20')",
+        "noop()"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "click",
+          "url_phase": "landing",
+          "element_role": "button",
+          "element_text": "[20] button 'Search'",
+          "action_bid": "20",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "button"
+          ],
+          "goal_overlap": 0.3333333333333333,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "noop",
+          "url_phase": "landing",
+          "element_role": "other",
+          "element_text": "",
+          "action_bid": null,
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": true
+        }
+      ],
+      "target_features": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.3333333333333333,
+          0.0,
+          0.0,
+          0.0,
+          0.09090909090909091
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.09090909090909091
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.9247250805580157,
+          0.0065522189566738715,
+          0.0065572679107709616,
+          0.0052061025560566
+        ],
+        [
+          0.9794556923764357,
+          0.009232307754060344,
+          0.009238037421806178,
+          0.007036402034354836
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": false,
+        "visible_goal_constraint_unsatisfied": false,
+        "prior_action_had_no_effect": false
+      },
+      "selected_index": 0,
+      "selected_action": "click('20')",
+      "changed_from_target_rank_zero": false,
+      "abstract_kind": "TARGET",
+      "source_abstained": true,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "target_rank_zero",
+      "reward": 0.0,
+      "terminated": false,
+      "truncated": false,
+      "after_hash": "407201bf9bd641bc4f5899898b05d9ed8c99d4748c6185c6cd1c860644b28cfe"
+    },
+    {
+      "step": 2,
+      "prompt_sha256": "c42a063d5e98308fe188f06928e366b693c3cb76c7486f947e3cfc0baedf4c16",
+      "response_sha256": "27ae887ec725d5364cdba59759b49e3fde8ed7e2d44b30967506ff3d33922603",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "27ae887ec725d5364cdba59759b49e3fde8ed7e2d44b30967506ff3d33922603",
+          "completion_diagnostic": {
+            "character_count": 141,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": false,
+            "original_usage": {
+              "prompt_tokens": 3847,
+              "completion_tokens": 42,
+              "total_tokens": 3889,
+              "cost": 0.001606,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.001606,
+                "upstream_inference_prompt_cost": 0.0015388,
+                "upstream_inference_completions_cost": 6.72e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 5
+        }
+      ],
+      "before_hash": "407201bf9bd641bc4f5899898b05d9ed8c99d4748c6185c6cd1c860644b28cfe",
+      "candidates": [
+        "click('35')",
+        "click('47')",
+        "click('59')",
+        "click('71')",
+        "click('83')"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "button",
+          "element_text": "[35] link 'B09GY58GDH', url=\"http://127.0.0.1:3000/item_page/fixed_142/B09GY58GDH/%5B'button',%20'tufted',%20'mid',%20'century',%20'high',%20'density',%20'easy',%20'assemble',%20'solid',%20'wood',%20'wood',%20'frame',%20'dining',%20'room',%20'green',%20'under',%20'270'%5D/1/%7B%7D\"",
+          "action_bid": "35",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "assemble",
+            "button",
+            "century",
+            "density",
+            "dining",
+            "easy",
+            "frame",
+            "green",
+            "high",
+            "mid",
+            "room",
+            "solid",
+            "tufted",
+            "wood"
+          ],
+          "goal_overlap": 0.4375,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "button",
+          "element_text": "[47] link 'B01I5B1Q1M', url=\"http://127.0.0.1:3000/item_page/fixed_142/B01I5B1Q1M/%5B'button',%20'tufted',%20'mid',%20'century',%20'high',%20'density',%20'easy',%20'assemble',%20'solid',%20'wood',%20'wood',%20'frame',%20'dining',%20'room',%20'green',%20'under',%20'270'%5D/1/%7B%7D\"",
+          "action_bid": "47",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "assemble",
+            "button",
+            "century",
+            "density",
+            "dining",
+            "easy",
+            "frame",
+            "green",
+            "high",
+            "mid",
+            "room",
+            "solid",
+            "tufted",
+            "wood"
+          ],
+          "goal_overlap": 0.4375,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "button",
+          "element_text": "[59] link 'B09B7G7P58', url=\"http://127.0.0.1:3000/item_page/fixed_142/B09B7G7P58/%5B'button',%20'tufted',%20'mid',%20'century',%20'high',%20'density',%20'easy',%20'assemble',%20'solid',%20'wood',%20'wood',%20'frame',%20'dining',%20'room',%20'green',%20'under',%20'270'%5D/1/%7B%7D\"",
+          "action_bid": "59",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "assemble",
+            "button",
+            "century",
+            "density",
+            "dining",
+            "easy",
+            "frame",
+            "green",
+            "high",
+            "mid",
+            "room",
+            "solid",
+            "tufted",
+            "wood"
+          ],
+          "goal_overlap": 0.4375,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "button",
+          "element_text": "[71] link 'B09NRF2QGD', url=\"http://127.0.0.1:3000/item_page/fixed_142/B09NRF2QGD/%5B'button',%20'tufted',%20'mid',%20'century',%20'high',%20'density',%20'easy',%20'assemble',%20'solid',%20'wood',%20'wood',%20'frame',%20'dining',%20'room',%20'green',%20'under',%20'270'%5D/1/%7B%7D\"",
+          "action_bid": "71",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "assemble",
+            "button",
+            "century",
+            "density",
+            "dining",
+            "easy",
+            "frame",
+            "green",
+            "high",
+            "mid",
+            "room",
+            "solid",
+            "tufted",
+            "wood"
+          ],
+          "goal_overlap": 0.4375,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "button",
+          "element_text": "[83] link 'B084HBQYTD', url=\"http://127.0.0.1:3000/item_page/fixed_142/B084HBQYTD/%5B'button',%20'tufted',%20'mid',%20'century',%20'high',%20'density',%20'easy',%20'assemble',%20'solid',%20'wood',%20'wood',%20'frame',%20'dining',%20'room',%20'green',%20'under',%20'270'%5D/1/%7B%7D\"",
+          "action_bid": "83",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "assemble",
+            "button",
+            "century",
+            "density",
+            "dining",
+            "easy",
+            "frame",
+            "green",
+            "high",
+            "mid",
+            "room",
+            "solid",
+            "tufted",
+            "wood"
+          ],
+          "goal_overlap": 0.4375,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        }
+      ],
+      "target_features": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.4375,
+          0.0,
+          0.0,
+          0.0,
+          0.18181818181818182
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.4375,
+          0.0,
+          0.0,
+          0.0,
+          0.18181818181818182
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.4375,
+          0.0,
+          0.0,
+          0.0,
+          0.18181818181818182
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.4375,
+          0.0,
+          0.0,
+          0.0,
+          0.18181818181818182
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.4375,
+          0.0,
+          0.0,
+          0.0,
+          0.18181818181818182
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.8224159754092598,
+          0.006311764025673968,
+          0.006317380959768164,
+          0.004378924833928398
+        ],
+        [
+          0.8224159754092598,
+          0.006311764025673968,
+          0.006317380959768164,
+          0.004378924833928398
+        ],
+        [
+          0.8224159754092598,
+          0.006311764025673968,
+          0.006317380959768164,
+          0.004378924833928398
+        ],
+        [
+          0.8224159754092598,
+          0.006311764025673968,
+          0.006317380959768164,
+          0.004378924833928398
+        ],
+        [
+          0.8224159754092598,
+          0.006311764025673968,
+          0.006317380959768164,
+          0.004378924833928398
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": false,
+        "visible_goal_constraint_unsatisfied": false,
+        "prior_action_had_no_effect": false
+      },
+      "selected_index": 0,
+      "selected_action": "click('35')",
+      "changed_from_target_rank_zero": false,
+      "abstract_kind": "TARGET",
+      "source_abstained": true,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "target_rank_zero",
+      "reward": 0.0,
+      "terminated": false,
+      "truncated": false,
+      "after_hash": "abd7237ab61b110fb3994b09b1fd5401ad073e72081577dcce8d7ec66b1ef528"
+    },
+    {
+      "step": 3,
+      "prompt_sha256": "b0b1318d391c50bb5b1c6e29d9c79c7fee98ccd38dc1518a90d7dc45445e5ef8",
+      "response_sha256": "ef4db21820cef8bb514ec2f933c3b210747297015058ceb071d1410da1d5c884",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "ef4db21820cef8bb514ec2f933c3b210747297015058ceb071d1410da1d5c884",
+          "completion_diagnostic": {
+            "character_count": 141,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": false,
+            "original_usage": {
+              "prompt_tokens": 1271,
+              "completion_tokens": 42,
+              "total_tokens": 1313,
+              "cost": 0.0005756,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0005756,
+                "upstream_inference_prompt_cost": 0.0005084,
+                "upstream_inference_completions_cost": 6.72e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 5
+        }
+      ],
+      "before_hash": "abd7237ab61b110fb3994b09b1fd5401ad073e72081577dcce8d7ec66b1ef528",
+      "candidates": [
+        "click('59')",
+        "click('49')",
+        "click('52')",
+        "click('55')",
+        "click('17')",
+        "click('35')",
+        "go_back()"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[59] button 'Buy Now'",
+          "action_bid": "59",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "button"
+          ],
+          "goal_overlap": 0.25,
+          "is_commit": true,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[49] button 'Description'",
+          "action_bid": "49",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "button"
+          ],
+          "goal_overlap": 0.3333333333333333,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[52] button 'Features'",
+          "action_bid": "52",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "button"
+          ],
+          "goal_overlap": 0.3333333333333333,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[55] button 'Reviews'",
+          "action_bid": "55",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "button"
+          ],
+          "goal_overlap": 0.3333333333333333,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[17] button 'Back to Search'",
+          "action_bid": "17",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "button"
+          ],
+          "goal_overlap": 0.2,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "other",
+          "element_text": "[35] LabelText ''",
+          "action_bid": "35",
+          "paired_constraint_bid": "34",
+          "paired_constraint_text": "[34] radio 'green', checked='false'",
+          "goal_overlap_tokens": [
+            "green"
+          ],
+          "goal_overlap": 0.14285714285714285,
+          "is_commit": false,
+          "is_constraint": true,
+          "is_goal_constraint": true,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false,
+          "goal_constraint_signature": "color:green"
+        },
+        {
+          "verb": "go_back",
+          "url_phase": "item_page",
+          "element_role": "other",
+          "element_text": "",
+          "action_bid": null,
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        }
+      ],
+      "target_features": [
+        [
+          1.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.25,
+          0.0,
+          1.0,
+          0.0,
+          0.2727272727272727
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.3333333333333333,
+          0.0,
+          1.0,
+          0.0,
+          0.2727272727272727
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.3333333333333333,
+          0.0,
+          1.0,
+          0.0,
+          0.2727272727272727
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.3333333333333333,
+          0.0,
+          1.0,
+          0.0,
+          0.2727272727272727
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.2,
+          0.0,
+          1.0,
+          0.0,
+          0.2727272727272727
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          1.0,
+          0.0,
+          0.0,
+          0.14285714285714285,
+          0.0,
+          1.0,
+          0.0,
+          0.2727272727272727
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.2727272727272727
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.9281038516928304,
+          0.8738389445043265,
+          0.8739815728161351,
+          0.006025528396625136
+        ],
+        [
+          0.14571391358006427,
+          0.003588620794181719,
+          0.003593572086184303,
+          0.00342666136411793
+        ],
+        [
+          0.14571391358006427,
+          0.003588620794181719,
+          0.003593572086184303,
+          0.00342666136411793
+        ],
+        [
+          0.14571391358006427,
+          0.003588620794181719,
+          0.003593572086184303,
+          0.00342666136411793
+        ],
+        [
+          0.35229098605891684,
+          0.003988871027341699,
+          0.003993718701698235,
+          0.00405266231761668
+        ],
+        [
+          0.9862985917527426,
+          0.011922797154128537,
+          0.011949582582204224,
+          0.8939422272327111
+        ],
+        [
+          0.05519908888067169,
+          0.0024341956597918,
+          0.002437951136389592,
+          0.0030030471033145245
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": false,
+        "visible_goal_constraint_unsatisfied": true,
+        "prior_action_had_no_effect": false
+      },
+      "selected_index": 0,
+      "selected_action": "click('59')",
+      "changed_from_target_rank_zero": false,
+      "abstract_kind": "TARGET",
+      "source_abstained": true,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "target_rank_zero",
+      "reward": 0.8888888888888888,
+      "terminated": true,
+      "truncated": false,
+      "after_hash": "81d00d65dda70e3d86a614a47ec9607c53b6f39c14ab756cf32f7ecd2f0cca79"
+    }
+  ],
+  "step_count": 4,
+  "official_reward": 0.8888888888888888,
+  "strict_success": false,
+  "pass_success": true,
+  "terminated": true,
+  "truncated": false,
+  "failure": null,
+  "failure_traceback": null,
+  "changed_from_target_rank_zero_count": 0,
+  "source_decision_count": 0,
+  "session_namespace": "phase2-ws-16a900de39-c11-raw-target-only",
+  "manifest_sha256": "16a900de39fa78bfbd489c6d95111d65f485fb0405e797d8129f4ea53ca18e2f",
+  "target_identity": "webshop.synthetic.phase2v4.seed735575332.index142.ea2968e2021faf62",
+  "goal_sha256": "ea2968e2021faf620528a6c2e22b4402ae75633328735ce5557f481cdab816c8",
+  "source_game": "gymv_strider",
+  "source_artifact_sha256": "9993c7b0d04d2e090f1b20f89b6c4b90f697a8b36f598869e45141a9b5b00ccf",
+  "v16_controller": {
+    "condition": "raw_target_only",
+    "source_artifact_sha256": "9993c7b0d04d2e090f1b20f89b6c4b90f697a8b36f598869e45141a9b5b00ccf",
+    "source_decisions": 0,
+    "source_action_counts": {},
+    "target_fallbacks": 0,
+    "coverage_controller": {
+      "condition": "target_only",
+      "coverage_enabled": false,
+      "coverage_ready": false,
+      "goal_option_signatures": [
+        "color:green"
+      ],
+      "coverage_interventions": 0,
+      "source_calls_after_coverage": 0,
+      "rejected_product_ids": [],
+      "last_selected_product_id": null,
+      "anytime_reward_salvage": false,
+      "maximum_steps": 12,
+      "budget_abstentions": 0,
+      "product_ledger_resets": 0,
+      "ledger": {
+        "required": [
+          "color:green"
+        ],
+        "verified": [],
+        "missing": [
+          "color:green"
+        ],
+        "commit_authorized": false,
+        "pending_signature": null
+      }
+    },
+    "source_trace": []
+  },
+  "commit_audit": [
+    {
+      "step": 3,
+      "selected_action": "click('59')",
+      "authorized": false,
+      "coverage": {
+        "required": [
+          "color:green"
+        ],
+        "verified": [],
+        "missing": [
+          "color:green"
+        ],
+        "commit_authorized": false,
+        "pending_signature": null
+      }
+    }
+  ],
+  "unsafe_commits": [],
+  "historical_target_outcome_reused": false,
+  "target_reset_or_sample_open_count": 1,
+  "runtime_hashes": {
+    "runner": "0cf4f0c993f7b13915df4c5acf3455e1a5fd6b4d8db561972b4f7575536ccd81",
+    "controller": "478994c5da56ee783e59823a79f026dfa2f7185d0f733a835bfe11e5cdd46c38",
+    "utility_contract": "7b30994bd6b293af713e4b6ab414e16adc94ae02fdc943f4106f514668bfda85",
+    "source_artifact": "4d6aa2ce61c70c3023c41435d337925289cc9c0e179381e6285492f33a095c5e",
+    "target_grounder": "bbf8a22ebec8e7ab6d55e570f230ba4fcb2b8630d1dc81bd24ba103f68701782"
+  },
+  "receipt_sha256": "3466fca295b3a38d738b8bd62512d45318c1a90097b1f31d2315d3913c306b8d"
+}

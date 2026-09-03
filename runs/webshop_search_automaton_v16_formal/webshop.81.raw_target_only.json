@@ -1,0 +1,3638 @@
+{
+  "schema_version": 1,
+  "task_id": "webshop.81",
+  "condition": "raw_target_only",
+  "goal": "Find me men's t-shirts & tanks with short sleeve, fashion design, long sleeve, button closure with color: e-blue, and size: 4x-large, and price lower than 30.00 dollars",
+  "initial_state_hash": "0d0c16300634850f8661ebd31c9e42c0320a7c29e7257b4aaf6f83b53e77746b",
+  "maximum_steps": 12,
+  "steps": [
+    {
+      "step": 0,
+      "prompt_sha256": "541b8ad0f1085a7ca227394e6a50893aa13ac781c3d1b56b9735441e3229e27a",
+      "response_sha256": "2d0867866fbd89e56ba1af6953efe1d95a2a4c4e23140759522660f21e6af7fd",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "2d0867866fbd89e56ba1af6953efe1d95a2a4c4e23140759522660f21e6af7fd",
+          "completion_diagnostic": {
+            "character_count": 691,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": false,
+            "original_usage": {
+              "prompt_tokens": 457,
+              "completion_tokens": 161,
+              "total_tokens": 618,
+              "cost": 0.0004404,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0004404,
+                "upstream_inference_prompt_cost": 0.0001828,
+                "upstream_inference_completions_cost": 0.0002576
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 5
+        }
+      ],
+      "before_hash": "771441c2102c02bbdd6119496fc32e8434380802959a1909e8c5f4e401fb500b",
+      "candidates": [
+        "fill('18','men t-shirts tanks short sleeve fashion design long sleeve button closure e-blue 4x-large price<30')",
+        "fill('18','men t-shirts tanks short sleeve fashion design long sleeve button closure color e-blue size 4x-large price under 30')",
+        "fill('18','men t-shirts tanks short sleeve fashion design long sleeve button closure color e-blue size 4x-large price less than 30')",
+        "fill('18','men t-shirts tanks short sleeve fashion design long sleeve button closure e-blue 4x-large price below 30')",
+        "fill('18','men t-shirts tanks short sleeve fashion design long sleeve button closure e-blue 4x-large price under 30')"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "fill",
+          "url_phase": "landing",
+          "element_role": "textbox",
+          "element_text": "[18] textbox 'Search...', required",
+          "action_bid": "18",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false
+        },
+        {
+          "verb": "fill",
+          "url_phase": "landing",
+          "element_role": "textbox",
+          "element_text": "[18] textbox 'Search...', required",
+          "action_bid": "18",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false
+        },
+        {
+          "verb": "fill",
+          "url_phase": "landing",
+          "element_role": "textbox",
+          "element_text": "[18] textbox 'Search...', required",
+          "action_bid": "18",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false
+        },
+        {
+          "verb": "fill",
+          "url_phase": "landing",
+          "element_role": "textbox",
+          "element_text": "[18] textbox 'Search...', required",
+          "action_bid": "18",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false
+        },
+        {
+          "verb": "fill",
+          "url_phase": "landing",
+          "element_role": "textbox",
+          "element_text": "[18] textbox 'Search...', required",
+          "action_bid": "18",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false
+        }
+      ],
+      "target_features": [
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.9809542664690936,
+          0.008910126680510508,
+          0.008915589732162521,
+          0.007047382472608437
+        ],
+        [
+          0.9809542664690936,
+          0.008910126680510508,
+          0.008915589732162521,
+          0.007047382472608437
+        ],
+        [
+          0.9809542664690936,
+          0.008910126680510508,
+          0.008915589732162521,
+          0.007047382472608437
+        ],
+        [
+          0.9809542664690936,
+          0.008910126680510508,
+          0.008915589732162521,
+          0.007047382472608437
+        ],
+        [
+          0.9809542664690936,
+          0.008910126680510508,
+          0.008915589732162521,
+          0.007047382472608437
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": false,
+        "visible_goal_constraint_unsatisfied": false,
+        "prior_action_had_no_effect": false
+      },
+      "selected_index": 0,
+      "selected_action": "fill('18','men t-shirts tanks short sleeve fashion design long sleeve button closure e-blue 4x-large price<30')",
+      "changed_from_target_rank_zero": false,
+      "abstract_kind": "TARGET",
+      "source_abstained": true,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "target_rank_zero",
+      "reward": 0.0,
+      "terminated": false,
+      "truncated": false,
+      "after_hash": "d337dee6561a85480813e3bad92ec3ba5f09300f4d35beb22fd47cac8acfc4e7"
+    },
+    {
+      "step": 1,
+      "prompt_sha256": "dad17e099530e59e2f8bfc159481a09d729a143a505a42af4212780b5f2e4ecb",
+      "response_sha256": "3a73c5c4be7c34c12b7045cb475fba90fec22ba5f378bca18e168d29e0b3aae3",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "3a73c5c4be7c34c12b7045cb475fba90fec22ba5f378bca18e168d29e0b3aae3",
+          "completion_diagnostic": {
+            "character_count": 94,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": false,
+            "original_usage": {
+              "prompt_tokens": 610,
+              "completion_tokens": 28,
+              "total_tokens": 638,
+              "cost": 0.0002888,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0002888,
+                "upstream_inference_prompt_cost": 0.000244,
+                "upstream_inference_completions_cost": 4.48e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 3
+        }
+      ],
+      "before_hash": "d337dee6561a85480813e3bad92ec3ba5f09300f4d35beb22fd47cac8acfc4e7",
+      "candidates": [
+        "click('20')",
+        "press('20','Enter')",
+        "noop()"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "click",
+          "url_phase": "landing",
+          "element_role": "button",
+          "element_text": "[20] button 'Search'",
+          "action_bid": "20",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "button"
+          ],
+          "goal_overlap": 0.3333333333333333,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "press",
+          "url_phase": "landing",
+          "element_role": "button",
+          "element_text": "[20] button 'Search'",
+          "action_bid": "20",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "button"
+          ],
+          "goal_overlap": 0.3333333333333333,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false
+        },
+        {
+          "verb": "noop",
+          "url_phase": "landing",
+          "element_role": "other",
+          "element_text": "",
+          "action_bid": null,
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": true
+        }
+      ],
+      "target_features": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.3333333333333333,
+          0.0,
+          0.0,
+          0.0,
+          0.09090909090909091
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.3333333333333333,
+          0.0,
+          0.0,
+          0.0,
+          0.09090909090909091
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.09090909090909091
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.9247250805580157,
+          0.0065522189566738715,
+          0.0065572679107709616,
+          0.0052061025560566
+        ],
+        [
+          0.8678031880527953,
+          0.007598525424014569,
+          0.007604940985381291,
+          0.00467646390100353
+        ],
+        [
+          0.9794556923764357,
+          0.009232307754060344,
+          0.009238037421806185,
+          0.007036402034354836
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": false,
+        "visible_goal_constraint_unsatisfied": false,
+        "prior_action_had_no_effect": false
+      },
+      "selected_index": 0,
+      "selected_action": "click('20')",
+      "changed_from_target_rank_zero": false,
+      "abstract_kind": "TARGET",
+      "source_abstained": true,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "target_rank_zero",
+      "reward": 0.0,
+      "terminated": false,
+      "truncated": false,
+      "after_hash": "7b030f390eb1a2a2c805515dd6f643555d4597bdfe5b62aa30613ab91a64de14"
+    },
+    {
+      "step": 2,
+      "prompt_sha256": "4881f0ba0d14f66a922d3f6cc71012069c67f406ab4f70039c66cc847adfecbb",
+      "response_sha256": "1bb272aae276e990000b10ceadcfa1a6512f4f611b1ac567c78c06bea603d0c2",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "1bb272aae276e990000b10ceadcfa1a6512f4f611b1ac567c78c06bea603d0c2",
+          "completion_diagnostic": {
+            "character_count": 141,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": false,
+            "original_usage": {
+              "prompt_tokens": 3744,
+              "completion_tokens": 42,
+              "total_tokens": 3786,
+              "cost": 0.0015648,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0015648,
+                "upstream_inference_prompt_cost": 0.0014976,
+                "upstream_inference_completions_cost": 6.72e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 5
+        }
+      ],
+      "before_hash": "7b030f390eb1a2a2c805515dd6f643555d4597bdfe5b62aa30613ab91a64de14",
+      "candidates": [
+        "click('47')",
+        "click('35')",
+        "click('71')",
+        "click('83')",
+        "click('95')"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "button",
+          "element_text": "[47] link 'B09KLQLLT2', url=\"http://127.0.0.1:3000/item_page/fixed_81/B09KLQLLT2/%5B'men',%20't-shirts',%20'tanks',%20'short',%20'sleeve',%20'fashion',%20'design',%20'long',%20'sleeve',%20'button',%20'closure',%20'e-blue',%20'4x-large',%20'price%3C30'%5D/1/%7B%7D\"",
+          "action_bid": "47",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "4x",
+            "blue",
+            "button",
+            "closure",
+            "design",
+            "fashion",
+            "large",
+            "long",
+            "men",
+            "price",
+            "shirts",
+            "short",
+            "sleeve",
+            "tanks"
+          ],
+          "goal_overlap": 0.45161290322580644,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "button",
+          "element_text": "[35] link 'B078WSND96', url=\"http://127.0.0.1:3000/item_page/fixed_81/B078WSND96/%5B'men',%20't-shirts',%20'tanks',%20'short',%20'sleeve',%20'fashion',%20'design',%20'long',%20'sleeve',%20'button',%20'closure',%20'e-blue',%20'4x-large',%20'price%3C30'%5D/1/%7B%7D\"",
+          "action_bid": "35",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "4x",
+            "blue",
+            "button",
+            "closure",
+            "design",
+            "fashion",
+            "large",
+            "long",
+            "men",
+            "price",
+            "shirts",
+            "short",
+            "sleeve",
+            "tanks"
+          ],
+          "goal_overlap": 0.45161290322580644,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "button",
+          "element_text": "[71] link 'B00O30JLDK', url=\"http://127.0.0.1:3000/item_page/fixed_81/B00O30JLDK/%5B'men',%20't-shirts',%20'tanks',%20'short',%20'sleeve',%20'fashion',%20'design',%20'long',%20'sleeve',%20'button',%20'closure',%20'e-blue',%20'4x-large',%20'price%3C30'%5D/1/%7B%7D\"",
+          "action_bid": "71",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "4x",
+            "blue",
+            "button",
+            "closure",
+            "design",
+            "fashion",
+            "large",
+            "long",
+            "men",
+            "price",
+            "shirts",
+            "short",
+            "sleeve",
+            "tanks"
+          ],
+          "goal_overlap": 0.45161290322580644,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "button",
+          "element_text": "[83] link 'B09S3BN15C', url=\"http://127.0.0.1:3000/item_page/fixed_81/B09S3BN15C/%5B'men',%20't-shirts',%20'tanks',%20'short',%20'sleeve',%20'fashion',%20'design',%20'long',%20'sleeve',%20'button',%20'closure',%20'e-blue',%20'4x-large',%20'price%3C30'%5D/1/%7B%7D\"",
+          "action_bid": "83",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "4x",
+            "blue",
+            "button",
+            "closure",
+            "design",
+            "fashion",
+            "large",
+            "long",
+            "men",
+            "price",
+            "shirts",
+            "short",
+            "sleeve",
+            "tanks"
+          ],
+          "goal_overlap": 0.45161290322580644,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "button",
+          "element_text": "[95] link 'B09T756KQ5', url=\"http://127.0.0.1:3000/item_page/fixed_81/B09T756KQ5/%5B'men',%20't-shirts',%20'tanks',%20'short',%20'sleeve',%20'fashion',%20'design',%20'long',%20'sleeve',%20'button',%20'closure',%20'e-blue',%20'4x-large',%20'price%3C30'%5D/1/%7B%7D\"",
+          "action_bid": "95",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "4x",
+            "blue",
+            "button",
+            "closure",
+            "design",
+            "fashion",
+            "large",
+            "long",
+            "men",
+            "price",
+            "shirts",
+            "short",
+            "sleeve",
+            "tanks"
+          ],
+          "goal_overlap": 0.45161290322580644,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        }
+      ],
+      "target_features": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.45161290322580644,
+          0.0,
+          0.0,
+          0.0,
+          0.18181818181818182
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.45161290322580644,
+          0.0,
+          0.0,
+          0.0,
+          0.18181818181818182
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.45161290322580644,
+          0.0,
+          0.0,
+          0.0,
+          0.18181818181818182
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.45161290322580644,
+          0.0,
+          0.0,
+          0.0,
+          0.18181818181818182
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.45161290322580644,
+          0.0,
+          0.0,
+          0.0,
+          0.18181818181818182
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.8043924605965208,
+          0.006251147890803294,
+          0.006256809805873969,
+          0.004283807667871362
+        ],
+        [
+          0.8043924605965208,
+          0.006251147890803294,
+          0.006256809805873969,
+          0.004283807667871362
+        ],
+        [
+          0.8043924605965208,
+          0.006251147890803294,
+          0.006256809805873969,
+          0.004283807667871362
+        ],
+        [
+          0.8043924605965208,
+          0.006251147890803294,
+          0.006256809805873969,
+          0.004283807667871362
+        ],
+        [
+          0.8043924605965208,
+          0.006251147890803294,
+          0.006256809805873969,
+          0.004283807667871362
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": false,
+        "visible_goal_constraint_unsatisfied": false,
+        "prior_action_had_no_effect": false
+      },
+      "selected_index": 0,
+      "selected_action": "click('47')",
+      "changed_from_target_rank_zero": false,
+      "abstract_kind": "TARGET",
+      "source_abstained": true,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "target_rank_zero",
+      "reward": 0.0,
+      "terminated": false,
+      "truncated": false,
+      "after_hash": "db6e4ae9c3192c2438900b828f154264dd16b5b041e7c0f8f2c48ab2469b87ce"
+    },
+    {
+      "step": 3,
+      "prompt_sha256": "44ccc4c4de3a9e00d1605cc6ae6e7099e4531b0aa4031b8d8391c52be9802b7f",
+      "response_sha256": "0ceeeda2fc0388c7f1d69575c835d3e6756250193760d93e0016ec34a510293e",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "0ceeeda2fc0388c7f1d69575c835d3e6756250193760d93e0016ec34a510293e",
+          "completion_diagnostic": {
+            "character_count": 141,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": false,
+            "original_usage": {
+              "prompt_tokens": 1622,
+              "completion_tokens": 42,
+              "total_tokens": 1664,
+              "cost": 0.000716,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.000716,
+                "upstream_inference_prompt_cost": 0.0006488,
+                "upstream_inference_completions_cost": 6.72e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 5
+        }
+      ],
+      "before_hash": "db6e4ae9c3192c2438900b828f154264dd16b5b041e7c0f8f2c48ab2469b87ce",
+      "candidates": [
+        "click('30')",
+        "click('33')",
+        "click('59')",
+        "click('61')",
+        "click('17')",
+        "go_back()"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "radio",
+          "element_text": "[30] radio 'blue', checked='false'",
+          "action_bid": "30",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.2,
+          "is_commit": false,
+          "is_constraint": true,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false,
+          "goal_constraint_signature": null
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "other",
+          "element_text": "[33] LabelText ''",
+          "action_bid": "33",
+          "paired_constraint_bid": "32",
+          "paired_constraint_text": "[32] radio 'blue | red', checked='false'",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.125,
+          "is_commit": false,
+          "is_constraint": true,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false,
+          "goal_constraint_signature": null
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "radio",
+          "element_text": "[59] radio 'x-large', checked='false'",
+          "action_bid": "59",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.2,
+          "is_commit": false,
+          "is_constraint": true,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false,
+          "goal_constraint_signature": null
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "radio",
+          "element_text": "[61] radio 'xx-large', checked='false'",
+          "action_bid": "61",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.16666666666666666,
+          "is_commit": false,
+          "is_constraint": true,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false,
+          "goal_constraint_signature": null
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[17] button 'Back to Search'",
+          "action_bid": "17",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "button"
+          ],
+          "goal_overlap": 0.2,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "go_back",
+          "url_phase": "item_page",
+          "element_role": "other",
+          "element_text": "",
+          "action_bid": null,
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        }
+      ],
+      "target_features": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.2,
+          0.0,
+          1.0,
+          0.0,
+          0.2727272727272727
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          1.0,
+          0.0,
+          0.0,
+          0.125,
+          0.0,
+          1.0,
+          0.0,
+          0.2727272727272727
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.2,
+          0.0,
+          1.0,
+          0.0,
+          0.2727272727272727
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.16666666666666666,
+          0.0,
+          1.0,
+          0.0,
+          0.2727272727272727
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.2,
+          0.0,
+          1.0,
+          0.0,
+          0.2727272727272727
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.2727272727272727
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.03149597889118872,
+          0.002909837242024155,
+          0.0029148384694254316,
+          0.004763806736018787
+        ],
+        [
+          0.9866834919433854,
+          0.012028750164845028,
+          0.012055716221730968,
+          0.8942756504852829
+        ],
+        [
+          0.03149597889118872,
+          0.002909837242024155,
+          0.0029148384694254316,
+          0.004763806736018787
+        ],
+        [
+          0.03697926462118166,
+          0.002957074201364832,
+          0.0029620925737252122,
+          0.004937532281659712
+        ],
+        [
+          0.35229098605891684,
+          0.003988871027341699,
+          0.003993718701698235,
+          0.00405266231761668
+        ],
+        [
+          0.05519908888067173,
+          0.002434195659791796,
+          0.002437951136389592,
+          0.0030030471033145245
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": false,
+        "visible_goal_constraint_unsatisfied": true,
+        "prior_action_had_no_effect": false
+      },
+      "selected_index": 0,
+      "selected_action": "click('30')",
+      "changed_from_target_rank_zero": false,
+      "abstract_kind": "TARGET",
+      "source_abstained": true,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "target_rank_zero",
+      "reward": 0.0,
+      "terminated": false,
+      "truncated": false,
+      "after_hash": "db6e4ae9c3192c2438900b828f154264dd16b5b041e7c0f8f2c48ab2469b87ce"
+    },
+    {
+      "step": 4,
+      "prompt_sha256": "5bcbfcb3630657c5f95045792b48a28ce431b034f3f0a8389369285f84938d51",
+      "response_sha256": "2699ad568b3c4e3de1def6b29135d81d244f1cb4e5801bd36ace3130abdd74ec",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "2699ad568b3c4e3de1def6b29135d81d244f1cb4e5801bd36ace3130abdd74ec",
+          "completion_diagnostic": {
+            "character_count": 136,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": false,
+            "original_usage": {
+              "prompt_tokens": 1942,
+              "completion_tokens": 40,
+              "total_tokens": 1982,
+              "cost": 0.0004184,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 1408,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0004184,
+                "upstream_inference_prompt_cost": 0.0003544,
+                "upstream_inference_completions_cost": 6.4e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 5
+        }
+      ],
+      "before_hash": "db6e4ae9c3192c2438900b828f154264dd16b5b041e7c0f8f2c48ab2469b87ce",
+      "candidates": [
+        "click('33')",
+        "click('31')",
+        "click('28')",
+        "click('44')",
+        "noop()",
+        "go_back()"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "other",
+          "element_text": "[33] LabelText ''",
+          "action_bid": "33",
+          "paired_constraint_bid": "32",
+          "paired_constraint_text": "[32] radio 'blue | red', checked='false'",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.125,
+          "is_commit": false,
+          "is_constraint": true,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false,
+          "goal_constraint_signature": null
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "other",
+          "element_text": "[31] LabelText ''",
+          "action_bid": "31",
+          "paired_constraint_bid": "30",
+          "paired_constraint_text": "[30] radio 'blue', checked='false'",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.14285714285714285,
+          "is_commit": false,
+          "is_constraint": true,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false,
+          "goal_constraint_signature": null
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "radio",
+          "element_text": "[28] radio 'black | blue', checked='false'",
+          "action_bid": "28",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.16666666666666666,
+          "is_commit": false,
+          "is_constraint": true,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false,
+          "goal_constraint_signature": null
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "radio",
+          "element_text": "[44] radio 'red | blue', checked='false'",
+          "action_bid": "44",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.16666666666666666,
+          "is_commit": false,
+          "is_constraint": true,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false,
+          "goal_constraint_signature": null
+        },
+        {
+          "verb": "noop",
+          "url_phase": "item_page",
+          "element_role": "other",
+          "element_text": "",
+          "action_bid": null,
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": true
+        },
+        {
+          "verb": "go_back",
+          "url_phase": "item_page",
+          "element_role": "other",
+          "element_text": "",
+          "action_bid": null,
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        }
+      ],
+      "target_features": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          1.0,
+          0.0,
+          0.0,
+          0.125,
+          0.0,
+          1.0,
+          1.0,
+          0.36363636363636365
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          1.0,
+          0.0,
+          0.0,
+          0.14285714285714285,
+          0.0,
+          1.0,
+          1.0,
+          0.36363636363636365
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.16666666666666666,
+          0.0,
+          1.0,
+          1.0,
+          0.36363636363636365
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.16666666666666666,
+          0.0,
+          1.0,
+          1.0,
+          0.36363636363636365
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          0.36363636363636365
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          0.36363636363636365
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.9800013796654883,
+          0.01029660939882753,
+          0.010320957890481033,
+          0.9030950153864526
+        ],
+        [
+          0.9792031948986548,
+          0.010216657194542683,
+          0.010240899309080885,
+          0.902000371560489
+        ],
+        [
+          0.01602178456564755,
+          0.0024116575354827144,
+          0.002416152471032991,
+          0.00514871643552832
+        ],
+        [
+          0.01602178456564755,
+          0.0024116575354827144,
+          0.002416152471032991,
+          0.00514871643552832
+        ],
+        [
+          0.15403736215567718,
+          0.0033916571602136216,
+          0.0033963191221586158,
+          0.005008403162807
+        ],
+        [
+          0.0178272048203832,
+          0.001994225241141169,
+          0.0019976038749950206,
+          0.0031520025018868685
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": false,
+        "visible_goal_constraint_unsatisfied": true,
+        "prior_action_had_no_effect": true
+      },
+      "selected_index": 0,
+      "selected_action": "click('33')",
+      "changed_from_target_rank_zero": false,
+      "abstract_kind": "TARGET",
+      "source_abstained": true,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "target_rank_zero",
+      "reward": 0.0,
+      "terminated": false,
+      "truncated": false,
+      "after_hash": "c91e1ebae2816c5592438bb65404dc1532551499ea2c257c5166c0da9ee89267"
+    },
+    {
+      "step": 5,
+      "prompt_sha256": "3bf6a81d05ce130eede8bd5d3d67879df358676918e9ac759bfcfb6cbaf5dd55",
+      "response_sha256": "14f000a50d85f037e9c5ce834e640edc095b11724bc839945f66453e8134b259",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "14f000a50d85f037e9c5ce834e640edc095b11724bc839945f66453e8134b259",
+          "completion_diagnostic": {
+            "character_count": 136,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": false,
+            "original_usage": {
+              "prompt_tokens": 1687,
+              "completion_tokens": 40,
+              "total_tokens": 1727,
+              "cost": 0.0007388,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0007388,
+                "upstream_inference_prompt_cost": 0.0006748,
+                "upstream_inference_completions_cost": 6.4e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 5
+        }
+      ],
+      "before_hash": "c91e1ebae2816c5592438bb65404dc1532551499ea2c257c5166c0da9ee89267",
+      "candidates": [
+        "click('61')",
+        "click('59')",
+        "click('57')",
+        "click('20')",
+        "noop()",
+        "go_back()"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "radio",
+          "element_text": "[61] radio 'xx-large', checked='false'",
+          "action_bid": "61",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.16666666666666666,
+          "is_commit": false,
+          "is_constraint": true,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false,
+          "goal_constraint_signature": null
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "radio",
+          "element_text": "[59] radio 'x-large', checked='false'",
+          "action_bid": "59",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.2,
+          "is_commit": false,
+          "is_constraint": true,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false,
+          "goal_constraint_signature": null
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "radio",
+          "element_text": "[57] radio 'large', checked='false'",
+          "action_bid": "57",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.2,
+          "is_commit": false,
+          "is_constraint": true,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false,
+          "goal_constraint_signature": null
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[20] button '< Prev'",
+          "action_bid": "20",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "button"
+          ],
+          "goal_overlap": 0.3333333333333333,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "noop",
+          "url_phase": "item_page",
+          "element_role": "other",
+          "element_text": "",
+          "action_bid": null,
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": true
+        },
+        {
+          "verb": "go_back",
+          "url_phase": "item_page",
+          "element_role": "other",
+          "element_text": "",
+          "action_bid": null,
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        }
+      ],
+      "target_features": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.16666666666666666,
+          1.0,
+          1.0,
+          0.0,
+          0.45454545454545453
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.2,
+          1.0,
+          1.0,
+          0.0,
+          0.45454545454545453
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.2,
+          1.0,
+          1.0,
+          0.0,
+          0.45454545454545453
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.3333333333333333,
+          1.0,
+          1.0,
+          0.0,
+          0.45454545454545453
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          1.0,
+          1.0,
+          0.0,
+          0.45454545454545453
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          0.0,
+          0.45454545454545453
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.1092134703236697,
+          0.011595780913450694,
+          0.011612499554518227,
+          0.00562797817381305
+        ],
+        [
+          0.08948206181947017,
+          0.01100316613800561,
+          0.011019522652869393,
+          0.0054277242596851545
+        ],
+        [
+          0.08948206181947017,
+          0.01100316613800561,
+          0.011019522652869393,
+          0.0054277242596851545
+        ],
+        [
+          0.41750272350328765,
+          0.015476504664545816,
+          0.015492815813273612,
+          0.0030834403986880654
+        ],
+        [
+          0.8603782216613731,
+          0.02994533590781444,
+          0.029967165803811324,
+          0.004694126204322688
+        ],
+        [
+          0.150719403662758,
+          0.006764328374636105,
+          0.006772843832631296,
+          0.0025399058572670497
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": true,
+        "visible_goal_constraint_unsatisfied": true,
+        "prior_action_had_no_effect": false
+      },
+      "selected_index": 0,
+      "selected_action": "click('61')",
+      "changed_from_target_rank_zero": false,
+      "abstract_kind": "TARGET",
+      "source_abstained": true,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "target_rank_zero",
+      "reward": 0.0,
+      "terminated": false,
+      "truncated": false,
+      "after_hash": "c91e1ebae2816c5592438bb65404dc1532551499ea2c257c5166c0da9ee89267"
+    },
+    {
+      "step": 6,
+      "prompt_sha256": "6362d8016f9220e80a6b0253a01abf2e299be30f74f10e6a6115f10fbe0cd69a",
+      "response_sha256": "87f835fdf064971d16cb815a2ee0edeb1895256cd901689a6164331a76692242",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "87f835fdf064971d16cb815a2ee0edeb1895256cd901689a6164331a76692242",
+          "completion_diagnostic": {
+            "character_count": 141,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": false,
+            "original_usage": {
+              "prompt_tokens": 2027,
+              "completion_tokens": 42,
+              "total_tokens": 2069,
+              "cost": 0.000878,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.000878,
+                "upstream_inference_prompt_cost": 0.0008108,
+                "upstream_inference_completions_cost": 6.72e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 5
+        }
+      ],
+      "before_hash": "c91e1ebae2816c5592438bb65404dc1532551499ea2c257c5166c0da9ee89267",
+      "candidates": [
+        "click('59')",
+        "click('30')",
+        "click('33')",
+        "click('20')",
+        "click('17')",
+        "go_back()"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "radio",
+          "element_text": "[59] radio 'x-large', checked='false'",
+          "action_bid": "59",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.2,
+          "is_commit": false,
+          "is_constraint": true,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false,
+          "goal_constraint_signature": null
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "radio",
+          "element_text": "[30] radio 'blue', checked='false'",
+          "action_bid": "30",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.2,
+          "is_commit": false,
+          "is_constraint": true,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false,
+          "goal_constraint_signature": null
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "other",
+          "element_text": "[33] LabelText ''",
+          "action_bid": "33",
+          "paired_constraint_bid": "32",
+          "paired_constraint_text": "[32] radio 'blue | red', checked='true'",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.125,
+          "is_commit": false,
+          "is_constraint": true,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false,
+          "goal_constraint_signature": null
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[20] button '< Prev'",
+          "action_bid": "20",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "button"
+          ],
+          "goal_overlap": 0.3333333333333333,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[17] button 'Back to Search'",
+          "action_bid": "17",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "button"
+          ],
+          "goal_overlap": 0.2,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "go_back",
+          "url_phase": "item_page",
+          "element_role": "other",
+          "element_text": "",
+          "action_bid": null,
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        }
+      ],
+      "target_features": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.2,
+          1.0,
+          1.0,
+          1.0,
+          0.5454545454545454
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.2,
+          1.0,
+          1.0,
+          1.0,
+          0.5454545454545454
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          1.0,
+          0.0,
+          0.0,
+          0.125,
+          1.0,
+          1.0,
+          1.0,
+          0.5454545454545454
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.3333333333333333,
+          1.0,
+          1.0,
+          1.0,
+          0.5454545454545454
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.2,
+          1.0,
+          1.0,
+          1.0,
+          0.5454545454545454
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          1.0,
+          0.5454545454545454
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.028713768745072633,
+          0.006491849719102328,
+          0.006503086530314685,
+          0.006124965400789282
+        ],
+        [
+          0.028713768745072633,
+          0.006491849719102328,
+          0.006503086530314685,
+          0.006124965400789282
+        ],
+        [
+          0.9860223207116702,
+          0.0179738615243539,
+          0.01801444100614743,
+          0.9065957287182785
+        ],
+        [
+          0.09203564658508934,
+          0.00786092761311231,
+          0.007871795967932953,
+          0.003592249880979138
+        ],
+        [
+          0.21540756665793578,
+          0.009624439093119877,
+          0.009635859272159979,
+          0.004083615632243388
+        ],
+        [
+          0.034489526116662145,
+          0.004066485848107782,
+          0.004072691940081465,
+          0.0029602624677009305
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": true,
+        "visible_goal_constraint_unsatisfied": true,
+        "prior_action_had_no_effect": true
+      },
+      "selected_index": 0,
+      "selected_action": "click('59')",
+      "changed_from_target_rank_zero": false,
+      "abstract_kind": "TARGET",
+      "source_abstained": true,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "target_rank_zero",
+      "reward": 0.0,
+      "terminated": false,
+      "truncated": false,
+      "after_hash": "c91e1ebae2816c5592438bb65404dc1532551499ea2c257c5166c0da9ee89267"
+    },
+    {
+      "step": 7,
+      "prompt_sha256": "5215d4a52153de557bdf762e0bb749ea58fc0a10ebbcb716110e94cacf1f140a",
+      "response_sha256": "99c731dbea34bf1c0fdd918807f26c22024eee99b1fc79d7739cb38d23872df6",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "99c731dbea34bf1c0fdd918807f26c22024eee99b1fc79d7739cb38d23872df6",
+          "completion_diagnostic": {
+            "character_count": 141,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": false,
+            "original_usage": {
+              "prompt_tokens": 2004,
+              "completion_tokens": 42,
+              "total_tokens": 2046,
+              "cost": 0.0008688,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0008688,
+                "upstream_inference_prompt_cost": 0.0008016,
+                "upstream_inference_completions_cost": 6.72e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 5
+        }
+      ],
+      "before_hash": "c91e1ebae2816c5592438bb65404dc1532551499ea2c257c5166c0da9ee89267",
+      "candidates": [
+        "click('61')",
+        "click('30')",
+        "click('33')",
+        "click('47')",
+        "click('20')",
+        "go_back()"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "radio",
+          "element_text": "[61] radio 'xx-large', checked='false'",
+          "action_bid": "61",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.16666666666666666,
+          "is_commit": false,
+          "is_constraint": true,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false,
+          "goal_constraint_signature": null
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "radio",
+          "element_text": "[30] radio 'blue', checked='false'",
+          "action_bid": "30",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.2,
+          "is_commit": false,
+          "is_constraint": true,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false,
+          "goal_constraint_signature": null
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "other",
+          "element_text": "[33] LabelText ''",
+          "action_bid": "33",
+          "paired_constraint_bid": "32",
+          "paired_constraint_text": "[32] radio 'blue | red', checked='true'",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.125,
+          "is_commit": false,
+          "is_constraint": true,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false,
+          "goal_constraint_signature": null
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "other",
+          "element_text": "[47] LabelText ''",
+          "action_bid": "47",
+          "paired_constraint_bid": "46",
+          "paired_constraint_text": "[46] radio 'yellow', checked='false'",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": true,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false,
+          "goal_constraint_signature": null
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[20] button '< Prev'",
+          "action_bid": "20",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "button"
+          ],
+          "goal_overlap": 0.3333333333333333,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "go_back",
+          "url_phase": "item_page",
+          "element_role": "other",
+          "element_text": "",
+          "action_bid": null,
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        }
+      ],
+      "target_features": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.16666666666666666,
+          1.0,
+          1.0,
+          1.0,
+          0.6363636363636364
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.2,
+          1.0,
+          1.0,
+          1.0,
+          0.6363636363636364
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          1.0,
+          0.0,
+          0.0,
+          0.125,
+          1.0,
+          1.0,
+          1.0,
+          0.6363636363636364
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          1.0,
+          0.6363636363636364
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.3333333333333333,
+          1.0,
+          1.0,
+          1.0,
+          0.6363636363636364
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          1.0,
+          0.6363636363636364
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.030689638200527045,
+          0.006949903882102084,
+          0.006961885689475993,
+          0.006482318118629928
+        ],
+        [
+          0.02726938607909967,
+          0.006698707751413731,
+          0.006710428939348574,
+          0.006283160288263159
+        ],
+        [
+          0.985403968949532,
+          0.018276009994630416,
+          0.0183173689638265,
+          0.9068872931349682
+        ],
+        [
+          0.9922546250971138,
+          0.026094447174278508,
+          0.026151230711146528,
+          0.8845945677700888
+        ],
+        [
+          0.08135331474185825,
+          0.00799082201518532,
+          0.008002100248600598,
+          0.0036519784716389004
+        ],
+        [
+          0.0312566004641701,
+          0.004103514223822309,
+          0.004109857615068433,
+          0.0029927525972260733
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": true,
+        "visible_goal_constraint_unsatisfied": true,
+        "prior_action_had_no_effect": true
+      },
+      "selected_index": 0,
+      "selected_action": "click('61')",
+      "changed_from_target_rank_zero": false,
+      "abstract_kind": "TARGET",
+      "source_abstained": true,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "target_rank_zero",
+      "reward": 0.0,
+      "terminated": false,
+      "truncated": false,
+      "after_hash": "c91e1ebae2816c5592438bb65404dc1532551499ea2c257c5166c0da9ee89267"
+    },
+    {
+      "step": 8,
+      "prompt_sha256": "36224e0135d8403afd1449e4e6dd09a8e39520ff69dfa009fe5dc237e03f4b97",
+      "response_sha256": "efd1da76c8ee666abe3d26c5ecd26761646a80e837798922390b278ea07ddf8e",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "efd1da76c8ee666abe3d26c5ecd26761646a80e837798922390b278ea07ddf8e",
+          "completion_diagnostic": {
+            "character_count": 141,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": false,
+            "original_usage": {
+              "prompt_tokens": 2005,
+              "completion_tokens": 42,
+              "total_tokens": 2047,
+              "cost": 0.0008692,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0008692,
+                "upstream_inference_prompt_cost": 0.000802,
+                "upstream_inference_completions_cost": 6.72e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 5
+        }
+      ],
+      "before_hash": "c91e1ebae2816c5592438bb65404dc1532551499ea2c257c5166c0da9ee89267",
+      "candidates": [
+        "click('59')",
+        "click('57')",
+        "click('55')",
+        "click('54')",
+        "click('53')",
+        "go_back()"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "radio",
+          "element_text": "[59] radio 'x-large', checked='false'",
+          "action_bid": "59",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.2,
+          "is_commit": false,
+          "is_constraint": true,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false,
+          "goal_constraint_signature": null
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "radio",
+          "element_text": "[57] radio 'large', checked='false'",
+          "action_bid": "57",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.2,
+          "is_commit": false,
+          "is_constraint": true,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false,
+          "goal_constraint_signature": null
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "radio",
+          "element_text": "[55] radio 'medium', checked='false'",
+          "action_bid": "55",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": true,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false,
+          "goal_constraint_signature": null
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "other",
+          "element_text": "[54] LabelText ''",
+          "action_bid": "54",
+          "paired_constraint_bid": "53",
+          "paired_constraint_text": "[53] radio 'small', checked='false'",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": true,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false,
+          "goal_constraint_signature": null
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "radio",
+          "element_text": "[53] radio 'small', checked='false'",
+          "action_bid": "53",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": true,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false,
+          "goal_constraint_signature": null
+        },
+        {
+          "verb": "go_back",
+          "url_phase": "item_page",
+          "element_role": "other",
+          "element_text": "",
+          "action_bid": null,
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        }
+      ],
+      "target_features": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.2,
+          1.0,
+          1.0,
+          1.0,
+          0.7272727272727273
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.2,
+          1.0,
+          1.0,
+          1.0,
+          0.7272727272727273
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          1.0,
+          0.7272727272727273
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          1.0,
+          0.7272727272727273
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          1.0,
+          0.7272727272727273
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          1.0,
+          0.7272727272727273
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.02604364908105663,
+          0.006920171404620825,
+          0.00693240730741891,
+          0.006454107921537194
+        ],
+        [
+          0.02604364908105663,
+          0.006920171404620825,
+          0.00693240730741891,
+          0.006454107921537194
+        ],
+        [
+          0.21756352380963198,
+          0.018533420232366857,
+          0.01855659238764133,
+          0.007797422576988304
+        ],
+        [
+          0.9919037204742527,
+          0.026345228655926062,
+          0.02640283566783843,
+          0.8870027279118211
+        ],
+        [
+          0.21756352380963198,
+          0.018533420232366857,
+          0.01855659238764133,
+          0.007797422576988304
+        ],
+        [
+          0.02853023076414748,
+          0.004144810641876989,
+          0.004151297366322613,
+          0.0030279999196488284
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": true,
+        "visible_goal_constraint_unsatisfied": true,
+        "prior_action_had_no_effect": true
+      },
+      "selected_index": 0,
+      "selected_action": "click('59')",
+      "changed_from_target_rank_zero": false,
+      "abstract_kind": "TARGET",
+      "source_abstained": true,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "target_rank_zero",
+      "reward": 0.0,
+      "terminated": false,
+      "truncated": false,
+      "after_hash": "c91e1ebae2816c5592438bb65404dc1532551499ea2c257c5166c0da9ee89267"
+    },
+    {
+      "step": 9,
+      "prompt_sha256": "0b3de96ad84e36ccaea32484866cd19bf17a423edcc855b2b693a5126bb747ea",
+      "response_sha256": "5433487d7a5e943ef713851c3b0f5f98aee401723be664239451b4fab1f2f9f5",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "5433487d7a5e943ef713851c3b0f5f98aee401723be664239451b4fab1f2f9f5",
+          "completion_diagnostic": {
+            "character_count": 141,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": false,
+            "original_usage": {
+              "prompt_tokens": 2004,
+              "completion_tokens": 42,
+              "total_tokens": 2046,
+              "cost": 0.0008688,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0008688,
+                "upstream_inference_prompt_cost": 0.0008016,
+                "upstream_inference_completions_cost": 6.72e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 5
+        }
+      ],
+      "before_hash": "c91e1ebae2816c5592438bb65404dc1532551499ea2c257c5166c0da9ee89267",
+      "candidates": [
+        "click('61')",
+        "click('33')",
+        "click('30')",
+        "click('42')",
+        "click('44')",
+        "go_back()"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "radio",
+          "element_text": "[61] radio 'xx-large', checked='false'",
+          "action_bid": "61",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.16666666666666666,
+          "is_commit": false,
+          "is_constraint": true,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false,
+          "goal_constraint_signature": null
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "other",
+          "element_text": "[33] LabelText ''",
+          "action_bid": "33",
+          "paired_constraint_bid": "32",
+          "paired_constraint_text": "[32] radio 'blue | red', checked='true'",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.125,
+          "is_commit": false,
+          "is_constraint": true,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false,
+          "goal_constraint_signature": null
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "radio",
+          "element_text": "[30] radio 'blue', checked='false'",
+          "action_bid": "30",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.2,
+          "is_commit": false,
+          "is_constraint": true,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false,
+          "goal_constraint_signature": null
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "radio",
+          "element_text": "[42] radio 'red', checked='false'",
+          "action_bid": "42",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": true,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false,
+          "goal_constraint_signature": null
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "radio",
+          "element_text": "[44] radio 'red | blue', checked='false'",
+          "action_bid": "44",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.16666666666666666,
+          "is_commit": false,
+          "is_constraint": true,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false,
+          "goal_constraint_signature": null
+        },
+        {
+          "verb": "go_back",
+          "url_phase": "item_page",
+          "element_role": "other",
+          "element_text": "",
+          "action_bid": null,
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        }
+      ],
+      "target_features": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.16666666666666666,
+          1.0,
+          1.0,
+          1.0,
+          0.8181818181818182
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          1.0,
+          0.0,
+          0.0,
+          0.125,
+          1.0,
+          1.0,
+          1.0,
+          0.8181818181818182
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.2,
+          1.0,
+          1.0,
+          1.0,
+          0.8181818181818182
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          1.0,
+          0.8181818181818182
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.16666666666666666,
+          1.0,
+          1.0,
+          1.0,
+          0.8181818181818182
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          1.0,
+          0.8181818181818182
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.02778216637734225,
+          0.007424548233789961,
+          0.0074376355751629595,
+          0.006841705548234065
+        ],
+        [
+          0.9839555871870735,
+          0.01897708280164122,
+          0.019020192349215377,
+          0.9067900133162132
+        ],
+        [
+          0.02500526815445009,
+          0.007157357579338635,
+          0.007170140998855583,
+          0.006638389532887254
+        ],
+        [
+          0.19459770290774475,
+          0.019164385746749717,
+          0.01918898152691091,
+          0.007995951522561773
+        ],
+        [
+          0.02778216637734225,
+          0.007424548233789961,
+          0.0074376355751629595,
+          0.006841705548234065
+        ],
+        [
+          0.026223409523732658,
+          0.0041908726204949705,
+          0.004197509540122996,
+          0.0030658890290883346
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": true,
+        "visible_goal_constraint_unsatisfied": true,
+        "prior_action_had_no_effect": true
+      },
+      "selected_index": 0,
+      "selected_action": "click('61')",
+      "changed_from_target_rank_zero": false,
+      "abstract_kind": "TARGET",
+      "source_abstained": true,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "target_rank_zero",
+      "reward": 0.0,
+      "terminated": false,
+      "truncated": false,
+      "after_hash": "c91e1ebae2816c5592438bb65404dc1532551499ea2c257c5166c0da9ee89267"
+    },
+    {
+      "step": 10,
+      "prompt_sha256": "feee626c27c2e7e1f22bb98b0cb6ac2969c1e125112b0a93c02135873101afc5",
+      "response_sha256": "30b13f4cd058442dba13cbbd401024c6dd92b05010eb1b3f136c0fb39c35b967",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "30b13f4cd058442dba13cbbd401024c6dd92b05010eb1b3f136c0fb39c35b967",
+          "completion_diagnostic": {
+            "character_count": 141,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": false,
+            "original_usage": {
+              "prompt_tokens": 2005,
+              "completion_tokens": 42,
+              "total_tokens": 2047,
+              "cost": 0.0008692,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0008692,
+                "upstream_inference_prompt_cost": 0.000802,
+                "upstream_inference_completions_cost": 6.72e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 5
+        }
+      ],
+      "before_hash": "c91e1ebae2816c5592438bb65404dc1532551499ea2c257c5166c0da9ee89267",
+      "candidates": [
+        "click('59')",
+        "click('57')",
+        "click('55')",
+        "click('30')",
+        "click('17')",
+        "go_back()"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "radio",
+          "element_text": "[59] radio 'x-large', checked='false'",
+          "action_bid": "59",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.2,
+          "is_commit": false,
+          "is_constraint": true,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false,
+          "goal_constraint_signature": null
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "radio",
+          "element_text": "[57] radio 'large', checked='false'",
+          "action_bid": "57",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.2,
+          "is_commit": false,
+          "is_constraint": true,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false,
+          "goal_constraint_signature": null
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "radio",
+          "element_text": "[55] radio 'medium', checked='false'",
+          "action_bid": "55",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": true,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false,
+          "goal_constraint_signature": null
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "radio",
+          "element_text": "[30] radio 'blue', checked='false'",
+          "action_bid": "30",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.2,
+          "is_commit": false,
+          "is_constraint": true,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false,
+          "goal_constraint_signature": null
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[17] button 'Back to Search'",
+          "action_bid": "17",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "button"
+          ],
+          "goal_overlap": 0.2,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "go_back",
+          "url_phase": "item_page",
+          "element_role": "other",
+          "element_text": "",
+          "action_bid": null,
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        }
+      ],
+      "target_features": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.2,
+          1.0,
+          1.0,
+          1.0,
+          0.9090909090909091
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.2,
+          1.0,
+          1.0,
+          1.0,
+          0.9090909090909091
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          1.0,
+          0.9090909090909091
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.2,
+          1.0,
+          1.0,
+          1.0,
+          0.9090909090909091
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.2,
+          1.0,
+          1.0,
+          1.0,
+          0.9090909090909091
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          1.0,
+          0.9090909090909091
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.024128454640452383,
+          0.0074114302249984835,
+          0.007424796578325711,
+          0.00683663686767476
+        ],
+        [
+          0.024128454640452383,
+          0.0074114302249984835,
+          0.007424796578325711,
+          0.00683663686767476
+        ],
+        [
+          0.17455710934251592,
+          0.019827584035307582,
+          0.019853688853448515,
+          0.008207322941368726
+        ],
+        [
+          0.024128454640452383,
+          0.0074114302249984835,
+          0.007424796578325711,
+          0.00683663686767476
+        ],
+        [
+          0.1273868533050317,
+          0.010406065479046964,
+          0.010419721499850905,
+          0.0043423992020686876
+        ],
+        [
+          0.024265474694704487,
+          0.004242172239547075,
+          0.004248967055089276,
+          0.0031063505159077244
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": true,
+        "visible_goal_constraint_unsatisfied": true,
+        "prior_action_had_no_effect": true
+      },
+      "selected_index": 0,
+      "selected_action": "click('59')",
+      "changed_from_target_rank_zero": false,
+      "abstract_kind": "TARGET",
+      "source_abstained": true,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "target_rank_zero",
+      "reward": 0.0,
+      "terminated": false,
+      "truncated": false,
+      "after_hash": "c91e1ebae2816c5592438bb65404dc1532551499ea2c257c5166c0da9ee89267"
+    },
+    {
+      "step": 11,
+      "prompt_sha256": "b6b802b3edd73e00ec5cf38868408176ffd4957834905bec1591ac98061c79df",
+      "response_sha256": "24c4a1ce54815e6453e3830f0f0703e8c551152b5ec7155a7f2462613400a06f",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "24c4a1ce54815e6453e3830f0f0703e8c551152b5ec7155a7f2462613400a06f",
+          "completion_diagnostic": {
+            "character_count": 141,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": false,
+            "original_usage": {
+              "prompt_tokens": 2004,
+              "completion_tokens": 42,
+              "total_tokens": 2046,
+              "cost": 0.0008688,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0008688,
+                "upstream_inference_prompt_cost": 0.0008016,
+                "upstream_inference_completions_cost": 6.72e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 5
+        }
+      ],
+      "before_hash": "c91e1ebae2816c5592438bb65404dc1532551499ea2c257c5166c0da9ee89267",
+      "candidates": [
+        "click('60')",
+        "click('61')",
+        "click('57')",
+        "click('55')",
+        "click('53')",
+        "go_back()"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "other",
+          "element_text": "[60] LabelText ''",
+          "action_bid": "60",
+          "paired_constraint_bid": "59",
+          "paired_constraint_text": "[59] radio 'x-large', checked='false'",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.14285714285714285,
+          "is_commit": false,
+          "is_constraint": true,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false,
+          "goal_constraint_signature": null
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "radio",
+          "element_text": "[61] radio 'xx-large', checked='false'",
+          "action_bid": "61",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.16666666666666666,
+          "is_commit": false,
+          "is_constraint": true,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false,
+          "goal_constraint_signature": null
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "radio",
+          "element_text": "[57] radio 'large', checked='false'",
+          "action_bid": "57",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.2,
+          "is_commit": false,
+          "is_constraint": true,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false,
+          "goal_constraint_signature": null
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "radio",
+          "element_text": "[55] radio 'medium', checked='false'",
+          "action_bid": "55",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": true,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false,
+          "goal_constraint_signature": null
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "radio",
+          "element_text": "[53] radio 'small', checked='false'",
+          "action_bid": "53",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": true,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false,
+          "goal_constraint_signature": null
+        },
+        {
+          "verb": "go_back",
+          "url_phase": "item_page",
+          "element_role": "other",
+          "element_text": "",
+          "action_bid": null,
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        }
+      ],
+      "target_features": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          1.0,
+          0.0,
+          0.0,
+          0.14285714285714285,
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.16666666666666666,
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.2,
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.9813089820528749,
+          0.019828766025462886,
+          0.019873943084862226,
+          0.9046658000654652
+        ],
+        [
+          0.02569294946253944,
+          0.00796881397946188,
+          0.007983153128497723,
+          0.007258895158019371
+        ],
+        [
+          0.023391879337866368,
+          0.007683604462413303,
+          0.007697591941211792,
+          0.007049531379376345
+        ],
+        [
+          0.15713601645725844,
+          0.02052734284467243,
+          0.020555048421185117,
+          0.008431389551476874
+        ],
+        [
+          0.15713601645725844,
+          0.02052734284467243,
+          0.020555048421185117,
+          0.008431389551476874
+        ],
+        [
+          0.022598952512464222,
+          0.004299161220748591,
+          0.004306122484065314,
+          0.00314935850321794
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": true,
+        "visible_goal_constraint_unsatisfied": true,
+        "prior_action_had_no_effect": true
+      },
+      "selected_index": 0,
+      "selected_action": "click('60')",
+      "changed_from_target_rank_zero": false,
+      "abstract_kind": "TARGET",
+      "source_abstained": true,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "target_rank_zero",
+      "reward": 0.0,
+      "terminated": false,
+      "truncated": false,
+      "after_hash": "8f6b9f17a42b03e254e3763a8b7a7cb71a01d434e1906d61d253e7f6f5f0a9c1"
+    }
+  ],
+  "step_count": 12,
+  "official_reward": 0.0,
+  "strict_success": false,
+  "pass_success": false,
+  "terminated": false,
+  "truncated": false,
+  "failure": null,
+  "failure_traceback": null,
+  "changed_from_target_rank_zero_count": 0,
+  "source_decision_count": 0,
+  "session_namespace": "webshop-search-automaton-v16-formal.raw-target-only",
+  "v16_controller": {
+    "condition": "raw_target_only",
+    "source_artifact_sha256": "ba848d54a10c785912f2dbe29c9ea8e35ef8eec3daf2cea4e5d303919b6cd75f",
+    "source_decisions": 0,
+    "source_action_counts": {},
+    "target_fallbacks": 0,
+    "coverage_controller": {
+      "condition": "target_only",
+      "coverage_enabled": false,
+      "coverage_ready": false,
+      "goal_option_signatures": [
+        "color:e blue",
+        "size:4x large"
+      ],
+      "coverage_interventions": 0,
+      "source_calls_after_coverage": 0,
+      "rejected_product_ids": [],
+      "last_selected_product_id": null,
+      "anytime_reward_salvage": false,
+      "maximum_steps": 12,
+      "budget_abstentions": 0,
+      "product_ledger_resets": 0,
+      "ledger": {
+        "required": [
+          "color:e blue",
+          "size:4x large"
+        ],
+        "verified": [],
+        "missing": [
+          "color:e blue",
+          "size:4x large"
+        ],
+        "commit_authorized": false,
+        "pending_signature": null
+      }
+    },
+    "source_trace": []
+  },
+  "commit_audit": [],
+  "unsafe_commits": [],
+  "runtime_hashes": {
+    "runner": "b21567e4b02937d84283eb3b0d821443507f048ff945aa29fd9f3294541768ed",
+    "controller": "478994c5da56ee783e59823a79f026dfa2f7185d0f733a835bfe11e5cdd46c38",
+    "source_artifact": "261847ec1825dac50f87da013c3967d939e593f2c204abcd046d1886eb7f6a54",
+    "target_grounder": "bbf8a22ebec8e7ab6d55e570f230ba4fcb2b8630d1dc81bd24ba103f68701782",
+    "goal_manifest": "fc5d8a8ea2c5b9cfe6296fab6d36d623bdf8c539e31b45cd3c0bc7e2601705ee"
+  },
+  "receipt_sha256": "e954688ee6b0cf00a5bb354e71e13cd55b6a7e6150079d4662ed31f12e360a51"
+}

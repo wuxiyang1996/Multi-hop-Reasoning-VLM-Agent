@@ -1,0 +1,132 @@
+{
+  "artifact_sha256": "f9f67fd7d4dd93634440469a62745a5fa3a251dd593bd209059976f8cb254220",
+  "claim_boundary": "SOURCE_DISCOVERY_VOCABULARY_ONLY;OUTCOME_BLIND_CANDIDATE_SELECTION;TARGET_UNREAD;NATIVE_TOKENS_NEVER_EXPORTED_IN_COMMON_IR",
+  "discovery_execution_count": 19,
+  "discovery_skill_ids": [
+    "COMMIT/ATTACK",
+    "COMMIT/EXPLORE",
+    "COMMIT/POSITION"
+  ],
+  "game": "gymv_strider",
+  "horizon": 16,
+  "schema_version": "phase1-discovery-primitive-template-artifact-v1",
+  "selection": "all distinct native action tokens observed in discovery-only maximal skill executions; reward-blind stable-hash ordering",
+  "status": "FROZEN_BEFORE_FRESH_OPTION_FORKS",
+  "templates": [
+    {
+      "actions": [
+        "A",
+        "A",
+        "A",
+        "A",
+        "A",
+        "A",
+        "A",
+        "A",
+        "A",
+        "A",
+        "A",
+        "A",
+        "A",
+        "A",
+        "A",
+        "A"
+      ],
+      "discovery_observation_count": 1,
+      "family": "DISCOVERY_NATIVE_PRIMITIVE",
+      "template_id": "11cfc4464a1eb0b822bcfd906647303ca315317b9cd8e2af027f29033c1e325f"
+    },
+    {
+      "actions": [
+        "B",
+        "B",
+        "B",
+        "B",
+        "B",
+        "B",
+        "B",
+        "B",
+        "B",
+        "B",
+        "B",
+        "B",
+        "B",
+        "B",
+        "B",
+        "B"
+      ],
+      "discovery_observation_count": 37,
+      "family": "DISCOVERY_NATIVE_PRIMITIVE",
+      "template_id": "e45694f05fd1b66d815e6ce6b4633cc8a6fae1bad78a3823e732162c02cb97bf"
+    },
+    {
+      "actions": [
+        "UP",
+        "UP",
+        "UP",
+        "UP",
+        "UP",
+        "UP",
+        "UP",
+        "UP",
+        "UP",
+        "UP",
+        "UP",
+        "UP",
+        "UP",
+        "UP",
+        "UP",
+        "UP"
+      ],
+      "discovery_observation_count": 1,
+      "family": "DISCOVERY_NATIVE_PRIMITIVE",
+      "template_id": "31c182908273f49145de3745ab52cee237e7b8aa687c053a86dd6bcbbd61b76b"
+    },
+    {
+      "actions": [
+        "RIGHT",
+        "RIGHT",
+        "RIGHT",
+        "RIGHT",
+        "RIGHT",
+        "RIGHT",
+        "RIGHT",
+        "RIGHT",
+        "RIGHT",
+        "RIGHT",
+        "RIGHT",
+        "RIGHT",
+        "RIGHT",
+        "RIGHT",
+        "RIGHT",
+        "RIGHT"
+      ],
+      "discovery_observation_count": 59,
+      "family": "DISCOVERY_NATIVE_PRIMITIVE",
+      "template_id": "06bfca8e2e51985427c05a5eedc480b6c4d3812e804074cd2174e0515b603ce6"
+    },
+    {
+      "actions": [
+        "START",
+        "START",
+        "START",
+        "START",
+        "START",
+        "START",
+        "START",
+        "START",
+        "START",
+        "START",
+        "START",
+        "START",
+        "START",
+        "START",
+        "START",
+        "START"
+      ],
+      "discovery_observation_count": 2,
+      "family": "DISCOVERY_NATIVE_PRIMITIVE",
+      "template_id": "e6e5618c04ec61482bb9a9ff404c351d91916d1e2c838db8fc6f7cb13d332ae1"
+    }
+  ]
+}

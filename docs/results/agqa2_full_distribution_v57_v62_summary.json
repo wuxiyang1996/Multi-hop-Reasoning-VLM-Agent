@@ -1,0 +1,78 @@
+{
+  "claim": "operator-unfiltered selective cross-domain transfer with source-induced symbolic primitives and target-native AGQA neural grounding",
+  "claim_boundary": {
+    "all_agqa_question_families_solved": false,
+    "full_669207_question_test_set_executed": false,
+    "fresh_cross_split_replication_of_selective_transfer": true,
+    "generic_or_target_written_equivalent_beaten": false,
+    "operator_unfiltered_sampling": true,
+    "source_provenance_necessary": false
+  },
+  "grounder_sha256": "a5199eab3d4a80431d76a7480258d73bff25298a989880834eabf5460f927e5a",
+  "schema_version": "agqa2-full-distribution-v57-v62-summary-v1",
+  "v57_coverage_audit": {
+    "official_test_rows": 669207,
+    "official_test_unique_videos": 1814,
+    "prior_validated_selective_fraction": 0.02819487111576407,
+    "prior_validated_selective_rows": 45137,
+    "report_sha256": "aa0584b38024d7c367074ef09e925734c0ec2fcdc967608cac7beb1340a505f2"
+  },
+  "v60_fresh_qualification": {
+    "applicable_rows": 240,
+    "direct_correct": 39,
+    "losses": 0,
+    "net_gain": 16,
+    "report_sha256": "d265474a09b886944442bd9c6db7bddd2a679e6e5a694ba44f5b3d2389bc5c1c",
+    "reported_provider_cost_usd": 2.377760272,
+    "rows": 240,
+    "source_authorizations": 83,
+    "source_correct": 55,
+    "status": "QUALIFIED",
+    "wins": 16
+  },
+  "v61_operator_unfiltered_official_test": {
+    "applicable_rows": 760,
+    "direct_correct": 490,
+    "failed_gates": [
+      "maximum_row_losses",
+      "maximum_negative_video_clusters"
+    ],
+    "losses": 3,
+    "net_gain": 64,
+    "negative_video_clusters": 3,
+    "positive_video_clusters": 61,
+    "report_sha256": "3ba1cc48f7beecd342f7d3cf29b27ff7e1c58ebadb33e4563562978241dac3d8",
+    "reported_provider_cost_usd": 7.029733736,
+    "row_exact_one_sided_pvalue": 4.847230743957459e-17,
+    "rows": 1769,
+    "source_authorizations": 271,
+    "source_correct": 554,
+    "status": "FORMAL_NOT_QUALIFIED",
+    "unique_videos": 590,
+    "video_cluster_exact_one_sided_pvalue": 2.3714212017689196e-15,
+    "wins": 67
+  },
+  "v62_fresh_cross_split_replication": {
+    "all_formal_gates_passed": true,
+    "applicable_rows": 418,
+    "direct_correct": 249,
+    "losses": 3,
+    "negative_authorization_rate": 0.01818181818181818,
+    "negative_cluster_rate": 0.01,
+    "negative_video_clusters": 3,
+    "net_gain": 41,
+    "positive_video_clusters": 41,
+    "report_sha256": "9e120c59812cf24faa0ce068aced4e8eb8814afb47fb4df1d4e59fd7960fd2fd",
+    "reported_provider_cost_usd": 4.020230034,
+    "row_exact_one_sided_pvalue": 1.2323653209023178e-10,
+    "row_win_loss_ratio": 14.666666666666666,
+    "rows": 900,
+    "source_authorizations": 165,
+    "source_correct": 290,
+    "status": "FORMAL_QUALIFIED",
+    "unique_videos": 300,
+    "video_cluster_exact_one_sided_pvalue": 8.091660674836021e-10,
+    "video_cluster_win_loss_ratio": 13.666666666666666,
+    "wins": 44
+  }
+}

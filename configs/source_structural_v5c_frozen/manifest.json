@@ -1,0 +1,181 @@
+{
+  "all_fresh_seeds_disjoint": true,
+  "claim_boundary": "FROZEN_BEFORE_FRESH_SOURCE_COLLECTION;NO_TARGET_DATA_OR_OUTCOMES_READ",
+  "collection_receipt_sealed_without_reading_outcomes": true,
+  "development_report_file_sha256": "2b818974c82dc63a236690446a706546502524b66ba3a5901429ac1e62c281e7",
+  "development_report_path": "runs/source_structural_v5b_development/report.json",
+  "development_report_sha256": "760a162791415898e8b0f481796b9e399ef8b20f4e890e1f595a3b468db5e67d",
+  "expected_summary_file_sha256": "da149cf7792cd4f69efca52de1a3c6c30bca0fd1edd78a308136d4ea84516359",
+  "expected_summary_path": "runs/source_structural_v5c_fresh/summary.json",
+  "fresh_seed_pairs": [
+    [
+      "doorkey_5x5",
+      31
+    ],
+    [
+      "doorkey_5x5",
+      32
+    ],
+    [
+      "doorkey_5x5",
+      33
+    ],
+    [
+      "doorkey_5x5",
+      34
+    ],
+    [
+      "put_near",
+      31
+    ],
+    [
+      "put_near",
+      32
+    ],
+    [
+      "put_near",
+      33
+    ],
+    [
+      "put_near",
+      34
+    ],
+    [
+      "unlock_pickup",
+      31
+    ],
+    [
+      "unlock_pickup",
+      32
+    ],
+    [
+      "unlock_pickup",
+      33
+    ],
+    [
+      "unlock_pickup",
+      34
+    ]
+  ],
+  "frozen_code_sha256": {
+    "scripts/collect_source_structural_paths_v5.py": "986ab17ce7fdfed26832b005566d44b3100486f571534ae5807c874c6d99ec7b",
+    "scripts/evaluate_source_structural_v5c.py": "a83b5353e0a7e644947ab5422d767b1cd08ecccb221c78c110e2007b9fb05f27",
+    "src/motif_transfer/contracts.py": "77da9776e0005f585d2c451f4c014d3726dbb7289d86143c634a351db1fc111c",
+    "src/motif_transfer/structural_delta_induction.py": "bfa3e2da017f664612b0c7a5e3869ce1081514a18eaa569ec3434aeafce16a52",
+    "src/motif_transfer/typed_source_tasks.py": "f3eae85492dcbe5b8afe7e360ba6b6c4a8ea9c16552a080f0457934ccff93d10"
+  },
+  "frozen_source_program_permutation": {
+    "doorkey_5x5": "unlock_pickup",
+    "put_near": "doorkey_5x5",
+    "unlock_pickup": "put_near"
+  },
+  "manifest_sha256": "ab24bdb5689bbedd2d2a398387a0825e2d130aed84ca72162fdbcd77db0fe92f",
+  "preregistered_thresholds": {
+    "minimum_authentic_binding_accuracy": 0.9,
+    "minimum_authentic_sequence_support": 0.9,
+    "minimum_correct_program_selection_rate": 0.8,
+    "minimum_shuffled_binding_gap": 0.5,
+    "minimum_source_permutation_gap": 0.3
+  },
+  "reserve_config": {
+    "claim_boundary": "UNOPENED_AT_FREEZE;FRESH_SOURCE_QUALIFICATION_ONLY;NO_NAMED_EFFECT_LIST;NO_TARGET_DATA",
+    "control_paths_per_success": 2,
+    "maximum_success_paths": 2,
+    "schema_version": "source-structural-fresh-config-v5c",
+    "tasks": [
+      {
+        "environment_id": "MiniGrid-DoorKey-5x5-v0",
+        "max_depth": 18,
+        "max_states": 800,
+        "seeds": [
+          {
+            "seed": 31,
+            "split": "qualification"
+          },
+          {
+            "seed": 32,
+            "split": "qualification"
+          },
+          {
+            "seed": 33,
+            "split": "qualification"
+          },
+          {
+            "seed": 34,
+            "split": "qualification"
+          }
+        ],
+        "task_id": "doorkey_5x5"
+      },
+      {
+        "environment_id": "MiniGrid-UnlockPickup-v0",
+        "max_depth": 24,
+        "max_states": 3000,
+        "seeds": [
+          {
+            "seed": 31,
+            "split": "qualification"
+          },
+          {
+            "seed": 32,
+            "split": "qualification"
+          },
+          {
+            "seed": 33,
+            "split": "qualification"
+          },
+          {
+            "seed": 34,
+            "split": "qualification"
+          }
+        ],
+        "task_id": "unlock_pickup"
+      },
+      {
+        "environment_id": "MiniGrid-PutNear-6x6-N2-v0",
+        "max_depth": 20,
+        "max_states": 1200,
+        "seeds": [
+          {
+            "seed": 31,
+            "split": "qualification"
+          },
+          {
+            "seed": 32,
+            "split": "qualification"
+          },
+          {
+            "seed": 33,
+            "split": "qualification"
+          },
+          {
+            "seed": 34,
+            "split": "qualification"
+          }
+        ],
+        "task_id": "put_near"
+      }
+    ]
+  },
+  "reserve_config_file_sha256": "eb81f5722c9d285d411e5bd274b50f27f081dc07a8922fe4ce31cb921ed79743",
+  "reserve_config_path": "configs/source_structural_v5c_fresh.json",
+  "reserve_opened_at_freeze": false,
+  "schema_version": "source-structural-reserve-manifest-v5c",
+  "source_programs": {
+    "doorkey_5x5": {
+      "file_sha256": "df21547a30e12b476ba8e2cef735f96ef4fb1af246b0a0baaa83c04878f682e5",
+      "path": "configs/source_structural_v5c_frozen/programs/doorkey_5x5.json",
+      "program_sha256": "1bb9972d1d55d18f53d336b5a021c73033a92e42d557f33b5eeb9e78a446a288"
+    },
+    "put_near": {
+      "file_sha256": "dfd3c98d6ca41c7940e86819b60aa0e711bfdddffcb7fee6efa181acffed8bf9",
+      "path": "configs/source_structural_v5c_frozen/programs/put_near.json",
+      "program_sha256": "b0d3b7cd706f8c18f35217a30d72e2f5d88b60f437f8c9980d9dbbf7478ee2c0"
+    },
+    "unlock_pickup": {
+      "file_sha256": "355aa4822b4d25a5df2912e247f33d0b16e44d2fec42522c1772ba94a22c46f4",
+      "path": "configs/source_structural_v5c_frozen/programs/unlock_pickup.json",
+      "program_sha256": "6635161e8a514a2f2a72a3391f46ef0d6d30a461c696bf748e3942b25e9a543a"
+    }
+  }
+}

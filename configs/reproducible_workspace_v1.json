@@ -1,0 +1,71 @@
+{
+  "schema_version": "neurosymbolic-transfer-reproducible-workspace-v1",
+  "status": "FIVE_WORKTREE_LAYOUT_FROZEN",
+  "components": [
+    {
+      "directory": "Multi-hop-Reasoning-VLM-Agent-two-agent-clean",
+      "branch": "agent/harness-transfer-bitter-lessons",
+      "commit_from_active_bundle": true,
+      "role": "canonical harness, frozen artifacts, evaluation and paper reports",
+      "required_for_v3_substitution": true,
+      "required_paths": [
+        "cluster/train_harness_controller_qwen35_9b_mixed_v3_l40s.sbatch",
+        "scripts/verify_server_bundle_six_benchmark_v2.py"
+      ]
+    },
+    {
+      "directory": "Multi-hop-Reasoning-VLM-Agent-github-main",
+      "branch": "agent/agent-native-skill-harness-v2",
+      "commit": "8bbfb4d11a23f3ed7e51b3c1b6f974915bef8319",
+      "role": "LoRA target-module resolver and source-game runtime",
+      "required_for_v3_substitution": true,
+      "required_paths": ["trainer/SFT/lora_targets.py"]
+    },
+    {
+      "directory": "Multi-hop-Reasoning-VLM-Agent-source-fresh-v1",
+      "branch": "agent/source-fresh-execution-motif-v1",
+      "commit": "db1a5ac41c9150df1352490c0e477a0f7a89369e",
+      "role": "optional source-rollout regeneration runtime",
+      "required_for_v3_substitution": false,
+      "required_paths": ["scripts/run_instrumented_source_smoke.py"]
+    },
+    {
+      "directory": "Multi-hop-Reasoning-VLM-Agent-experiment-clean",
+      "branch": "agent/experiment-ddp-forward-oom-sync",
+      "commit": "b32d5ba95101a7a3e8fab78bc41c336668acc072",
+      "role": "archival experiment/DDP implementation used by earlier lineage",
+      "required_for_v3_substitution": false,
+      "required_paths": ["trainer"]
+    },
+    {
+      "directory": "Multi-hop-Reasoning-VLM-Agent",
+      "branch": "agent/video-audio-wrapper-tools",
+      "commit": "603860132d8fb58b526af75035425425bcd419c5",
+      "role": "optional raw-video visual reasoning and grounding tools",
+      "required_for_v3_substitution": false,
+      "required_paths": ["visual_reasoning_wrapper", "visual_grounding_tests"]
+    }
+  ],
+  "package_files": {
+    "harness_bundle": "00a-two-agent-clean-repository.bundle",
+    "four_worktree_bundle": "00c-four-worktree-runtime-repository.bundle",
+    "required_data_archives": [
+      "10-harness-source-only-core.tar.zst",
+      "11-target-adapted-baseline.tar.zst",
+      "13-six-benchmark-portable-dependencies.tar.zst"
+    ],
+    "optional_model_archive": "30-qwen35-9b-hf-cache.tar.zst"
+  },
+  "result_boundary": {
+    "portable_result": "historical frozen-cohort six-benchmark controller substitution and action equivalence",
+    "full_official_six_benchmark_outcome_reproduced": false,
+    "full_protocol_sizes": {
+      "webshop": 500,
+      "alfworld": 134,
+      "discoveryworld": 120,
+      "tirbench": 1215,
+      "clevrer": 76368,
+      "agqa2": 669207
+    }
+  }
+}

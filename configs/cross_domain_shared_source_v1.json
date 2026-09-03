@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "status": "SEEDS_FROZEN_COLLECTION_PENDING",
+  "claim": "One shared source superset that every cross-domain memory method reads",
+  "why_fresh_seeds": "The proposed method induced from reward-blind hash-policy counterfactual fork rows (runs/phase3_source_confirmation_v1, PHASE1_MATCHED_OPTION_FORK_V1), which carry only snapshot hashes and no readable observations. The three published baselines induce from agent trajectories. The existing trajectory pool (runs/phase1_*_long_v1) uses different seeds and a different policy from the fork pool, so no existing artifact lets all four methods claim the same source receipts. This collection produces one episode set from which both projections are taken.",
+  "collection": {
+    "policy": {
+      "model": "Qwen/Qwen3.5-9B",
+      "provider": "local_vllm",
+      "adapter": "checkpoint_multi_lora",
+      "checkpoint_root": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-github-main/runs/b2_best_checkpoints",
+      "adapters": [
+        "adapters/decision/action_taking",
+        "adapters/decision/skill_selection",
+        "adapters/skillbank/contract",
+        "adapters/skillbank/curator",
+        "adapters/skillbank/segment"
+      ],
+      "condition": "authentic_skill_loaded",
+      "rationale": "Identical policy configuration to runs/phase1_*_long_v1 so the fresh episodes are comparable to the existing source corpus."
+    },
+    "episodes_per_game": 16,
+    "games": 6,
+    "total_episodes": 96,
+    "max_steps": 50,
+    "sequential_episodes": true,
+    "runner": "cluster/collect_phase1_complete.sbatch",
+    "output_root": "runs/cross_domain_shared_source_v1"
+  },
+  "seed_plan": {
+    "seed_base_root": 920001,
+    "seed_base_stride": 1000,
+    "derivation": "episode_seed = seed_base_root + stride * game_index + episode_index",
+    "game_order_for_game_set_six": [
+      "candy_crush",
+      "tetris",
+      "gymv_columns",
+      "gymv_streets_of_rage_2",
+      "gymv_strider",
+      "gymv_thunder_force_iii"
+    ],
+    "bands": {
+      "candy_crush": [920001, 920016],
+      "tetris": [921001, 921016],
+      "gymv_columns": [922001, 922016],
+      "gymv_streets_of_rage_2": [923001, 923016],
+      "gymv_strider": [924001, 924016],
+      "gymv_thunder_force_iii": [925001, 925016]
+    },
+    "disjoint_from": {
+      "all_observed_episode_seed_bases": [7301, 7401, 7501, 7601, 7701, 7801, 91001, 92001],
+      "phase3_source_confirmation_v1_forks": "101001-106048",
+      "phase3_typed_effect_reserves": "201001-206024, 301001-306024, 401001-406024",
+      "verified": true,
+      "verification": "Scanned every evidence manifest.json for episode_seed_base and every events.jsonl for requested_seed; no value falls in 920001-925016. Highest pre-existing family is 406024."
+    }
+  },
+  "projections": {
+    "note": "Each method reads only what its published algorithm is defined over. All four bind to the same superset hash.",
+    "receipt_grounded_method": "counterfactual intervention/fork rows collected on these same episodes and snapshots",
+    "expel": "full trajectories, successes contrasted against failures",
+    "awm": "full trajectories the shared evaluator judged successful or canonical",
+    "reasoning_bank": "full trajectories, successes and failures, one induction call per trajectory"
+  },
+  "outcome_labelling": {
+    "config": "configs/cross_domain_source_outcome_v2.json",
+    "applied_by": "scripts/label_cross_domain_source_outcomes.py",
+    "shared_across_all_methods": true
+  },
+  "atomicity_and_resume": {
+    "atomic_unit": "one array task = one 4-episode chunk",
+    "mechanism": "The upstream writer emits every JSONL and the manifest in one batch per invocation, so an invocation is already atomic. CHUNK_SIZE splits a game across array tasks to shrink that unit instead of patching the writer.",
+    "measured_cost": {
+      "vllm_startup_minutes": [1, 2],
+      "minutes_per_episode": 4,
+      "unchunked_16_episode_task_minutes": 66,
+      "chunked_overhead_fraction": 0.08,
+      "resume_loss_minutes_chunked": 16,
+      "resume_loss_minutes_unchunked": 64,
+      "measured_on": "runs/phase1_tetris_candy_long_v1, runs/phase1_streets_strider_long_v1"
+    },
+    "resume": "ALLOW_RESUME=1 skips chunks whose evidence/manifest.json already exists; a half-written chunk directory remains a hard failure.",
+    "merge": "scripts/export_cross_domain_source_episodes.py accepts one --evidence per chunk and merges them into the canonical superset."
+  },
+  "known_limitations": {
+    "counterfactual_forks_not_yet_collected": true,
+    "api_key_required_for_labelling": "The shared LLM judge needs a key in OPENROUTER_API_KEY; none is present in the environment, so outcome labelling cannot run unattended."
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "status": "IMPLEMENTED_NOT_YET_EXECUTED",
+  "claim": "Cross-domain adaptation from the same frozen source receipts",
+  "methods": [
+    {
+      "id": "expel",
+      "code": "https://github.com/LeapLabTHU/ExpeL",
+      "representation": "global natural-language insights"
+    },
+    {
+      "id": "awm",
+      "code": "https://github.com/zorazrw/agent-workflow-memory",
+      "representation": "reusable ordered workflows with applicability boundaries"
+    },
+    {
+      "id": "reasoning_bank",
+      "code": "https://github.com/google-research/reasoning-bank",
+      "representation": "retrieved strategies and failure-derived pitfalls"
+    }
+  ],
+  "open_weight_models": {
+    "inducer_and_decision": "Qwen/Qwen3.5-9B",
+    "retriever": "Qwen/Qwen3-Embedding-0.6B"
+  },
+  "target_domains": [
+    "webshop",
+    "alfworld",
+    "discoveryworld",
+    "tirbench"
+  ],
+  "fairness_contract": {
+    "same_source_payload_across_methods": true,
+    "same_target_ids_and_initial_states": true,
+    "same_decision_model": true,
+    "same_environment_and_tool_budget": true,
+    "same_total_generation_token_budget": true,
+    "heldout_target_outcomes_visible_during_induction": false,
+    "online_memory_updates_during_formal_evaluation": false,
+    "baseline_may_select_target_action": false,
+    "decision_agent_retains_target_action_authority": true
+  },
+  "implementation": {
+    "library": "src/motif_transfer/cross_domain_memory_baselines.py",
+    "builder": "scripts/build_cross_domain_memory_baseline.py",
+    "retriever": "scripts/retrieve_cross_domain_memory_baseline.py",
+    "canonical_source_schema": "docs/CROSS_DOMAIN_OPEN_MEMORY_BASELINES_V1.md"
+  }
+}

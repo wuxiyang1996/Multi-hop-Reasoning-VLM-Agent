@@ -1,0 +1,83 @@
+{
+  "base_evaluation_protocol_sha256": "8c9ce995df1d469abac32846219dd382677d84ff8f694e346b532014079302bd",
+  "claim_boundary": "TWO_HUNDRED_NEW_CROSS_EXPERIMENT_VIDEO_DISJOINT_ATOMIC_BEFORE_AFTER_ROWS_FROM_OFFICIAL_TRAIN_METADATA;V48_TEMPORAL_SUPPORT_RULE_QUALIFICATION_ONLY",
+  "confirmatory_claim_allowed": false,
+  "cost_projection": {
+    "frozen_cap_usd": 1.8,
+    "projected_200_row_cost_usd": 1.4
+  },
+  "development_calibration": {
+    "decision": "SELECT_SKILL",
+    "losses": 0,
+    "reason": "V48_RISK_FIRST_FINITE_CLASS_TEMPORAL_SUPPORT_INDUCTION",
+    "ties": 474,
+    "wins": 26
+  },
+  "download_receipt_file_sha256": "cd5953828208854ffd7f7e466e484b2926087786f68b8f1f642f4b74389f3d72",
+  "failure_policy": {
+    "failed_gate": "STOP_BEFORE_NEW_TEST_FORMAL",
+    "passed": "FREEZE_ONE_NEW_VIDEO_DISJOINT_TEST_FORMAL",
+    "qualification": "RUN_ONCE;NO_POST_OUTCOME_THRESHOLD_CHANGE"
+  },
+  "postground_evaluation_protocol": {
+    "aggregate_adapter_sha256": "6021b1865e3cbf138c0fe1d4054861a13d15a6cbbdfe8c527ea33e874ec05945",
+    "calibration_artifact_sha256": "56993f06b5683a89185a427add935c93856c7d744100fd715dc268840d356a74",
+    "calibration_rule_sha256": "0d3e9d8f0a0823f04af14a5450de513a4286b3e07fc439a800c7a148bd76b0ab",
+    "calibrator_module_sha256": "4756298008e76742638427d70abd313cdd245f2e56ccf3981d0fc870e0218a72",
+    "confirmatory_claim": false,
+    "evaluator_module_sha256": "3b29c9606fd624c9cbc6f49a52f0cddf20b5c3bbfeb06d4b865b1a465af06e98",
+    "fallback": "PRESERVE_MATCHED_TARGET_NATIVE_DIRECT_ON_ABSTENTION",
+    "gates": {
+      "maximum_exact_one_sided_pvalue": 0.05,
+      "maximum_reported_provider_cost_usd": 1.8,
+      "maximum_source_losses": 1,
+      "minimum_source_authorizations": 35,
+      "minimum_source_minus_target_correct": 7,
+      "minimum_source_wins": 8,
+      "required_effect_shuffled_abstentions": 200,
+      "required_generic_scaffold_matches": 200,
+      "required_target_written_equivalent_matches": 200,
+      "required_unique_videos": 200,
+      "required_valid_rows": 200,
+      "required_wrong_source_abstentions": 200
+    },
+    "runtime_calibrator_authority": "ABSTENTION_ONLY;NO_INTERVAL_RELATION_OR_BINDING_CREATION_OR_EDIT",
+    "runtime_features": [
+      "SINGLETON_VIEW_KIND",
+      "MINIMUM_CROSS_PAIR_GAP",
+      "MAXIMUM_WITHIN_OPERAND_ENDPOINT_SPREAD",
+      "MAXIMUM_INTERVAL_SPAN"
+    ],
+    "sample_count": 200,
+    "schema_version": "agqa2-temporal-support-v49-qualification-protocol-v1",
+    "source_program_sha256": "cc5f177fd54a2f17ccaa688ea1ecf6d0ae2395554a97a921563e70c32721601d",
+    "target_executor_sha256": "ff7b92a29b28b4c90c1bb511ae995b9c6b7b31c32ff0890455bd05b2dee92ece",
+    "target_grounder_sha256": "de2f7dd715efe66fdae157f868d52b60b94f3bac0b1713ee5e05fc9d40888756"
+  },
+  "postground_evaluation_protocol_sha256": "01d7baa8417d38ff3e57201c5513c77d0bb4975f1434e44b9a7121fe82b1b08f",
+  "qualification_gates": {
+    "maximum_exact_one_sided_pvalue": 0.05,
+    "maximum_reported_provider_cost_usd": 1.8,
+    "maximum_source_losses": 1,
+    "minimum_source_authorizations": 35,
+    "minimum_source_minus_target_correct": 7,
+    "minimum_source_wins": 8,
+    "required_effect_shuffled_abstentions": 200,
+    "required_generic_scaffold_matches": 200,
+    "required_target_written_equivalent_matches": 200,
+    "required_unique_videos": 200,
+    "required_valid_rows": 200,
+    "required_wrong_source_abstentions": 200
+  },
+  "qualification_manifest_sha256": "0a4151ffd4419b899afe5f40b12860b222a2bc70104f3bbb6831b13716b7b04c",
+  "qualified_development_artifact_sha256": "56993f06b5683a89185a427add935c93856c7d744100fd715dc268840d356a74",
+  "qualified_v33_development_report_sha256": "56993f06b5683a89185a427add935c93856c7d744100fd715dc268840d356a74",
+  "schema_version": "agqa2-temporal-support-v49-preregistration-v1",
+  "selection_manifest_sha256": "be023a0664883904f5eecb3661f8dc76bf38fe8561093db23d2d32acc2f27b45",
+  "source_program_sha256": "cc5f177fd54a2f17ccaa688ea1ecf6d0ae2395554a97a921563e70c32721601d",
+  "status": "FROZEN_BEFORE_ANY_V34_FORMAL_PROVIDER_OR_OUTCOME_CALL",
+  "v48_training_artifact": "configs/agqa2_temporal_support_v48/training_artifact.json",
+  "v48_training_artifact_file_sha256": "ca6981270e6746faf76f2ed23c4f4d385e4d8a97f42091e2e5d417163d9078ee",
+  "v48_training_artifact_sha256": "56993f06b5683a89185a427add935c93856c7d744100fd715dc268840d356a74",
+  "v49_status": "FROZEN_BEFORE_ANY_V49_QUALIFICATION_PROVIDER_OR_OUTCOME_CALL"
+}

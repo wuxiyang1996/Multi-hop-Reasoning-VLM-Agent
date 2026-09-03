@@ -1,0 +1,1022 @@
+<!doctype html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Multi-hop Reasoning VLM Agent 的 intervention-grounded neural-symbolic skill transfer 实现指南。">
+  <title>Neural-Symbolic Skill Transfer · 实现指南</title>
+  <link rel="stylesheet" href="neurosymbolic-skill-transfer-implementation.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">跳到正文</a>
+
+  <header class="hero">
+    <div class="wrap">
+      <p class="eyebrow">Implementation guide · source interventions → target-native execution</p>
+      <h1>如何实现跨领域<br>Neural-Symbolic Skill Transfer</h1>
+      <p class="subtitle">
+        本页是 <code>Multi-hop-Reasoning-VLM-Agent-two-agent-clean</code> 的实现地图：从游戏
+        <code>(state, action, effect, next_state)</code> rollout 中归纳匿名、typed、fail-closed symbolic
+        program，再用目标域自己的 neural grounder 与 native executor，将 program content 迁移到
+        WebShop、ALFWorld、DiscoveryWorld、TIR、MiniGrid 与选择性视频 QA。
+      </p>
+      <div class="hero-meta">
+        <span class="badge good">Core mechanism validated</span>
+        <span class="badge symbolic">3 induced program families</span>
+        <span class="badge info">Target-native neural grounding</span>
+        <span class="badge good">9B · 6 benchmarks validated</span>
+        <span class="badge">68 results · 229 JSON receipts</span>
+        <span class="badge">更新：2026-08-31</span>
+        <a class="badge" href="neurosymbolic-skill-transfer-implementation-en.html">English</a>
+      </div>
+    </div>
+  </header>
+
+  <nav class="top-nav" aria-label="页面导航">
+    <div class="wrap">
+      <a href="#thesis">核心定义</a>
+      <a href="#architecture">整体架构</a>
+      <a href="#source">Source induction</a>
+      <a href="#ir">Symbolic IR</a>
+      <a href="#target">Target grounding</a>
+      <a href="#runtime">统一运行时</a>
+      <a href="#new-domain">接入新领域</a>
+      <a href="#atlas">Results atlas</a>
+      <a href="#evidence">实验结果</a>
+      <a href="#training">训练</a>
+      <a href="#reproduce">复现</a>
+      <a href="#status">当前状态</a>
+    </div>
+  </nav>
+
+  <main id="main" class="wrap">
+    <section class="panel" id="thesis">
+      <p class="eyebrow">01 · Transfer object</p>
+      <h2>迁移的不是游戏动作，而是 intervention-grounded program content</h2>
+      <p class="lead">
+        一个 skill 在这里被实现为：由 source interventions 支持的 typed operators、transition / partial-order
+        constraints、terminal relation 和 abstention contract。Source action 名称、像素特征、游戏身份和完整
+        controller 都不是 transfer object。
+      </p>
+
+      <div class="callout symbolic">
+        <strong>最准确的方法名：</strong>
+        Intervention-grounded symbolic program transfer with target-native neural grounding。
+      </div>
+
+      <div class="grid">
+        <article class="card span-4 card-accent-green">
+          <p class="metric-label">Source 提供</p>
+          <p class="metric-value">Causal structure</p>
+          <p class="small">从 matched intervention forks 学到 effect relation、控制流、停止条件和证据不足时的拒绝规则。</p>
+        </article>
+        <article class="card span-4 card-accent-blue">
+          <p class="metric-label">Target 提供</p>
+          <p class="metric-value">Native grounding</p>
+          <p class="small">从目标文本、图像、视频帧或 native candidates 中绑定实体、关系、effect 与 confidence。</p>
+        </article>
+        <article class="card span-4 card-accent-purple">
+          <p class="metric-label">Harness 提供</p>
+          <p class="metric-value">Safe composition</p>
+          <p class="small">只有结构匹配、grounder qualified、utility positive 且唯一可执行时才授权，否则回退。</p>
+        </article>
+      </div>
+
+      <div class="authority">
+        <div class="authority-side symbolic-side">
+          <h3>迁移的 invariant</h3>
+          <ul>
+            <li>operator type 与 effect relation</li>
+            <li>transition / recurrence / composition</li>
+            <li>terminal predicate</li>
+            <li>unique-candidate 与 abstention rule</li>
+            <li>source receipt lineage</li>
+          </ul>
+        </div>
+        <div class="authority-divider" aria-hidden="true">≠</div>
+        <div class="authority-side neural-side">
+          <h3>不直接迁移的部分</h3>
+          <ul>
+            <li>source pixels 与 visual features</li>
+            <li>source action tokens / game identity</li>
+            <li>完整 target policy</li>
+            <li>target reward、gold answer 或 formal success</li>
+            <li>一个手写 universal controller</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" id="architecture">
+      <p class="eyebrow">02 · End-to-end architecture</p>
+      <h2>六个彼此隔离的 authority</h2>
+      <p class="lead">实现的关键不是把模块串起来，而是限制每个模块能看什么、能输出什么。</p>
+
+      <div class="flow" role="img" aria-label="从 source receipts 到 target native execution 的六步流程">
+        <div class="flow-node evidence-node">
+          <strong>1 · Source receipts</strong>
+          <span>真实 intervention tuples、effect、next state、lineage hash</span>
+        </div>
+        <div class="flow-node symbolic-node">
+          <strong>2 · Program induction</strong>
+          <span>在 typed hypothesis space 中识别唯一解释</span>
+        </div>
+        <div class="flow-node symbolic-node">
+          <strong>3 · Anonymous IR</strong>
+          <span>operators、transitions、terminal、abstention</span>
+        </div>
+        <div class="flow-node neural-node">
+          <strong>4 · Target grounder</strong>
+          <span>只绑定 target-native entities、effects 与 confidence</span>
+        </div>
+        <div class="flow-node gate-node">
+          <strong>5 · Authorization</strong>
+          <span>structure × qualification × past utility</span>
+        </div>
+        <div class="flow-node evidence-node">
+          <strong>6 · Native executor</strong>
+          <span>唯一可输出 action / answer 的组件</span>
+        </div>
+      </div>
+
+      <pre>source data authority       = source observations + interventions only
+induction authority         = emit program, never target action
+target grounding authority  = bind native evidence, never read formal outcome
+selection authority         = emit SELECT_SKILL / ABSTAIN, never action
+execution authority         = emit native action after valid authorization
+evaluation authority        = open gold/outcome only after receipts are frozen</pre>
+    </section>
+
+    <section class="panel" id="source">
+      <p class="eyebrow">03 · Source-side implementation</p>
+      <h2>从 rollout 到 source-qualified symbolic program</h2>
+
+      <ol class="steps">
+        <li>
+          <strong>Instrument source environments.</strong>
+          每一步记录 before state、native candidate actions、selected intervention、after state、reward / terminal、effect 与内容哈希。
+        </li>
+        <li>
+          <strong>构造 matched candidate forks.</strong>
+          在相同 source state 上执行不同候选，成功与失败 forks 必须都保留；只有成功轨迹无法识别 causal operator。
+        </li>
+        <li>
+          <strong>匿名化 source vocabulary.</strong>
+          action name、游戏名和语义标签不能进入 target；归纳器只读取 typed state/effect endpoints 与 transition evidence。
+        </li>
+        <li>
+          <strong>在冻结 hypothesis class 内搜索。</strong>
+          找到能精确分离 intervention outcomes 的唯一 operator / transition / terminal / abstention program；零个或多个解释都拒绝。
+        </li>
+        <li>
+          <strong>Source qualification.</strong>
+          用 held-out episodes、fresh reserve、shuffled effect、permuted transition、alpha rename 和 missing-evidence controls 验证。
+        </li>
+      </ol>
+
+      <p class="code-caption">Source receipt 的最小概念 schema</p>
+      <pre>{
+  "before": state_receipt,
+  "candidate_action": anonymous_action_id,
+  "observed_effect": typed_effect,
+  "after": next_state_receipt,
+  "terminal": false,
+  "receipt_sha256": "...",
+  "source_split": "development | qualification | reserve"
+}</pre>
+
+      <details open>
+        <summary>当前已归纳的三个非同构 program family</summary>
+        <div class="details-body">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Family</th><th>Source-side content</th><th>Target realization</th><th>关键 abstention</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td>Recurrent goal relation</td>
+                  <td>重复 UPDATE，直到唯一 terminal relation</td>
+                  <td>ALFWorld / TIR / CLEVRER 等 target-native relation execution</td>
+                  <td>候选不唯一、relation 未闭合、effect 未验证</td>
+                </tr>
+                <tr>
+                  <td>Finite add/remove</td>
+                  <td><code>ADD ENTITY_SLOT → REMOVE ENTITY_SLOT</code></td>
+                  <td>DiscoveryWorld partial-order acquisition</td>
+                  <td>缺 operator binding 或 partial order 冲突</td>
+                </tr>
+                <tr>
+                  <td>Cyclic identity recovery</td>
+                  <td><code>COMPOSE(PROBE_EFFECT, RECOVERY_EFFECT)==IDENTITY</code></td>
+                  <td>MiniGrid orientation recovery</td>
+                  <td>零个或多个 recovery token 满足 identity</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </details>
+
+      <div class="grid">
+        <article class="card span-6">
+          <h3>核心实现</h3>
+          <ul class="file-list">
+            <li><a href="../src/motif_transfer/contracts.py"><code>src/motif_transfer/contracts.py</code></a> — receipts 与稳定内容哈希。</li>
+            <li><a href="../src/motif_transfer/instrumented_import.py"><code>instrumented_import.py</code></a> — source episode import。</li>
+            <li><a href="../src/motif_transfer/phase3_source_induction.py"><code>phase3_source_induction.py</code></a> — source-only structural induction。</li>
+            <li><a href="../src/motif_transfer/phase3_source_function_induction.py"><code>phase3_source_function_induction.py</code></a> — typed function、transition 与 abstention induction。</li>
+          </ul>
+        </article>
+        <article class="card span-6">
+          <h3>专项归纳器</h3>
+          <ul class="file-list">
+            <li><a href="../src/motif_transfer/source_goal_relation_induction.py"><code>source_goal_relation_induction.py</code></a> — recurrent goal relation。</li>
+            <li><a href="../src/motif_transfer/cyclic_identity_induction.py"><code>cyclic_identity_induction.py</code></a> — cyclic composition family。</li>
+            <li><a href="../scripts/analyze_tetris_cyclic_source_induction_v28.py"><code>analyze_tetris_cyclic_source_induction_v28.py</code></a> — source qualification / reserve audit。</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <section class="panel" id="ir">
+      <p class="eyebrow">04 · Shared symbolic representation</p>
+      <h2>统一的是 IR contract，不是一个 canonical controller</h2>
+      <p>
+        每个游戏可以学出不同 program body，但都被包装成相同的 content-addressed envelope。Target router
+        按 required capabilities 和 program content 选择，不能按 source identity 选择。
+      </p>
+
+      <p class="code-caption">Neural-symbolic program contract</p>
+      <pre>Program = {
+  typed_operators,
+  transition_or_partial_order,
+  terminal_predicates,
+  abstention_rules,
+  neural_probe_specs: {
+    input_kind,
+    model_artifact_sha256,
+    supported_min_score,
+    refuted_max_score,
+    UNKNOWN band
+  },
+  source_lineage,
+  program_sha256
+}</pre>
+
+      <div class="grid">
+        <article class="card span-4 card-accent-purple">
+          <h3>Hard symbolic checks</h3>
+          <ul>
+            <li>type 与 capability compatibility</li>
+            <li>program / artifact hash consistency</li>
+            <li>candidate uniqueness</li>
+            <li>reachable transition / explicit termination</li>
+            <li>UNKNOWN 必须 fail closed</li>
+          </ul>
+        </article>
+        <article class="card span-4 card-accent-blue">
+          <h3>Neural probe contract</h3>
+          <ul>
+            <li>只返回 calibrated score / binding</li>
+            <li>不写控制流</li>
+            <li>不看 source identity</li>
+            <li>不看 formal outcome / gold</li>
+            <li>artifact 与 threshold 冻结</li>
+          </ul>
+        </article>
+        <article class="card span-4 card-accent-green">
+          <h3>Content-addressed evidence</h3>
+          <ul>
+            <li>program、grounder、executor 都有 SHA</li>
+            <li>authorization 绑定 task state</li>
+            <li>evaluation 在 runtime receipts 后打开</li>
+            <li>alpha rename 不改变 execution</li>
+          </ul>
+        </article>
+      </div>
+
+      <ul class="file-list">
+        <li><a href="../src/motif_transfer/neurosymbolic_ir.py"><code>src/motif_transfer/neurosymbolic_ir.py</code></a> — probe、node、route 与 program validation。</li>
+        <li><a href="../src/motif_transfer/structural_ir_applicability.py"><code>structural_ir_applicability.py</code></a> — source contract 与 target requirement matching。</li>
+        <li><a href="../src/motif_transfer/unified_neurosymbolic_harness.py"><code>unified_neurosymbolic_harness.py</code></a> — envelope、structural selection 与 Phase-7 authorization。</li>
+      </ul>
+    </section>
+
+    <section class="panel" id="target">
+      <p class="eyebrow">05 · Target-native neural grounding</p>
+      <h2>目标域只替换 grounder 与 executor</h2>
+      <p class="lead">
+        Target grounder 把文本、图像或视频证据转换成 IR 所需的 target-native bindings；symbolic program
+        不读取 pixels、native action 名称或 gold。Grounder 的训练只能使用 development / adaptation split，
+        threshold 必须在 qualification 前冻结。
+      </p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Target</th><th>Neural / target-native measurement</th><th>Symbolic execution</th><th>Fallback</th></tr></thead>
+          <tbody>
+            <tr><td>WebShop</td><td>goal、attribute、candidate product / action binding</td><td>typed applicability + selective action authorization</td><td>neural-only policy</td></tr>
+            <tr><td>ALFWorld</td><td>native command effect、entity multiplicity、goal relation</td><td>recurrent / relation program drives acquisition and terminal action</td><td>target actor</td></tr>
+            <tr><td>DiscoveryWorld</td><td>entity slot、spatial / task relation、candidate effect</td><td>finite partial-order or recurrent program</td><td>target-native baseline</td></tr>
+            <tr><td>TIR</td><td>visual start / goal、move deltas、question relation</td><td>maze / rotation executor</td><td>direct answer</td></tr>
+            <tr><td>MiniGrid</td><td>rendered orientation → anonymous order-four effect</td><td>identity-composition recovery</td><td>direct target MLP</td></tr>
+            <tr><td>AGQA / CLEVRER</td><td>interval、event relation、object binding、dynamics evidence</td><td>temporal / recurrent composition or proof recovery</td><td>identical direct VLM answer</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="code-caption">Target grounder 输出，不输出 action</p>
+      <pre>TargetGroundingReceipt = {
+  task_id,
+  target_state_sha256,
+  target_grounder_sha256,
+  capabilities,
+  candidate_ids,
+  structural_predicates,
+  calibrated_bindings,
+  grounder_qualified,
+  formal_outcome_read: false
+}</pre>
+
+      <div class="grid">
+        <article class="card span-6">
+          <h3>Grounder implementations</h3>
+          <ul class="file-list">
+            <li><a href="../src/motif_transfer/webshop_neural_grounder_v5.py"><code>webshop_neural_grounder_v5.py</code></a></li>
+            <li><a href="../src/motif_transfer/alfworld_neural_grounder.py"><code>alfworld_neural_grounder.py</code></a></li>
+            <li><a href="../src/motif_transfer/discoveryworld_applicability_grounder_v4.py"><code>discoveryworld_applicability_grounder_v4.py</code></a></li>
+            <li><a href="../src/motif_transfer/minigrid_neural_grounder.py"><code>minigrid_neural_grounder.py</code></a></li>
+          </ul>
+        </article>
+        <article class="card span-6">
+          <h3>Video / visual implementations</h3>
+          <ul class="file-list">
+            <li><a href="../src/motif_transfer/tir_maze_topology.py"><code>tir_maze_topology.py</code></a></li>
+            <li><a href="../src/motif_transfer/agqa_temporal_localized_query.py"><code>agqa_temporal_localized_query.py</code></a></li>
+            <li><a href="../src/motif_transfer/clevrer_unified_goal_relation.py"><code>clevrer_unified_goal_relation.py</code></a></li>
+            <li><a href="../src/motif_transfer/clevrer_proof_receipts.py"><code>clevrer_proof_receipts.py</code></a></li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <section class="panel" id="runtime">
+      <p class="eyebrow">06 · Selection, authorization, execution</p>
+      <h2>统一 Harness 的实际决策逻辑</h2>
+
+      <pre>eligible_programs = source_programs where:
+  source_intervention_qualified
+  and learned_from_(state, action, effect, next_state)
+  and target_data_read == false
+  and named_policy_template_used == false
+
+selected = unique_structural_match(eligible_programs, target_requirement)
+
+if no unique selected program:
+    return ABSTAIN
+if target_grounder not qualified or structural predicates not closed:
+    return ABSTAIN
+if past matched utility <= 0 or authentic does not beat permuted control:
+    return ABSTAIN
+
+authorization = SELECT_SKILL(program_sha256, executor_sha256)
+native_output = target_native_executor(authorization, grounding, candidates)</pre>
+
+      <div class="callout warn">
+        <strong>无 current-task outcome feedback：</strong>当前 task 的 reward、gold 或 official success 不能影响它自己的
+        route selection。Utility calibration 只能来自更早、已经完成且冻结的 matched trials。
+      </div>
+
+      <div class="grid">
+        <article class="card span-6 card-accent-amber">
+          <h3>Harness 可以输出</h3>
+          <ul>
+            <li><code>SELECT_SKILL</code> 或 <code>ABSTAIN</code></li>
+            <li>selected program hash</li>
+            <li>target executor identity / hash</li>
+            <li>utility 与 authenticity lower bound</li>
+            <li>结构化 reason 与 authorization receipt</li>
+          </ul>
+        </article>
+        <article class="card span-6 card-accent-green">
+          <h3>只有 executor 可以输出</h3>
+          <ul>
+            <li>WebShop native action</li>
+            <li>ALFWorld command</li>
+            <li>DiscoveryWorld operation</li>
+            <li>TIR / video answer slot</li>
+            <li>MiniGrid anonymous recovery token</li>
+          </ul>
+        </article>
+      </div>
+
+      <ul class="file-list">
+        <li><a href="../src/motif_transfer/unified_transfer_runtime.py"><code>src/motif_transfer/unified_transfer_runtime.py</code></a> — route validation、utility/authenticity gating 与 authorization。</li>
+        <li><a href="../src/motif_transfer/unified_neurosymbolic_harness.py"><code>unified_neurosymbolic_harness.py</code></a> — structural selection 与 target execution handoff。</li>
+      </ul>
+    </section>
+
+    <section class="panel" id="new-domain">
+      <p class="eyebrow">07 · Adding a new target domain</p>
+      <h2>实现一个新 target adapter 的标准流程</h2>
+      <p>新领域不能从“把 source prompt 塞进去”开始。先定义 target MDP / QA interface，再证明 native grounding 可测。</p>
+
+      <ol class="steps">
+        <li><strong>写 target interface contract。</strong>定义 observation、native candidates、正式 outcome、interaction budget，以及哪些信息 runtime 永远不可读。</li>
+        <li><strong>定义 IR requirement。</strong>列出目标能够 ground 的 capabilities、typed entities/effects、terminal relation；不要写 source game 名或 action 映射。</li>
+        <li><strong>构建 target-native grounder。</strong>只在 development/adaptation tasks 上训练或调 prompt；记录模型、数据、threshold 与 artifact SHA。</li>
+        <li><strong>做 intrinsic qualification。</strong>在 fresh qualification 上测 coverage、covered accuracy、calibration、unique binding 与 abstention；不通过就不能打开 formal reserve。</li>
+        <li><strong>实现 native executor。</strong>输入只能是 authorization、grounding receipt 和 native candidates；验证 executor 不接受 source token 或 gold。</li>
+        <li><strong>冻结 matched condition matrix。</strong>至少包含 neural-only、source-induced、source-permuted/shuffled、generic scaffold、target-written isomorphic ceiling。</li>
+        <li><strong>运行 untouched formal。</strong>先原子写 runtime receipts，再打开 evaluator；按 paired row / task / cluster 统计 wins、losses、ties 与 negative-transfer rate。</li>
+        <li><strong>注册 route。</strong>只有所有 gates 通过，才把 source program、grounder、executor 与 evidence report hashes 加入 skill library。</li>
+      </ol>
+
+      <details>
+        <summary>必须预注册的 formal gates</summary>
+        <div class="details-body">
+          <ul class="checklist">
+            <li class="done">target selection 与 split 在 outcome call 前冻结。</li>
+            <li class="done">source induction 读取零 target trajectories / outcomes。</li>
+            <li class="done">target grounder qualification 先于 formal reserve。</li>
+            <li class="done">未授权样本逐项保持 identical baseline fallback。</li>
+            <li class="done">authentic 显著优于 destructive source control。</li>
+            <li class="done">negative transfer 不超过冻结上限。</li>
+            <li class="done">alpha rename 不改变执行；source identity 不可见。</li>
+            <li class="done">target-written equivalent 作为 content-vs-provenance ceiling。</li>
+          </ul>
+        </div>
+      </details>
+    </section>
+
+    <section class="panel" id="atlas">
+      <p class="eyebrow">08 · Results atlas</p>
+      <h2>从失败诊断到 prospective validation 的完整证据谱系</h2>
+      <p class="lead">
+        这个 repo 不是一次实验，而是逐层关闭 alternative explanations 的研究记录。当前
+        <code>docs/</code> 包含 68 篇结果报告、3 篇状态报告、29 篇协议/设计文档；
+        <code>docs/results/</code> 包含 229 个 JSON receipts。下面先给出结论演化，再按研究线索提供完整入口。
+      </p>
+
+      <div class="callout info">
+        <strong>阅读顺序：</strong>先看 Phase 3–8 如何形成统一机制，再看 Phase 9–17 如何回答
+        source-specificity、program content、provenance、acquisition cost 与 prospective transfer；早期 V1–V24
+        报告保留的是失败原因和 protocol 修复，不能被最终数字覆盖。
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>阶段</th><th>研究问题</th><th>得到的结论</th><th>主要入口</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>0 · Retargeting audit</td>
+              <td>旧 mega-skill / motif 能否直接搬到目标域？</td>
+              <td>不行。Exact topology、semantic retrieval 和 weak-prior pilot 暴露 action leakage、target-phase relabeling 与不可复制收益。</td>
+              <td><a href="HARNESS_RETARGETING_SMOKE_V1_RESULTS.md">retargeting smoke</a> · <a href="OLD_RESULTS.md">old-results policy</a></td>
+            </tr>
+            <tr>
+              <td>1 · Controlled mechanism</td>
+              <td>更低层的 intervention/effect structure 是否可迁移？</td>
+              <td>受控 diagnosis 与 neural-symbolic V3 首次证明：迁移 effect relation，目标域自己 ground；raw/high-level skill 不够。</td>
+              <td><a href="CONTROLLED_INTERVENTION_TRANSFER_V1_V2_RESULTS.md">controlled V1/V2</a> · <a href="CONTROLLED_NEURAL_SYMBOLIC_TRANSFER_V3_RESULTS.md">controlled V3</a></td>
+            </tr>
+            <tr>
+              <td>2 · Domain-specific construction</td>
+              <td>WebShop、ALFWorld、DiscoveryWorld、TIR 是否能得到真实 action/answer gain？</td>
+              <td>经过多轮负迁移、grounder 与 applicability 修复，四域分别得到 formal positive routes；它们共享权限边界，不共享一个 controller。</td>
+              <td><a href="PHASE8_FOUR_DOMAIN_UNIFIED_NEUROSYMBOLIC_TRANSFER_RESULTS.md">Phase 8</a></td>
+            </tr>
+            <tr>
+              <td>3 · Source-only induction</td>
+              <td>能否从 <code>(s,a,e,s')</code> 自动得到 typed program，而非手写模板？</td>
+              <td>可以，在冻结 hypothesis spaces 内归纳 operator、transition、terminal 与 abstention；DiscoveryWorld、TIR 后续得到 prospective positives。</td>
+              <td><a href="PHASE3_SOURCE_INDUCTION_DISCOVERYWORLD_ALFWORLD_RESULTS.md">Phase 3 induction</a> · <a href="PHASE3_STRUCTURAL_IR_TRANSFER_V2_RESULTS.md">structural IR V2</a></td>
+            </tr>
+            <tr>
+              <td>4 · Unified runtime</td>
+              <td>四个 target 是否真正使用同一个 harness contract？</td>
+              <td>Phase 4–7 实现 structural selection、utility gate、target-native execution；Phase 8 把 ALFWorld 从正确 abstain 推进到正式正结果。</td>
+              <td><a href="PHASE4_TO_PHASE7_UNIFIED_NEUROSYMBOLIC_TRANSFER_RESULTS.md">Phase 4–7</a> · <a href="PHASE8_FOUR_DOMAIN_UNIFIED_NEUROSYMBOLIC_TRANSFER_RESULTS.md">Phase 8</a></td>
+            </tr>
+            <tr>
+              <td>5 · Video grounding</td>
+              <td>同一机制能否进入 video reasoning？</td>
+              <td>自由文本 ledger 和通用 STAR/NExT route 未过 strongest-target gate；AGQA 与 CLEVRER 的主比较现共用 benchmark-native structured grounding，因而 visual grounder 不能造成 matched-arm transfer delta。</td>
+              <td><a href="TWO_VIDEO_GROUNDING_ISOLATED_PRIMARY_V1.md">two-video grounding-isolated primary</a> · <a href="THREE_VIDEO_TYPED_GROUNDING_V30_V33_RESULTS.md">raw-video stop</a></td>
+            </tr>
+            <tr>
+              <td>6 · Causal identification</td>
+              <td>有效的是 source identity、任何同构 controller，还是正确 program content？</td>
+              <td>Program content 决定 execution；source provenance 没有额外作用。Source 的可测价值是以零完整 target trajectory 取得 exact fail-closed content。</td>
+              <td><a href="PHASE12_SOURCE_PROVENANCE_IDENTIFIABILITY_RESULTS.md">Phase 12</a> · <a href="PHASE13_ALFWORLD_SOURCE_ACQUISITION_VALUE_RESULTS.md">Phase 13</a></td>
+            </tr>
+            <tr>
+              <td>7 · Breadth and prospective reserve</td>
+              <td>是否只有一类 recurrent program，是否有真正的新 target population？</td>
+              <td>归纳了 finite add/remove 与 cyclic identity family；V31 在冻结后生成的 MiniGrid population 上 48/48 formal。</td>
+              <td><a href="PHASE14_PHASE15_MATCHED_ACQUISITION_AND_SECOND_FAMILY_RESULTS.md">Phase 14–15</a> · <a href="PHASE17_PROSPECTIVE_V28_TARGET_RESERVE_RESULTS.md">Phase 17</a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>如何解释不同类型的 artifact</h3>
+      <div class="grid">
+        <article class="card span-3 card-accent-green">
+          <span class="tag good">formal validated</span>
+          <p class="small">冻结 qualification 后打开 untouched reserve，全部 preregistered gates 通过。</p>
+        </article>
+        <article class="card span-3 card-accent-amber">
+          <span class="tag warn">development / consumed</span>
+          <p class="small">可用于改 grounder、debug 或估计 headroom，不能当新的 confirmatory evidence。</p>
+        </article>
+        <article class="card span-3 card-accent-red">
+          <span class="tag bad">failed / aborted</span>
+          <p class="small">保留失败 gate、runtime abort 与污染边界；不能删除或用后续阈值重解释。</p>
+        </article>
+        <article class="card span-3 card-accent-blue">
+          <span class="tag info">machine receipt</span>
+          <p class="small">JSON 中的 hashes、splits、counts 与 gates 是正式 claim authority。</p>
+        </article>
+      </div>
+
+      <details open>
+        <summary>完整 human-readable result catalog（68 篇，按问题分组）</summary>
+        <div class="details-body">
+          <div class="grid">
+            <article class="card span-6">
+              <h3>Foundation、controls 与 source identifiability</h3>
+              <ul class="file-list">
+                <li><a href="HARNESS_RETARGETING_SMOKE_V1_RESULTS.md">Harness retargeting smoke V1</a></li>
+                <li><a href="CONTROLLED_INTERVENTION_TRANSFER_V1_V2_RESULTS.md">Controlled intervention V1/V2</a></li>
+                <li><a href="CONTROLLED_NEURAL_SYMBOLIC_TRANSFER_V3_RESULTS.md">Controlled neural-symbolic V3</a></li>
+                <li><a href="INTERVENTION_GROUNDED_NEUROSYMBOLIC_V16_V19_RESULTS.md">Intervention-grounded V16–V19</a></li>
+                <li><a href="REAL_GAME_TO_ALFWORLD_INTERVENTION_V1_RESULTS.md">Real game → ALFWorld intervention V1</a></li>
+                <li><a href="REAL_SOURCE_RELATION_V20_V24_RESULTS.md">Real-source relation V20–V24</a></li>
+                <li><a href="TRANSFORMATION_ACTION_CONTRAST_V14_RESULTS.md">Transformation action contrast V14</a></li>
+                <li><a href="SUBGOAL_OPTION_CONTRAST_V15_RESULTS.md">Subgoal option contrast V15</a></li>
+                <li><a href="SOURCE_TRIAGE_GATE_V15_RESULTS.md">Source triage gate V15</a></li>
+                <li><a href="SEARCH_AUTOMATON_TRANSFER_V16_RESULTS.md">Search automaton V16</a></li>
+                <li><a href="GAME_TO_FOUR_TARGET_HARNESS_V1_RESULTS.md">Game → four-target Harness V1</a></li>
+              </ul>
+            </article>
+
+            <article class="card span-6">
+              <h3>ALFWorld：从负迁移到 program-driven policy</h3>
+              <ul class="file-list">
+                <li><a href="SOKOBAN_ALFWORLD_NEUROSYMBOLIC_TRANSFER_V1_V2_RESULTS.md">Sokoban → ALFWorld V1/V2</a></li>
+                <li><a href="MULTISOURCE_ALFWORLD_NEUROSYMBOLIC_V1_RESULTS.md">Multi-source ALFWorld V1</a></li>
+                <li><a href="MULTISOURCE_ALFWORLD_NEUROSYMBOLIC_V2_V4_RESULTS.md">Multi-source ALFWorld V2–V4</a></li>
+                <li><a href="TYPED_MULTISOURCE_V3_RESULTS.md">Typed multi-source V3</a></li>
+                <li><a href="TYPED_MULTISOURCE_V4_RESULTS.md">Typed multi-source V4</a></li>
+                <li><a href="TYPED_MULTISOURCE_ALFWORLD_V5_RESULTS.md">Typed multi-source ALFWorld V5</a></li>
+                <li><a href="PARAMETERIZED_ALFWORLD_V7_RESULTS.md">Parameterized ALFWorld V7</a></li>
+                <li><a href="SLOT_AWARE_ALFWORLD_V8_RESULTS.md">Slot-aware ALFWorld V8</a></li>
+                <li><a href="EXECUTABLE_SOURCE_GRAPH_ALFWORLD_V9_RESULTS.md">Executable source graph V9</a></li>
+                <li><a href="BUDGETED_EXECUTABLE_SOURCE_GRAPH_V10_RESULTS.md">Budgeted graph V10</a></li>
+                <li><a href="BUDGETED_RELATION_EDGE_V11_RESULTS.md">Relation edge V11</a></li>
+                <li><a href="SELECTIVE_BUDGETED_RELATION_EDGE_V12_RESULTS.md">Selective relation edge V12</a></li>
+                <li><a href="RELATION_EDGE_INTERVENTION_VALUE_V13_RESULTS.md">Intervention value V13</a></li>
+                <li><a href="PROCEDURAL_GAME_ALFWORLD_NEUROSYMBOLIC_V1_RESULTS.md">Procedural-game ALFWorld</a></li>
+                <li><a href="ALFWORLD_SOURCE_INDUCED_RELATION_MACRO_V3_V8_RESULTS.md">Source-induced relation macro V3–V8</a></li>
+                <li><a href="ALFWORLD_SOURCE_INDUCED_ACQUISITION_V1_V10_RESULTS.md">Source-induced acquisition V1–V10</a></li>
+                <li><a href="PHASE11_ALFWORLD_PROGRAM_DRIVEN_POLICY_RESULTS.md">Phase 11 program-driven policy</a></li>
+                <li><a href="PHASE13_ALFWORLD_SOURCE_ACQUISITION_VALUE_RESULTS.md">Phase 13 acquisition value</a></li>
+              </ul>
+            </article>
+
+            <article class="card span-6">
+              <h3>WebShop、DiscoveryWorld 与 TIR</h3>
+              <ul class="file-list">
+                <li><a href="WEBSHOP_SELECTIVE_NEUROSYMBOLIC_V6_RESULTS.md">WebShop selective V6</a></li>
+                <li><a href="WEBSHOP_NEUROSYMBOLIC_CAUSAL_V7_RESULTS.md">WebShop causal V7</a></li>
+                <li><a href="WEBSHOP_NEUROSYMBOLIC_APPLICABILITY_V8_RESULTS.md">WebShop applicability V8</a></li>
+                <li><a href="WEBSHOP_NEURAL_SYMBOLIC_TRANSFER_V9_V11_RESULTS.md">WebShop V9–V11</a></li>
+                <li><a href="SOKOBAN_WEBSHOP_NEUROSYMBOLIC_TRANSFER_V12_V13_RESULTS.md">Sokoban → WebShop V12/V13</a></li>
+                <li><a href="DISCOVERYWORLD_NEUROSYMBOLIC_TRANSFER_V16_RESULTS.md">DiscoveryWorld V16 qualification</a></li>
+                <li><a href="DISCOVERYWORLD_NEUROSYMBOLIC_TRANSFER_V17_FORMAL_RESULTS.md">DiscoveryWorld V17 formal</a></li>
+                <li><a href="DISCOVERYWORLD_NEUROSYMBOLIC_TRANSFER_V18_V21_RESULTS.md">DiscoveryWorld V18–V21</a></li>
+                <li><a href="DISCOVERYWORLD_NEUROSYMBOLIC_TRANSFER_V22_NORMAL_FORMAL_RESULTS.md">DiscoveryWorld Normal V22</a></li>
+                <li><a href="DISCOVERYWORLD_SOKOBAN_V23_RESULTS.md">Sokoban → DiscoveryWorld V23</a></li>
+                <li><a href="PHASE10_DISCOVERYWORLD_NORMAL_SOURCE_VALUE_RESULTS.md">Phase 10 Normal source value</a></li>
+                <li><a href="TIR_MAZE_SOKOBAN_TOPOLOGY_V1_V2_RESULTS.md">Sokoban topology → TIR maze</a></li>
+                <li><a href="TIR_TETRIS_ROTATION_COUNTERFACTUAL_V2_RESULTS.md">Tetris → TIR rotation V2</a></li>
+                <li><a href="ACTIVE_VIDEO_TIR_NEUROSYMBOLIC_PREFLIGHT_RESULTS.md">Active Video/TIR preflight</a></li>
+              </ul>
+            </article>
+
+            <article class="card span-6">
+              <h3>统一 IR、source-specificity 与 acquisition</h3>
+              <ul class="file-list">
+                <li><a href="PHASE3_SOURCE_INDUCTION_DISCOVERYWORLD_ALFWORLD_RESULTS.md">Phase 3 source induction</a></li>
+                <li><a href="PHASE3_STRUCTURAL_IR_TRANSFER_V2_RESULTS.md">Phase 3 structural IR V2</a></li>
+                <li><a href="PHASE4_TO_PHASE7_UNIFIED_NEUROSYMBOLIC_TRANSFER_RESULTS.md">Phase 4–7 unified Harness</a></li>
+                <li><a href="PHASE8_FOUR_DOMAIN_UNIFIED_NEUROSYMBOLIC_TRANSFER_RESULTS.md">Phase 8 four-domain validation</a></li>
+                <li><a href="PHASE9_SOURCE_PROGRAM_HETEROGENEITY_RESULTS.md">Phase 9 program heterogeneity</a></li>
+                <li><a href="PHASE12_SOURCE_PROVENANCE_IDENTIFIABILITY_RESULTS.md">Phase 12 provenance identifiability</a></li>
+                <li><a href="PHASE14_PHASE15_MATCHED_ACQUISITION_AND_SECOND_FAMILY_RESULTS.md">Phase 14–15 acquisition + second family</a></li>
+                <li><a href="PHASE16_GAP_CLOSURE_RESULTS.md">Phase 16 gap closure</a></li>
+                <li><a href="PHASE17_PROSPECTIVE_V28_TARGET_RESERVE_RESULTS.md">Phase 17 prospective reserve</a></li>
+              </ul>
+            </article>
+
+            <article class="card span-12">
+              <h3>Video：grounding failures、CLEVRER、STAR 与 AGQA 2.0</h3>
+              <p class="small"><a href="TWO_VIDEO_GROUNDING_ISOLATED_PRIMARY_V1.md">Grounding-isolated primary audit</a> 是当前主视频证据：AGQA 使用 official STSG typed tools，CLEVRER 每题所有 controller arms 共用一个冻结 event-graph proof receipt；不调用生成式 captioner 或外部 VLM。原始视频 Qwen/Gemini 路线保留为 secondary robustness evidence。</p>
+              <p class="small">早期 AGQA raw-video router V1/V2 没有通过，但后续严格共享 grounding 的两个 selective Layer-B cohort 已得到显著 signal；CLEVRER V2 又在 400 个全新视频 / 1,600 题上通过 fresh formal。旧 negative diagnostics 保留，不被新结果覆写。最新结果与 freshness 边界见 <a href="FULL_VIDEO_SOURCE_ALGEBRA_LAYER_B_V1_RESULTS.md">full video report</a>。</p>
+              <div class="grid">
+                <div class="span-6">
+                  <ul class="file-list">
+                    <li><a href="THREE_VIDEO_GROUNDING_QUALIFICATION_V28_V29_RESULTS.md">Three-video grounding V28/V29</a></li>
+                    <li><a href="STAR_INTERACTION_GROUNDING_FACTORIAL_V27_RESULTS.md">STAR grounding factorial V27</a></li>
+                    <li><a href="THREE_VIDEO_TYPED_GROUNDING_V30_V33_RESULTS.md">Three-video typed V30–V33</a></li>
+                    <li><a href="STAR_ANNOTATION_GOAL_RELATION_V38_RESULTS.md">STAR annotation-side V38</a></li>
+                    <li><a href="SOKOBAN_CLEVRER_EVENT_GRAPH_V14_RESULTS.md">Sokoban → CLEVRER V14</a></li>
+                    <li><a href="CLEVRER_UNIFIED_GOAL_RELATION_V15_RESULTS.md">CLEVRER unified V15</a></li>
+                  </ul>
+                </div>
+                <div class="span-6">
+                  <ul class="file-list">
+                    <li><a href="AGQA2_PROGRAM_TRANSFER_V1_RESULTS.md">AGQA program feasibility V1</a></li>
+                    <li><a href="AGQA2_FRAME_GROUNDER_V2_RESULTS.md">AGQA frame grounder V2</a></li>
+                    <li><a href="AGQA2_ACTIVE_NEUROSYMBOLIC_TRANSFER_V3_V8_RESULTS.md">AGQA active V3–V13</a></li>
+                    <li><a href="AGQA2_ACTIVE_NEUROSYMBOLIC_TRANSFER_V14_V19_RESULTS.md">AGQA active V14–V19</a></li>
+                    <li><a href="AGQA2_QUERY_OBJECT_V20_V25_RESULTS.md">AGQA QUERY_OBJECT V20–V25</a></li>
+                    <li><a href="AGQA2_SOURCE_SPECIFIC_V26_V28_RESULTS.md">AGQA source-specific V26–V28</a></li>
+                    <li><a href="AGQA2_POSTGROUND_NEUROSYMBOLIC_V29_V32_RESULTS.md">AGQA post-ground V29–V32</a></li>
+                    <li><a href="AGQA2_MULTI_OPERATOR_NEUROSYMBOLIC_V33_V40_RESULTS.md">AGQA multi-operator V33–V56</a></li>
+                    <li><a href="AGQA2_FULL_DISTRIBUTION_NEUROSYMBOLIC_V57_V62_RESULTS.md">AGQA full-distribution V57–V62</a></li>
+                  </ul>
+                </div>
+              </div>
+            </article>
+          </div>
+        </div>
+      </details>
+
+      <details>
+        <summary>三个 status 页面与 machine-readable receipts</summary>
+        <div class="details-body">
+          <div class="grid">
+            <article class="card span-6">
+              <h3>Status / interpretation</h3>
+              <ul class="file-list">
+                <li><a href="IMPLEMENTATION_STATUS.md">Implementation status through Phase 17</a></li>
+                <li><a href="PHASE2_FOUR_TARGET_CAUSAL_UTILITY_STATUS.md">Phase 2 four-target causal utility status</a></li>
+                <li><a href="ALFWORLD_ONE_SHOT_STATUS.md">ALFWorld one-shot status</a></li>
+                <li><a href="OLD_RESULTS.md">How old results enter the new Harness</a></li>
+              </ul>
+            </article>
+            <article class="card span-6">
+              <h3>Machine-readable hubs</h3>
+              <ul class="file-list">
+                <li><a href="results/phase8_four_domain_unified_neurosymbolic_v2.json">Phase 8 aggregate</a></li>
+                <li><a href="results/phase9_source_program_heterogeneity_v1.json">Phase 9 heterogeneity</a></li>
+                <li><a href="results/phase16_gap_closure_v30.json">Phase 16 gap closure</a></li>
+                <li><a href="results/minigrid_orientation_target_v31_summary.json">V31 prospective reserve</a></li>
+                <li><a href="results/two_video_grounding_isolated_primary_v2.json">Two-video grounding-isolated consolidated audit</a></li>
+                <li><a href="results/agqa2_router_v65_formal_v1_audit.json">AGQA frozen-router/V65 raw-video audit</a></li>
+                <li><a href="results/agqa2_full_distribution_v57_v62_summary.json">AGQA V57–V62</a></li>
+                <li><a href="results/three_video_typed_grounding_v30_v33_summary.json">Three-video V30–V33</a></li>
+              </ul>
+              <p class="small">其余 JSON 按 experiment/version 保留在 <code>docs/results/</code>；aborted、failed 与 consumed artifacts 也是证据链的一部分。</p>
+            </article>
+          </div>
+        </div>
+      </details>
+    </section>
+
+    <section class="panel" id="evidence">
+      <p class="eyebrow">09 · What the implementation has validated</p>
+      <h2>当前正式证据与边界</h2>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Route</th><th>Source-induced</th><th>Neural/direct</th><th>Paired result</th><th>状态</th></tr></thead>
+          <tbody>
+            <tr><td>WebShop V21</td><td><strong>23/32</strong></td><td>7/32</td><td>16W / 0L</td><td><span class="tag good">validated</span></td></tr>
+            <tr><td>DiscoveryWorld Easy</td><td><strong>12/12</strong></td><td>3/12</td><td>9W / 0L</td><td><span class="tag good">validated</span></td></tr>
+            <tr><td>TIR single-image maze</td><td><strong>12/18</strong></td><td>6/18</td><td>6W / 0L</td><td><span class="tag good">validated</span></td></tr>
+            <tr><td>ALFWorld multiplicity</td><td><strong>20/24</strong></td><td>13/24</td><td>7W / 0L</td><td><span class="tag good">validated</span></td></tr>
+            <tr><td>MiniGrid V31</td><td><strong>48/48</strong></td><td>16/48</td><td>32W / 0L</td><td><span class="tag good">prospective</span></td></tr>
+            <tr><td>CLEVRER V15 structured primary</td><td><strong>252/360</strong></td><td>236/360 neural-only</td><td>16W / 0L</td><td><span class="tag good">grounding-isolated</span></td></tr>
+            <tr><td>AGQA STSG fresh V3</td><td><strong>386/900</strong></td><td>322/900 generic</td><td>64W / 0L</td><td><span class="tag good">grounding-isolated</span></td></tr>
+            <tr><td>STAR / NExT-QA generic route</td><td>8/12 typed</td><td>9/12 strongest direct</td><td>0W / 1L</td><td><span class="tag bad">gate failed</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="grid">
+        <article class="card span-6 card-accent-green">
+          <h3>证据支持</h3>
+          <ul class="checklist">
+            <li class="done">正确 symbolic content 可跨语义目标执行。</li>
+            <li class="done">target-native neural grounding 可与 source-induced IR 组合。</li>
+            <li class="done">selective abstention 能限制 negative transfer。</li>
+            <li class="done">不同 interventions 可归纳不同 program family。</li>
+            <li class="done">source route 可在零完整 target trajectory 下取得结构。</li>
+            <li class="done">AGQA/CLEVRER 的 matched-arm delta 已与 visual-model grounding 隔离。</li>
+          </ul>
+        </article>
+        <article class="card span-6 card-accent-red">
+          <h3>证据不支持</h3>
+          <ul class="checklist">
+            <li class="stop">source provenance 本身造成额外 execution gain。</li>
+            <li class="stop">任意游戏 skill 可迁移到任意领域。</li>
+            <li class="stop">target perception 可以从游戏直接迁移。</li>
+            <li class="stop">AGQA 已解决全部 669k questions。</li>
+            <li class="stop">已经验证 broad multi-step video MDP transfer。</li>
+          </ul>
+        </article>
+      </div>
+
+      <p class="small">
+        视频表的结论严格条件化于 benchmark-native shared structured grounding；它不声称 raw-pixel video QA 或视觉感知已经解决。CLEVRER 的 absolute accuracy 仍依赖冻结 neural proof grounder；同题各 arm 共用相同 receipt 只保证它不混淆 paired delta。CLEVRER 对 generic scaffold 的 13W/6L 为正但未达显著；AGQA 的 target-written isomorphic controller 与 source-induced 相等，因此不能证明 source provenance 必要。详细结果：<a href="PHASE8_FOUR_DOMAIN_UNIFIED_NEUROSYMBOLIC_TRANSFER_RESULTS.md">四域统一结果</a>、
+        <a href="PHASE17_PROSPECTIVE_V28_TARGET_RESERVE_RESULTS.md">V31 prospective result</a>、
+        <a href="TWO_VIDEO_GROUNDING_ISOLATED_PRIMARY_V1.md">two-video grounding-isolated primary</a>、
+        <a href="THREE_VIDEO_TYPED_GROUNDING_V30_V33_RESULTS.md">自然视频 stop result</a>。
+      </p>
+    </section>
+
+    <section class="panel" id="training">
+      <p class="eyebrow">10 · Learned Harness training</p>
+      <h2>哪些部分已经训练，下一步应该训练什么</h2>
+
+      <div class="grid">
+        <article class="card span-4 card-accent-green">
+          <p class="metric-label">已训练</p>
+          <p class="metric-value">Target grounders</p>
+          <p class="small">例如 V31 orientation MLP；目标感知和 effect binding 可以独立训练并冻结。</p>
+        </article>
+        <article class="card span-4 card-accent-green">
+          <p class="metric-label">已训练</p>
+          <p class="metric-value">Qwen3.5-9B LoRA</p>
+          <p class="small">V3 使用 10,594 条 source-only mixed SFT、800 steps；L40S 单卡稳定完成。</p>
+        </article>
+        <article class="card span-4 card-accent-blue">
+          <p class="metric-label">Fresh substitution gate</p>
+          <p class="metric-value">2,246 / 2,246</p>
+          <p class="small">六 benchmark route exact 100%；1,864/1,864 native actions 等价，零 divergence。</p>
+        </article>
+      </div>
+
+      <div class="callout good">
+        V1 diagnostic 为 2,238/2,246，八个错误全部是保守 false abstention。该结果被封存；随后先冻结
+        全新 anonymous aliases/catalog permutations，再仅用七个 source programs 的对称 permutation closure
+        更新模型。fresh reserve 达到 2,246/2,246；结果和边界见
+        <a href="HARNESS_CONTROLLER_QWEN35_9B_SIX_BENCHMARK_V3_RESULTS.md">Harness 9B six-benchmark V3 report</a>。
+      </div>
+
+      <p class="code-caption">已冻结的 Harness 9B V3 supervision contract</p>
+      <pre>input:
+  anonymous seven-program source catalog
+  target-native typed structural requirement
+  source intervention qualification flags
+
+targets:
+  SELECT_SKILL + copied opaque catalog ID
+  or fail-closed ABSTAIN + structural reason
+
+controls:
+  catalog order and opaque alias permutations
+  duplicate match / unqualified source
+  IR kind / operator / recurrence / terminal mismatch
+
+split:
+  source-only closure train/validation
+  old source retention + fresh alias held-out
+  no target prompt, error ID, action, or outcome in SFT</pre>
+
+      <ol class="steps">
+        <li><strong>已完成：封存 consumed diagnostic。</strong>V2 为 2,238/2,246；不在八个 target errors 上训练。</li>
+        <li><strong>已完成：先冻结 fresh reserve。</strong>新 prompts、aliases、catalog orders 与 IDs 同 V1 零重叠；native tasks 保持原 pre-outcome authority。</li>
+        <li><strong>已完成：source-only permutation closure。</strong>七个 source programs 对称处理，3,584 SELECT 与 3,584 ABSTAIN。</li>
+        <li><strong>已完成：重新通过 source gates。</strong>scalar decision 100%；2,016-row multi-IR exact 99.90%。</li>
+        <li><strong>已完成：六 benchmark 强替换闭环。</strong>2,246/2,246 routes 与 1,864/1,864 actions；base route exact 为 0%。</li>
+        <li><strong>可选下一步：target-adapted Harness。</strong>可另训五 target-domain SFT adapter 作为部署上限，但不能替代 source-only transfer evidence。</li>
+      </ol>
+
+      <ul class="file-list">
+        <li><a href="../scripts/build_harness_pretraining_dataset.py"><code>scripts/build_harness_pretraining_dataset.py</code></a></li>
+        <li><a href="../scripts/format_harness_sft_dataset.py"><code>scripts/format_harness_sft_dataset.py</code></a></li>
+        <li><a href="../src/motif_transfer/harness_training.py"><code>src/motif_transfer/harness_training.py</code></a></li>
+        <li><a href="../scripts/train_harness_lora.py"><code>scripts/train_harness_lora.py</code></a></li>
+        <li><a href="../scripts/evaluate_harness_controller_lora_v2.py"><code>scripts/evaluate_harness_controller_lora_v2.py</code></a></li>
+        <li><a href="../scripts/build_harness_multi_ir_permutation_closure_sft_v3.py"><code>scripts/build_harness_multi_ir_permutation_closure_sft_v3.py</code></a></li>
+        <li><a href="../scripts/freeze_harness_9b_six_benchmark_substitution_fresh_v2.py"><code>scripts/freeze_harness_9b_six_benchmark_substitution_fresh_v2.py</code></a></li>
+        <li><a href="../cluster/train_harness_controller_qwen35_9b_mixed_v3_l40s.sbatch"><code>cluster/train_harness_controller_qwen35_9b_mixed_v3_l40s.sbatch</code></a></li>
+        <li><a href="HARNESS_CONTROLLER_QWEN35_9B_SIX_BENCHMARK_V3_RESULTS.md"><code>HARNESS_CONTROLLER_QWEN35_9B_SIX_BENCHMARK_V3_RESULTS.md</code></a></li>
+      </ul>
+    </section>
+
+    <section class="panel" id="reproduce">
+      <p class="eyebrow">11 · Reproduction entry points</p>
+      <h2>安装、单元测试与主要分析命令</h2>
+
+      <p class="code-caption">Core install and tests</p>
+      <pre>cd /fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean
+python -m pip install -e '.[test,source-spatial]'
+
+python -m pytest -q \
+  tests/test_neurosymbolic_program.py \
+  tests/test_unified_neurosymbolic_harness.py \
+  tests/test_phase3_source_induction.py \
+  tests/test_phase3_source_function_induction.py</pre>
+
+      <p class="code-caption">Source induction and prospective target</p>
+      <pre>python scripts/analyze_tetris_cyclic_source_induction_v28.py
+python scripts/analyze_phase16_gap_closure_v30.py
+python scripts/analyze_minigrid_orientation_target_v31.py
+
+python -m pytest -q \
+  tests/test_cyclic_identity_induction.py \
+  tests/test_minigrid_orientation_recovery.py \
+  tests/test_minigrid_neural_grounder.py \
+  tests/test_analyze_minigrid_orientation_target_v31.py</pre>
+
+      <p class="code-caption">Unified registry and release audit</p>
+      <pre>PYTHONPATH=src python scripts/audit_four_domain_neurosymbolic_library.py \
+  --registry configs/neurosymbolic_skill_library_v1.json \
+  --output docs/results/four_domain_neurosymbolic_harness_v1_summary.json
+
+python -m pytest -q \
+  tests/test_four_domain_neurosymbolic_registry.py \
+  tests/test_four_domain_release_bundle.py</pre>
+
+      <p class="code-caption">Harness 9B 六 benchmark substitution audit</p>
+      <pre>python scripts/build_harness_9b_six_benchmark_paper_report_v1.py
+
+python -m pytest -q \
+  tests/test_harness_six_benchmark_substitution.py \
+  tests/test_harness_controller_v4_cardinality.py \
+  tests/test_harness_controller_training.py</pre>
+
+      <div class="callout good">
+        <strong>当前全量测试：</strong>2026-08-31 实测 1,013 tests 全部通过。此前四个 TIR 失败已通过正式
+        fail-closed audit 路径重建 registry、frozen summary、release manifest 与 portable audit 哈希链解决。
+      </div>
+    </section>
+
+    <section class="panel" id="agqa-full-typed-v1">
+      <p class="eyebrow">12 · AGQA full-family typed transfer</p>
+      <h2>早期 selective AGQA 结果已扩展并通过 fresh 六臂 formal gate</h2>
+      <p>
+        Source-only induction 得到 15 个 typed operators 与 32 条 composition edges，再由 AGQA-native
+        question compiler 和 official-STSG executor 执行。在 2,400 个 fresh questions 上，source-induced 为
+        <strong>2,320/2,400（96.67%）</strong>，neural-only 为 1,945/2,400，generic scaffold 为
+        1,950/2,400。Source 对 generic 为 374W/4L（<code>p=2.75e-105</code>），所有预注册 gate 均通过。
+      </p>
+      <div class="callout good">
+        <strong>因果解释：</strong>source-induced 与 target-written-isomorphic 完全一致（0W/0L），而
+        source-permuted 与 generic 都不能复现增益。因此起作用的是 program content，不是 source identity；
+        source induction 的价值是无需 target-outcome controller tuning 即可恢复这份结构。
+      </div>
+      <div class="callout bad">
+        <strong>边界：</strong>这是复用 videos 和 official STSG 的 2,400-question fresh-outcome sample，不能写成
+        full official-test、raw-video SOTA 或 video-disjoint。详见
+        <a href="AGQA2_FULL_TYPED_OPERATOR_TRANSFER_V1_RESULTS.md">V1 hash-bound 报告</a>。
+      </div>
+    </section>
+
+    <section class="panel" id="agqa-layer-b-raw-video-v1">
+      <p class="eyebrow">13 · AGQA Layer B raw-video transfer</p>
+      <h2>在共享冻结感知下，游戏归纳的 ordered-effect skill 显著改善最终视频 QA</h2>
+      <p>
+        新的 video-disjoint typed-temporal replication 从真实 Charades 视频开始，经共享的
+        Qwen3-VL-32B 48/96-frame grounder、SlowFast、operator-free semantic parser、typed executor
+        与 Qwen3.5-9B fallback，只替换 symbolic Harness。在 256 个 fresh task/video 上，
+        source-induced 为 <strong>135/256（52.73%）</strong>，neural-only 与保持 operator/edge
+        数量的 source-permuted 均为 106/256（41.41%）：34W/5L，<code>p=2.43e-6</code>，
+        negative-transfer loss 为 1.95%。
+      </p>
+      <div class="callout good">
+        <strong>允许的结论：</strong>game-acquired ordered-effect structure selectively transfers to
+        raw-video temporal/duration reasoning under shared frozen perception。Source-permuted 未复现增益，
+        target-written-isomorphic 与 source 完全等价，因此有效变量是正确的 program composition。
+      </div>
+      <div class="callout bad">
+        <strong>边界：</strong>unrestricted generic target-VM scaffold 为 149/256，高于 source；所以不能声称
+        source policy 优于更宽的 target-engineered controller，也不能称为 full-distribution AGQA2 或
+        video SOTA。详见 <a href="AGQA2_LAYER_B_TYPED_TEMPORAL_REPLICATION_V1_RESULTS.md">Layer B
+        hash-bound 结果</a>。
+      </div>
+    </section>
+
+    <section class="panel" id="full-video-v2">
+      <p class="eyebrow">14 · Full source algebra + fresh CLEVRER Layer B</p>
+      <h2>同一匿名 game-induced controller 已通过 CLEVRER 与 AGQA2 fresh raw-video formal</h2>
+      <p>
+        六个 source-game lineage 从 state/action/effect/next-state 自动得到 3 个 content-addressed
+        state-delta operators 与 3 条 observed transitions；held-out 为 58/58，effect shuffle 为 0/58，
+        alpha-renaming 不改变 artifact。29 个 typed opcodes 与 73 条 composition edges 现明确归入
+        designer-specified universal VM，不再误称为 ontology-free source induction。CLEVRER V2 的 400 个视频与所有历史
+        runtime video-disjoint，五臂共享 32-frame receipt、cached off-the-shelf NS-DR graph、public-text
+        parser、executor 与 frozen Qwen3.5-9B fallback。
+      </p>
+      <table>
+        <thead><tr><th>Arm</th><th>Correct</th><th>Accuracy</th></tr></thead>
+        <tbody>
+          <tr><td>neural-only / source-permuted</td><td>556/1600</td><td>34.75%</td></tr>
+          <tr><td>source-induced / target-written isomorphic</td><td><strong>997/1600</strong></td><td><strong>62.31%</strong></td></tr>
+          <tr><td>generic target-native ceiling</td><td>1123/1600</td><td>70.19%</td></tr>
+        </tbody>
+      </table>
+      <div class="callout good">
+        Source 对 neural/permuted 为 464W/23L，单侧 exact <code>p=3.91e-108</code>，negative
+        transfer 1.44%，isomorphic equivalence 100%。Source 只在已通过 grounder-fidelity gate 的
+        descriptive/explanatory 上 commit；predictive/counterfactual 共享 fallback。匿名 controller
+        substitution 为 1,600/1,600 exact。
+      </div>
+      <table>
+        <thead><tr><th>AGQA2 powered arm</th><th>Correct</th><th>Accuracy</th></tr></thead>
+        <tbody>
+          <tr><td>neural-only / source-permuted</td><td>803/1790</td><td>44.86%</td></tr>
+          <tr><td>source-induced / target-written isomorphic</td><td><strong>832/1790</strong></td><td><strong>46.48%</strong></td></tr>
+          <tr><td>generic target-native ceiling</td><td>833/1790</td><td>46.54%</td></tr>
+        </tbody>
+      </table>
+      <div class="callout good">
+        AGQA2 从 official balanced-train 中冻结 179 个 prior-raw-runtime-video-disjoint videos / 1,790
+        tasks。Source 对 neural/permuted 为 69W/40L，exact two-sided <code>p=.00704</code>，negative
+        transfer 2.23%，commit coverage 30.28%，isomorphic equivalence 100%。所有五臂共享
+        Qwen3-VL-32B 48/96-frame grounding、parser、executor 与 thinking-disabled 9B fallback。
+      </div>
+      <div class="callout bad">
+        AGQA fresh result 使用 official balanced-train，不是 official test；也不声称 video-QA SOTA。
+        Universal typed VM 与 target-native grounding 仍是 designer-specified。完整边界见
+        <a href="FULL_VIDEO_SOURCE_ALGEBRA_LAYER_B_V1_RESULTS.md">full video results</a>。
+      </div>
+    </section>
+
+    <section class="panel" id="status">
+      <p class="eyebrow">15 · Repository status and completion criteria</p>
+      <h2>研究机制与 9B 六 benchmark 替换已完成；剩余为 release 收口</h2>
+
+      <div class="grid">
+        <article class="card span-6">
+          <h3>已完成</h3>
+          <ul class="checklist">
+            <li class="done">source receipt instrumentation 与 matched interventions</li>
+            <li class="done">source-only induction、typed IR、abstention</li>
+            <li class="done">统一 structural/utility authorization</li>
+            <li class="done">四个非视频 formal routes</li>
+            <li class="done">MiniGrid prospective target reserve</li>
+            <li class="done">CLEVRER 与 AGQA selective video QA routes</li>
+            <li class="done">AGQA full-family typed algebra：fresh 2,400-question 六臂 formal validation</li>
+            <li class="done">AGQA Layer B：256 个 fresh raw-video task 上 selective typed transfer 显著</li>
+            <li class="done">CLEVRER Layer B：400 个新视频 / 1,600 题，source +27.56 pp，全部新 gate 通过</li>
+            <li class="done">source provenance 与 program content 的因果区分</li>
+            <li class="done">Qwen3.5-9B Harness source-only SFT 与 model-unseen execution gate</li>
+            <li class="done">fresh 六 benchmark 2,246/2,246 route substitution</li>
+            <li class="done">1,864/1,864 success-critical native-action equivalence</li>
+          </ul>
+        </article>
+        <article class="card span-6">
+          <h3>收口前仍需完成</h3>
+          <ul class="checklist">
+            <li class="done">four-domain frozen release hash chain 已重建，portable audit 已重新验证</li>
+            <li class="todo">其余既有 dirty-worktree 文件另行整理，不混入本次提交</li>
+            <li class="done">V3 paper artifacts 已从 README 链接，并提供 machine-readable evidence map</li>
+            <li class="todo">可选：独立训练 five-domain target-adapted 9B ceiling，不覆盖 source-only adapter</li>
+            <li class="todo">刷新 README 与 clean-room installation recipe</li>
+            <li class="todo">可选扩展：用同一 Layer-B 协议在第二个自然视频 benchmark replication</li>
+          </ul>
+        </article>
+      </div>
+
+      <div class="callout good">
+        <strong>推荐的论文 claim：</strong>Source interventions can acquire exact, fail-closed symbolic program content
+        that transfers through target-native neural grounding and improves selective target execution. The content—not
+        source provenance—causes the gain.
+      </div>
+
+      <div class="callout bad">
+        <strong>不要写：</strong>一个从游戏训练出的 universal policy 已经 zero-shot 解决所有新领域，或游戏的 neural
+        perception / weights 已经直接迁移到视频与 embodied environments。
+      </div>
+
+      <details open>
+        <summary>Machine-readable evidence map</summary>
+        <div class="details-body">
+          <ul class="file-list">
+            <li><a href="results/phase8_four_domain_unified_neurosymbolic_v2.json"><code>results/phase8_four_domain_unified_neurosymbolic_v2.json</code></a></li>
+            <li><a href="results/phase16_gap_closure_v30.json"><code>results/phase16_gap_closure_v30.json</code></a></li>
+            <li><a href="results/minigrid_orientation_target_v31_summary.json"><code>results/minigrid_orientation_target_v31_summary.json</code></a></li>
+            <li><a href="results/agqa2_full_distribution_v57_v62_summary.json"><code>results/agqa2_full_distribution_v57_v62_summary.json</code></a></li>
+            <li><a href="results/three_video_typed_grounding_v30_v33_summary.json"><code>results/three_video_typed_grounding_v30_v33_summary.json</code></a></li>
+            <li><a href="results/harness_controller_qwen35_9b_six_benchmark_v3.json"><code>results/harness_controller_qwen35_9b_six_benchmark_v3.json</code></a></li>
+            <li><a href="results/two_video_transfer_bundle_v2.json"><code>results/two_video_transfer_bundle_v2.json</code></a></li>
+          </ul>
+        </div>
+      </details>
+    </section>
+  </main>
+
+  <footer class="wrap">
+    <p>
+      本页是实现指南，不替代冻结 JSON receipts。若 prose、代码和 hash-bound report 不一致，以正式
+      preregistration、runtime receipt 与 fail-closed audit 为准。Branch：
+      <code>agent/harness-transfer-bitter-lessons</code>。
+    </p>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,2752 @@
+{
+  "schema_version": 1,
+  "task_id": "webshop.25",
+  "condition": "target_native_search_ceiling",
+  "goal": "Find me non slip desks for living room with color: luckygoo4356, and size: 23.6x35.4in+23.6x70.9in, and price lower than 40.00 dollars",
+  "initial_state_hash": "7e7f3495ede90e3c3d5a6f79d501fee65154a6eaf5f621302f658886c281edff",
+  "maximum_steps": 12,
+  "steps": [
+    {
+      "step": 0,
+      "prompt_sha256": "92e6d7876945cc573825561da5c729a2ae5ab53e7ea0f5297463a041c0d6063c",
+      "response_sha256": "0dbafbd4aed642783c5483f565519a717b21c1d21d517e423d23118fc491984e",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "0dbafbd4aed642783c5483f565519a717b21c1d21d517e423d23118fc491984e",
+          "completion_diagnostic": {
+            "character_count": 197,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": true,
+            "original_usage": {
+              "prompt_tokens": 462,
+              "completion_tokens": 56,
+              "total_tokens": 518,
+              "cost": 0.0002744,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0002744,
+                "upstream_inference_prompt_cost": 0.0001848,
+                "upstream_inference_completions_cost": 8.96e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 5
+        }
+      ],
+      "before_hash": "f74e8e964a744d5a9ec16b5519803a40cb242e425c6095acd901ab7b5a7ad054",
+      "candidates": [
+        "fill('18','non slip desk living room')",
+        "click('18')",
+        "fill('18','non slip desk')",
+        "fill('18','desk luckygoo4356')",
+        "noop()"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "fill",
+          "url_phase": "landing",
+          "element_role": "textbox",
+          "element_text": "[18] textbox 'Search...', required",
+          "action_bid": "18",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "landing",
+          "element_role": "textbox",
+          "element_text": "[18] textbox 'Search...', required",
+          "action_bid": "18",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false
+        },
+        {
+          "verb": "fill",
+          "url_phase": "landing",
+          "element_role": "textbox",
+          "element_text": "[18] textbox 'Search...', required",
+          "action_bid": "18",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false
+        },
+        {
+          "verb": "fill",
+          "url_phase": "landing",
+          "element_role": "textbox",
+          "element_text": "[18] textbox 'Search...', required",
+          "action_bid": "18",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false
+        },
+        {
+          "verb": "noop",
+          "url_phase": "landing",
+          "element_role": "other",
+          "element_text": "",
+          "action_bid": null,
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": true
+        }
+      ],
+      "target_features": [
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.9809542664690936,
+          0.008910126680510508,
+          0.008915589732162521,
+          0.007047382472608437
+        ],
+        [
+          0.9882021179357239,
+          0.018047622205575358,
+          0.01805875077482894,
+          0.008076545721860047
+        ],
+        [
+          0.9809542664690936,
+          0.008910126680510508,
+          0.008915589732162521,
+          0.007047382472608437
+        ],
+        [
+          0.9809542664690936,
+          0.008910126680510508,
+          0.008915589732162521,
+          0.007047382472608437
+        ],
+        [
+          0.9809542664690936,
+          0.008910126680510508,
+          0.008915589732162521,
+          0.007047382472608437
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": false,
+        "visible_goal_constraint_unsatisfied": false,
+        "prior_action_had_no_effect": false
+      },
+      "selected_index": 0,
+      "selected_action": "fill('18','non slip desk living room')",
+      "changed_from_target_rank_zero": false,
+      "abstract_kind": "TARGET",
+      "source_abstained": true,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "target_rank_zero",
+      "reward": 0.0,
+      "terminated": false,
+      "truncated": false,
+      "after_hash": "47deed26dfa0222d15889fc989c7aa164627184f0f2f3441d645f73f00f43aaa"
+    },
+    {
+      "step": 1,
+      "prompt_sha256": "190ca434698e647c808dea31bb7c5841ea86ac6832d153c29d1bf5b1d152fa0d",
+      "response_sha256": "4a7b7183c4cf732cc37dfd48337e555a384660ce39267673ae15d9aed644327d",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "4a7b7183c4cf732cc37dfd48337e555a384660ce39267673ae15d9aed644327d",
+          "completion_diagnostic": {
+            "character_count": 61,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": true,
+            "original_usage": {
+              "prompt_tokens": 535,
+              "completion_tokens": 19,
+              "total_tokens": 554,
+              "cost": 0.0002444,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0002444,
+                "upstream_inference_prompt_cost": 0.000214,
+                "upstream_inference_completions_cost": 3.04e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 2
+        }
+      ],
+      "before_hash": "47deed26dfa0222d15889fc989c7aa164627184f0f2f3441d645f73f00f43aaa",
+      "candidates": [
+        "click('20')",
+        "noop()"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "click",
+          "url_phase": "landing",
+          "element_role": "button",
+          "element_text": "[20] button 'Search'",
+          "action_bid": "20",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "noop",
+          "url_phase": "landing",
+          "element_role": "other",
+          "element_text": "",
+          "action_bid": null,
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": true
+        }
+      ],
+      "target_features": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.09090909090909091
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.09090909090909091
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.9838093043631316,
+          0.007810760169351171,
+          0.007815314258614531,
+          0.007254276463657209
+        ],
+        [
+          0.9794556923764357,
+          0.009232307754060344,
+          0.009238037421806178,
+          0.007036402034354836
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": false,
+        "visible_goal_constraint_unsatisfied": false,
+        "prior_action_had_no_effect": false
+      },
+      "selected_index": 0,
+      "selected_action": "click('20')",
+      "changed_from_target_rank_zero": false,
+      "abstract_kind": "TARGET",
+      "source_abstained": true,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "target_rank_zero",
+      "reward": 0.0,
+      "terminated": false,
+      "truncated": false,
+      "after_hash": "3a45694e97f7f850f638754b6afc6d90fcd63533c276446ba02e4ca6ecf1587e"
+    },
+    {
+      "step": 2,
+      "prompt_sha256": "b0b5399683c333af43fdf114d9f569033767b51d397abff0adc612ff607daca4",
+      "response_sha256": "d4d3c98bc397dc9e276ff926586bb579864f9ad15a7d781abe6f10e6c7c1e0e9",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "d4d3c98bc397dc9e276ff926586bb579864f9ad15a7d781abe6f10e6c7c1e0e9",
+          "completion_diagnostic": {
+            "character_count": 61,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": true,
+            "original_usage": {
+              "prompt_tokens": 3295,
+              "completion_tokens": 19,
+              "total_tokens": 3314,
+              "cost": 0.0013484,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0013484,
+                "upstream_inference_prompt_cost": 0.001318,
+                "upstream_inference_completions_cost": 3.04e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 2
+        }
+      ],
+      "before_hash": "3a45694e97f7f850f638754b6afc6d90fcd63533c276446ba02e4ca6ecf1587e",
+      "candidates": [
+        "click('25')",
+        "noop()"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "button",
+          "element_text": "[25] button 'Next >'",
+          "action_bid": "25",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "noop",
+          "url_phase": "search_results",
+          "element_role": "other",
+          "element_text": "",
+          "action_bid": null,
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": true
+        }
+      ],
+      "target_features": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.18181818181818182
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.18181818181818182
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.9828084631934927,
+          0.008055763171976545,
+          0.00806051803323858,
+          0.0072595616338274275
+        ],
+        [
+          0.9776888222678922,
+          0.009580955973194782,
+          0.00958697313676177,
+          0.007021647972218311
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": false,
+        "visible_goal_constraint_unsatisfied": false,
+        "prior_action_had_no_effect": false
+      },
+      "selected_index": 0,
+      "selected_action": "click('25')",
+      "changed_from_target_rank_zero": false,
+      "abstract_kind": "TARGET",
+      "source_abstained": true,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "target_rank_zero",
+      "reward": 0.0,
+      "terminated": false,
+      "truncated": false,
+      "after_hash": "3528ebf1cc83f493b2fbbaeaaf836fb412cc95f8623bccf5d8b97a0826c82647"
+    },
+    {
+      "step": 3,
+      "prompt_sha256": "95cdba5107a8768b1f49e42647432708d7132b62aa6bf4c0f7ba93e6d9a6bfe3",
+      "response_sha256": "d304836ef005603378d58725d0672d76be2d31822d58090edb27cb1eae89de1c",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "d304836ef005603378d58725d0672d76be2d31822d58090edb27cb1eae89de1c",
+          "completion_diagnostic": {
+            "character_count": 141,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": true,
+            "original_usage": {
+              "prompt_tokens": 3271,
+              "completion_tokens": 42,
+              "total_tokens": 3313,
+              "cost": 0.0013756,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0013756,
+                "upstream_inference_prompt_cost": 0.0013084,
+                "upstream_inference_completions_cost": 6.72e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 5
+        }
+      ],
+      "before_hash": "3528ebf1cc83f493b2fbbaeaaf836fb412cc95f8623bccf5d8b97a0826c82647",
+      "candidates": [
+        "click('37')",
+        "click('61')",
+        "click('49')",
+        "click('73')",
+        "click('85')"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[37] link 'B07DRFDWVT', url=\"http://127.0.0.1:3000/item_page/fixed_25/B07DRFDWVT/%5B'non',%20'slip',%20'desk',%20'living',%20'room'%5D/2/%7B%7D\"",
+          "action_bid": "37",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "living",
+            "non",
+            "room",
+            "slip"
+          ],
+          "goal_overlap": 0.19047619047619047,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[61] link 'B095KCTB3Y', url=\"http://127.0.0.1:3000/item_page/fixed_25/B095KCTB3Y/%5B'non',%20'slip',%20'desk',%20'living',%20'room'%5D/2/%7B%7D\"",
+          "action_bid": "61",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "living",
+            "non",
+            "room",
+            "slip"
+          ],
+          "goal_overlap": 0.19047619047619047,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[49] link 'B09S6S7LG1', url=\"http://127.0.0.1:3000/item_page/fixed_25/B09S6S7LG1/%5B'non',%20'slip',%20'desk',%20'living',%20'room'%5D/2/%7B%7D\"",
+          "action_bid": "49",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "living",
+            "non",
+            "room",
+            "slip"
+          ],
+          "goal_overlap": 0.19047619047619047,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[73] link 'B084Q7C6TX', url=\"http://127.0.0.1:3000/item_page/fixed_25/B084Q7C6TX/%5B'non',%20'slip',%20'desk',%20'living',%20'room'%5D/2/%7B%7D\"",
+          "action_bid": "73",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "living",
+            "non",
+            "room",
+            "slip"
+          ],
+          "goal_overlap": 0.19047619047619047,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[85] link 'B08HV9D6P3', url=\"http://127.0.0.1:3000/item_page/fixed_25/B08HV9D6P3/%5B'non',%20'slip',%20'desk',%20'living',%20'room'%5D/2/%7B%7D\"",
+          "action_bid": "85",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "living",
+            "non",
+            "room",
+            "slip"
+          ],
+          "goal_overlap": 0.19047619047619047,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        }
+      ],
+      "target_features": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.19047619047619047,
+          0.0,
+          0.0,
+          0.0,
+          0.2727272727272727
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.19047619047619047,
+          0.0,
+          0.0,
+          0.0,
+          0.2727272727272727
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.19047619047619047,
+          0.0,
+          0.0,
+          0.0,
+          0.2727272727272727
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.19047619047619047,
+          0.0,
+          0.0,
+          0.0,
+          0.2727272727272727
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.19047619047619047,
+          0.0,
+          0.0,
+          0.0,
+          0.2727272727272727
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.9577260726000877,
+          0.0075356642435180895,
+          0.007540844665642592,
+          0.006057949984827429
+        ],
+        [
+          0.9577260726000877,
+          0.0075356642435180895,
+          0.007540844665642592,
+          0.006057949984827429
+        ],
+        [
+          0.9577260726000877,
+          0.0075356642435180895,
+          0.007540844665642592,
+          0.006057949984827429
+        ],
+        [
+          0.9577260726000877,
+          0.0075356642435180895,
+          0.007540844665642592,
+          0.006057949984827429
+        ],
+        [
+          0.9577260726000877,
+          0.007535664243518083,
+          0.0075408446656426,
+          0.006057949984827429
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": false,
+        "visible_goal_constraint_unsatisfied": false,
+        "prior_action_had_no_effect": false
+      },
+      "selected_index": 0,
+      "selected_action": "click('37')",
+      "changed_from_target_rank_zero": false,
+      "abstract_kind": "TARGET",
+      "source_abstained": true,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "target_rank_zero",
+      "reward": 0.0,
+      "terminated": false,
+      "truncated": false,
+      "after_hash": "3264d96d2a316d8f25f02ca9cb0217221870e9e8e5b19927c2f979c3d1cebd4f"
+    },
+    {
+      "step": 4,
+      "prompt_sha256": "fef7551de348468c85de36bbe3b2404bcbd7fc4a53da1bd0a09f88ba2fbc239b",
+      "response_sha256": "19274c25079591629d5e19a90663dcb72b979ed3e56c953145e5440e919bdd7c",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "19274c25079591629d5e19a90663dcb72b979ed3e56c953145e5440e919bdd7c",
+          "completion_diagnostic": {
+            "character_count": 141,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": true,
+            "original_usage": {
+              "prompt_tokens": 1048,
+              "completion_tokens": 42,
+              "total_tokens": 1090,
+              "cost": 0.0004864,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0004864,
+                "upstream_inference_prompt_cost": 0.0004192,
+                "upstream_inference_completions_cost": 6.72e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 5
+        }
+      ],
+      "before_hash": "3264d96d2a316d8f25f02ca9cb0217221870e9e8e5b19927c2f979c3d1cebd4f",
+      "candidates": [
+        "click('28')",
+        "click('30')",
+        "click('32')",
+        "click('51')",
+        "click('17')",
+        "go_back()"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "radio",
+          "element_text": "[28] radio '*soft grey', checked='false'",
+          "action_bid": "28",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": true,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false,
+          "goal_constraint_signature": null
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "radio",
+          "element_text": "[30] radio 'soft grey', checked='false'",
+          "action_bid": "30",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": true,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false,
+          "goal_constraint_signature": null
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "radio",
+          "element_text": "[32] radio 'taupe', checked='false'",
+          "action_bid": "32",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": true,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false,
+          "goal_constraint_signature": null
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[51] button 'Buy Now'",
+          "action_bid": "51",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": true,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[17] button 'Back to Search'",
+          "action_bid": "17",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "go_back",
+          "url_phase": "item_page",
+          "element_role": "other",
+          "element_text": "",
+          "action_bid": null,
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        }
+      ],
+      "target_features": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.36363636363636365
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.36363636363636365
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.36363636363636365
+        ],
+        [
+          1.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.36363636363636365
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.36363636363636365
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.36363636363636365
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.9576634040628753,
+          0.012262193233623889,
+          0.012270998605437719,
+          0.008688248700644201
+        ],
+        [
+          0.9576634040628753,
+          0.012262193233623889,
+          0.012270998605437719,
+          0.008688248700644201
+        ],
+        [
+          0.9576634040628753,
+          0.012262193233623889,
+          0.012270998605437719,
+          0.008688248700644201
+        ],
+        [
+          0.9946617142702073,
+          0.9488742081035225,
+          0.9489128923403751,
+          0.008496230314305282
+        ],
+        [
+          0.9802640490384626,
+          0.008605772294379978,
+          0.008610974368465113,
+          0.007260560038687044
+        ],
+        [
+          0.6723082645802358,
+          0.004160212396281418,
+          0.0041644061820198235,
+          0.004023773630391233
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": false,
+        "visible_goal_constraint_unsatisfied": false,
+        "prior_action_had_no_effect": false
+      },
+      "selected_index": 5,
+      "selected_action": "go_back()",
+      "changed_from_target_rank_zero": true,
+      "abstract_kind": "POSITION",
+      "source_abstained": true,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "target_coverage_reject_incomplete_product",
+      "reward": 0.0,
+      "terminated": false,
+      "truncated": false,
+      "after_hash": "3528ebf1cc83f493b2fbbaeaaf836fb412cc95f8623bccf5d8b97a0826c82647"
+    },
+    {
+      "step": 5,
+      "prompt_sha256": "5c607fb422bf4ba840babe685bcf7eaa01045ffd23b86e15e14b53a1599c22b0",
+      "response_sha256": "158b73b112ccf0b041106520e3aacd118b4b986e50f01591a3bdd0cbcb290213",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "158b73b112ccf0b041106520e3aacd118b4b986e50f01591a3bdd0cbcb290213",
+          "completion_diagnostic": {
+            "character_count": 136,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": true,
+            "original_usage": {
+              "prompt_tokens": 3301,
+              "completion_tokens": 40,
+              "total_tokens": 3341,
+              "cost": 0.0004628,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 3072,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0004628,
+                "upstream_inference_prompt_cost": 0.0003988,
+                "upstream_inference_completions_cost": 6.4e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 5
+        }
+      ],
+      "before_hash": "3528ebf1cc83f493b2fbbaeaaf836fb412cc95f8623bccf5d8b97a0826c82647",
+      "candidates": [
+        "click('37')",
+        "click('49')",
+        "click('61')",
+        "click('73')",
+        "noop()"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[37] link 'B07DRFDWVT', url=\"http://127.0.0.1:3000/item_page/fixed_25/B07DRFDWVT/%5B'non',%20'slip',%20'desk',%20'living',%20'room'%5D/2/%7B%7D\"",
+          "action_bid": "37",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "living",
+            "non",
+            "room",
+            "slip"
+          ],
+          "goal_overlap": 0.19047619047619047,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[49] link 'B09S6S7LG1', url=\"http://127.0.0.1:3000/item_page/fixed_25/B09S6S7LG1/%5B'non',%20'slip',%20'desk',%20'living',%20'room'%5D/2/%7B%7D\"",
+          "action_bid": "49",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "living",
+            "non",
+            "room",
+            "slip"
+          ],
+          "goal_overlap": 0.19047619047619047,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[61] link 'B095KCTB3Y', url=\"http://127.0.0.1:3000/item_page/fixed_25/B095KCTB3Y/%5B'non',%20'slip',%20'desk',%20'living',%20'room'%5D/2/%7B%7D\"",
+          "action_bid": "61",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "living",
+            "non",
+            "room",
+            "slip"
+          ],
+          "goal_overlap": 0.19047619047619047,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[73] link 'B084Q7C6TX', url=\"http://127.0.0.1:3000/item_page/fixed_25/B084Q7C6TX/%5B'non',%20'slip',%20'desk',%20'living',%20'room'%5D/2/%7B%7D\"",
+          "action_bid": "73",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "living",
+            "non",
+            "room",
+            "slip"
+          ],
+          "goal_overlap": 0.19047619047619047,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "noop",
+          "url_phase": "search_results",
+          "element_role": "other",
+          "element_text": "",
+          "action_bid": null,
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": true
+        }
+      ],
+      "target_features": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.19047619047619047,
+          0.0,
+          0.0,
+          0.0,
+          0.45454545454545453
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.19047619047619047,
+          0.0,
+          0.0,
+          0.0,
+          0.45454545454545453
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.19047619047619047,
+          0.0,
+          0.0,
+          0.0,
+          0.45454545454545453
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.19047619047619047,
+          0.0,
+          0.0,
+          0.0,
+          0.45454545454545453
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.45454545454545453
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.9452526310394859,
+          0.008056070122978936,
+          0.008061782856477172,
+          0.005921389950387166
+        ],
+        [
+          0.9452526310394859,
+          0.008056070122978936,
+          0.008061782856477172,
+          0.005921389950387166
+        ],
+        [
+          0.9452526310394859,
+          0.008056070122978936,
+          0.008061782856477172,
+          0.005921389950387166
+        ],
+        [
+          0.9452526310394859,
+          0.008056070122978936,
+          0.008061782856477172,
+          0.005921389950387166
+        ],
+        [
+          0.9701668343236565,
+          0.010809366769757935,
+          0.010816393146213158,
+          0.006955750404529124
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": false,
+        "visible_goal_constraint_unsatisfied": false,
+        "prior_action_had_no_effect": false
+      },
+      "selected_index": 1,
+      "selected_action": "click('49')",
+      "changed_from_target_rank_zero": true,
+      "abstract_kind": "POSITION",
+      "source_abstained": true,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "target_coverage_explore_untried_product",
+      "reward": 0.0,
+      "terminated": false,
+      "truncated": false,
+      "after_hash": "da61114413305dfcf54b27ae97c66804b8671e0f90753d352f1473c35cc048f2"
+    },
+    {
+      "step": 6,
+      "prompt_sha256": "7f1136eb4a41acd286e2809d2e8518006df132fb82bd09d7e5adc116ed47681a",
+      "response_sha256": "b3428614cc005b0408ed358756c3ac638d95c9cea4a475aaa6a2454097c30a53",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "b3428614cc005b0408ed358756c3ac638d95c9cea4a475aaa6a2454097c30a53",
+          "completion_diagnostic": {
+            "character_count": 86,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": true,
+            "original_usage": {
+              "prompt_tokens": 1116,
+              "completion_tokens": 26,
+              "total_tokens": 1142,
+              "cost": 0.000488,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.000488,
+                "upstream_inference_prompt_cost": 0.0004464,
+                "upstream_inference_completions_cost": 4.16e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 3
+        }
+      ],
+      "before_hash": "da61114413305dfcf54b27ae97c66804b8671e0f90753d352f1473c35cc048f2",
+      "candidates": [
+        "click('17')",
+        "click('20')",
+        "noop()",
+        "go_back()"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[17] button 'Back to Search'",
+          "action_bid": "17",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[20] button '< Prev'",
+          "action_bid": "20",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "noop",
+          "url_phase": "item_page",
+          "element_role": "other",
+          "element_text": "",
+          "action_bid": null,
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": true
+        },
+        {
+          "verb": "go_back",
+          "url_phase": "item_page",
+          "element_role": "other",
+          "element_text": "",
+          "action_bid": null,
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        }
+      ],
+      "target_features": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.5454545454545454
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.5454545454545454
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.5454545454545454
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.5454545454545454
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.9767371712310633,
+          0.00924895686257258,
+          0.009254677074404635,
+          0.007247668548559116
+        ],
+        [
+          0.9767371712310633,
+          0.00924895686257258,
+          0.009254677074404635,
+          0.007247668548559116
+        ],
+        [
+          0.9666440278816746,
+          0.011287512934309837,
+          0.011294932884367838,
+          0.00692772494209406
+        ],
+        [
+          0.5704245285875711,
+          0.004291589380942921,
+          0.004296089049804743,
+          0.0038589849031876356
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": false,
+        "visible_goal_constraint_unsatisfied": false,
+        "prior_action_had_no_effect": false
+      },
+      "selected_index": 0,
+      "selected_action": "click('17')",
+      "changed_from_target_rank_zero": false,
+      "abstract_kind": "TARGET",
+      "source_abstained": true,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "target_rank_zero",
+      "reward": 0.0,
+      "terminated": false,
+      "truncated": false,
+      "after_hash": "f74e8e964a744d5a9ec16b5519803a40cb242e425c6095acd901ab7b5a7ad054"
+    },
+    {
+      "step": 7,
+      "prompt_sha256": "c492a33842d34c43b56083d273f18815ac76a22fd715bb7981bf3fbb196fbcae",
+      "response_sha256": "474d308359a148c191f758a1f72fbec89caa70f3245e5d44dfb41d3b6be8c3fd",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "474d308359a148c191f758a1f72fbec89caa70f3245e5d44dfb41d3b6be8c3fd",
+          "completion_diagnostic": {
+            "character_count": 420,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": true,
+            "original_usage": {
+              "prompt_tokens": 566,
+              "completion_tokens": 146,
+              "total_tokens": 712,
+              "cost": 0.00046,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.00046,
+                "upstream_inference_prompt_cost": 0.0002264,
+                "upstream_inference_completions_cost": 0.0002336
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 5
+        }
+      ],
+      "before_hash": "f74e8e964a744d5a9ec16b5519803a40cb242e425c6095acd901ab7b5a7ad054",
+      "candidates": [
+        "fill('18','non slip desks living room color luckygoo4356 size 23.6x35.4in 23.6x70.9in price <40')",
+        "fill('18','non slip desks color luckygoo4356 size 23.6x35.4in 23.6x70.9in price <40')",
+        "fill('18','non slip desks living room color luckygoo4356 price <40')",
+        "fill('18','non slip desks living room size 23.6x35.4in 23.6x70.9in price <40')",
+        "noop()"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "fill",
+          "url_phase": "landing",
+          "element_role": "textbox",
+          "element_text": "[18] textbox 'Search...', required",
+          "action_bid": "18",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false
+        },
+        {
+          "verb": "fill",
+          "url_phase": "landing",
+          "element_role": "textbox",
+          "element_text": "[18] textbox 'Search...', required",
+          "action_bid": "18",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false
+        },
+        {
+          "verb": "fill",
+          "url_phase": "landing",
+          "element_role": "textbox",
+          "element_text": "[18] textbox 'Search...', required",
+          "action_bid": "18",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false
+        },
+        {
+          "verb": "fill",
+          "url_phase": "landing",
+          "element_role": "textbox",
+          "element_text": "[18] textbox 'Search...', required",
+          "action_bid": "18",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false
+        },
+        {
+          "verb": "noop",
+          "url_phase": "landing",
+          "element_role": "other",
+          "element_text": "",
+          "action_bid": null,
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": true
+        }
+      ],
+      "target_features": [
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.6363636363636364
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.6363636363636364
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.6363636363636364
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.6363636363636364
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.6363636363636364
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.9624302426748079,
+          0.011803641382899533,
+          0.0118114882243515,
+          0.006897723459684084
+        ],
+        [
+          0.9624302426748079,
+          0.011803641382899533,
+          0.0118114882243515,
+          0.006897723459684084
+        ],
+        [
+          0.9624302426748079,
+          0.011803641382899533,
+          0.0118114882243515,
+          0.006897723459684084
+        ],
+        [
+          0.9624302426748079,
+          0.011803641382899533,
+          0.0118114882243515,
+          0.006897723459684084
+        ],
+        [
+          0.9624302426748079,
+          0.011803641382899533,
+          0.0118114882243515,
+          0.006897723459684091
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": false,
+        "visible_goal_constraint_unsatisfied": false,
+        "prior_action_had_no_effect": false
+      },
+      "selected_index": 0,
+      "selected_action": "fill('18','non slip desks living room color luckygoo4356 size 23.6x35.4in 23.6x70.9in price <40')",
+      "changed_from_target_rank_zero": false,
+      "abstract_kind": "TARGET",
+      "source_abstained": true,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "target_rank_zero",
+      "reward": 0.0,
+      "terminated": false,
+      "truncated": false,
+      "after_hash": "30c02604580fc0bd174d381e941c169884864291ac9e1ff1a30c0558d5e391c6"
+    },
+    {
+      "step": 8,
+      "prompt_sha256": "f396ec38a5a79f08f1008e1a4a9b2809b48a3f0798edc58a3e7666e611de4a8f",
+      "response_sha256": "4a7b7183c4cf732cc37dfd48337e555a384660ce39267673ae15d9aed644327d",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "4a7b7183c4cf732cc37dfd48337e555a384660ce39267673ae15d9aed644327d",
+          "completion_diagnostic": {
+            "character_count": 61,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": true,
+            "original_usage": {
+              "prompt_tokens": 753,
+              "completion_tokens": 19,
+              "total_tokens": 772,
+              "cost": 0.0003316,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0003316,
+                "upstream_inference_prompt_cost": 0.0003012,
+                "upstream_inference_completions_cost": 3.04e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 2
+        }
+      ],
+      "before_hash": "30c02604580fc0bd174d381e941c169884864291ac9e1ff1a30c0558d5e391c6",
+      "candidates": [
+        "click('20')",
+        "noop()"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "click",
+          "url_phase": "landing",
+          "element_role": "button",
+          "element_text": "[20] button 'Search'",
+          "action_bid": "20",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "noop",
+          "url_phase": "landing",
+          "element_role": "other",
+          "element_text": "",
+          "action_bid": null,
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": true
+        }
+      ],
+      "target_features": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.7272727272727273
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.7272727272727273
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.9717855757953867,
+          0.010002260962983588,
+          0.010008584640046244,
+          0.00722104990290191
+        ],
+        [
+          0.9573812587763808,
+          0.012359569418693279,
+          0.012367879692690941,
+          0.006866687108763076
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": false,
+        "visible_goal_constraint_unsatisfied": false,
+        "prior_action_had_no_effect": false
+      },
+      "selected_index": 0,
+      "selected_action": "click('20')",
+      "changed_from_target_rank_zero": false,
+      "abstract_kind": "TARGET",
+      "source_abstained": true,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "target_rank_zero",
+      "reward": 0.0,
+      "terminated": false,
+      "truncated": false,
+      "after_hash": "d0f2e425c9503c4090ff0d77fdd75dbe1c8d9896703038bb4c20c3343a81ac2e"
+    },
+    {
+      "step": 9,
+      "prompt_sha256": "3b37e3d2620d71de03efc9cb58aee664981fcfb81378a484616492278dd338b7",
+      "response_sha256": "27ae887ec725d5364cdba59759b49e3fde8ed7e2d44b30967506ff3d33922603",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "27ae887ec725d5364cdba59759b49e3fde8ed7e2d44b30967506ff3d33922603",
+          "completion_diagnostic": {
+            "character_count": 141,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": true,
+            "original_usage": {
+              "prompt_tokens": 4022,
+              "completion_tokens": 42,
+              "total_tokens": 4064,
+              "cost": 0.001676,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.001676,
+                "upstream_inference_prompt_cost": 0.0016088,
+                "upstream_inference_completions_cost": 6.72e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 5
+        }
+      ],
+      "before_hash": "d0f2e425c9503c4090ff0d77fdd75dbe1c8d9896703038bb4c20c3343a81ac2e",
+      "candidates": [
+        "click('35')",
+        "click('47')",
+        "click('59')",
+        "click('71')",
+        "click('83')"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[35] link 'B09JC3K6R6', url=\"http://127.0.0.1:3000/item_page/fixed_25/B09JC3K6R6/%5B'non',%20'slip',%20'desks',%20'living',%20'room',%20'color',%20'luckygoo4356',%20'size',%20'23.6x35.4in',%20'23.6x70.9in',%20'price',%20'%3C40'%5D/1/%7B%7D\"",
+          "action_bid": "35",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "23.6x35.4in",
+            "23.6x70.9in",
+            "color",
+            "desks",
+            "living",
+            "luckygoo4356",
+            "non",
+            "price",
+            "room",
+            "size",
+            "slip"
+          ],
+          "goal_overlap": 0.39285714285714285,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[47] link 'B09B7ZKMVY', url=\"http://127.0.0.1:3000/item_page/fixed_25/B09B7ZKMVY/%5B'non',%20'slip',%20'desks',%20'living',%20'room',%20'color',%20'luckygoo4356',%20'size',%20'23.6x35.4in',%20'23.6x70.9in',%20'price',%20'%3C40'%5D/1/%7B%7D\"",
+          "action_bid": "47",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "23.6x35.4in",
+            "23.6x70.9in",
+            "color",
+            "desks",
+            "living",
+            "luckygoo4356",
+            "non",
+            "price",
+            "room",
+            "size",
+            "slip"
+          ],
+          "goal_overlap": 0.39285714285714285,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[59] link 'B09Q2ZBB1G', url=\"http://127.0.0.1:3000/item_page/fixed_25/B09Q2ZBB1G/%5B'non',%20'slip',%20'desks',%20'living',%20'room',%20'color',%20'luckygoo4356',%20'size',%20'23.6x35.4in',%20'23.6x70.9in',%20'price',%20'%3C40'%5D/1/%7B%7D\"",
+          "action_bid": "59",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "23.6x35.4in",
+            "23.6x70.9in",
+            "color",
+            "desks",
+            "living",
+            "luckygoo4356",
+            "non",
+            "price",
+            "room",
+            "size",
+            "slip"
+          ],
+          "goal_overlap": 0.39285714285714285,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[71] link 'B09688C4XM', url=\"http://127.0.0.1:3000/item_page/fixed_25/B09688C4XM/%5B'non',%20'slip',%20'desks',%20'living',%20'room',%20'color',%20'luckygoo4356',%20'size',%20'23.6x35.4in',%20'23.6x70.9in',%20'price',%20'%3C40'%5D/1/%7B%7D\"",
+          "action_bid": "71",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "23.6x35.4in",
+            "23.6x70.9in",
+            "color",
+            "desks",
+            "living",
+            "luckygoo4356",
+            "non",
+            "price",
+            "room",
+            "size",
+            "slip"
+          ],
+          "goal_overlap": 0.39285714285714285,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[83] link 'B009EEVDSQ', url=\"http://127.0.0.1:3000/item_page/fixed_25/B009EEVDSQ/%5B'non',%20'slip',%20'desks',%20'living',%20'room',%20'color',%20'luckygoo4356',%20'size',%20'23.6x35.4in',%20'23.6x70.9in',%20'price',%20'%3C40'%5D/1/%7B%7D\"",
+          "action_bid": "83",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "23.6x35.4in",
+            "23.6x70.9in",
+            "color",
+            "desks",
+            "living",
+            "luckygoo4356",
+            "non",
+            "price",
+            "room",
+            "size",
+            "slip"
+          ],
+          "goal_overlap": 0.39285714285714285,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        }
+      ],
+      "target_features": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.39285714285714285,
+          0.0,
+          0.0,
+          0.0,
+          0.8181818181818182
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.39285714285714285,
+          0.0,
+          0.0,
+          0.0,
+          0.8181818181818182
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.39285714285714285,
+          0.0,
+          0.0,
+          0.0,
+          0.8181818181818182
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.39285714285714285,
+          0.0,
+          0.0,
+          0.0,
+          0.8181818181818182
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.39285714285714285,
+          0.0,
+          0.0,
+          0.0,
+          0.8181818181818182
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.6204681599690193,
+          0.007909385785636986,
+          0.00791708342198436,
+          0.004165212332648061
+        ],
+        [
+          0.6204681599690193,
+          0.007909385785636986,
+          0.00791708342198436,
+          0.004165212332648061
+        ],
+        [
+          0.6204681599690193,
+          0.007909385785636986,
+          0.00791708342198436,
+          0.004165212332648061
+        ],
+        [
+          0.6204681599690193,
+          0.007909385785636986,
+          0.00791708342198436,
+          0.004165212332648061
+        ],
+        [
+          0.6204681599690194,
+          0.007909385785636986,
+          0.007917083421984375,
+          0.004165212332648064
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": false,
+        "visible_goal_constraint_unsatisfied": false,
+        "prior_action_had_no_effect": false
+      },
+      "selected_index": 0,
+      "selected_action": "click('35')",
+      "changed_from_target_rank_zero": false,
+      "abstract_kind": "POSITION",
+      "source_abstained": true,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "target_coverage_explore_untried_product",
+      "reward": 0.0,
+      "terminated": false,
+      "truncated": false,
+      "after_hash": "d375a0e9c63ebffcac3d7daa1e42956961e480253153f85ff7551842c75589d3"
+    },
+    {
+      "step": 10,
+      "prompt_sha256": "eefc04512380c9591299fc277e312083bf567276d13f3637526e8c20883827da",
+      "response_sha256": "7c8b1b5c141ebcda722c4a71060d06ebcd1fc09f51c9e589a49bca5908ccf685",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "7c8b1b5c141ebcda722c4a71060d06ebcd1fc09f51c9e589a49bca5908ccf685",
+          "completion_diagnostic": {
+            "character_count": 111,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": true,
+            "original_usage": {
+              "prompt_tokens": 1020,
+              "completion_tokens": 33,
+              "total_tokens": 1053,
+              "cost": 0.0004608,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0004608,
+                "upstream_inference_prompt_cost": 0.000408,
+                "upstream_inference_completions_cost": 5.28e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 4
+        }
+      ],
+      "before_hash": "d375a0e9c63ebffcac3d7daa1e42956961e480253153f85ff7551842c75589d3",
+      "candidates": [
+        "click('42')",
+        "click('20')",
+        "click('17')",
+        "noop()",
+        "go_back()"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[42] button 'Buy Now'",
+          "action_bid": "42",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": true,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[20] button '< Prev'",
+          "action_bid": "20",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[17] button 'Back to Search'",
+          "action_bid": "17",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "noop",
+          "url_phase": "item_page",
+          "element_role": "other",
+          "element_text": "",
+          "action_bid": null,
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": true
+        },
+        {
+          "verb": "go_back",
+          "url_phase": "item_page",
+          "element_role": "other",
+          "element_text": "",
+          "action_bid": null,
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        }
+      ],
+      "target_features": [
+        [
+          1.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.9090909090909091
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.9090909090909091
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.9090909090909091
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.9090909090909091
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.9090909090909091
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.9932122090717456,
+          0.9562519762068612,
+          0.9562858960305043,
+          0.008636210082826746
+        ],
+        [
+          0.9647526526687565,
+          0.010882623263002949,
+          0.010889653256111907,
+          0.0071833504930117024
+        ],
+        [
+          0.9647526526687565,
+          0.010882623263002949,
+          0.010889653256111907,
+          0.0071833504930117024
+        ],
+        [
+          0.9440608321107817,
+          0.01359599055852837,
+          0.013605351531524696,
+          0.006806269379571931
+        ],
+        [
+          0.3554179314133414,
+          0.004556784320981929,
+          0.004561951911852944,
+          0.003608488122033256
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": false,
+        "visible_goal_constraint_unsatisfied": false,
+        "prior_action_had_no_effect": false
+      },
+      "selected_index": 0,
+      "selected_action": "click('42')",
+      "changed_from_target_rank_zero": false,
+      "abstract_kind": "TARGET",
+      "source_abstained": true,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "target_budget_infeasible_immediate_reward_salvage:remaining=2:strict_lb=5",
+      "reward": 0.0,
+      "terminated": true,
+      "truncated": false,
+      "after_hash": "d150d5415b2882832c347c9f6aaab2355ded42ceb5806c1771795b955746105a"
+    }
+  ],
+  "step_count": 11,
+  "official_reward": 0.0,
+  "strict_success": false,
+  "pass_success": false,
+  "terminated": true,
+  "truncated": false,
+  "failure": null,
+  "failure_traceback": null,
+  "changed_from_target_rank_zero_count": 2,
+  "source_decision_count": 0,
+  "session_namespace": "phase2-ws-83be4ad55f-c04-target-native-search-ceiling",
+  "manifest_sha256": "83be4ad55fd78eacbdf7bae1bdee675676a566a3060f76034ea8d658fb6e19f8",
+  "target_identity": "webshop.synthetic.phase2v2.seed4145324235.index25.84865f256630b336",
+  "goal_sha256": "84865f256630b336fc50dccdd9b10829a7a42e7e1e57ea32459eed21679bbbf2",
+  "source_game": "gymv_thunder_force_iii",
+  "source_artifact_sha256": "78ccd564e5453fa33a2b34eb2edf46263f025ec45eae2c1bbdf3017cc7d695d8",
+  "v16_controller": {
+    "condition": "target_native_search_ceiling",
+    "source_artifact_sha256": "78ccd564e5453fa33a2b34eb2edf46263f025ec45eae2c1bbdf3017cc7d695d8",
+    "source_decisions": 0,
+    "source_action_counts": {},
+    "target_fallbacks": 0,
+    "coverage_controller": {
+      "condition": "target_native_coverage_only",
+      "coverage_enabled": true,
+      "coverage_ready": false,
+      "goal_option_signatures": [
+        "color:luckygoo4356",
+        "size:23 6x35 4in 23 6x70 9in"
+      ],
+      "coverage_interventions": 4,
+      "source_calls_after_coverage": 0,
+      "rejected_product_ids": [
+        "B07DRFDWVT"
+      ],
+      "last_selected_product_id": "B09JC3K6R6",
+      "anytime_reward_salvage": true,
+      "maximum_steps": 12,
+      "budget_abstentions": 1,
+      "product_ledger_resets": 2,
+      "ledger": {
+        "required": [
+          "color:luckygoo4356",
+          "size:23 6x35 4in 23 6x70 9in"
+        ],
+        "verified": [],
+        "missing": [
+          "color:luckygoo4356",
+          "size:23 6x35 4in 23 6x70 9in"
+        ],
+        "commit_authorized": false,
+        "pending_signature": null
+      }
+    },
+    "source_trace": []
+  },
+  "commit_audit": [
+    {
+      "step": 10,
+      "selected_action": "click('42')",
+      "authorized": false,
+      "coverage": {
+        "required": [],
+        "verified": [],
+        "missing": [],
+        "commit_authorized": false,
+        "pending_signature": null
+      }
+    }
+  ],
+  "unsafe_commits": [],
+  "historical_target_outcome_reused": false,
+  "target_reset_or_sample_open_count": 1,
+  "runtime_hashes": {
+    "runner": "0cf4f0c993f7b13915df4c5acf3455e1a5fd6b4d8db561972b4f7575536ccd81",
+    "controller": "478994c5da56ee783e59823a79f026dfa2f7185d0f733a835bfe11e5cdd46c38",
+    "utility_contract": "7b30994bd6b293af713e4b6ab414e16adc94ae02fdc943f4106f514668bfda85",
+    "source_artifact": "0b52167b9259d6304950766e94d7e1a3d764ad241af1dfbff658fccc7cebb070",
+    "target_grounder": "bbf8a22ebec8e7ab6d55e570f230ba4fcb2b8630d1dc81bd24ba103f68701782"
+  },
+  "receipt_sha256": "da99e54849081e197db6a54c60794fd96ba7c6fae60a2efdec2d3c8b287476b2"
+}

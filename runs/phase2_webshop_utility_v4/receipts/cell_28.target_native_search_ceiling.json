@@ -1,0 +1,2186 @@
+{
+  "schema_version": 1,
+  "task_id": "webshop.322",
+  "condition": "target_native_search_ceiling",
+  "goal": "Find me open toe, knee high, non slip women's pumps with ankle strap, high heel, memory foam, rubber sole for teen girls with size: 6.5, and price lower than 120.00 dollars",
+  "initial_state_hash": "bce3ef114cadf15670fe4694b434e5c5fb0ea888f78ce6faa914f41906234cf1",
+  "maximum_steps": 12,
+  "steps": [
+    {
+      "step": 0,
+      "prompt_sha256": "af2d2580f174167d3adac49b277a749559c0a342fc46541019ea522588ca62c4",
+      "response_sha256": "ac4b310aae461dbf40c1aae74363dd8849a08d3ddbfb6bbe589898fb3cca958b",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "ac4b310aae461dbf40c1aae74363dd8849a08d3ddbfb6bbe589898fb3cca958b",
+          "completion_diagnostic": {
+            "character_count": 354,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": true,
+            "original_usage": {
+              "prompt_tokens": 460,
+              "completion_tokens": 102,
+              "total_tokens": 562,
+              "cost": 0.0003472,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0003472,
+                "upstream_inference_prompt_cost": 0.000184,
+                "upstream_inference_completions_cost": 0.0001632
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 5
+        }
+      ],
+      "before_hash": "c92800556b0324a5dcabb30850e025d4428a6fe27dc24f77ea627f838447e445",
+      "candidates": [
+        "fill('18','open toe knee high non slip pumps ankle strap high heel memory foam rubber sole teen girls size 6.5 price <120')",
+        "fill('18','open toe knee high pumps size 6.5 price <120')",
+        "fill('18','women pumps size 6.5 price <120')",
+        "fill('18','pumps size 6.5 price <120')",
+        "noop()"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "fill",
+          "url_phase": "landing",
+          "element_role": "textbox",
+          "element_text": "[18] textbox 'Search...', required",
+          "action_bid": "18",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false
+        },
+        {
+          "verb": "fill",
+          "url_phase": "landing",
+          "element_role": "textbox",
+          "element_text": "[18] textbox 'Search...', required",
+          "action_bid": "18",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false
+        },
+        {
+          "verb": "fill",
+          "url_phase": "landing",
+          "element_role": "textbox",
+          "element_text": "[18] textbox 'Search...', required",
+          "action_bid": "18",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false
+        },
+        {
+          "verb": "fill",
+          "url_phase": "landing",
+          "element_role": "textbox",
+          "element_text": "[18] textbox 'Search...', required",
+          "action_bid": "18",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false
+        },
+        {
+          "verb": "noop",
+          "url_phase": "landing",
+          "element_role": "other",
+          "element_text": "",
+          "action_bid": null,
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": true
+        }
+      ],
+      "target_features": [
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.9809542664690936,
+          0.008910126680510508,
+          0.008915589732162521,
+          0.007047382472608437
+        ],
+        [
+          0.9809542664690936,
+          0.008910126680510508,
+          0.008915589732162521,
+          0.007047382472608437
+        ],
+        [
+          0.9809542664690936,
+          0.008910126680510508,
+          0.008915589732162521,
+          0.007047382472608437
+        ],
+        [
+          0.9809542664690936,
+          0.008910126680510508,
+          0.008915589732162521,
+          0.007047382472608437
+        ],
+        [
+          0.9809542664690936,
+          0.008910126680510508,
+          0.008915589732162521,
+          0.007047382472608437
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": false,
+        "visible_goal_constraint_unsatisfied": false,
+        "prior_action_had_no_effect": false
+      },
+      "selected_index": 0,
+      "selected_action": "fill('18','open toe knee high non slip pumps ankle strap high heel memory foam rubber sole teen girls size 6.5 price <120')",
+      "changed_from_target_rank_zero": false,
+      "abstract_kind": "TARGET",
+      "source_abstained": true,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "target_rank_zero",
+      "reward": 0.0,
+      "terminated": false,
+      "truncated": false,
+      "after_hash": "0ea32bc235448bbbf26c2c71a7a0c6d8426f3b129efe585a1499712ebaf7a3ff"
+    },
+    {
+      "step": 1,
+      "prompt_sha256": "ef300c6c796e16d34598e16a23bd407e8311e94efcb86166f55b8ee10a0fdec0",
+      "response_sha256": "4a7b7183c4cf732cc37dfd48337e555a384660ce39267673ae15d9aed644327d",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "4a7b7183c4cf732cc37dfd48337e555a384660ce39267673ae15d9aed644327d",
+          "completion_diagnostic": {
+            "character_count": 61,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": true,
+            "original_usage": {
+              "prompt_tokens": 633,
+              "completion_tokens": 19,
+              "total_tokens": 652,
+              "cost": 0.0002836,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0002836,
+                "upstream_inference_prompt_cost": 0.0002532,
+                "upstream_inference_completions_cost": 3.04e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 2
+        }
+      ],
+      "before_hash": "0ea32bc235448bbbf26c2c71a7a0c6d8426f3b129efe585a1499712ebaf7a3ff",
+      "candidates": [
+        "click('20')",
+        "noop()"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "click",
+          "url_phase": "landing",
+          "element_role": "button",
+          "element_text": "[20] button 'Search'",
+          "action_bid": "20",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "noop",
+          "url_phase": "landing",
+          "element_role": "other",
+          "element_text": "",
+          "action_bid": null,
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": true
+        }
+      ],
+      "target_features": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.09090909090909091
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.09090909090909091
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.9838093043631316,
+          0.007810760169351171,
+          0.007815314258614531,
+          0.007254276463657209
+        ],
+        [
+          0.9794556923764357,
+          0.009232307754060344,
+          0.009238037421806178,
+          0.007036402034354836
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": false,
+        "visible_goal_constraint_unsatisfied": false,
+        "prior_action_had_no_effect": false
+      },
+      "selected_index": 0,
+      "selected_action": "click('20')",
+      "changed_from_target_rank_zero": false,
+      "abstract_kind": "TARGET",
+      "source_abstained": true,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "target_rank_zero",
+      "reward": 0.0,
+      "terminated": false,
+      "truncated": false,
+      "after_hash": "6e349cc7e92da137ae3e568f607e10002fed0d2178d0cc958bd1de0b62c52c47"
+    },
+    {
+      "step": 2,
+      "prompt_sha256": "cb5cecc3990c3b97b0d12df22b73f721aec50e4cdde11d3c6452ac84c519ba0d",
+      "response_sha256": "6871cba9166ac1c466ffd2536ee654928a414c42f7656c1343701df422c31ec1",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "6871cba9166ac1c466ffd2536ee654928a414c42f7656c1343701df422c31ec1",
+          "completion_diagnostic": {
+            "character_count": 143,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": true,
+            "original_usage": {
+              "prompt_tokens": 4272,
+              "completion_tokens": 42,
+              "total_tokens": 4314,
+              "cost": 0.001776,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.001776,
+                "upstream_inference_prompt_cost": 0.0017088,
+                "upstream_inference_completions_cost": 6.72e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 5
+        }
+      ],
+      "before_hash": "6e349cc7e92da137ae3e568f607e10002fed0d2178d0cc958bd1de0b62c52c47",
+      "candidates": [
+        "click('47')",
+        "click('59')",
+        "click('95')",
+        "click('107')",
+        "click('119')"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[47] link 'B09P5V8ZSK', url=\"http://127.0.0.1:3000/item_page/fixed_322/B09P5V8ZSK/%5B'open',%20'toe',%20'knee',%20'high',%20'non',%20'slip',%20'pumps',%20'ankle',%20'strap',%20'high',%20'heel',%20'memory',%20'foam',%20'rubber',%20'sole',%20'teen',%20'girls',%20'size',%20'6.5',%20'price',%20'%3C120'%5D/1/%7B%7D\"",
+          "action_bid": "47",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "6.5",
+            "ankle",
+            "foam",
+            "girls",
+            "heel",
+            "high",
+            "knee",
+            "memory",
+            "non",
+            "open",
+            "price",
+            "pumps",
+            "rubber",
+            "size",
+            "slip",
+            "sole",
+            "strap",
+            "teen",
+            "toe"
+          ],
+          "goal_overlap": 0.5277777777777778,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[59] link 'B09QKJHF4Q', url=\"http://127.0.0.1:3000/item_page/fixed_322/B09QKJHF4Q/%5B'open',%20'toe',%20'knee',%20'high',%20'non',%20'slip',%20'pumps',%20'ankle',%20'strap',%20'high',%20'heel',%20'memory',%20'foam',%20'rubber',%20'sole',%20'teen',%20'girls',%20'size',%20'6.5',%20'price',%20'%3C120'%5D/1/%7B%7D\"",
+          "action_bid": "59",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "6.5",
+            "ankle",
+            "foam",
+            "girls",
+            "heel",
+            "high",
+            "knee",
+            "memory",
+            "non",
+            "open",
+            "price",
+            "pumps",
+            "rubber",
+            "size",
+            "slip",
+            "sole",
+            "strap",
+            "teen",
+            "toe"
+          ],
+          "goal_overlap": 0.5277777777777778,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[95] link 'B09HMCKZQW', url=\"http://127.0.0.1:3000/item_page/fixed_322/B09HMCKZQW/%5B'open',%20'toe',%20'knee',%20'high',%20'non',%20'slip',%20'pumps',%20'ankle',%20'strap',%20'high',%20'heel',%20'memory',%20'foam',%20'rubber',%20'sole',%20'teen',%20'girls',%20'size',%20'6.5',%20'price',%20'%3C120'%5D/1/%7B%7D\"",
+          "action_bid": "95",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "6.5",
+            "ankle",
+            "foam",
+            "girls",
+            "heel",
+            "high",
+            "knee",
+            "memory",
+            "non",
+            "open",
+            "price",
+            "pumps",
+            "rubber",
+            "size",
+            "slip",
+            "sole",
+            "strap",
+            "teen",
+            "toe"
+          ],
+          "goal_overlap": 0.5277777777777778,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[107] link 'B092VDY5MF', url=\"http://127.0.0.1:3000/item_page/fixed_322/B092VDY5MF/%5B'open',%20'toe',%20'knee',%20'high',%20'non',%20'slip',%20'pumps',%20'ankle',%20'strap',%20'high',%20'heel',%20'memory',%20'foam',%20'rubber',%20'sole',%20'teen',%20'girls',%20'size',%20'6.5',%20'price',%20'%3C120'%5D/1/%7B%7D\"",
+          "action_bid": "107",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "6.5",
+            "ankle",
+            "foam",
+            "girls",
+            "heel",
+            "high",
+            "knee",
+            "memory",
+            "non",
+            "open",
+            "price",
+            "pumps",
+            "rubber",
+            "size",
+            "slip",
+            "sole",
+            "strap",
+            "teen",
+            "toe"
+          ],
+          "goal_overlap": 0.5277777777777778,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[119] link 'B09QPX97VW', url=\"http://127.0.0.1:3000/item_page/fixed_322/B09QPX97VW/%5B'open',%20'toe',%20'knee',%20'high',%20'non',%20'slip',%20'pumps',%20'ankle',%20'strap',%20'high',%20'heel',%20'memory',%20'foam',%20'rubber',%20'sole',%20'teen',%20'girls',%20'size',%20'6.5',%20'price',%20'%3C120'%5D/1/%7B%7D\"",
+          "action_bid": "119",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "6.5",
+            "ankle",
+            "foam",
+            "girls",
+            "heel",
+            "high",
+            "knee",
+            "memory",
+            "non",
+            "open",
+            "price",
+            "pumps",
+            "rubber",
+            "size",
+            "slip",
+            "sole",
+            "strap",
+            "teen",
+            "toe"
+          ],
+          "goal_overlap": 0.5277777777777778,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        }
+      ],
+      "target_features": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.5277777777777778,
+          0.0,
+          0.0,
+          0.0,
+          0.18181818181818182
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.5277777777777778,
+          0.0,
+          0.0,
+          0.0,
+          0.18181818181818182
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.5277777777777778,
+          0.0,
+          0.0,
+          0.0,
+          0.18181818181818182
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.5277777777777778,
+          0.0,
+          0.0,
+          0.0,
+          0.18181818181818182
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.5277777777777778,
+          0.0,
+          0.0,
+          0.0,
+          0.18181818181818182
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.6785634115649534,
+          0.005914948556683099,
+          0.005920842974919444,
+          0.003801280939563475
+        ],
+        [
+          0.6785634115649534,
+          0.005914948556683099,
+          0.005920842974919444,
+          0.003801280939563475
+        ],
+        [
+          0.6785634115649534,
+          0.005914948556683099,
+          0.005920842974919444,
+          0.003801280939563475
+        ],
+        [
+          0.6785634115649534,
+          0.005914948556683099,
+          0.005920842974919444,
+          0.003801280939563475
+        ],
+        [
+          0.6785634115649534,
+          0.005914948556683104,
+          0.005920842974919444,
+          0.003801280939563475
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": false,
+        "visible_goal_constraint_unsatisfied": false,
+        "prior_action_had_no_effect": false
+      },
+      "selected_index": 0,
+      "selected_action": "click('47')",
+      "changed_from_target_rank_zero": false,
+      "abstract_kind": "TARGET",
+      "source_abstained": true,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "target_rank_zero",
+      "reward": 0.0,
+      "terminated": false,
+      "truncated": false,
+      "after_hash": "8fc9e546eb3d54b06ea29a8bf83814bbb7c88296a38e13f93cc9b9059746cbeb"
+    },
+    {
+      "step": 3,
+      "prompt_sha256": "80508414dc81a6def0cbb641ba367caa952740135663965cad81bdee6aacd73f",
+      "response_sha256": "f3468412f5dd63e9166cf35b54b2db3c5b4b84053eb36d69e443b23596ddab9a",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "f3468412f5dd63e9166cf35b54b2db3c5b4b84053eb36d69e443b23596ddab9a",
+          "completion_diagnostic": {
+            "character_count": 141,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": true,
+            "original_usage": {
+              "prompt_tokens": 1460,
+              "completion_tokens": 42,
+              "total_tokens": 1502,
+              "cost": 0.0006512,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0006512,
+                "upstream_inference_prompt_cost": 0.000584,
+                "upstream_inference_completions_cost": 6.72e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 5
+        }
+      ],
+      "before_hash": "8fc9e546eb3d54b06ea29a8bf83814bbb7c88296a38e13f93cc9b9059746cbeb",
+      "candidates": [
+        "click('30')",
+        "click('17')",
+        "click('56')",
+        "click('63')",
+        "click('20')",
+        "go_back()"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "radio",
+          "element_text": "[30] radio '6', checked='false'",
+          "action_bid": "30",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": true,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false,
+          "goal_constraint_signature": null
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[17] button 'Back to Search'",
+          "action_bid": "17",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[56] button 'Features'",
+          "action_bid": "56",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[63] button 'Buy Now'",
+          "action_bid": "63",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": true,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[20] button '< Prev'",
+          "action_bid": "20",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "go_back",
+          "url_phase": "item_page",
+          "element_role": "other",
+          "element_text": "",
+          "action_bid": null,
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        }
+      ],
+      "target_features": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.2727272727272727
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.2727272727272727
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.2727272727272727
+        ],
+        [
+          1.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.2727272727272727
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.2727272727272727
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.2727272727272727
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.9627353578485617,
+          0.011723121591429058,
+          0.011731426451540974,
+          0.008646288510169891
+        ],
+        [
+          0.981637754133237,
+          0.00832013658879997,
+          0.00832510698187581,
+          0.0072617329483947385
+        ],
+        [
+          0.981637754133237,
+          0.00832013658879997,
+          0.00832510698187581,
+          0.0072617329483947385
+        ],
+        [
+          0.994885157686231,
+          0.9470821687910175,
+          0.9471222562405014,
+          0.008508245475611022
+        ],
+        [
+          0.981637754133237,
+          0.00832013658879997,
+          0.00832510698187581,
+          0.0072617329483947385
+        ],
+        [
+          0.7172731004354966,
+          0.00409714339221366,
+          0.004101192257724013,
+          0.004113872349845248
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": false,
+        "visible_goal_constraint_unsatisfied": false,
+        "prior_action_had_no_effect": false
+      },
+      "selected_index": 5,
+      "selected_action": "go_back()",
+      "changed_from_target_rank_zero": true,
+      "abstract_kind": "POSITION",
+      "source_abstained": true,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "target_coverage_reject_incomplete_product",
+      "reward": 0.0,
+      "terminated": false,
+      "truncated": false,
+      "after_hash": "6e349cc7e92da137ae3e568f607e10002fed0d2178d0cc958bd1de0b62c52c47"
+    },
+    {
+      "step": 4,
+      "prompt_sha256": "0972e15cfdc4163b1916070eb38dba7278d870b18daace25180f1ca1991c12d3",
+      "response_sha256": "6871cba9166ac1c466ffd2536ee654928a414c42f7656c1343701df422c31ec1",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "6871cba9166ac1c466ffd2536ee654928a414c42f7656c1343701df422c31ec1",
+          "completion_diagnostic": {
+            "character_count": 143,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": true,
+            "original_usage": {
+              "prompt_tokens": 4302,
+              "completion_tokens": 42,
+              "total_tokens": 4344,
+              "cost": 0.001788,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.001788,
+                "upstream_inference_prompt_cost": 0.0017208,
+                "upstream_inference_completions_cost": 6.72e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 5
+        }
+      ],
+      "before_hash": "6e349cc7e92da137ae3e568f607e10002fed0d2178d0cc958bd1de0b62c52c47",
+      "candidates": [
+        "click('47')",
+        "click('59')",
+        "click('95')",
+        "click('107')",
+        "click('119')"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[47] link 'B09P5V8ZSK', url=\"http://127.0.0.1:3000/item_page/fixed_322/B09P5V8ZSK/%5B'open',%20'toe',%20'knee',%20'high',%20'non',%20'slip',%20'pumps',%20'ankle',%20'strap',%20'high',%20'heel',%20'memory',%20'foam',%20'rubber',%20'sole',%20'teen',%20'girls',%20'size',%20'6.5',%20'price',%20'%3C120'%5D/1/%7B%7D\"",
+          "action_bid": "47",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "6.5",
+            "ankle",
+            "foam",
+            "girls",
+            "heel",
+            "high",
+            "knee",
+            "memory",
+            "non",
+            "open",
+            "price",
+            "pumps",
+            "rubber",
+            "size",
+            "slip",
+            "sole",
+            "strap",
+            "teen",
+            "toe"
+          ],
+          "goal_overlap": 0.5277777777777778,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[59] link 'B09QKJHF4Q', url=\"http://127.0.0.1:3000/item_page/fixed_322/B09QKJHF4Q/%5B'open',%20'toe',%20'knee',%20'high',%20'non',%20'slip',%20'pumps',%20'ankle',%20'strap',%20'high',%20'heel',%20'memory',%20'foam',%20'rubber',%20'sole',%20'teen',%20'girls',%20'size',%20'6.5',%20'price',%20'%3C120'%5D/1/%7B%7D\"",
+          "action_bid": "59",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "6.5",
+            "ankle",
+            "foam",
+            "girls",
+            "heel",
+            "high",
+            "knee",
+            "memory",
+            "non",
+            "open",
+            "price",
+            "pumps",
+            "rubber",
+            "size",
+            "slip",
+            "sole",
+            "strap",
+            "teen",
+            "toe"
+          ],
+          "goal_overlap": 0.5277777777777778,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[95] link 'B09HMCKZQW', url=\"http://127.0.0.1:3000/item_page/fixed_322/B09HMCKZQW/%5B'open',%20'toe',%20'knee',%20'high',%20'non',%20'slip',%20'pumps',%20'ankle',%20'strap',%20'high',%20'heel',%20'memory',%20'foam',%20'rubber',%20'sole',%20'teen',%20'girls',%20'size',%20'6.5',%20'price',%20'%3C120'%5D/1/%7B%7D\"",
+          "action_bid": "95",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "6.5",
+            "ankle",
+            "foam",
+            "girls",
+            "heel",
+            "high",
+            "knee",
+            "memory",
+            "non",
+            "open",
+            "price",
+            "pumps",
+            "rubber",
+            "size",
+            "slip",
+            "sole",
+            "strap",
+            "teen",
+            "toe"
+          ],
+          "goal_overlap": 0.5277777777777778,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[107] link 'B092VDY5MF', url=\"http://127.0.0.1:3000/item_page/fixed_322/B092VDY5MF/%5B'open',%20'toe',%20'knee',%20'high',%20'non',%20'slip',%20'pumps',%20'ankle',%20'strap',%20'high',%20'heel',%20'memory',%20'foam',%20'rubber',%20'sole',%20'teen',%20'girls',%20'size',%20'6.5',%20'price',%20'%3C120'%5D/1/%7B%7D\"",
+          "action_bid": "107",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "6.5",
+            "ankle",
+            "foam",
+            "girls",
+            "heel",
+            "high",
+            "knee",
+            "memory",
+            "non",
+            "open",
+            "price",
+            "pumps",
+            "rubber",
+            "size",
+            "slip",
+            "sole",
+            "strap",
+            "teen",
+            "toe"
+          ],
+          "goal_overlap": 0.5277777777777778,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[119] link 'B09QPX97VW', url=\"http://127.0.0.1:3000/item_page/fixed_322/B09QPX97VW/%5B'open',%20'toe',%20'knee',%20'high',%20'non',%20'slip',%20'pumps',%20'ankle',%20'strap',%20'high',%20'heel',%20'memory',%20'foam',%20'rubber',%20'sole',%20'teen',%20'girls',%20'size',%20'6.5',%20'price',%20'%3C120'%5D/1/%7B%7D\"",
+          "action_bid": "119",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "6.5",
+            "ankle",
+            "foam",
+            "girls",
+            "heel",
+            "high",
+            "knee",
+            "memory",
+            "non",
+            "open",
+            "price",
+            "pumps",
+            "rubber",
+            "size",
+            "slip",
+            "sole",
+            "strap",
+            "teen",
+            "toe"
+          ],
+          "goal_overlap": 0.5277777777777778,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        }
+      ],
+      "target_features": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.5277777777777778,
+          0.0,
+          0.0,
+          0.0,
+          0.36363636363636365
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.5277777777777778,
+          0.0,
+          0.0,
+          0.0,
+          0.36363636363636365
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.5277777777777778,
+          0.0,
+          0.0,
+          0.0,
+          0.36363636363636365
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.5277777777777778,
+          0.0,
+          0.0,
+          0.0,
+          0.36363636363636365
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.5277777777777778,
+          0.0,
+          0.0,
+          0.0,
+          0.36363636363636365
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.5797748786768819,
+          0.006191495706971995,
+          0.006197923767009835,
+          0.003657992344475911
+        ],
+        [
+          0.5797748786768819,
+          0.006191495706971995,
+          0.006197923767009835,
+          0.003657992344475911
+        ],
+        [
+          0.5797748786768819,
+          0.006191495706971995,
+          0.006197923767009835,
+          0.003657992344475911
+        ],
+        [
+          0.5797748786768819,
+          0.006191495706971995,
+          0.006197923767009835,
+          0.003657992344475911
+        ],
+        [
+          0.5797748786768818,
+          0.006191495706971995,
+          0.006197923767009835,
+          0.003657992344475908
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": false,
+        "visible_goal_constraint_unsatisfied": false,
+        "prior_action_had_no_effect": false
+      },
+      "selected_index": 1,
+      "selected_action": "click('59')",
+      "changed_from_target_rank_zero": true,
+      "abstract_kind": "POSITION",
+      "source_abstained": true,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "target_coverage_explore_untried_product",
+      "reward": 0.0,
+      "terminated": false,
+      "truncated": false,
+      "after_hash": "0b23de34364e27c141488f9f3dc874f5deb6ba51184c4f9be40c3e0ed3136a17"
+    },
+    {
+      "step": 5,
+      "prompt_sha256": "1a52b51f29627060092e0012a58af936c2410c73b4dcd1720820a7f7c3a75d68",
+      "response_sha256": "9268068554906390a24550ae76f793865a75c940cc24de51c4de5c3f76daf3f6",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "9268068554906390a24550ae76f793865a75c940cc24de51c4de5c3f76daf3f6",
+          "completion_diagnostic": {
+            "character_count": 136,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": true,
+            "original_usage": {
+              "prompt_tokens": 1604,
+              "completion_tokens": 40,
+              "total_tokens": 1644,
+              "cost": 0.0007056,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0007056,
+                "upstream_inference_prompt_cost": 0.0006416,
+                "upstream_inference_completions_cost": 6.4e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 5
+        }
+      ],
+      "before_hash": "0b23de34364e27c141488f9f3dc874f5deb6ba51184c4f9be40c3e0ed3136a17",
+      "candidates": [
+        "click('30')",
+        "click('72')",
+        "click('17')",
+        "click('20')",
+        "noop()",
+        "click('31')",
+        "go_back()"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "radio",
+          "element_text": "[30] radio '6.5', checked='false'",
+          "action_bid": "30",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "6.5"
+          ],
+          "goal_overlap": 0.2,
+          "is_commit": false,
+          "is_constraint": true,
+          "is_goal_constraint": true,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false,
+          "goal_constraint_signature": "size:6 5"
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[72] button 'Buy Now'",
+          "action_bid": "72",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": true,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[17] button 'Back to Search'",
+          "action_bid": "17",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[20] button '< Prev'",
+          "action_bid": "20",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "noop",
+          "url_phase": "item_page",
+          "element_role": "other",
+          "element_text": "",
+          "action_bid": null,
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": true
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "other",
+          "element_text": "[31] LabelText ''",
+          "action_bid": "31",
+          "paired_constraint_bid": "30",
+          "paired_constraint_text": "[30] radio '6.5', checked='false'",
+          "goal_overlap_tokens": [
+            "6.5"
+          ],
+          "goal_overlap": 0.14285714285714285,
+          "is_commit": false,
+          "is_constraint": true,
+          "is_goal_constraint": true,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false,
+          "goal_constraint_signature": "size:6 5"
+        },
+        {
+          "verb": "go_back",
+          "url_phase": "item_page",
+          "element_role": "other",
+          "element_text": "",
+          "action_bid": null,
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        }
+      ],
+      "target_features": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.2,
+          0.0,
+          1.0,
+          0.0,
+          0.45454545454545453
+        ],
+        [
+          1.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.45454545454545453
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.45454545454545453
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.45454545454545453
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.45454545454545453
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          1.0,
+          0.0,
+          0.0,
+          0.14285714285714285,
+          0.0,
+          1.0,
+          0.0,
+          0.45454545454545453
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.45454545454545453
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.02612556487765603,
+          0.003036451458233791,
+          0.0030417479236145638,
+          0.004796288478857145
+        ],
+        [
+          0.9772859517014632,
+          0.9148471980105212,
+          0.9149252613344849,
+          0.00745193140896747
+        ],
+        [
+          0.6897780436514334,
+          0.004860026205851086,
+          0.004864875002663511,
+          0.005270524543113795
+        ],
+        [
+          0.6897780436514334,
+          0.004860026205851086,
+          0.004864875002663511,
+          0.005270524543113795
+        ],
+        [
+          0.5010706625329848,
+          0.005412232380324505,
+          0.005418147857438691,
+          0.004808361304102779
+        ],
+        [
+          0.9854803814270393,
+          0.012176248931096015,
+          0.012203830859588616,
+          0.8982779953263738
+        ],
+        [
+          0.041432064932019834,
+          0.0024792011797717946,
+          0.0024830836983223406,
+          0.0029672821215512234
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": false,
+        "visible_goal_constraint_unsatisfied": true,
+        "prior_action_had_no_effect": false
+      },
+      "selected_index": 5,
+      "selected_action": "click('31')",
+      "changed_from_target_rank_zero": true,
+      "abstract_kind": "POSITION",
+      "source_abstained": true,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "target_coverage_prepare:size:6 5",
+      "reward": 0.0,
+      "terminated": false,
+      "truncated": false,
+      "after_hash": "864e52eb3a9a1aa2508485ef1bc3025b68b4cbef856a771b763a3945d1f07e64"
+    },
+    {
+      "step": 6,
+      "prompt_sha256": "a5351121b68946f29886b6d92a480fb5391e1ed3f8c04f780fd70870c40d627d",
+      "response_sha256": "274af8dfad0acd594758cd7643637a8c53a35c032870ce3a38c36445940ff7fd",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "274af8dfad0acd594758cd7643637a8c53a35c032870ce3a38c36445940ff7fd",
+          "completion_diagnostic": {
+            "character_count": 141,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": true,
+            "original_usage": {
+              "prompt_tokens": 1639,
+              "completion_tokens": 42,
+              "total_tokens": 1681,
+              "cost": 0.0007228,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0007228,
+                "upstream_inference_prompt_cost": 0.0006556,
+                "upstream_inference_completions_cost": 6.72e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 5
+        }
+      ],
+      "before_hash": "864e52eb3a9a1aa2508485ef1bc3025b68b4cbef856a771b763a3945d1f07e64",
+      "candidates": [
+        "click('72')",
+        "click('62')",
+        "click('65')",
+        "click('68')",
+        "click('17')",
+        "go_back()"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[72] button 'Buy Now'",
+          "action_bid": "72",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": true,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[62] button 'Description'",
+          "action_bid": "62",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[65] button 'Features'",
+          "action_bid": "65",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[68] button 'Reviews'",
+          "action_bid": "68",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[17] button 'Back to Search'",
+          "action_bid": "17",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "go_back",
+          "url_phase": "item_page",
+          "element_role": "other",
+          "element_text": "",
+          "action_bid": null,
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        }
+      ],
+      "target_features": [
+        [
+          1.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.5454545454545454
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.5454545454545454
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.5454545454545454
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.5454545454545454
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.5454545454545454
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.5454545454545454
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.9956091663033794,
+          0.9717736783538212,
+          0.9717947516687375,
+          0.008729041325402793
+        ],
+        [
+          0.9902339772127481,
+          0.05144757290731823,
+          0.05147879843393508,
+          0.007534108273304515
+        ],
+        [
+          0.9902339772127481,
+          0.05144757290731823,
+          0.05147879843393508,
+          0.007534108273304515
+        ],
+        [
+          0.9902339772127481,
+          0.05144757290731823,
+          0.05147879843393508,
+          0.007534108273304515
+        ],
+        [
+          0.9902339772127481,
+          0.05144757290731823,
+          0.05147879843393508,
+          0.007534108273304515
+        ],
+        [
+          0.8671418901529586,
+          0.01722802244820379,
+          0.017239923057215428,
+          0.003535855271058877
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": true,
+        "visible_goal_constraint_unsatisfied": false,
+        "prior_action_had_no_effect": false
+      },
+      "selected_index": 0,
+      "selected_action": "click('72')",
+      "changed_from_target_rank_zero": false,
+      "abstract_kind": "TARGET",
+      "source_abstained": true,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "target_rank_zero",
+      "reward": 0.7,
+      "terminated": true,
+      "truncated": false,
+      "after_hash": "f030e4c03f1d09057f6145339bb68e74acd24e65973947ed6c91e067afc6ded1"
+    }
+  ],
+  "step_count": 7,
+  "official_reward": 0.7,
+  "strict_success": false,
+  "pass_success": true,
+  "terminated": true,
+  "truncated": false,
+  "failure": null,
+  "failure_traceback": null,
+  "changed_from_target_rank_zero_count": 3,
+  "source_decision_count": 0,
+  "session_namespace": "phase2-ws-16a900de39-c28-target-native-search-ceiling",
+  "manifest_sha256": "16a900de39fa78bfbd489c6d95111d65f485fb0405e797d8129f4ea53ca18e2f",
+  "target_identity": "webshop.synthetic.phase2v4.seed735575332.index322.cbaa9b77859750b1",
+  "goal_sha256": "cbaa9b77859750b1d68245736cc052fed0f22bc7a82f716c0ee0b73ff9bb3b1a",
+  "source_game": "gymv_thunder_force_iii",
+  "source_artifact_sha256": "78ccd564e5453fa33a2b34eb2edf46263f025ec45eae2c1bbdf3017cc7d695d8",
+  "v16_controller": {
+    "condition": "target_native_search_ceiling",
+    "source_artifact_sha256": "78ccd564e5453fa33a2b34eb2edf46263f025ec45eae2c1bbdf3017cc7d695d8",
+    "source_decisions": 0,
+    "source_action_counts": {},
+    "target_fallbacks": 0,
+    "coverage_controller": {
+      "condition": "target_native_coverage_only",
+      "coverage_enabled": true,
+      "coverage_ready": true,
+      "goal_option_signatures": [
+        "size:6 5"
+      ],
+      "coverage_interventions": 3,
+      "source_calls_after_coverage": 0,
+      "rejected_product_ids": [
+        "B09P5V8ZSK"
+      ],
+      "last_selected_product_id": "B09QKJHF4Q",
+      "anytime_reward_salvage": true,
+      "maximum_steps": 12,
+      "budget_abstentions": 0,
+      "product_ledger_resets": 1,
+      "ledger": {
+        "required": [
+          "size:6 5"
+        ],
+        "verified": [
+          "size:6 5"
+        ],
+        "missing": [],
+        "commit_authorized": true,
+        "pending_signature": null
+      }
+    },
+    "source_trace": []
+  },
+  "commit_audit": [
+    {
+      "step": 6,
+      "selected_action": "click('72')",
+      "authorized": true,
+      "coverage": {
+        "required": [
+          "size:6 5"
+        ],
+        "verified": [
+          "size:6 5"
+        ],
+        "missing": [],
+        "commit_authorized": true,
+        "pending_signature": null
+      }
+    }
+  ],
+  "unsafe_commits": [],
+  "historical_target_outcome_reused": false,
+  "target_reset_or_sample_open_count": 1,
+  "runtime_hashes": {
+    "runner": "0cf4f0c993f7b13915df4c5acf3455e1a5fd6b4d8db561972b4f7575536ccd81",
+    "controller": "478994c5da56ee783e59823a79f026dfa2f7185d0f733a835bfe11e5cdd46c38",
+    "utility_contract": "7b30994bd6b293af713e4b6ab414e16adc94ae02fdc943f4106f514668bfda85",
+    "source_artifact": "0b52167b9259d6304950766e94d7e1a3d764ad241af1dfbff658fccc7cebb070",
+    "target_grounder": "bbf8a22ebec8e7ab6d55e570f230ba4fcb2b8630d1dc81bd24ba103f68701782"
+  },
+  "receipt_sha256": "c916c063b2eefd864eaf06b660146e6645e5b6e5ed67114c0afe457fc17cab1a"
+}

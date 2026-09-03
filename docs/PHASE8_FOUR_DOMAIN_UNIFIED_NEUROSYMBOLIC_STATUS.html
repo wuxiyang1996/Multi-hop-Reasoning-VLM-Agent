@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Phase 8 · Four-domain unified neural-symbolic transfer</title>
+  <style>
+    :root{--bg:#f4f1e8;--paper:#fffdf8;--ink:#17211c;--muted:#65716a;--line:#d8d9d1;--green:#087554;--blue:#245f91;--amber:#966400}
+    *{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 10% 0,#dcebf1 0,transparent 34rem),radial-gradient(circle at 95% 5%,#dff1e6 0,transparent 30rem),var(--bg);color:var(--ink);font:16px/1.6 Inter,system-ui,sans-serif}
+    .wrap{width:min(1120px,calc(100% - 34px));margin:auto}header{padding:60px 0 35px;border-bottom:1px solid var(--line)}
+    .eyebrow{color:var(--blue);font-size:.78rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase}h1{max-width:950px;margin:9px 0 15px;font-size:clamp(2.4rem,6vw,5.2rem);line-height:1.01;letter-spacing:-.05em}h2{margin:0 0 12px;font-size:1.55rem}p{margin:0 0 12px}.lead{max-width:920px;color:#3f4b45;font-size:1.08rem}
+    main{padding:25px 0 55px}section{margin:20px 0;padding:24px;border:1px solid var(--line);border-radius:14px;background:rgba(255,253,248,.94);box-shadow:0 12px 30px rgba(25,35,30,.04)}
+    .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:13px}.card{grid-column:span 3;padding:16px;border:1px solid var(--line);border-radius:11px;background:#fff}.name{color:var(--muted);font-size:.8rem}.score{font-size:1.65rem;font-weight:850}.pair{color:var(--green);font-size:.83rem;font-weight:750}
+    table{width:100%;border-collapse:collapse;margin-top:12px;font-size:.9rem}th,td{padding:10px;text-align:left;border-bottom:1px solid var(--line)}th{color:var(--muted);font-size:.76rem;text-transform:uppercase}.ok{color:var(--green);font-weight:800}.flow{display:grid;grid-template-columns:repeat(6,1fr);gap:9px}.node{padding:12px;border:1px solid var(--line);border-top:4px solid var(--blue);border-radius:9px;background:#fff}.node:nth-child(even){border-top-color:var(--green)}
+    .note{padding:14px 16px;border-left:4px solid var(--blue);background:#edf5fb}.warn{border-left-color:var(--amber);background:#fff3d4}code{padding:.1em .3em;background:#efefe9;border-radius:4px}a{color:var(--blue)}ul{padding-left:20px}.small{color:var(--muted);font-size:.84rem}@media(max-width:850px){.card{grid-column:span 12}.flow{grid-template-columns:1fr 1fr}}@media(max-width:520px){.flow{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <header><div class="wrap"><div class="eyebrow">Phase 8 · non-video formal status</div><h1>四个目标域，<br>一条证据约束。</h1><p class="lead">统一的是 source-only induction、匿名结构匹配、calibrated authorization 与 target-native neural action authority；不是一个横跨所有 domain 的手写 controller。</p></div></header>
+  <main class="wrap">
+    <section><h2>四条 route 均通过 matched formal evidence</h2><div class="grid">
+      <div class="card"><div class="name">WebShop</div><div class="score">7 → 23/32</div><div class="pair">16W · 0L · p=.0000305</div></div>
+      <div class="card"><div class="name">DiscoveryWorld</div><div class="score">3 → 12/12</div><div class="pair">9W · 0L · p=.00391</div></div>
+      <div class="card"><div class="name">TIR maze</div><div class="score">6 → 12/18</div><div class="pair">6W · 0L · p=.03125</div></div>
+      <div class="card"><div class="name">ALFWorld V13</div><div class="score">13 → 20/24</div><div class="pair">7W · 0L · p=.015625</div></div>
+    </div><div class="note" style="margin-top:15px"><strong>共同结果：</strong>四条 authentic route 都严格胜过 source-permuted control，零 negative-transfer loss，并与 target-native ceiling 完全一致。</div></section>
+    <section><h2>统一 authority chain</h2><div class="flow"><div class="node"><strong>Source tuples</strong><div class="small">state/action/effect/next</div></div><div class="node"><strong>Learned IR</strong><div class="small">typed operators + abstention</div></div><div class="node"><strong>Applicability</strong><div class="small">anonymous exact structure</div></div><div class="node"><strong>Utility gate</strong><div class="small">neural + permuted controls</div></div><div class="node"><strong>Neural grounder</strong><div class="small">target-native binding</div></div><div class="node"><strong>Native executor</strong><div class="small">only action authority</div></div></div></section>
+    <section><h2>ALFWorld V13</h2><table><thead><tr><th>Arm</th><th>Success</th><th>Mean steps</th></tr></thead><tbody><tr><td>Raw / each negative control</td><td>13/24</td><td>46.46</td></tr><tr><td><strong>Source-induced acquisition</strong></td><td class="ok">20/24</td><td class="ok">30.00</td></tr><tr><td>Target-native ceiling</td><td>20/24</td><td>30.00</td></tr></tbody></table><p class="small">24 tasks were deterministically selected before reset from 45 historically unexecuted valid_train multiplicity instances. Config SHA: <code>4cc43c…32d</code>.</p><div class="note warn"><strong>没有重写旧失败：</strong>旧 Minigrid PutNear→ALFWorld route 仍然 abstain。V13 是不同的 source-induced goal-acquisition program，在同一个 harness contract 下获得新 evidence。</div></section>
+    <section><h2>可审计性</h2><table><tbody><tr><td>Episode hashes</td><td class="ok">144 / 144</td></tr><tr><td>Step-record hashes</td><td class="ok">5,900 / 5,900</td></tr><tr><td>Action-authority receipts</td><td class="ok">291 / 291</td></tr><tr><td>Preregistered task/file identities</td><td class="ok">24 / 24</td></tr></tbody></table><p><a href="PHASE8_FOUR_DOMAIN_UNIFIED_NEUROSYMBOLIC_TRANSFER_RESULTS.md">完整结果与复现说明</a> · <a href="results/phase8_four_domain_unified_neurosymbolic_v2.json">machine-readable audit</a></p></section>
+    <section><h2>边界</h2><ul><li>成立的是四条注册的非视频 route，不是任意 game → 任意 domain。</li><li>ALFWorld 覆盖 multiplicity family；20/24 等于当前 target-native ceiling，不是 24/24 task success。</li><li>视频仍暂停；需要先通过 target-native event graph 与 intervention-effect qualification。</li></ul></section>
+  </main>
+</body>
+</html>

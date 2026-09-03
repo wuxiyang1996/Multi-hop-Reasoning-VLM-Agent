@@ -1,0 +1,47 @@
+{
+  "answer_or_scene_graph_read_during_freeze": false,
+  "claim_boundary": "300_NEW_OFFICIAL_TRAIN_VIDEOS_X_UP_TO_3_HASHED_QUESTIONS_WITHOUT_OPERATOR_FILTER;UNCHANGED_V60_GROUNDER;RATE_GATED_REPLICATION_AFTER_V61_ABSOLUTE_LOSS_GATE_FAILURE",
+  "download_receipt_file_sha256": "14954da8f10b69b990f52e35b54dd8debc81fe62799da4dd4de3af30bf921664",
+  "evaluator_file_sha256": "0e9d5e9ac5ee723a37756a668eb6a0908d457900bacac3a152a74af9bd4daf53",
+  "failure_policy": {
+    "failed_gate": "REPORT_REPLICATION_NOT_VALIDATED",
+    "formal": "RUN_ONCE;NO_POST_OUTCOME_RULE_OR_THRESHOLD_CHANGE",
+    "passed": "REPORT_FRESH_CROSS_SPLIT_SELECTIVE_TRANSFER_REPLICATION"
+  },
+  "formal_gates": {
+    "maximum_cluster_exact_pvalue": 0.05,
+    "maximum_negative_authorization_rate": 0.02,
+    "maximum_negative_cluster_rate": 0.01,
+    "maximum_reported_provider_cost_usd": 4.5,
+    "maximum_row_exact_pvalue": 0.05,
+    "minimum_applicable_rows": 300,
+    "minimum_cluster_win_loss_ratio": 5.0,
+    "minimum_positive_video_clusters": 15,
+    "minimum_row_net_gain": 12,
+    "minimum_row_win_loss_ratio": 5.0,
+    "minimum_row_wins": 15,
+    "minimum_source_authorizations": 100,
+    "required_row_count_histogram": {
+      "3": 300
+    },
+    "required_rows": 900,
+    "required_unique_videos": 300
+  },
+  "formal_manifest_sha256": "a4ffe368f876c45e2da939b5bcecdffb28aa6dd003b747c4307f6bfeb7f85d99",
+  "primary_statistical_unit": "VIDEO_CLUSTER",
+  "qualification_grounder_sha256": "a5199eab3d4a80431d76a7480258d73bff25298a989880834eabf5460f927e5a",
+  "qualification_report_sha256": "d265474a09b886944442bd9c6db7bddd2a679e6e5a694ba44f5b3d2389bc5c1c",
+  "schema_version": "agqa2-full-distribution-prereg-v62",
+  "selection_manifest_sha256": "8e5216a12f6a6902a17b4a37282806943150a3ff4b18f157871fd4a2d22f2a58",
+  "selection_without_operator_filter": true,
+  "status": "FROZEN_BEFORE_ANY_V62_PROVIDER_OR_OUTCOME_CALL",
+  "v61_disclosure": {
+    "failed_gates": [
+      "maximum_row_losses",
+      "maximum_negative_video_clusters"
+    ],
+    "grounder_or_prompt_changed": false,
+    "reason_for_v62": "replace scale-dependent absolute negative counts with frozen authorization/cluster rates and win-loss ratios on fresh data",
+    "status": "AGQA2_FULL_DISTRIBUTION_V61_FORMAL_NOT_QUALIFIED"
+  }
+}

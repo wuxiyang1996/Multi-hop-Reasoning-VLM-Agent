@@ -1,0 +1,93 @@
+{
+  "schema_version": 28,
+  "status": "FROZEN_BEFORE_V28_GROUNDING_QUALIFICATION_CALLS",
+  "purpose": "source-free semantic grounding qualification only",
+  "selection_rule": "Within each benchmark's already-consumed V1 adaptation IDs, sort sha256(seed|benchmark|sample_id); STAR is restricted to Interaction so situation-action timestamps provide an intrinsic localization score.",
+  "selection_fields": [
+    "benchmark",
+    "sample_id",
+    "prior_role"
+  ],
+  "forbidden_selection_fields": [
+    "answer",
+    "model_outcome",
+    "correctness",
+    "functional_program",
+    "situation_graph",
+    "relation_annotation"
+  ],
+  "outcomes_or_answers_read_by_selector": false,
+  "fresh_confirmation_data_opened": false,
+  "source_transfer_enabled": false,
+  "seed_sha256": "716201e0d7c75e23ada0c3b4889ea02abdfd1dc7e48c306b28791751f5766f28",
+  "source_manifest": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/configs/three_video_benchmark_splits_v1.json",
+  "source_manifest_sha256": "578086b9829b095483e470f0fbe67972de6edc29a3726492fc6ef2fbdd37439d",
+  "benchmarks": {
+    "clevrer": [
+      {
+        "sample_id": "video_10040.mp4.Q13",
+        "selection_hash": "02f4b66f6c051f773e636e742323a16f59196ce1f9bbe7f39e51359fb0a66fa6",
+        "source_role": "adaptation_already_consumed"
+      },
+      {
+        "sample_id": "video_13191.mp4.Q11",
+        "selection_hash": "0cf98c8469f4e9ec7420080766cfbc2d189ab6f077a60667e7de1748235148aa",
+        "source_role": "adaptation_already_consumed"
+      },
+      {
+        "sample_id": "video_10890.mp4.Q13",
+        "selection_hash": "446ea4c242c9a1ed8e0939a9b1471c4b2be8e88bf7dd5f3f9df89c7090bb7a64",
+        "source_role": "adaptation_already_consumed"
+      },
+      {
+        "sample_id": "video_14812.mp4.Q13",
+        "selection_hash": "53dff74a3e5821070aabfd54dc8e326aa7494453519134d9cac178a1653643ef",
+        "source_role": "adaptation_already_consumed"
+      }
+    ],
+    "star": [
+      {
+        "sample_id": "Interaction_T2_5357",
+        "selection_hash": "312fe1c4567708eeab5ca1a9fe8a7c1ed65e9f5b702f1fc47dab00a005ef35f5",
+        "source_role": "adaptation_already_consumed"
+      },
+      {
+        "sample_id": "Interaction_T1_2210",
+        "selection_hash": "5151c4dc795a3bb294f44e9996686736d05cb9a065e151cd1dd11fe4ae9c2ec7",
+        "source_role": "adaptation_already_consumed"
+      },
+      {
+        "sample_id": "Interaction_T1_6455",
+        "selection_hash": "8fdb45a6ee1becc4a2a7793735ad8ea1400c1cd5da2123eefff52735ba3d0b4a",
+        "source_role": "adaptation_already_consumed"
+      },
+      {
+        "sample_id": "Interaction_T3_2531",
+        "selection_hash": "c72fc99ab94c60beb1e697477253c9a2b91f28a4d331f893d745b4389074fafd",
+        "source_role": "adaptation_already_consumed"
+      }
+    ],
+    "nextqa": [
+      {
+        "sample_id": "4443526735.Q6",
+        "selection_hash": "1717162675ab7e1448fe0f8533c5f86bdd402606902463535e51db8c5202f511",
+        "source_role": "adaptation_already_consumed"
+      },
+      {
+        "sample_id": "7001078933.Q8",
+        "selection_hash": "21b60c7bf081a955a8849c2e7b4431437e5f33bc94f907552e2b0c014d0f6435",
+        "source_role": "adaptation_already_consumed"
+      },
+      {
+        "sample_id": "8563398032.Q0",
+        "selection_hash": "614c6d9ccb68656d37dbd8ab851c28f984e54e1891e49764b7ffbc465b7bf501",
+        "source_role": "adaptation_already_consumed"
+      },
+      {
+        "sample_id": "4249756405.Q5",
+        "selection_hash": "6361b48593d0865da99a7a5064e93d2bac9aa37d2ef29411bca148ed1a16f66b",
+        "source_role": "adaptation_already_consumed"
+      }
+    ]
+  }
+}

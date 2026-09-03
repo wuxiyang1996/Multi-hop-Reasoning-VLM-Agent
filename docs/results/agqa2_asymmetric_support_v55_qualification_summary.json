@@ -1,0 +1,39 @@
+{
+  "confirmatory_claim": false,
+  "grounder_qualified": true,
+  "grounder_sha256": "6c617dd0847f132257dcdc2d584511bdd1b00a87c68190dbbc6ff453ccc27e7f",
+  "postground_target_grounder_sha256": "78722dea321a22975fdd01f367db6c118324fbaf9d84ae97db5530f991ed377a",
+  "qualification_gates": {
+    "current_outcome_never_used_for_authorization": true,
+    "maximum_exact_one_sided_pvalue": true,
+    "maximum_reported_provider_cost_usd": true,
+    "maximum_source_losses": true,
+    "minimum_source_authorizations": true,
+    "minimum_source_minus_target_correct": true,
+    "minimum_source_wins": true,
+    "required_effect_shuffled_abstentions": true,
+    "required_generic_scaffold_matches": true,
+    "required_target_written_equivalent_matches": true,
+    "required_unique_videos": true,
+    "required_valid_rows": true,
+    "required_wrong_source_abstentions": true,
+    "runtime_integrity_qualified": true
+  },
+  "qualification_report_file_sha256": "c18f1dde64d68c900ccfb1de9f37a1badd1b4ef3fa7c30bde6037bd5abeffdc6",
+  "qualification_report_sha256": "8e81b8b754ca7a174d9fe09e8202e171ce384aecdb2b999868fe32358388e27a",
+  "rows": 300,
+  "schema_version": "agqa2-asymmetric-support-v55-qualification-summary-v1",
+  "source_executor_authorizations": 61,
+  "source_program_sha256": "cc5f177fd54a2f17ccaa688ea1ecf6d0ae2395554a97a921563e70c32721601d",
+  "source_vs_target_native": {
+    "exact_one_sided_pvalue": 0.003173828125,
+    "left_correct": 213,
+    "left_minus_right_correct": 10,
+    "losses": 1,
+    "right_correct": 203,
+    "ties": 288,
+    "wins": 11
+  },
+  "status": "AGQA2_ASYMMETRIC_SUPPORT_V55_QUALIFICATION_QUALIFIED",
+  "summary_sha256": "b6c1fc636a8b74161950cb5e06e4a8ba1bb605b174c2fb175413c25fba46b5d5"
+}

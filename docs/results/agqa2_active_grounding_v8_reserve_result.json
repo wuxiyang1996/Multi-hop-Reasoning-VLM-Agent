@@ -1,0 +1,34 @@
+{
+  "schema_version": "agqa2-active-grounding-reserve-result-v8",
+  "status": "AGQA2_ACTIVE_GROUNDER_V8_RESERVE_NOT_QUALIFIED",
+  "grounder_qualified": false,
+  "grounder_sha256": "4bebc34af058a34da6164fbe271ff2b26becbc8dd104f8c050800bb804a1f38e",
+  "report_sha256": "eb00e5a901f3ddc359e3625d9b3b70ed8530861ab7f780b0f3ac5abd9c365c85",
+  "candidate_videos": 12,
+  "outcome_blind_selected_rows": 9,
+  "metrics": {
+    "route_correct": 9,
+    "decisive_executions": 3,
+    "decisive_correct": 0,
+    "decisive_accuracy": 0.0,
+    "direct_correct": 4,
+    "typed_fallback_correct": 2,
+    "typed_vs_direct_wins": 0,
+    "typed_vs_direct_losses": 2,
+    "unified_harness_executor_authorizations": 0,
+    "unified_harness_correct": 4
+  },
+  "controls": {
+    "source_permuted_abstentions": 9,
+    "target_written_equivalent_matches": 9
+  },
+  "reported_provider_cost_usd": 0.083200532,
+  "failed_gates": [
+    "minimum_decisive_executions",
+    "minimum_decisive_accuracy",
+    "no_typed_vs_direct_losses",
+    "minimum_typed_vs_direct_wins"
+  ],
+  "decision": "DO_NOT_CLAIM_GAME_TO_AGQA_SUCCESS_TRANSFER;KEEP_UNIFIED_HARNESS_FAIL_CLOSED_ON_MATCHED_DIRECT",
+  "mechanism_result": "Typed source routing and both structural controls work, but the target-native neural grounder and its confidence ranking do not generalize reliably."
+}

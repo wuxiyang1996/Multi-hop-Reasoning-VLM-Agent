@@ -1,0 +1,1044 @@
+{
+  "schema_version": 37,
+  "status": "FROZEN_BEFORE_V37_MATCHED_FORMAL_CALLS_OR_OUTCOMES",
+  "selection_rule": "Use every locally available STAR/NExT-QA question whose sample_id has never appeared in a pre-V37 run JSON and whose (benchmark,video_id) is disjoint from all 106 V36 adaptation video groups. Order only by salted sample-ID hash; do not inspect question, options, answer, official graph, model confidence, or family when selecting.",
+  "selection_fields": [
+    "sample_id",
+    "video_id"
+  ],
+  "forbidden_selection_fields": [
+    "question",
+    "options",
+    "answer",
+    "official_structure",
+    "model_outcome",
+    "confidence",
+    "family"
+  ],
+  "outcomes_or_answers_used_for_selection": false,
+  "all_eligible_questions_selected": true,
+  "sample_ids_never_in_historical_runs": true,
+  "video_disjoint_from_v36_adaptation": true,
+  "historical_raw_video_reuse_outside_v36_disclosed": true,
+  "video_cluster_is_primary_independence_unit": true,
+  "salt_sha256": "168905cad6a2228eb91a2f2e6531ac134510239674b491f072460ed058131966",
+  "adaptation_receipts": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/natural_video_matched_cate_v36_adaptation/adaptation_receipts.json",
+  "adaptation_receipts_sha256": "39b14dd3b58f634dbe957fe14fb962fe05bf6d9e88e63b28c88681cd276726c3",
+  "cate_artifact": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/natural_video_matched_cate_v36_training/frozen_artifact.json",
+  "cate_artifact_sha256": "88ff233b629b4a40205542d7538bde74cd57534950628ca718e79382fff25ad7",
+  "historical_runs_root": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs",
+  "historical_json_file_count": 2123,
+  "historical_run_index_sha256": "b87af36a6c30fb3d8e3c5282a6c21df94974c54b2d86f8bfa14693c0bba1f0fa",
+  "excluded_historical_sample_id_count": 4320,
+  "benchmarks": {
+    "star": [
+      {
+        "sample_id": "Prediction_T1_721",
+        "video_id": "FQS7O",
+        "family": "Prediction"
+      },
+      {
+        "sample_id": "Sequence_T3_448",
+        "video_id": "NYHD7",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Sequence_T3_312",
+        "video_id": "ATV2F",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Interaction_T1_6472",
+        "video_id": "75RPN",
+        "family": "Interaction"
+      },
+      {
+        "sample_id": "Interaction_T1_8875",
+        "video_id": "VKXLL",
+        "family": "Interaction"
+      },
+      {
+        "sample_id": "Feasibility_T4_75",
+        "video_id": "2GQDN",
+        "family": "Feasibility"
+      },
+      {
+        "sample_id": "Sequence_T3_4418",
+        "video_id": "86GSE",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Sequence_T6_1249",
+        "video_id": "35ZZP",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Sequence_T3_1569",
+        "video_id": "FQS7O",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Interaction_T3_4279",
+        "video_id": "M2XIS",
+        "family": "Interaction"
+      },
+      {
+        "sample_id": "Interaction_T1_8877",
+        "video_id": "VKXLL",
+        "family": "Interaction"
+      },
+      {
+        "sample_id": "Sequence_T3_4533",
+        "video_id": "M2XIS",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Interaction_T3_305",
+        "video_id": "ATV2F",
+        "family": "Interaction"
+      },
+      {
+        "sample_id": "Interaction_T1_289",
+        "video_id": "D1WYU",
+        "family": "Interaction"
+      },
+      {
+        "sample_id": "Feasibility_T6_1455",
+        "video_id": "L9ANI",
+        "family": "Feasibility"
+      },
+      {
+        "sample_id": "Sequence_T6_366",
+        "video_id": "NYHD7",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Sequence_T3_3358",
+        "video_id": "IBX56",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Sequence_T3_309",
+        "video_id": "ATV2F",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Interaction_T1_6162",
+        "video_id": "86GSE",
+        "family": "Interaction"
+      },
+      {
+        "sample_id": "Sequence_T4_363",
+        "video_id": "NYHD7",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Sequence_T1_7343",
+        "video_id": "VKXLL",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Sequence_T6_3401",
+        "video_id": "86GSE",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Sequence_T5_5282",
+        "video_id": "2GQDN",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Interaction_T3_4361",
+        "video_id": "CII5H",
+        "family": "Interaction"
+      },
+      {
+        "sample_id": "Feasibility_T6_115",
+        "video_id": "NYHD7",
+        "family": "Feasibility"
+      },
+      {
+        "sample_id": "Sequence_T1_5180",
+        "video_id": "9J166",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Sequence_T5_320",
+        "video_id": "ATV2F",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Sequence_T3_4612",
+        "video_id": "CII5H",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Sequence_T6_3554",
+        "video_id": "CII5H",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Sequence_T5_4734",
+        "video_id": "75RPN",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Sequence_T4_5117",
+        "video_id": "L9ANI",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Prediction_T1_738",
+        "video_id": "35ZZP",
+        "family": "Prediction"
+      },
+      {
+        "sample_id": "Feasibility_T6_1456",
+        "video_id": "L9ANI",
+        "family": "Feasibility"
+      },
+      {
+        "sample_id": "Interaction_T1_8881",
+        "video_id": "VKXLL",
+        "family": "Interaction"
+      },
+      {
+        "sample_id": "Sequence_T1_5308",
+        "video_id": "M2XIS",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Sequence_T1_7342",
+        "video_id": "VKXLL",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Sequence_T1_5698",
+        "video_id": "KFC28",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Sequence_T5_4534",
+        "video_id": "9J166",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Sequence_T2_3792",
+        "video_id": "WN7T3",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Interaction_T3_4069",
+        "video_id": "WN7T3",
+        "family": "Interaction"
+      },
+      {
+        "sample_id": "Sequence_T5_4979",
+        "video_id": "KFC28",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Feasibility_T5_2404",
+        "video_id": "L9ANI",
+        "family": "Feasibility"
+      },
+      {
+        "sample_id": "Interaction_T1_6173",
+        "video_id": "9J166",
+        "family": "Interaction"
+      },
+      {
+        "sample_id": "Interaction_T1_8878",
+        "video_id": "VKXLL",
+        "family": "Interaction"
+      },
+      {
+        "sample_id": "Interaction_T3_6142",
+        "video_id": "L9ANI",
+        "family": "Interaction"
+      },
+      {
+        "sample_id": "Sequence_T6_3493",
+        "video_id": "M2XIS",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Sequence_T2_3898",
+        "video_id": "9J166",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Sequence_T3_310",
+        "video_id": "ATV2F",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Sequence_T6_5096",
+        "video_id": "L9ANI",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Sequence_T2_1432",
+        "video_id": "35ZZP",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Sequence_T4_3572",
+        "video_id": "CII5H",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Sequence_T6_3408",
+        "video_id": "9J166",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Prediction_T1_148",
+        "video_id": "ATV2F",
+        "family": "Prediction"
+      },
+      {
+        "sample_id": "Sequence_T4_3422",
+        "video_id": "86GSE",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Sequence_T5_4531",
+        "video_id": "9J166",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Interaction_T2_358",
+        "video_id": "ATV2F",
+        "family": "Interaction"
+      },
+      {
+        "sample_id": "Sequence_T3_5163",
+        "video_id": "2GQDN",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Feasibility_T6_54",
+        "video_id": "ATV2F",
+        "family": "Feasibility"
+      },
+      {
+        "sample_id": "Sequence_T5_4724",
+        "video_id": "CII5H",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Interaction_T2_4058",
+        "video_id": "IBX56",
+        "family": "Interaction"
+      },
+      {
+        "sample_id": "Interaction_T1_6335",
+        "video_id": "M2XIS",
+        "family": "Interaction"
+      },
+      {
+        "sample_id": "Feasibility_T3_75",
+        "video_id": "2GQDN",
+        "family": "Feasibility"
+      },
+      {
+        "sample_id": "Prediction_T1_2255",
+        "video_id": "2GQDN",
+        "family": "Prediction"
+      },
+      {
+        "sample_id": "Interaction_T1_6336",
+        "video_id": "M2XIS",
+        "family": "Interaction"
+      },
+      {
+        "sample_id": "Sequence_T4_3513",
+        "video_id": "M2XIS",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Interaction_T3_5891",
+        "video_id": "VKXLL",
+        "family": "Interaction"
+      },
+      {
+        "sample_id": "Sequence_T1_367",
+        "video_id": "ATV2F",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Sequence_T2_4055",
+        "video_id": "CII5H",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Sequence_T2_3891",
+        "video_id": "86GSE",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Interaction_T4_1771",
+        "video_id": "FQS7O",
+        "family": "Interaction"
+      },
+      {
+        "sample_id": "Sequence_T4_3331",
+        "video_id": "WN7T3",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Feasibility_T5_2403",
+        "video_id": "L9ANI",
+        "family": "Feasibility"
+      },
+      {
+        "sample_id": "Sequence_T3_4426",
+        "video_id": "9J166",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Sequence_T3_4532",
+        "video_id": "M2XIS",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Feasibility_T5_1967",
+        "video_id": "2GQDN",
+        "family": "Feasibility"
+      },
+      {
+        "sample_id": "Sequence_T5_4641",
+        "video_id": "M2XIS",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Sequence_T1_5181",
+        "video_id": "9J166",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Sequence_T1_5173",
+        "video_id": "86GSE",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Sequence_T3_4425",
+        "video_id": "9J166",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Feasibility_T2_860",
+        "video_id": "9J166",
+        "family": "Feasibility"
+      },
+      {
+        "sample_id": "Interaction_T1_5986",
+        "video_id": "WN7T3",
+        "family": "Interaction"
+      },
+      {
+        "sample_id": "Sequence_T1_6039",
+        "video_id": "2GQDN",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Sequence_T5_4524",
+        "video_id": "86GSE",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Interaction_T4_1770",
+        "video_id": "FQS7O",
+        "family": "Interaction"
+      },
+      {
+        "sample_id": "Feasibility_T5_2406",
+        "video_id": "L9ANI",
+        "family": "Feasibility"
+      },
+      {
+        "sample_id": "Sequence_T1_369",
+        "video_id": "ATV2F",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Sequence_T3_4864",
+        "video_id": "KFC28",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Sequence_T5_1645",
+        "video_id": "FQS7O",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Sequence_T1_5309",
+        "video_id": "M2XIS",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Sequence_T1_534",
+        "video_id": "NYHD7",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Sequence_T3_6274",
+        "video_id": "VKXLL",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Interaction_T1_9288",
+        "video_id": "L9ANI",
+        "family": "Interaction"
+      },
+      {
+        "sample_id": "Sequence_T1_3959",
+        "video_id": "IBX56",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Sequence_T1_7341",
+        "video_id": "VKXLL",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Interaction_T4_3577",
+        "video_id": "CII5H",
+        "family": "Interaction"
+      },
+      {
+        "sample_id": "Sequence_T1_5699",
+        "video_id": "KFC28",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Interaction_T1_575",
+        "video_id": "NYHD7",
+        "family": "Interaction"
+      },
+      {
+        "sample_id": "Interaction_T1_379",
+        "video_id": "ATV2F",
+        "family": "Interaction"
+      },
+      {
+        "sample_id": "Interaction_T2_551",
+        "video_id": "NYHD7",
+        "family": "Interaction"
+      },
+      {
+        "sample_id": "Sequence_T4_3512",
+        "video_id": "M2XIS",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Interaction_T2_1870",
+        "video_id": "FQS7O",
+        "family": "Interaction"
+      },
+      {
+        "sample_id": "Sequence_T1_5402",
+        "video_id": "75RPN",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Sequence_T5_3447",
+        "video_id": "IBX56",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Sequence_T1_368",
+        "video_id": "ATV2F",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Interaction_T1_577",
+        "video_id": "NYHD7",
+        "family": "Interaction"
+      },
+      {
+        "sample_id": "Prediction_T3_1127",
+        "video_id": "VKXLL",
+        "family": "Prediction"
+      },
+      {
+        "sample_id": "Sequence_T6_4885",
+        "video_id": "VKXLL",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Interaction_T1_4675",
+        "video_id": "IBX56",
+        "family": "Interaction"
+      },
+      {
+        "sample_id": "Sequence_T3_1570",
+        "video_id": "FQS7O",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Sequence_T3_311",
+        "video_id": "ATV2F",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Feasibility_T2_993",
+        "video_id": "2GQDN",
+        "family": "Feasibility"
+      },
+      {
+        "sample_id": "Sequence_T2_5548",
+        "video_id": "VKXLL",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Interaction_T4_1772",
+        "video_id": "FQS7O",
+        "family": "Interaction"
+      },
+      {
+        "sample_id": "Interaction_T1_8876",
+        "video_id": "VKXLL",
+        "family": "Interaction"
+      },
+      {
+        "sample_id": "Sequence_T2_5546",
+        "video_id": "VKXLL",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Sequence_T3_4621",
+        "video_id": "75RPN",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Sequence_T1_5310",
+        "video_id": "M2XIS",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Sequence_T5_3449",
+        "video_id": "IBX56",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Sequence_T1_7344",
+        "video_id": "VKXLL",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Sequence_T5_6410",
+        "video_id": "VKXLL",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Interaction_T2_5369",
+        "video_id": "9J166",
+        "family": "Interaction"
+      },
+      {
+        "sample_id": "Sequence_T5_1646",
+        "video_id": "FQS7O",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Interaction_T1_576",
+        "video_id": "NYHD7",
+        "family": "Interaction"
+      },
+      {
+        "sample_id": "Sequence_T4_1238",
+        "video_id": "35ZZP",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Sequence_T4_4902",
+        "video_id": "VKXLL",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Sequence_T2_412",
+        "video_id": "NYHD7",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Sequence_T3_3359",
+        "video_id": "IBX56",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Sequence_T5_3448",
+        "video_id": "IBX56",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Interaction_T2_7706",
+        "video_id": "VKXLL",
+        "family": "Interaction"
+      },
+      {
+        "sample_id": "Sequence_T5_4978",
+        "video_id": "KFC28",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Sequence_T3_6273",
+        "video_id": "VKXLL",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Sequence_T2_5782",
+        "video_id": "L9ANI",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Interaction_T1_6788",
+        "video_id": "KFC28",
+        "family": "Interaction"
+      },
+      {
+        "sample_id": "Feasibility_T5_84",
+        "video_id": "D1WYU",
+        "family": "Feasibility"
+      },
+      {
+        "sample_id": "Feasibility_T6_1454",
+        "video_id": "L9ANI",
+        "family": "Feasibility"
+      },
+      {
+        "sample_id": "Sequence_T4_3429",
+        "video_id": "9J166",
+        "family": "Sequence"
+      }
+    ],
+    "nextqa": [
+      {
+        "sample_id": "4249756405.Q8",
+        "video_id": "4249756405",
+        "family": "Causal"
+      },
+      {
+        "sample_id": "5889898795.Q2",
+        "video_id": "5889898795",
+        "family": "Causal"
+      },
+      {
+        "sample_id": "5017166671.Q0",
+        "video_id": "5017166671",
+        "family": "Causal"
+      },
+      {
+        "sample_id": "7786283208.Q6",
+        "video_id": "7786283208",
+        "family": "Causal"
+      },
+      {
+        "sample_id": "4249756405.Q2",
+        "video_id": "4249756405",
+        "family": "Causal"
+      },
+      {
+        "sample_id": "4626535366.Q4",
+        "video_id": "4626535366",
+        "family": "Causal"
+      },
+      {
+        "sample_id": "8752043000.Q0",
+        "video_id": "8752043000",
+        "family": "Causal"
+      },
+      {
+        "sample_id": "2735019707.Q4",
+        "video_id": "2735019707",
+        "family": "Causal"
+      },
+      {
+        "sample_id": "8797589693.Q5",
+        "video_id": "8797589693",
+        "family": "Temporal"
+      },
+      {
+        "sample_id": "4626535366.Q3",
+        "video_id": "4626535366",
+        "family": "Causal"
+      },
+      {
+        "sample_id": "5889898795.Q8",
+        "video_id": "5889898795",
+        "family": "Causal"
+      },
+      {
+        "sample_id": "5017166671.Q3",
+        "video_id": "5017166671",
+        "family": "Descriptive"
+      },
+      {
+        "sample_id": "8797589693.Q7",
+        "video_id": "8797589693",
+        "family": "Causal"
+      },
+      {
+        "sample_id": "3524939594.Q5",
+        "video_id": "3524939594",
+        "family": "Causal"
+      },
+      {
+        "sample_id": "5889898795.Q0",
+        "video_id": "5889898795",
+        "family": "Causal"
+      },
+      {
+        "sample_id": "8752043000.Q5",
+        "video_id": "8752043000",
+        "family": "Temporal"
+      },
+      {
+        "sample_id": "5889898795.Q6",
+        "video_id": "5889898795",
+        "family": "Causal"
+      },
+      {
+        "sample_id": "5017166671.Q6",
+        "video_id": "5017166671",
+        "family": "Causal"
+      },
+      {
+        "sample_id": "8797589693.Q2",
+        "video_id": "8797589693",
+        "family": "Causal"
+      },
+      {
+        "sample_id": "11681746823.Q2",
+        "video_id": "11681746823",
+        "family": "Causal"
+      },
+      {
+        "sample_id": "4626535366.Q10",
+        "video_id": "4626535366",
+        "family": "Temporal"
+      },
+      {
+        "sample_id": "4626535366.Q5",
+        "video_id": "4626535366",
+        "family": "Temporal"
+      },
+      {
+        "sample_id": "6988748711.Q8",
+        "video_id": "6988748711",
+        "family": "Temporal"
+      },
+      {
+        "sample_id": "2735019707.Q3",
+        "video_id": "2735019707",
+        "family": "Causal"
+      },
+      {
+        "sample_id": "4249756405.Q6",
+        "video_id": "4249756405",
+        "family": "Causal"
+      },
+      {
+        "sample_id": "4626535366.Q7",
+        "video_id": "4626535366",
+        "family": "Causal"
+      },
+      {
+        "sample_id": "3524939594.Q8",
+        "video_id": "3524939594",
+        "family": "Temporal"
+      },
+      {
+        "sample_id": "11681746823.Q3",
+        "video_id": "11681746823",
+        "family": "Causal"
+      },
+      {
+        "sample_id": "7786283208.Q4",
+        "video_id": "7786283208",
+        "family": "Temporal"
+      },
+      {
+        "sample_id": "8797589693.Q0",
+        "video_id": "8797589693",
+        "family": "Causal"
+      },
+      {
+        "sample_id": "5889898795.Q4",
+        "video_id": "5889898795",
+        "family": "Causal"
+      },
+      {
+        "sample_id": "4626535366.Q0",
+        "video_id": "4626535366",
+        "family": "Causal"
+      },
+      {
+        "sample_id": "3524939594.Q3",
+        "video_id": "3524939594",
+        "family": "Causal"
+      },
+      {
+        "sample_id": "8132842161.Q0",
+        "video_id": "8132842161",
+        "family": "Causal"
+      },
+      {
+        "sample_id": "11681746823.Q0",
+        "video_id": "11681746823",
+        "family": "Causal"
+      },
+      {
+        "sample_id": "11681746823.Q6",
+        "video_id": "11681746823",
+        "family": "Causal"
+      },
+      {
+        "sample_id": "2735019707.Q7",
+        "video_id": "2735019707",
+        "family": "Temporal"
+      },
+      {
+        "sample_id": "3524939594.Q7",
+        "video_id": "3524939594",
+        "family": "Causal"
+      },
+      {
+        "sample_id": "8132842161.Q2",
+        "video_id": "8132842161",
+        "family": "Causal"
+      },
+      {
+        "sample_id": "6988748711.Q0",
+        "video_id": "6988748711",
+        "family": "Causal"
+      },
+      {
+        "sample_id": "6988748711.Q4",
+        "video_id": "6988748711",
+        "family": "Causal"
+      },
+      {
+        "sample_id": "7786283208.Q7",
+        "video_id": "7786283208",
+        "family": "Causal"
+      },
+      {
+        "sample_id": "7786283208.Q3",
+        "video_id": "7786283208",
+        "family": "Causal"
+      },
+      {
+        "sample_id": "8797589693.Q8",
+        "video_id": "8797589693",
+        "family": "Causal"
+      },
+      {
+        "sample_id": "4249756405.Q1",
+        "video_id": "4249756405",
+        "family": "Causal"
+      },
+      {
+        "sample_id": "8752043000.Q3",
+        "video_id": "8752043000",
+        "family": "Causal"
+      },
+      {
+        "sample_id": "8752043000.Q1",
+        "video_id": "8752043000",
+        "family": "Causal"
+      },
+      {
+        "sample_id": "8132842161.Q4",
+        "video_id": "8132842161",
+        "family": "Causal"
+      },
+      {
+        "sample_id": "5889898795.Q1",
+        "video_id": "5889898795",
+        "family": "Causal"
+      },
+      {
+        "sample_id": "4249756405.Q0",
+        "video_id": "4249756405",
+        "family": "Causal"
+      },
+      {
+        "sample_id": "7786283208.Q0",
+        "video_id": "7786283208",
+        "family": "Causal"
+      },
+      {
+        "sample_id": "7786283208.Q1",
+        "video_id": "7786283208",
+        "family": "Causal"
+      },
+      {
+        "sample_id": "8132842161.Q3",
+        "video_id": "8132842161",
+        "family": "Causal"
+      },
+      {
+        "sample_id": "8752043000.Q2",
+        "video_id": "8752043000",
+        "family": "Temporal"
+      },
+      {
+        "sample_id": "2735019707.Q0",
+        "video_id": "2735019707",
+        "family": "Causal"
+      },
+      {
+        "sample_id": "6988748711.Q2",
+        "video_id": "6988748711",
+        "family": "Causal"
+      },
+      {
+        "sample_id": "4249756405.Q3",
+        "video_id": "4249756405",
+        "family": "Causal"
+      },
+      {
+        "sample_id": "2735019707.Q5",
+        "video_id": "2735019707",
+        "family": "Causal"
+      },
+      {
+        "sample_id": "2735019707.Q2",
+        "video_id": "2735019707",
+        "family": "Causal"
+      },
+      {
+        "sample_id": "7786283208.Q5",
+        "video_id": "7786283208",
+        "family": "Causal"
+      },
+      {
+        "sample_id": "5889898795.Q3",
+        "video_id": "5889898795",
+        "family": "Causal"
+      },
+      {
+        "sample_id": "8797589693.Q4",
+        "video_id": "8797589693",
+        "family": "Causal"
+      },
+      {
+        "sample_id": "8132842161.Q8",
+        "video_id": "8132842161",
+        "family": "Causal"
+      },
+      {
+        "sample_id": "6988748711.Q3",
+        "video_id": "6988748711",
+        "family": "Causal"
+      },
+      {
+        "sample_id": "8132842161.Q9",
+        "video_id": "8132842161",
+        "family": "Causal"
+      }
+    ]
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "schema_version": 23,
+  "status": "FROZEN_AFTER_OUTCOME_BLIND_SENSOR_RELIABILITY_DOMAIN_REPAIR",
+  "claim_boundary": "Development-only feasibility pilot on one outcome-blind hashed question from every consumed V19 video cluster. Each Gemini 3.1 Pro visual call receives the question, exactly one candidate claim, and the exact V19 24-frame panels; it cannot see competing options, option position, primary/proof answers, gold, or official structure. Target-native candidate receipts are bound to slots only after inference. A deterministic family-typed executor scores the receipts. The real-Sokoban source state machine changes the primary only when its independently verified candidate is refuted and a distinct executor candidate is supported. Binding-rotation and proof-topology derangements preserve receipt cardinality. V15 reserve remains unopened.",
+  "source_receipt": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/docs/results/sokoban_effect_program_v2_compact_receipt.json",
+  "pilot_manifest": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/configs/natural_video_independent_candidate_v23_pilot_manifest.json",
+  "input_v19_receipts": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/natural_video_v19_expanded_formal/formal_receipts.json",
+  "input_generic_receipts": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/natural_video_generic_control_v21_development/generic_receipts.json",
+  "wrapper_root": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent",
+  "benchmarks": {
+    "star": {"root": "/fs/gamma-projects/vlm-robot/datasets/STAR-official"},
+    "nextqa": {"root": "/fs/gamma-projects/vlm-robot/datasets/NExT-QA-official"}
+  },
+  "model": {
+    "provider": "openrouter",
+    "api_key_name": "OPENROUTER_API_KEY",
+    "id": "google/gemini-3.1-pro-preview",
+    "base_url": "https://openrouter.ai/api/v1",
+    "timeout_seconds": 300,
+    "max_retries": 2,
+    "schema_retries": 3,
+    "max_tokens": 2400
+  },
+  "media": {
+    "primary_frame_count": 12,
+    "proof_frame_count": 24,
+    "proof_frames_per_panel": 12,
+    "proxy_frame_max_side": 720,
+    "primary_frame_width": 224,
+    "proof_frame_width": 192,
+    "jpeg_quality": 88
+  },
+  "pilot_advancement_gates": {
+    "minimum_source_authentic_net_wins_vs_generic_direct": 1,
+    "source_authentic_not_below_generic_each_benchmark": true,
+    "source_authentic_strictly_above_binding_control": true,
+    "source_authentic_strictly_above_topology_control": true,
+    "independent_executor_not_below_generic_direct": true
+  },
+  "outcome_blind_schema_repair": {
+    "reason": "The first run failed one row because the inherited parser unnecessarily restricted sensor_reliability to [0.5,1] although the frozen prompt/schema specified only a probability. No pilot correctness or gold outcome was inspected. The mathematically valid probability domain [0,1] is now accepted and the seven partial rows from the old contract are excluded from the repaired run.",
+    "excluded_partial_receipt": "runs/natural_video_independent_candidate_v23_pilot/receipts_pre_sensor_reliability_domain_repair.json",
+    "excluded_partial_receipt_sha256": "193363c9d7040ad420a2abbc55a56fb56b5e7527f166a3bfd4a11e2fa98017f5",
+    "excluded_partial_rows": 7
+  },
+  "frozen_lineage": {
+    "source_receipt_sha256": "8f175c0edda951eba2064e9c53a8db6a25cdfa9fb0de8049d371dbf5335c9e80",
+    "pilot_manifest_sha256": "cb03966192a2555c11b93b24eab4f1fbaed57072f032f738171e468b69910ef6",
+    "input_v19_receipts_sha256": "50011ed4a8ec645b5652220bfcc61f18ddb816b6bb3c49f20a7f445be5d8090d",
+    "input_generic_receipts_sha256": "0bdf42575c00ccc2d12c0a7c1bc933245b329d6be2d698849f6b33f08a0af474",
+    "collector_sha256": "95b7f5c718546f34fe63eb31da8975cb250857d55a27d4161a0522a764ea1cfc",
+    "executor_module_sha256": "25650aac455d4b6f63018f71f74eab4168bd9f39f47994ace87da57dc48ef1a6",
+    "paired_collector_sha256": "1a2cba5619aee6a767cf73bcbaa7044594911f5c5903ef65ae98e6e62921bee1",
+    "transport_module_sha256": "2675beb07d86fe31124c9588b4dde61ff86c1915b31dd829e57f90b8c058f335"
+  }
+}

@@ -1,0 +1,705 @@
+{
+  "episode_audit": [
+    {
+      "eligible_prefixes": 18,
+      "observed_steps": 20,
+      "seed": 91701,
+      "selected_steps": [
+        13,
+        14
+      ],
+      "split": "qualification",
+      "terminated_or_truncated_before_rollout_limit": false
+    },
+    {
+      "eligible_prefixes": 18,
+      "observed_steps": 20,
+      "seed": 91702,
+      "selected_steps": [
+        10,
+        13
+      ],
+      "split": "development",
+      "terminated_or_truncated_before_rollout_limit": false
+    },
+    {
+      "eligible_prefixes": 18,
+      "observed_steps": 20,
+      "seed": 91703,
+      "selected_steps": [
+        3,
+        18
+      ],
+      "split": "development",
+      "terminated_or_truncated_before_rollout_limit": false
+    },
+    {
+      "eligible_prefixes": 18,
+      "observed_steps": 20,
+      "seed": 91704,
+      "selected_steps": [
+        13,
+        16
+      ],
+      "split": "heldout",
+      "terminated_or_truncated_before_rollout_limit": false
+    },
+    {
+      "eligible_prefixes": 18,
+      "observed_steps": 20,
+      "seed": 91705,
+      "selected_steps": [
+        9,
+        16
+      ],
+      "split": "qualification",
+      "terminated_or_truncated_before_rollout_limit": false
+    },
+    {
+      "eligible_prefixes": 18,
+      "observed_steps": 20,
+      "seed": 91706,
+      "selected_steps": [
+        3,
+        10
+      ],
+      "split": "qualification",
+      "terminated_or_truncated_before_rollout_limit": false
+    },
+    {
+      "eligible_prefixes": 18,
+      "observed_steps": 20,
+      "seed": 91707,
+      "selected_steps": [
+        9,
+        14
+      ],
+      "split": "development",
+      "terminated_or_truncated_before_rollout_limit": false
+    },
+    {
+      "eligible_prefixes": 18,
+      "observed_steps": 20,
+      "seed": 91708,
+      "selected_steps": [
+        3,
+        8
+      ],
+      "split": "heldout",
+      "terminated_or_truncated_before_rollout_limit": false
+    },
+    {
+      "eligible_prefixes": 18,
+      "observed_steps": 20,
+      "seed": 91709,
+      "selected_steps": [
+        7,
+        9
+      ],
+      "split": "heldout",
+      "terminated_or_truncated_before_rollout_limit": false
+    }
+  ],
+  "plan_sha256": "f3a0af2264710704af605a52e22cb5fa8543d8c6b3815666dcb38f9bcabadc1f",
+  "schema_version": "real-source-intervention-plan-v1",
+  "selection": {
+    "actions_per_snapshot": 4,
+    "content_or_outcome_used_for_selection": false,
+    "minimum_step": 2,
+    "namespace": "phase1-common-search-ir-pilot-v2:gymv_streets_of_rage_2",
+    "reward_read_during_plan_collection": false,
+    "rollout_steps": 20,
+    "rule": "observe reward-blind hash-policy prefixes; rank available snapshots by sha256(namespace, seed, step)",
+    "seed_splits": {
+      "91701": "qualification",
+      "91702": "development",
+      "91703": "development",
+      "91704": "heldout",
+      "91705": "qualification",
+      "91706": "qualification",
+      "91707": "development",
+      "91708": "heldout",
+      "91709": "heldout"
+    },
+    "snapshots_per_episode": 2,
+    "terminal_status_used_only_to_stop_invalid_future_steps": true,
+    "trajectory_policy": "lowest sha256(namespace, seed, step, rollout, native_action)"
+  },
+  "snapshots": [
+    {
+      "condition": "observed_reward_blind_hash_policy",
+      "episode_id": "gymv_streets_of_rage_2_observed_seed_91701",
+      "expected_fork_state_sha256": "460b183b4c6c630c597cf7dad8611a20bbd363c67fdeafcbdd45c5885491bf1b",
+      "expected_native_actions_sha256": "041cc9405cef01b1f30ecbdefa2b330dc141a93eda6413eb999bf51ce1cc33c5",
+      "grounding_state": "Game: StreetsOfRage2-Genesis-v0 | Score: 0 | Lives: 2 | Frame: 104 | StepReward: 0.000 | EpReward: 0.000 | LastAction: LEFT | Recent: [LEFT,LEFT,LEFT,LEFT,LEFT,LEFT,LEFT,LEFT]\n\nValid actions: B, A, MODE, START, UP, DOWN, LEFT, RIGHT, C, Y, X, Z. Choose one.",
+      "logged_action": "B",
+      "max_steps": 50,
+      "prefix_actions": [
+        "A",
+        "B",
+        "MODE",
+        "START",
+        "Z",
+        "MODE",
+        "C",
+        "Z",
+        "A",
+        "A",
+        "C",
+        "UP",
+        "LEFT"
+      ],
+      "seed": 91701,
+      "selected_actions": [
+        "B",
+        "Y",
+        "DOWN",
+        "X"
+      ],
+      "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.91701.step_13",
+      "split": "qualification",
+      "step": 13
+    },
+    {
+      "condition": "observed_reward_blind_hash_policy",
+      "episode_id": "gymv_streets_of_rage_2_observed_seed_91701",
+      "expected_fork_state_sha256": "ab97ba16f6bf57c0816c9d282d5209b238bba77930bb28d39c88ea8df3a79aad",
+      "expected_native_actions_sha256": "041cc9405cef01b1f30ecbdefa2b330dc141a93eda6413eb999bf51ce1cc33c5",
+      "grounding_state": "Game: StreetsOfRage2-Genesis-v0 | Score: 0 | Lives: 2 | Frame: 112 | StepReward: 0.000 | EpReward: 0.000 | LastAction: B | Recent: [B,B,B,B,B,B,B,B]\n\nValid actions: B, A, MODE, START, UP, DOWN, LEFT, RIGHT, C, Y, X, Z. Choose one.",
+      "logged_action": "B",
+      "max_steps": 50,
+      "prefix_actions": [
+        "A",
+        "B",
+        "MODE",
+        "START",
+        "Z",
+        "MODE",
+        "C",
+        "Z",
+        "A",
+        "A",
+        "C",
+        "UP",
+        "LEFT",
+        "B"
+      ],
+      "seed": 91701,
+      "selected_actions": [
+        "B",
+        "START",
+        "Z",
+        "Y"
+      ],
+      "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.91701.step_14",
+      "split": "qualification",
+      "step": 14
+    },
+    {
+      "condition": "observed_reward_blind_hash_policy",
+      "episode_id": "gymv_streets_of_rage_2_observed_seed_91702",
+      "expected_fork_state_sha256": "9711e303a940b5c91f8e30fa90d29734c7b9a32f5620f88ca42391ced5885f03",
+      "expected_native_actions_sha256": "041cc9405cef01b1f30ecbdefa2b330dc141a93eda6413eb999bf51ce1cc33c5",
+      "grounding_state": "Game: StreetsOfRage2-Genesis-v0 | Score: 0 | Lives: 2 | Frame: 80 | StepReward: 0.000 | EpReward: 0.000 | LastAction: A | Recent: [A,A,A,A,A,A,A,A]\n\nValid actions: B, A, MODE, START, UP, DOWN, LEFT, RIGHT, C, Y, X, Z. Choose one.",
+      "logged_action": "UP",
+      "max_steps": 50,
+      "prefix_actions": [
+        "UP",
+        "UP",
+        "A",
+        "RIGHT",
+        "Z",
+        "START",
+        "Y",
+        "C",
+        "Z",
+        "A"
+      ],
+      "seed": 91702,
+      "selected_actions": [
+        "UP",
+        "A",
+        "DOWN",
+        "C"
+      ],
+      "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.91702.step_10",
+      "split": "development",
+      "step": 10
+    },
+    {
+      "condition": "observed_reward_blind_hash_policy",
+      "episode_id": "gymv_streets_of_rage_2_observed_seed_91702",
+      "expected_fork_state_sha256": "213903e4fa76d746b1c20cb481e3a65e54d4d62574315288c3ae8c7aae577cbe",
+      "expected_native_actions_sha256": "041cc9405cef01b1f30ecbdefa2b330dc141a93eda6413eb999bf51ce1cc33c5",
+      "grounding_state": "Game: StreetsOfRage2-Genesis-v0 | Score: 0 | Lives: 2 | Frame: 104 | StepReward: 0.000 | EpReward: 0.000 | LastAction: MODE | Recent: [MODE,MODE,MODE,MODE,MODE,MODE,MODE,MODE]\n\nValid actions: B, A, MODE, START, UP, DOWN, LEFT, RIGHT, C, Y, X, Z. Choose one.",
+      "logged_action": "A",
+      "max_steps": 50,
+      "prefix_actions": [
+        "UP",
+        "UP",
+        "A",
+        "RIGHT",
+        "Z",
+        "START",
+        "Y",
+        "C",
+        "Z",
+        "A",
+        "UP",
+        "RIGHT",
+        "MODE"
+      ],
+      "seed": 91702,
+      "selected_actions": [
+        "A",
+        "MODE",
+        "DOWN",
+        "X"
+      ],
+      "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.91702.step_13",
+      "split": "development",
+      "step": 13
+    },
+    {
+      "condition": "observed_reward_blind_hash_policy",
+      "episode_id": "gymv_streets_of_rage_2_observed_seed_91703",
+      "expected_fork_state_sha256": "06b12c1e03e82af6c42038bbbbdc32e36e0ad3fdd6c5fb84dc5fdc433a948181",
+      "expected_native_actions_sha256": "041cc9405cef01b1f30ecbdefa2b330dc141a93eda6413eb999bf51ce1cc33c5",
+      "grounding_state": "Game: StreetsOfRage2-Genesis-v0 | Score: 0 | Lives: 2 | Frame: 24 | StepReward: 0.000 | EpReward: 0.000 | LastAction: A | Recent: [A,A,A,A,A,A,A,A]\n\nValid actions: B, A, MODE, START, UP, DOWN, LEFT, RIGHT, C, Y, X, Z. Choose one.",
+      "logged_action": "Z",
+      "max_steps": 50,
+      "prefix_actions": [
+        "RIGHT",
+        "DOWN",
+        "A"
+      ],
+      "seed": 91703,
+      "selected_actions": [
+        "Z",
+        "START",
+        "RIGHT",
+        "UP"
+      ],
+      "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.91703.step_3",
+      "split": "development",
+      "step": 3
+    },
+    {
+      "condition": "observed_reward_blind_hash_policy",
+      "episode_id": "gymv_streets_of_rage_2_observed_seed_91703",
+      "expected_fork_state_sha256": "75a7afec42d240eabdf7e24200fb81735b66cba427812f3ac239a9124fd2629b",
+      "expected_native_actions_sha256": "041cc9405cef01b1f30ecbdefa2b330dc141a93eda6413eb999bf51ce1cc33c5",
+      "grounding_state": "Game: StreetsOfRage2-Genesis-v0 | Score: 0 | Lives: 2 | Frame: 144 | StepReward: 0.000 | EpReward: 0.000 | LastAction: RIGHT | Recent: [RIGHT,RIGHT,RIGHT,RIGHT,RIGHT,RIGHT,RIGHT,RIGHT]\n\nValid actions: B, A, MODE, START, UP, DOWN, LEFT, RIGHT, C, Y, X, Z. Choose one.",
+      "logged_action": "DOWN",
+      "max_steps": 50,
+      "prefix_actions": [
+        "RIGHT",
+        "DOWN",
+        "A",
+        "Z",
+        "C",
+        "START",
+        "X",
+        "MODE",
+        "RIGHT",
+        "MODE",
+        "LEFT",
+        "B",
+        "Z",
+        "A",
+        "A",
+        "B",
+        "UP",
+        "RIGHT"
+      ],
+      "seed": 91703,
+      "selected_actions": [
+        "DOWN",
+        "X",
+        "B",
+        "Z"
+      ],
+      "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.91703.step_18",
+      "split": "development",
+      "step": 18
+    },
+    {
+      "condition": "observed_reward_blind_hash_policy",
+      "episode_id": "gymv_streets_of_rage_2_observed_seed_91704",
+      "expected_fork_state_sha256": "28b1ba36d4f836ef58f04e1d29937318e79f7e5e2bc24c70852c53e59179e2b8",
+      "expected_native_actions_sha256": "041cc9405cef01b1f30ecbdefa2b330dc141a93eda6413eb999bf51ce1cc33c5",
+      "grounding_state": "Game: StreetsOfRage2-Genesis-v0 | Score: 0 | Lives: 2 | Frame: 104 | StepReward: 0.000 | EpReward: 0.000 | LastAction: Z | Recent: [Z,Z,Z,Z,Z,Z,Z,Z]\n\nValid actions: B, A, MODE, START, UP, DOWN, LEFT, RIGHT, C, Y, X, Z. Choose one.",
+      "logged_action": "X",
+      "max_steps": 50,
+      "prefix_actions": [
+        "Z",
+        "UP",
+        "MODE",
+        "B",
+        "RIGHT",
+        "LEFT",
+        "RIGHT",
+        "A",
+        "Y",
+        "MODE",
+        "MODE",
+        "Z",
+        "Z"
+      ],
+      "seed": 91704,
+      "selected_actions": [
+        "X",
+        "START",
+        "C",
+        "DOWN"
+      ],
+      "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.91704.step_13",
+      "split": "heldout",
+      "step": 13
+    },
+    {
+      "condition": "observed_reward_blind_hash_policy",
+      "episode_id": "gymv_streets_of_rage_2_observed_seed_91704",
+      "expected_fork_state_sha256": "350b24f685d9d42775f452a45130519b820696844187e42af396325bbd8bfb1d",
+      "expected_native_actions_sha256": "041cc9405cef01b1f30ecbdefa2b330dc141a93eda6413eb999bf51ce1cc33c5",
+      "grounding_state": "Game: StreetsOfRage2-Genesis-v0 | Score: 0 | Lives: 2 | Frame: 128 | StepReward: 0.000 | EpReward: 0.000 | LastAction: A | Recent: [A,A,A,A,A,A,A,A]\n\nValid actions: B, A, MODE, START, UP, DOWN, LEFT, RIGHT, C, Y, X, Z. Choose one.",
+      "logged_action": "LEFT",
+      "max_steps": 50,
+      "prefix_actions": [
+        "Z",
+        "UP",
+        "MODE",
+        "B",
+        "RIGHT",
+        "LEFT",
+        "RIGHT",
+        "A",
+        "Y",
+        "MODE",
+        "MODE",
+        "Z",
+        "Z",
+        "X",
+        "MODE",
+        "A"
+      ],
+      "seed": 91704,
+      "selected_actions": [
+        "LEFT",
+        "A",
+        "DOWN",
+        "Z"
+      ],
+      "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.91704.step_16",
+      "split": "heldout",
+      "step": 16
+    },
+    {
+      "condition": "observed_reward_blind_hash_policy",
+      "episode_id": "gymv_streets_of_rage_2_observed_seed_91705",
+      "expected_fork_state_sha256": "ae4690e80291e0f8f430c3066513e5b88fda99c14e92559683f500a192012c63",
+      "expected_native_actions_sha256": "041cc9405cef01b1f30ecbdefa2b330dc141a93eda6413eb999bf51ce1cc33c5",
+      "grounding_state": "Game: StreetsOfRage2-Genesis-v0 | Score: 0 | Lives: 2 | Frame: 72 | StepReward: 0.000 | EpReward: 0.000 | LastAction: A | Recent: [A,A,A,A,A,A,A,A]\n\nValid actions: B, A, MODE, START, UP, DOWN, LEFT, RIGHT, C, Y, X, Z. Choose one.",
+      "logged_action": "A",
+      "max_steps": 50,
+      "prefix_actions": [
+        "START",
+        "Y",
+        "MODE",
+        "Z",
+        "Z",
+        "UP",
+        "A",
+        "UP",
+        "A"
+      ],
+      "seed": 91705,
+      "selected_actions": [
+        "A",
+        "DOWN",
+        "RIGHT",
+        "Z"
+      ],
+      "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.91705.step_9",
+      "split": "qualification",
+      "step": 9
+    },
+    {
+      "condition": "observed_reward_blind_hash_policy",
+      "episode_id": "gymv_streets_of_rage_2_observed_seed_91705",
+      "expected_fork_state_sha256": "40000cba239e90e741d473e4f6abf256e90ccfb8d4bc99edfe04c6d140a5e9f6",
+      "expected_native_actions_sha256": "041cc9405cef01b1f30ecbdefa2b330dc141a93eda6413eb999bf51ce1cc33c5",
+      "grounding_state": "Game: StreetsOfRage2-Genesis-v0 | Score: 0 | Lives: 2 | Frame: 128 | StepReward: 0.000 | EpReward: 0.000 | LastAction: Z | Recent: [Z,Z,Z,Z,Z,Z,Z,Z]\n\nValid actions: B, A, MODE, START, UP, DOWN, LEFT, RIGHT, C, Y, X, Z. Choose one.",
+      "logged_action": "A",
+      "max_steps": 50,
+      "prefix_actions": [
+        "START",
+        "Y",
+        "MODE",
+        "Z",
+        "Z",
+        "UP",
+        "A",
+        "UP",
+        "A",
+        "A",
+        "UP",
+        "MODE",
+        "Z",
+        "UP",
+        "A",
+        "Z"
+      ],
+      "seed": 91705,
+      "selected_actions": [
+        "A",
+        "Y",
+        "B",
+        "LEFT"
+      ],
+      "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.91705.step_16",
+      "split": "qualification",
+      "step": 16
+    },
+    {
+      "condition": "observed_reward_blind_hash_policy",
+      "episode_id": "gymv_streets_of_rage_2_observed_seed_91706",
+      "expected_fork_state_sha256": "c0047e55f04186518c3a39c5e46c7aefc9435cc69436c93fb87ff584aedd19bb",
+      "expected_native_actions_sha256": "041cc9405cef01b1f30ecbdefa2b330dc141a93eda6413eb999bf51ce1cc33c5",
+      "grounding_state": "Game: StreetsOfRage2-Genesis-v0 | Score: 0 | Lives: 2 | Frame: 24 | StepReward: 0.000 | EpReward: 0.000 | LastAction: LEFT | Recent: [LEFT,LEFT,LEFT,LEFT,LEFT,LEFT,LEFT,LEFT]\n\nValid actions: B, A, MODE, START, UP, DOWN, LEFT, RIGHT, C, Y, X, Z. Choose one.",
+      "logged_action": "Z",
+      "max_steps": 50,
+      "prefix_actions": [
+        "C",
+        "C",
+        "LEFT"
+      ],
+      "seed": 91706,
+      "selected_actions": [
+        "Z",
+        "X",
+        "DOWN",
+        "LEFT"
+      ],
+      "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.91706.step_3",
+      "split": "qualification",
+      "step": 3
+    },
+    {
+      "condition": "observed_reward_blind_hash_policy",
+      "episode_id": "gymv_streets_of_rage_2_observed_seed_91706",
+      "expected_fork_state_sha256": "04399d7d60293bdab7b29797d090b35aa8582bc248695860556a1b8d0305d9cc",
+      "expected_native_actions_sha256": "041cc9405cef01b1f30ecbdefa2b330dc141a93eda6413eb999bf51ce1cc33c5",
+      "grounding_state": "Game: StreetsOfRage2-Genesis-v0 | Score: 0 | Lives: 2 | Frame: 80 | StepReward: 0.000 | EpReward: 0.000 | LastAction: C | Recent: [C,C,C,C,C,C,C,C]\n\nValid actions: B, A, MODE, START, UP, DOWN, LEFT, RIGHT, C, Y, X, Z. Choose one.",
+      "logged_action": "LEFT",
+      "max_steps": 50,
+      "prefix_actions": [
+        "C",
+        "C",
+        "LEFT",
+        "Z",
+        "START",
+        "RIGHT",
+        "DOWN",
+        "C",
+        "START",
+        "C"
+      ],
+      "seed": 91706,
+      "selected_actions": [
+        "LEFT",
+        "Z",
+        "A",
+        "MODE"
+      ],
+      "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.91706.step_10",
+      "split": "qualification",
+      "step": 10
+    },
+    {
+      "condition": "observed_reward_blind_hash_policy",
+      "episode_id": "gymv_streets_of_rage_2_observed_seed_91707",
+      "expected_fork_state_sha256": "343167b0f0e99ab204655d4ea0359ca9c8521f7cae901d62abcad49057c7da69",
+      "expected_native_actions_sha256": "041cc9405cef01b1f30ecbdefa2b330dc141a93eda6413eb999bf51ce1cc33c5",
+      "grounding_state": "Game: StreetsOfRage2-Genesis-v0 | Score: 0 | Lives: 2 | Frame: 72 | StepReward: 0.000 | EpReward: 0.000 | LastAction: MODE | Recent: [MODE,MODE,MODE,MODE,MODE,MODE,MODE,MODE]\n\nValid actions: B, A, MODE, START, UP, DOWN, LEFT, RIGHT, C, Y, X, Z. Choose one.",
+      "logged_action": "C",
+      "max_steps": 50,
+      "prefix_actions": [
+        "MODE",
+        "MODE",
+        "C",
+        "A",
+        "Z",
+        "DOWN",
+        "X",
+        "B",
+        "MODE"
+      ],
+      "seed": 91707,
+      "selected_actions": [
+        "C",
+        "DOWN",
+        "Y",
+        "Z"
+      ],
+      "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.91707.step_9",
+      "split": "development",
+      "step": 9
+    },
+    {
+      "condition": "observed_reward_blind_hash_policy",
+      "episode_id": "gymv_streets_of_rage_2_observed_seed_91707",
+      "expected_fork_state_sha256": "e1dd3b66e299ed0950a31a015d201226906164c46166b699dae3e0145ca9c40e",
+      "expected_native_actions_sha256": "041cc9405cef01b1f30ecbdefa2b330dc141a93eda6413eb999bf51ce1cc33c5",
+      "grounding_state": "Game: StreetsOfRage2-Genesis-v0 | Score: 0 | Lives: 2 | Frame: 112 | StepReward: 0.000 | EpReward: 0.000 | LastAction: MODE | Recent: [MODE,MODE,MODE,MODE,MODE,MODE,MODE,MODE]\n\nValid actions: B, A, MODE, START, UP, DOWN, LEFT, RIGHT, C, Y, X, Z. Choose one.",
+      "logged_action": "A",
+      "max_steps": 50,
+      "prefix_actions": [
+        "MODE",
+        "MODE",
+        "C",
+        "A",
+        "Z",
+        "DOWN",
+        "X",
+        "B",
+        "MODE",
+        "C",
+        "Y",
+        "A",
+        "Y",
+        "MODE"
+      ],
+      "seed": 91707,
+      "selected_actions": [
+        "A",
+        "MODE",
+        "Y",
+        "C"
+      ],
+      "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.91707.step_14",
+      "split": "development",
+      "step": 14
+    },
+    {
+      "condition": "observed_reward_blind_hash_policy",
+      "episode_id": "gymv_streets_of_rage_2_observed_seed_91708",
+      "expected_fork_state_sha256": "a3a12ac971f525e75557de656296684f6f6d9db463a8604f1949e9ebdd9c4aaf",
+      "expected_native_actions_sha256": "041cc9405cef01b1f30ecbdefa2b330dc141a93eda6413eb999bf51ce1cc33c5",
+      "grounding_state": "Game: StreetsOfRage2-Genesis-v0 | Score: 0 | Lives: 2 | Frame: 24 | StepReward: 0.000 | EpReward: 0.000 | LastAction: B | Recent: [B,B,B,B,B,B,B,B]\n\nValid actions: B, A, MODE, START, UP, DOWN, LEFT, RIGHT, C, Y, X, Z. Choose one.",
+      "logged_action": "LEFT",
+      "max_steps": 50,
+      "prefix_actions": [
+        "A",
+        "X",
+        "B"
+      ],
+      "seed": 91708,
+      "selected_actions": [
+        "LEFT",
+        "A",
+        "Z",
+        "B"
+      ],
+      "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.91708.step_3",
+      "split": "heldout",
+      "step": 3
+    },
+    {
+      "condition": "observed_reward_blind_hash_policy",
+      "episode_id": "gymv_streets_of_rage_2_observed_seed_91708",
+      "expected_fork_state_sha256": "3574b0834d50d3e6dca8868fa145b990eb88bb9a139c239cab550d6e5fcb012c",
+      "expected_native_actions_sha256": "041cc9405cef01b1f30ecbdefa2b330dc141a93eda6413eb999bf51ce1cc33c5",
+      "grounding_state": "Game: StreetsOfRage2-Genesis-v0 | Score: 0 | Lives: 2 | Frame: 64 | StepReward: 0.000 | EpReward: 0.000 | LastAction: DOWN | Recent: [DOWN,DOWN,DOWN,DOWN,DOWN,DOWN,DOWN,DOWN]\n\nValid actions: B, A, MODE, START, UP, DOWN, LEFT, RIGHT, C, Y, X, Z. Choose one.",
+      "logged_action": "DOWN",
+      "max_steps": 50,
+      "prefix_actions": [
+        "A",
+        "X",
+        "B",
+        "LEFT",
+        "Y",
+        "Z",
+        "X",
+        "DOWN"
+      ],
+      "seed": 91708,
+      "selected_actions": [
+        "DOWN",
+        "Z",
+        "UP",
+        "C"
+      ],
+      "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.91708.step_8",
+      "split": "heldout",
+      "step": 8
+    },
+    {
+      "condition": "observed_reward_blind_hash_policy",
+      "episode_id": "gymv_streets_of_rage_2_observed_seed_91709",
+      "expected_fork_state_sha256": "9d969222180513ed6f3fe5a7dd838cda0487941f0f3f7f203ad9636b1e549846",
+      "expected_native_actions_sha256": "041cc9405cef01b1f30ecbdefa2b330dc141a93eda6413eb999bf51ce1cc33c5",
+      "grounding_state": "Game: StreetsOfRage2-Genesis-v0 | Score: 0 | Lives: 2 | Frame: 56 | StepReward: 0.000 | EpReward: 0.000 | LastAction: MODE | Recent: [MODE,MODE,MODE,MODE,MODE,MODE,MODE,MODE]\n\nValid actions: B, A, MODE, START, UP, DOWN, LEFT, RIGHT, C, Y, X, Z. Choose one.",
+      "logged_action": "A",
+      "max_steps": 50,
+      "prefix_actions": [
+        "Z",
+        "UP",
+        "B",
+        "LEFT",
+        "LEFT",
+        "A",
+        "MODE"
+      ],
+      "seed": 91709,
+      "selected_actions": [
+        "A",
+        "X",
+        "LEFT",
+        "START"
+      ],
+      "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.91709.step_7",
+      "split": "heldout",
+      "step": 7
+    },
+    {
+      "condition": "observed_reward_blind_hash_policy",
+      "episode_id": "gymv_streets_of_rage_2_observed_seed_91709",
+      "expected_fork_state_sha256": "d10ca4076a633258702f68d5b44dcd16b647ed75ec55b0025759690c2181f56c",
+      "expected_native_actions_sha256": "041cc9405cef01b1f30ecbdefa2b330dc141a93eda6413eb999bf51ce1cc33c5",
+      "grounding_state": "Game: StreetsOfRage2-Genesis-v0 | Score: 0 | Lives: 2 | Frame: 72 | StepReward: 0.000 | EpReward: 0.000 | LastAction: C | Recent: [C,C,C,C,C,C,C,C]\n\nValid actions: B, A, MODE, START, UP, DOWN, LEFT, RIGHT, C, Y, X, Z. Choose one.",
+      "logged_action": "UP",
+      "max_steps": 50,
+      "prefix_actions": [
+        "Z",
+        "UP",
+        "B",
+        "LEFT",
+        "LEFT",
+        "A",
+        "MODE",
+        "A",
+        "C"
+      ],
+      "seed": 91709,
+      "selected_actions": [
+        "UP",
+        "START",
+        "A",
+        "B"
+      ],
+      "snapshot_id": "gymv_streets_of_rage_2.observed_hash_policy.91709.step_9",
+      "split": "heldout",
+      "step": 9
+    }
+  ],
+  "source": {
+    "collection_kind": "fresh_same_runtime_observed_prefix_reward_blind",
+    "game": "gymv_streets_of_rage_2",
+    "runtime_receipt": {
+      "config_path": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/configs/phase1_common_search_ir_v2_pilot/gymv_streets_of_rage_2.json",
+      "gymv_python": "/fs/gamma-projects/vlm-robot/conda/envs/gymv/bin/python3.11",
+      "source_runtime_script": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-source-fresh-v1/scripts/run_instrumented_source_smoke.py"
+    }
+  }
+}

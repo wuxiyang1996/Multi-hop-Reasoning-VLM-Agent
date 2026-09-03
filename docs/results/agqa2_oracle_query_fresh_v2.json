@@ -1,0 +1,30 @@
+{
+  "claim_boundary": "Fresh grounding/executor qualification only. Without a new matched direct actor and source-vs-generic divergence it is not a source-specific transfer result.",
+  "gates": {
+    "all_selected_videos_unseen_in_v62": true,
+    "minimum_oracle_committed_accuracy": true,
+    "minimum_oracle_committed_tasks": true,
+    "minimum_public_compiler_coverage": true,
+    "zero_runtime_answer_program_grounding_read": true
+  },
+  "lineage": {
+    "evaluator_artifact_sha256": "6444b81df2cf830ecd00dc3a375a0d1ba3277cb24ae0e9c731bd62902be8bf57",
+    "official_ontology_sha256": "d35dbc5edfa1f9839e77070160db7d23d19d6c4bfe248b638fd1fce3bbd01b07",
+    "official_stsg_sha256": "9273ec6055df1c4730b9ea971994ae6f552a14620711273da81eab9d11d85061",
+    "preregistration_sha256": "f1807cbdb065c7be2a11713ebb9eea57599ef5ee11b3701a55a02911b5638bd8",
+    "public_artifact_sha256": "156854e59a62e69a169efc29dbaf15645b36a2ec353ad812757eee00bdc50d6e",
+    "runtime_artifact_sha256": "9cc2b61525cfc768be482caceffc8728d70d47436b6dcfa4bcf700582f1f453e"
+  },
+  "oracle_committed": 228,
+  "oracle_committed_accuracy": 1.0,
+  "oracle_committed_correct": 228,
+  "public_compiler_applicable": 393,
+  "public_compiler_coverage": 0.43666666666666665,
+  "reason_source_specific_not_yet_validated": "This qualification validates the target-native oracle executor; it has no new direct actor and no source-vs-generic divergence.",
+  "report_sha256": "6737f85ab3f356c2001b2986080358b00d856bd5c05d6345b4be2c805f201c05",
+  "schema_version": "agqa2-oracle-query-fresh-qualification-v2",
+  "source_specific_transfer_validated": false,
+  "status": "PASSED",
+  "tasks": 900,
+  "unique_videos": 300
+}

@@ -1,0 +1,193 @@
+{
+  "artifacts": {
+    "action_equivalence": {
+      "path": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/harness_controller_qwen35_9b_mixed_v3/source_only_sft_seed20260901/six_benchmark_action_equivalence.json",
+      "sha256": "0ee8092e69ce53beb13e802bc7da129017d925cca9570664c4ba443f24561615"
+    },
+    "protocol": {
+      "path": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/harness_controller_qwen35_9b_mixed_v3_protocol/protocol.json",
+      "sha256": "e536e61c0948fce33af47e382a8da6499e04e23f688c0e82c83210b95fe2531d"
+    },
+    "route_report": {
+      "path": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/harness_controller_qwen35_9b_mixed_v3/source_only_sft_seed20260901/six_benchmark_route_report.json",
+      "sha256": "ceb38032d4bda283c2e84237bfac0d8cde227a211fde6f258026017fe8cf656b"
+    },
+    "source_qualification": {
+      "path": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/harness_controller_qwen35_9b_mixed_v3/source_only_sft_seed20260901/source_mixed_qualification.json",
+      "sha256": "0a4bb7bad367623dfb3b42fab543ff8f920959d379fc6e73f820d740247fedd8"
+    },
+    "training_receipt": {
+      "path": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/harness_controller_qwen35_9b_mixed_v3/source_only_sft_seed20260901/training_receipt.json",
+      "sha256": "61446db7bd91839805839b9746062dd627917c92c23cbf38e15e5c8038d8ba6b"
+    }
+  },
+  "benchmarks": [
+    {
+      "action_equivalence": 1.0,
+      "benchmark": "webshop",
+      "delta_correct": 16,
+      "delta_percentage_points": 50.0,
+      "equivalent_success_critical_decisions": 261,
+      "formal_status": "V21_FRESH_FORMAL_STRUCTURAL_TRANSFER_VALIDATED",
+      "label": "WebShop",
+      "neural_correct": 7,
+      "neural_rate": 0.21875,
+      "route_decisions": 32,
+      "semantic_domain": "web interaction",
+      "source_correct": 23,
+      "source_rate": 0.71875,
+      "success_critical_decisions": 261,
+      "tasks": 32
+    },
+    {
+      "action_equivalence": 1.0,
+      "benchmark": "alfworld",
+      "delta_correct": 7,
+      "delta_percentage_points": 29.166666666666675,
+      "equivalent_success_critical_decisions": 291,
+      "formal_status": "ALFWORLD_UNIFIED_GOAL_ACQUISITION_FORMAL_VALIDATED",
+      "label": "ALFWorld",
+      "neural_correct": 13,
+      "neural_rate": 0.5416666666666666,
+      "route_decisions": 24,
+      "semantic_domain": "embodied text interaction",
+      "source_correct": 20,
+      "source_rate": 0.8333333333333334,
+      "success_critical_decisions": 291,
+      "tasks": 24
+    },
+    {
+      "action_equivalence": 1.0,
+      "benchmark": "discoveryworld",
+      "delta_correct": 9,
+      "delta_percentage_points": 75.0,
+      "equivalent_success_critical_decisions": 34,
+      "formal_status": "DISCOVERYWORLD_STRUCTURAL_TRANSFER_VALIDATED",
+      "label": "DiscoveryWorld",
+      "neural_correct": 3,
+      "neural_rate": 0.25,
+      "route_decisions": 12,
+      "semantic_domain": "scientific discovery",
+      "source_correct": 12,
+      "source_rate": 1.0,
+      "success_critical_decisions": 34,
+      "tasks": 12
+    },
+    {
+      "action_equivalence": 1.0,
+      "benchmark": "tirbench",
+      "delta_correct": 6,
+      "delta_percentage_points": 33.33333333333333,
+      "equivalent_success_critical_decisions": 18,
+      "formal_status": "FRESH_FORMAL_STRUCTURAL_TRANSFER_VALIDATED",
+      "label": "TIRBench",
+      "neural_correct": 6,
+      "neural_rate": 0.3333333333333333,
+      "route_decisions": 18,
+      "semantic_domain": "visual reasoning",
+      "source_correct": 12,
+      "source_rate": 0.6666666666666666,
+      "success_critical_decisions": 18,
+      "tasks": 18
+    },
+    {
+      "action_equivalence": 1.0,
+      "benchmark": "clevrer",
+      "delta_correct": 16,
+      "delta_percentage_points": 4.444444444444439,
+      "equivalent_success_critical_decisions": 360,
+      "formal_status": "CLEVRER_UNIFIED_GOAL_RELATION_V15_FORMAL_VALIDATED",
+      "label": "CLEVRER",
+      "neural_correct": 236,
+      "neural_rate": 0.6555555555555556,
+      "route_decisions": 360,
+      "semantic_domain": "video understanding",
+      "source_correct": 252,
+      "source_rate": 0.7,
+      "success_critical_decisions": 360,
+      "tasks": 360
+    },
+    {
+      "action_equivalence": 1.0,
+      "benchmark": "agqa2",
+      "delta_correct": 41,
+      "delta_percentage_points": 4.555555555555557,
+      "equivalent_success_critical_decisions": 900,
+      "formal_status": "AGQA2_FULL_DISTRIBUTION_V62_FORMAL_QUALIFIED",
+      "label": "AGQA2",
+      "neural_correct": 249,
+      "neural_rate": 0.27666666666666667,
+      "route_decisions": 1800,
+      "semantic_domain": "video understanding",
+      "source_correct": 290,
+      "source_rate": 0.32222222222222224,
+      "success_critical_decisions": 900,
+      "tasks": 900
+    }
+  ],
+  "claim_boundary": "After a consumed diagnostic, a fresh anonymous catalog-presentation reserve was frozen before a symmetric source-only permutation-closure update. The Qwen3.5-9B LoRA exactly replaces every frozen symbolic route decision and preserves success-critical native actions on the content-addressed traces of six previously validated benchmarks. The official success outcomes are inherited, not fresh live 9B reruns; the fresh presentation is not a new target-task sample; target-native grounding/execution remains domain-specific, and CLEVRER plus AGQA2 constitute one semantic video domain.",
+  "descriptive_micro_average": {
+    "delta_correct": 95,
+    "delta_percentage_points": 7.057949479940564,
+    "neural_correct": 514,
+    "neural_rate": 0.3818722139673105,
+    "primary_inference": false,
+    "reason": "heterogeneous benchmarks; report per-benchmark effects as primary",
+    "source_correct": 609,
+    "source_rate": 0.4524517087667162,
+    "tasks": 1346
+  },
+  "model_substitution": {
+    "base_exact_route_accuracy": 0.0,
+    "divergence_episodes": 0,
+    "fresh_anonymous_presentation_reserve": true,
+    "lora_exact_route_accuracy": 1.0,
+    "native_action_equivalence": 1.0,
+    "new_target_task_sample": false
+  },
+  "schema_version": "harness-controller-qwen35-9b-six-benchmark-paper-v2-fresh-presentation",
+  "scope": {
+    "formal_tasks": 1346,
+    "route_decisions": 2246,
+    "semantic_domains": 5,
+    "success_critical_decisions": 1864,
+    "target_benchmarks": 6,
+    "video_benchmarks_share_one_domain": [
+      "CLEVRER",
+      "AGQA2"
+    ]
+  },
+  "source_gates": {
+    "multi_ir_selector": {
+      "binding_correct_accuracy": 1.0,
+      "decision_correct_accuracy": 0.9990079365079365,
+      "exact_json_accuracy": 0.9990079365079365,
+      "reason_correct_accuracy": 0.9990079365079365,
+      "rows": 2016,
+      "state_correct_accuracy": 1.0,
+      "valid_json_accuracy": 1.0
+    },
+    "scalar_executor": {
+      "binding_correct_accuracy": 0.9764705882352941,
+      "decision_correct_accuracy": 1.0,
+      "exact_json_accuracy": 0.9764705882352941,
+      "reason_correct_accuracy": 1.0,
+      "rows": 170,
+      "state_correct_accuracy": 0.9764705882352941,
+      "valid_json_accuracy": 1.0
+    }
+  },
+  "status": "PAPER_TABLE_READY_SIX_BENCHMARK_9B_SUBSTITUTION_VALIDATED",
+  "training": {
+    "initial_adapter_role": "SOURCE_ONLY_FIVE_SCHEMA_MIXED_CONTROLLER_V2",
+    "learning_rate": 5e-06,
+    "max_steps": 800,
+    "model": "Qwen/Qwen3.5-9B",
+    "permutation_closure_update": true,
+    "seed": 20260901,
+    "source_only": true,
+    "train_examples": 10594,
+    "train_runtime_seconds": 9264.622,
+    "validation_examples": 660
+  }
+}

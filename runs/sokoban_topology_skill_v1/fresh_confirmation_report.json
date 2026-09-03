@@ -1,0 +1,1093 @@
+{
+  "confirmation_version": "SOKOBAN_TOPOLOGY_CONFIRMATION_V1",
+  "status": "SOURCE_TOPOLOGY_EXECUTOR_CONFIRMED",
+  "claim_boundary": "FRESH_SOURCE_CONFIRMATION_ONLY_NO_TARGET_EVIDENCE",
+  "artifact_sha256": "bdbfd067f77a75ed87a815050e52556aad509812270b1d9e214476f4382525a9",
+  "source_plan_sha256": "802fec94d8e9a7b1d831dc1a94af038bce99ccf7efa2bf296308c54fd0557bf5",
+  "eligible_examples": 62,
+  "condition_metrics": {
+    "canonical_topology_executor": {
+      "examples": 62,
+      "accuracy": 1.0,
+      "abstentions": 0
+    },
+    "direction_permuted_executor": {
+      "examples": 62,
+      "accuracy": 0.0,
+      "abstentions": 62
+    },
+    "phase_reversed_executor": {
+      "examples": 62,
+      "accuracy": 0.0,
+      "abstentions": 0
+    },
+    "sequence_length_marginal": {
+      "examples": 62,
+      "accuracy": 0.0,
+      "abstentions": 62
+    }
+  },
+  "gates": {
+    "coverage": true,
+    "canonical_accuracy": true,
+    "control_superiority": true
+  },
+  "source_gate_passed": true,
+  "example_receipts": [
+    {
+      "snapshot_id": "68d209b6476f0a88cec3c8db29a03dc379940a6873cb13598e05ebf36e4afbc7",
+      "episode_id": "procedural-sokoban-97001",
+      "candidate_order": [
+        "ORDER_CORRUPT",
+        "DIRECTION_CORRUPT",
+        "AUTHENTIC",
+        "PHASE_CORRUPT"
+      ],
+      "gold_candidate_evaluator_only": "AUTHENTIC",
+      "predictions": {
+        "canonical_topology_executor": "AUTHENTIC",
+        "direction_permuted_executor": null,
+        "phase_reversed_executor": "PHASE_CORRUPT",
+        "sequence_length_marginal": null
+      }
+    },
+    {
+      "snapshot_id": "0f9651980e68ed1f9a067f9d818834c0ae8b4747f15118e1ce44b370bd8e7783",
+      "episode_id": "procedural-sokoban-97001",
+      "candidate_order": [
+        "DIRECTION_CORRUPT",
+        "ORDER_CORRUPT",
+        "AUTHENTIC",
+        "PHASE_CORRUPT"
+      ],
+      "gold_candidate_evaluator_only": "AUTHENTIC",
+      "predictions": {
+        "canonical_topology_executor": "AUTHENTIC",
+        "direction_permuted_executor": null,
+        "phase_reversed_executor": "PHASE_CORRUPT",
+        "sequence_length_marginal": null
+      }
+    },
+    {
+      "snapshot_id": "5f8d6a756126b7910a0de463517608fd1813a35ad3323ae39afa773d8b744445",
+      "episode_id": "procedural-sokoban-97001",
+      "candidate_order": [
+        "PHASE_CORRUPT",
+        "ORDER_CORRUPT",
+        "AUTHENTIC",
+        "DIRECTION_CORRUPT"
+      ],
+      "gold_candidate_evaluator_only": "AUTHENTIC",
+      "predictions": {
+        "canonical_topology_executor": "AUTHENTIC",
+        "direction_permuted_executor": null,
+        "phase_reversed_executor": "PHASE_CORRUPT",
+        "sequence_length_marginal": null
+      }
+    },
+    {
+      "snapshot_id": "6a848f396ee64b55cfa00a1ccf7514082f2a9ead207515b3dbd8717679d470de",
+      "episode_id": "procedural-sokoban-97001",
+      "candidate_order": [
+        "DIRECTION_CORRUPT",
+        "AUTHENTIC",
+        "ORDER_CORRUPT",
+        "PHASE_CORRUPT"
+      ],
+      "gold_candidate_evaluator_only": "AUTHENTIC",
+      "predictions": {
+        "canonical_topology_executor": "AUTHENTIC",
+        "direction_permuted_executor": null,
+        "phase_reversed_executor": "PHASE_CORRUPT",
+        "sequence_length_marginal": null
+      }
+    },
+    {
+      "snapshot_id": "b910ccf43aa25fa274d713ed7c67d5e06d850bb091c727ac5c461aa99a878d24",
+      "episode_id": "procedural-sokoban-97002",
+      "candidate_order": [
+        "PHASE_CORRUPT",
+        "ORDER_CORRUPT",
+        "DIRECTION_CORRUPT",
+        "AUTHENTIC"
+      ],
+      "gold_candidate_evaluator_only": "AUTHENTIC",
+      "predictions": {
+        "canonical_topology_executor": "AUTHENTIC",
+        "direction_permuted_executor": null,
+        "phase_reversed_executor": "PHASE_CORRUPT",
+        "sequence_length_marginal": null
+      }
+    },
+    {
+      "snapshot_id": "1c582b2cfc19eacea5a705caa57f69cfe47dd7408327da1115a057f459d82d5d",
+      "episode_id": "procedural-sokoban-97002",
+      "candidate_order": [
+        "PHASE_CORRUPT",
+        "AUTHENTIC",
+        "DIRECTION_CORRUPT",
+        "ORDER_CORRUPT"
+      ],
+      "gold_candidate_evaluator_only": "AUTHENTIC",
+      "predictions": {
+        "canonical_topology_executor": "AUTHENTIC",
+        "direction_permuted_executor": null,
+        "phase_reversed_executor": "PHASE_CORRUPT",
+        "sequence_length_marginal": null
+      }
+    },
+    {
+      "snapshot_id": "47f8fc95551796ec15d2337f8ef91003c09e9a834a99994c942bdf79b97361bc",
+      "episode_id": "procedural-sokoban-97002",
+      "candidate_order": [
+        "AUTHENTIC",
+        "DIRECTION_CORRUPT",
+        "ORDER_CORRUPT",
+        "PHASE_CORRUPT"
+      ],
+      "gold_candidate_evaluator_only": "AUTHENTIC",
+      "predictions": {
+        "canonical_topology_executor": "AUTHENTIC",
+        "direction_permuted_executor": null,
+        "phase_reversed_executor": "PHASE_CORRUPT",
+        "sequence_length_marginal": null
+      }
+    },
+    {
+      "snapshot_id": "7d0675ae050375a82a9b92237a5bfab73da90460063ab225ff341ccc0198cfb7",
+      "episode_id": "procedural-sokoban-97002",
+      "candidate_order": [
+        "PHASE_CORRUPT",
+        "AUTHENTIC",
+        "DIRECTION_CORRUPT",
+        "ORDER_CORRUPT"
+      ],
+      "gold_candidate_evaluator_only": "AUTHENTIC",
+      "predictions": {
+        "canonical_topology_executor": "AUTHENTIC",
+        "direction_permuted_executor": null,
+        "phase_reversed_executor": "PHASE_CORRUPT",
+        "sequence_length_marginal": null
+      }
+    },
+    {
+      "snapshot_id": "591b6aa8b7bc71940f42379f6e0c0d1f6e15379320972432898e344a298a462e",
+      "episode_id": "procedural-sokoban-97003",
+      "candidate_order": [
+        "DIRECTION_CORRUPT",
+        "AUTHENTIC",
+        "PHASE_CORRUPT",
+        "ORDER_CORRUPT"
+      ],
+      "gold_candidate_evaluator_only": "AUTHENTIC",
+      "predictions": {
+        "canonical_topology_executor": "AUTHENTIC",
+        "direction_permuted_executor": null,
+        "phase_reversed_executor": "PHASE_CORRUPT",
+        "sequence_length_marginal": null
+      }
+    },
+    {
+      "snapshot_id": "9bfabb5f61c8a7493cf7b6610f8fd78b578316c355892aa837c37361c2f9724e",
+      "episode_id": "procedural-sokoban-97003",
+      "candidate_order": [
+        "ORDER_CORRUPT",
+        "DIRECTION_CORRUPT",
+        "AUTHENTIC",
+        "PHASE_CORRUPT"
+      ],
+      "gold_candidate_evaluator_only": "AUTHENTIC",
+      "predictions": {
+        "canonical_topology_executor": "AUTHENTIC",
+        "direction_permuted_executor": null,
+        "phase_reversed_executor": "PHASE_CORRUPT",
+        "sequence_length_marginal": null
+      }
+    },
+    {
+      "snapshot_id": "a98e27e0f2eabe582975134dca5800b059a6756a60aa0d88bce820cbed4b95c4",
+      "episode_id": "procedural-sokoban-97003",
+      "candidate_order": [
+        "AUTHENTIC",
+        "ORDER_CORRUPT",
+        "DIRECTION_CORRUPT",
+        "PHASE_CORRUPT"
+      ],
+      "gold_candidate_evaluator_only": "AUTHENTIC",
+      "predictions": {
+        "canonical_topology_executor": "AUTHENTIC",
+        "direction_permuted_executor": null,
+        "phase_reversed_executor": "PHASE_CORRUPT",
+        "sequence_length_marginal": null
+      }
+    },
+    {
+      "snapshot_id": "f47504f94cd25aa5a2f23881b3160640602e6abe2576d0bfb8405f3f45a15c26",
+      "episode_id": "procedural-sokoban-97004",
+      "candidate_order": [
+        "AUTHENTIC",
+        "PHASE_CORRUPT",
+        "DIRECTION_CORRUPT",
+        "ORDER_CORRUPT"
+      ],
+      "gold_candidate_evaluator_only": "AUTHENTIC",
+      "predictions": {
+        "canonical_topology_executor": "AUTHENTIC",
+        "direction_permuted_executor": null,
+        "phase_reversed_executor": "PHASE_CORRUPT",
+        "sequence_length_marginal": null
+      }
+    },
+    {
+      "snapshot_id": "736ccc3ce99a734cb67e9f620975a5acd56383d568852086d272804d8cb33cf0",
+      "episode_id": "procedural-sokoban-97004",
+      "candidate_order": [
+        "DIRECTION_CORRUPT",
+        "AUTHENTIC",
+        "PHASE_CORRUPT",
+        "ORDER_CORRUPT"
+      ],
+      "gold_candidate_evaluator_only": "AUTHENTIC",
+      "predictions": {
+        "canonical_topology_executor": "AUTHENTIC",
+        "direction_permuted_executor": null,
+        "phase_reversed_executor": "PHASE_CORRUPT",
+        "sequence_length_marginal": null
+      }
+    },
+    {
+      "snapshot_id": "1fbda2b4f8c251b0d125ecc42d8082e1e1b2abe2def6afdb820af1ad12b264a3",
+      "episode_id": "procedural-sokoban-97005",
+      "candidate_order": [
+        "ORDER_CORRUPT",
+        "PHASE_CORRUPT",
+        "DIRECTION_CORRUPT",
+        "AUTHENTIC"
+      ],
+      "gold_candidate_evaluator_only": "AUTHENTIC",
+      "predictions": {
+        "canonical_topology_executor": "AUTHENTIC",
+        "direction_permuted_executor": null,
+        "phase_reversed_executor": "PHASE_CORRUPT",
+        "sequence_length_marginal": null
+      }
+    },
+    {
+      "snapshot_id": "c151d7f5bf17eafb3d11f2f4e43df681c341735fdada13545726af6f40649d8e",
+      "episode_id": "procedural-sokoban-97005",
+      "candidate_order": [
+        "PHASE_CORRUPT",
+        "AUTHENTIC",
+        "ORDER_CORRUPT",
+        "DIRECTION_CORRUPT"
+      ],
+      "gold_candidate_evaluator_only": "AUTHENTIC",
+      "predictions": {
+        "canonical_topology_executor": "AUTHENTIC",
+        "direction_permuted_executor": null,
+        "phase_reversed_executor": "PHASE_CORRUPT",
+        "sequence_length_marginal": null
+      }
+    },
+    {
+      "snapshot_id": "19fc9c07eb7e574250425db336a319a9cf0fd06a0e245457f5e568fe449b1713",
+      "episode_id": "procedural-sokoban-97006",
+      "candidate_order": [
+        "PHASE_CORRUPT",
+        "DIRECTION_CORRUPT",
+        "ORDER_CORRUPT",
+        "AUTHENTIC"
+      ],
+      "gold_candidate_evaluator_only": "AUTHENTIC",
+      "predictions": {
+        "canonical_topology_executor": "AUTHENTIC",
+        "direction_permuted_executor": null,
+        "phase_reversed_executor": "PHASE_CORRUPT",
+        "sequence_length_marginal": null
+      }
+    },
+    {
+      "snapshot_id": "b29129cb6f2cfc2cdfcd2baf0d764465051b6f1e9fc1575a425e39697a0028bf",
+      "episode_id": "procedural-sokoban-97006",
+      "candidate_order": [
+        "AUTHENTIC",
+        "PHASE_CORRUPT",
+        "ORDER_CORRUPT",
+        "DIRECTION_CORRUPT"
+      ],
+      "gold_candidate_evaluator_only": "AUTHENTIC",
+      "predictions": {
+        "canonical_topology_executor": "AUTHENTIC",
+        "direction_permuted_executor": null,
+        "phase_reversed_executor": "PHASE_CORRUPT",
+        "sequence_length_marginal": null
+      }
+    },
+    {
+      "snapshot_id": "f0315451a4de1ed2afdde41fdb3bb8e7772266ddcc7674f47f478cefee94dd2e",
+      "episode_id": "procedural-sokoban-97007",
+      "candidate_order": [
+        "PHASE_CORRUPT",
+        "DIRECTION_CORRUPT",
+        "ORDER_CORRUPT",
+        "AUTHENTIC"
+      ],
+      "gold_candidate_evaluator_only": "AUTHENTIC",
+      "predictions": {
+        "canonical_topology_executor": "AUTHENTIC",
+        "direction_permuted_executor": null,
+        "phase_reversed_executor": "PHASE_CORRUPT",
+        "sequence_length_marginal": null
+      }
+    },
+    {
+      "snapshot_id": "edc9cd6b32164af719db4f2099f18db5fc632152525096262bfc9e636d0e672a",
+      "episode_id": "procedural-sokoban-97007",
+      "candidate_order": [
+        "ORDER_CORRUPT",
+        "PHASE_CORRUPT",
+        "AUTHENTIC",
+        "DIRECTION_CORRUPT"
+      ],
+      "gold_candidate_evaluator_only": "AUTHENTIC",
+      "predictions": {
+        "canonical_topology_executor": "AUTHENTIC",
+        "direction_permuted_executor": null,
+        "phase_reversed_executor": "PHASE_CORRUPT",
+        "sequence_length_marginal": null
+      }
+    },
+    {
+      "snapshot_id": "42d446cf39163e0b5b19d686b6b9044f906d38b131b5c544b6cb0460c443f951",
+      "episode_id": "procedural-sokoban-97008",
+      "candidate_order": [
+        "PHASE_CORRUPT",
+        "DIRECTION_CORRUPT",
+        "AUTHENTIC",
+        "ORDER_CORRUPT"
+      ],
+      "gold_candidate_evaluator_only": "AUTHENTIC",
+      "predictions": {
+        "canonical_topology_executor": "AUTHENTIC",
+        "direction_permuted_executor": null,
+        "phase_reversed_executor": "PHASE_CORRUPT",
+        "sequence_length_marginal": null
+      }
+    },
+    {
+      "snapshot_id": "4e0528cf1898cfce2b839338f211e41cf2c7252065e224ddd474d379a324469a",
+      "episode_id": "procedural-sokoban-97008",
+      "candidate_order": [
+        "ORDER_CORRUPT",
+        "DIRECTION_CORRUPT",
+        "PHASE_CORRUPT",
+        "AUTHENTIC"
+      ],
+      "gold_candidate_evaluator_only": "AUTHENTIC",
+      "predictions": {
+        "canonical_topology_executor": "AUTHENTIC",
+        "direction_permuted_executor": null,
+        "phase_reversed_executor": "PHASE_CORRUPT",
+        "sequence_length_marginal": null
+      }
+    },
+    {
+      "snapshot_id": "dccccae1c981dbed7614c6393815240a74cb8d9f7ea259a1cb4769d43afeda0a",
+      "episode_id": "procedural-sokoban-97008",
+      "candidate_order": [
+        "PHASE_CORRUPT",
+        "ORDER_CORRUPT",
+        "AUTHENTIC",
+        "DIRECTION_CORRUPT"
+      ],
+      "gold_candidate_evaluator_only": "AUTHENTIC",
+      "predictions": {
+        "canonical_topology_executor": "AUTHENTIC",
+        "direction_permuted_executor": null,
+        "phase_reversed_executor": "PHASE_CORRUPT",
+        "sequence_length_marginal": null
+      }
+    },
+    {
+      "snapshot_id": "b384750e4b1c2b06745cff2eec55849f0e7448a1d73462c6989639bf224cc752",
+      "episode_id": "procedural-sokoban-97009",
+      "candidate_order": [
+        "ORDER_CORRUPT",
+        "DIRECTION_CORRUPT",
+        "PHASE_CORRUPT",
+        "AUTHENTIC"
+      ],
+      "gold_candidate_evaluator_only": "AUTHENTIC",
+      "predictions": {
+        "canonical_topology_executor": "AUTHENTIC",
+        "direction_permuted_executor": null,
+        "phase_reversed_executor": "PHASE_CORRUPT",
+        "sequence_length_marginal": null
+      }
+    },
+    {
+      "snapshot_id": "c284b14245e33bf57d0fef0788c43348ef8cecb801dd30a8378530d80bf3dc24",
+      "episode_id": "procedural-sokoban-97009",
+      "candidate_order": [
+        "DIRECTION_CORRUPT",
+        "PHASE_CORRUPT",
+        "AUTHENTIC",
+        "ORDER_CORRUPT"
+      ],
+      "gold_candidate_evaluator_only": "AUTHENTIC",
+      "predictions": {
+        "canonical_topology_executor": "AUTHENTIC",
+        "direction_permuted_executor": null,
+        "phase_reversed_executor": "PHASE_CORRUPT",
+        "sequence_length_marginal": null
+      }
+    },
+    {
+      "snapshot_id": "95b5952cf231376c55cbe5cd0adf87eb9111ac5f9ce3b9a8c458a2f43a689ce2",
+      "episode_id": "procedural-sokoban-97010",
+      "candidate_order": [
+        "AUTHENTIC",
+        "DIRECTION_CORRUPT",
+        "PHASE_CORRUPT",
+        "ORDER_CORRUPT"
+      ],
+      "gold_candidate_evaluator_only": "AUTHENTIC",
+      "predictions": {
+        "canonical_topology_executor": "AUTHENTIC",
+        "direction_permuted_executor": null,
+        "phase_reversed_executor": "PHASE_CORRUPT",
+        "sequence_length_marginal": null
+      }
+    },
+    {
+      "snapshot_id": "4736c0b42ec05ac1597364fe469baf89682c57e5923e172c3955aa3dad3f5e3b",
+      "episode_id": "procedural-sokoban-97010",
+      "candidate_order": [
+        "AUTHENTIC",
+        "DIRECTION_CORRUPT",
+        "PHASE_CORRUPT",
+        "ORDER_CORRUPT"
+      ],
+      "gold_candidate_evaluator_only": "AUTHENTIC",
+      "predictions": {
+        "canonical_topology_executor": "AUTHENTIC",
+        "direction_permuted_executor": null,
+        "phase_reversed_executor": "PHASE_CORRUPT",
+        "sequence_length_marginal": null
+      }
+    },
+    {
+      "snapshot_id": "1be7d9bae4d6aaaf50e3c205e9b6557a45f0bd5a5ca963976367b0fce5eef2b9",
+      "episode_id": "procedural-sokoban-97010",
+      "candidate_order": [
+        "PHASE_CORRUPT",
+        "DIRECTION_CORRUPT",
+        "ORDER_CORRUPT",
+        "AUTHENTIC"
+      ],
+      "gold_candidate_evaluator_only": "AUTHENTIC",
+      "predictions": {
+        "canonical_topology_executor": "AUTHENTIC",
+        "direction_permuted_executor": null,
+        "phase_reversed_executor": "PHASE_CORRUPT",
+        "sequence_length_marginal": null
+      }
+    },
+    {
+      "snapshot_id": "b48d969158433602abb07e7dc45124ad5aa3d230d014b169d5b93ab51a900647",
+      "episode_id": "procedural-sokoban-97010",
+      "candidate_order": [
+        "ORDER_CORRUPT",
+        "AUTHENTIC",
+        "DIRECTION_CORRUPT",
+        "PHASE_CORRUPT"
+      ],
+      "gold_candidate_evaluator_only": "AUTHENTIC",
+      "predictions": {
+        "canonical_topology_executor": "AUTHENTIC",
+        "direction_permuted_executor": null,
+        "phase_reversed_executor": "PHASE_CORRUPT",
+        "sequence_length_marginal": null
+      }
+    },
+    {
+      "snapshot_id": "6b7a4ee0050db7a2631106303e22c4bade34f0324824f2267bd5d2850cbd2263",
+      "episode_id": "procedural-sokoban-97011",
+      "candidate_order": [
+        "DIRECTION_CORRUPT",
+        "ORDER_CORRUPT",
+        "PHASE_CORRUPT",
+        "AUTHENTIC"
+      ],
+      "gold_candidate_evaluator_only": "AUTHENTIC",
+      "predictions": {
+        "canonical_topology_executor": "AUTHENTIC",
+        "direction_permuted_executor": null,
+        "phase_reversed_executor": "PHASE_CORRUPT",
+        "sequence_length_marginal": null
+      }
+    },
+    {
+      "snapshot_id": "d12b20a10e47bf53611d7d3307355cb76f75a9e521101418c862087e65f3e764",
+      "episode_id": "procedural-sokoban-97012",
+      "candidate_order": [
+        "PHASE_CORRUPT",
+        "DIRECTION_CORRUPT",
+        "ORDER_CORRUPT",
+        "AUTHENTIC"
+      ],
+      "gold_candidate_evaluator_only": "AUTHENTIC",
+      "predictions": {
+        "canonical_topology_executor": "AUTHENTIC",
+        "direction_permuted_executor": null,
+        "phase_reversed_executor": "PHASE_CORRUPT",
+        "sequence_length_marginal": null
+      }
+    },
+    {
+      "snapshot_id": "6a40979127a5f0f7f66f50b22fcbc99d9ebcfb44bde0e854618c7095d14ea2da",
+      "episode_id": "procedural-sokoban-97012",
+      "candidate_order": [
+        "AUTHENTIC",
+        "PHASE_CORRUPT",
+        "ORDER_CORRUPT",
+        "DIRECTION_CORRUPT"
+      ],
+      "gold_candidate_evaluator_only": "AUTHENTIC",
+      "predictions": {
+        "canonical_topology_executor": "AUTHENTIC",
+        "direction_permuted_executor": null,
+        "phase_reversed_executor": "PHASE_CORRUPT",
+        "sequence_length_marginal": null
+      }
+    },
+    {
+      "snapshot_id": "189b73301f54442940f22c6ad173f647ef4dea2bbc6e9201c7de99b83857978d",
+      "episode_id": "procedural-sokoban-97012",
+      "candidate_order": [
+        "AUTHENTIC",
+        "DIRECTION_CORRUPT",
+        "PHASE_CORRUPT",
+        "ORDER_CORRUPT"
+      ],
+      "gold_candidate_evaluator_only": "AUTHENTIC",
+      "predictions": {
+        "canonical_topology_executor": "AUTHENTIC",
+        "direction_permuted_executor": null,
+        "phase_reversed_executor": "PHASE_CORRUPT",
+        "sequence_length_marginal": null
+      }
+    },
+    {
+      "snapshot_id": "628a9695e05a6de7268216d18965d80bad6b55b01ab9f9cfe88fe3e3c505da61",
+      "episode_id": "procedural-sokoban-97013",
+      "candidate_order": [
+        "AUTHENTIC",
+        "ORDER_CORRUPT",
+        "DIRECTION_CORRUPT",
+        "PHASE_CORRUPT"
+      ],
+      "gold_candidate_evaluator_only": "AUTHENTIC",
+      "predictions": {
+        "canonical_topology_executor": "AUTHENTIC",
+        "direction_permuted_executor": null,
+        "phase_reversed_executor": "PHASE_CORRUPT",
+        "sequence_length_marginal": null
+      }
+    },
+    {
+      "snapshot_id": "f01ef539eed96d294af9545b2afc7602a5fbbb0d70f3e4d16a62b8602d7eab5b",
+      "episode_id": "procedural-sokoban-97013",
+      "candidate_order": [
+        "AUTHENTIC",
+        "PHASE_CORRUPT",
+        "ORDER_CORRUPT",
+        "DIRECTION_CORRUPT"
+      ],
+      "gold_candidate_evaluator_only": "AUTHENTIC",
+      "predictions": {
+        "canonical_topology_executor": "AUTHENTIC",
+        "direction_permuted_executor": null,
+        "phase_reversed_executor": "PHASE_CORRUPT",
+        "sequence_length_marginal": null
+      }
+    },
+    {
+      "snapshot_id": "d27b83a38543c8bd4f3fd58401f611bf760262337b488da4bb7d79ac4520c1c8",
+      "episode_id": "procedural-sokoban-97013",
+      "candidate_order": [
+        "PHASE_CORRUPT",
+        "AUTHENTIC",
+        "ORDER_CORRUPT",
+        "DIRECTION_CORRUPT"
+      ],
+      "gold_candidate_evaluator_only": "AUTHENTIC",
+      "predictions": {
+        "canonical_topology_executor": "AUTHENTIC",
+        "direction_permuted_executor": null,
+        "phase_reversed_executor": "PHASE_CORRUPT",
+        "sequence_length_marginal": null
+      }
+    },
+    {
+      "snapshot_id": "49c7722d950003d402c665b4c610f5062f7b19c9487348058db4389505a12488",
+      "episode_id": "procedural-sokoban-97014",
+      "candidate_order": [
+        "PHASE_CORRUPT",
+        "ORDER_CORRUPT",
+        "AUTHENTIC",
+        "DIRECTION_CORRUPT"
+      ],
+      "gold_candidate_evaluator_only": "AUTHENTIC",
+      "predictions": {
+        "canonical_topology_executor": "AUTHENTIC",
+        "direction_permuted_executor": null,
+        "phase_reversed_executor": "PHASE_CORRUPT",
+        "sequence_length_marginal": null
+      }
+    },
+    {
+      "snapshot_id": "193f4a28114178187042442bc42924adf05351a5272b9ddd802486654f000f59",
+      "episode_id": "procedural-sokoban-97014",
+      "candidate_order": [
+        "PHASE_CORRUPT",
+        "ORDER_CORRUPT",
+        "AUTHENTIC",
+        "DIRECTION_CORRUPT"
+      ],
+      "gold_candidate_evaluator_only": "AUTHENTIC",
+      "predictions": {
+        "canonical_topology_executor": "AUTHENTIC",
+        "direction_permuted_executor": null,
+        "phase_reversed_executor": "PHASE_CORRUPT",
+        "sequence_length_marginal": null
+      }
+    },
+    {
+      "snapshot_id": "46bd26eeb60be0254e44252f8512abafa64dc0327fadf3b73501091ec6c0a79b",
+      "episode_id": "procedural-sokoban-97015",
+      "candidate_order": [
+        "DIRECTION_CORRUPT",
+        "AUTHENTIC",
+        "ORDER_CORRUPT",
+        "PHASE_CORRUPT"
+      ],
+      "gold_candidate_evaluator_only": "AUTHENTIC",
+      "predictions": {
+        "canonical_topology_executor": "AUTHENTIC",
+        "direction_permuted_executor": null,
+        "phase_reversed_executor": "PHASE_CORRUPT",
+        "sequence_length_marginal": null
+      }
+    },
+    {
+      "snapshot_id": "0cb57392af2b53e6b9283ea8382858c2a604ca68f460936cbd29f44e2b952647",
+      "episode_id": "procedural-sokoban-97015",
+      "candidate_order": [
+        "ORDER_CORRUPT",
+        "PHASE_CORRUPT",
+        "DIRECTION_CORRUPT",
+        "AUTHENTIC"
+      ],
+      "gold_candidate_evaluator_only": "AUTHENTIC",
+      "predictions": {
+        "canonical_topology_executor": "AUTHENTIC",
+        "direction_permuted_executor": null,
+        "phase_reversed_executor": "PHASE_CORRUPT",
+        "sequence_length_marginal": null
+      }
+    },
+    {
+      "snapshot_id": "1f8c8621b295c8ccd162fdfac9e4e269328b876a92d2bef95f952965e7b6e965",
+      "episode_id": "procedural-sokoban-97015",
+      "candidate_order": [
+        "AUTHENTIC",
+        "DIRECTION_CORRUPT",
+        "ORDER_CORRUPT",
+        "PHASE_CORRUPT"
+      ],
+      "gold_candidate_evaluator_only": "AUTHENTIC",
+      "predictions": {
+        "canonical_topology_executor": "AUTHENTIC",
+        "direction_permuted_executor": null,
+        "phase_reversed_executor": "PHASE_CORRUPT",
+        "sequence_length_marginal": null
+      }
+    },
+    {
+      "snapshot_id": "b08cda8e3cfb484d2c1f6ccb6e2b5ad00711d95bb0a90cc30a989d0c96343ff8",
+      "episode_id": "procedural-sokoban-97016",
+      "candidate_order": [
+        "DIRECTION_CORRUPT",
+        "AUTHENTIC",
+        "ORDER_CORRUPT",
+        "PHASE_CORRUPT"
+      ],
+      "gold_candidate_evaluator_only": "AUTHENTIC",
+      "predictions": {
+        "canonical_topology_executor": "AUTHENTIC",
+        "direction_permuted_executor": null,
+        "phase_reversed_executor": "PHASE_CORRUPT",
+        "sequence_length_marginal": null
+      }
+    },
+    {
+      "snapshot_id": "2df206fb48e547064fe406a3c09c2a6b6b220ad4e923226b104698db3ee74f2b",
+      "episode_id": "procedural-sokoban-97016",
+      "candidate_order": [
+        "ORDER_CORRUPT",
+        "AUTHENTIC",
+        "DIRECTION_CORRUPT",
+        "PHASE_CORRUPT"
+      ],
+      "gold_candidate_evaluator_only": "AUTHENTIC",
+      "predictions": {
+        "canonical_topology_executor": "AUTHENTIC",
+        "direction_permuted_executor": null,
+        "phase_reversed_executor": "PHASE_CORRUPT",
+        "sequence_length_marginal": null
+      }
+    },
+    {
+      "snapshot_id": "8933571759e48d7034dfa2cf4c9a56ed7e4893810113a8f409fef25dbdcbff60",
+      "episode_id": "procedural-sokoban-97016",
+      "candidate_order": [
+        "AUTHENTIC",
+        "DIRECTION_CORRUPT",
+        "ORDER_CORRUPT",
+        "PHASE_CORRUPT"
+      ],
+      "gold_candidate_evaluator_only": "AUTHENTIC",
+      "predictions": {
+        "canonical_topology_executor": "AUTHENTIC",
+        "direction_permuted_executor": null,
+        "phase_reversed_executor": "PHASE_CORRUPT",
+        "sequence_length_marginal": null
+      }
+    },
+    {
+      "snapshot_id": "26a03461ba890a8bdd503220e5e2d2eb56bf501d3db0705f91839b9b09fb9cf4",
+      "episode_id": "procedural-sokoban-97017",
+      "candidate_order": [
+        "AUTHENTIC",
+        "ORDER_CORRUPT",
+        "PHASE_CORRUPT",
+        "DIRECTION_CORRUPT"
+      ],
+      "gold_candidate_evaluator_only": "AUTHENTIC",
+      "predictions": {
+        "canonical_topology_executor": "AUTHENTIC",
+        "direction_permuted_executor": null,
+        "phase_reversed_executor": "PHASE_CORRUPT",
+        "sequence_length_marginal": null
+      }
+    },
+    {
+      "snapshot_id": "4889b1569abd39e9bc77d9e20d5e638dfd4cc530d41d458823c953cd027a2d94",
+      "episode_id": "procedural-sokoban-97017",
+      "candidate_order": [
+        "DIRECTION_CORRUPT",
+        "AUTHENTIC",
+        "PHASE_CORRUPT",
+        "ORDER_CORRUPT"
+      ],
+      "gold_candidate_evaluator_only": "AUTHENTIC",
+      "predictions": {
+        "canonical_topology_executor": "AUTHENTIC",
+        "direction_permuted_executor": null,
+        "phase_reversed_executor": "PHASE_CORRUPT",
+        "sequence_length_marginal": null
+      }
+    },
+    {
+      "snapshot_id": "cb76ae3db0a4dc34f0f66ea283200319a1b4bf320014c2629bfeb0e617bb73ba",
+      "episode_id": "procedural-sokoban-97018",
+      "candidate_order": [
+        "DIRECTION_CORRUPT",
+        "AUTHENTIC",
+        "ORDER_CORRUPT",
+        "PHASE_CORRUPT"
+      ],
+      "gold_candidate_evaluator_only": "AUTHENTIC",
+      "predictions": {
+        "canonical_topology_executor": "AUTHENTIC",
+        "direction_permuted_executor": null,
+        "phase_reversed_executor": "PHASE_CORRUPT",
+        "sequence_length_marginal": null
+      }
+    },
+    {
+      "snapshot_id": "0f1d255aa4e45de8ed281d07c542f288ecdf865016610acdc62486e1a5034cd8",
+      "episode_id": "procedural-sokoban-97018",
+      "candidate_order": [
+        "DIRECTION_CORRUPT",
+        "AUTHENTIC",
+        "PHASE_CORRUPT",
+        "ORDER_CORRUPT"
+      ],
+      "gold_candidate_evaluator_only": "AUTHENTIC",
+      "predictions": {
+        "canonical_topology_executor": "AUTHENTIC",
+        "direction_permuted_executor": null,
+        "phase_reversed_executor": "PHASE_CORRUPT",
+        "sequence_length_marginal": null
+      }
+    },
+    {
+      "snapshot_id": "c352b660f4bfa280b65d89ef9e7e6de0102a2bc2611b5d3d764289dc89e81f89",
+      "episode_id": "procedural-sokoban-97018",
+      "candidate_order": [
+        "DIRECTION_CORRUPT",
+        "AUTHENTIC",
+        "ORDER_CORRUPT",
+        "PHASE_CORRUPT"
+      ],
+      "gold_candidate_evaluator_only": "AUTHENTIC",
+      "predictions": {
+        "canonical_topology_executor": "AUTHENTIC",
+        "direction_permuted_executor": null,
+        "phase_reversed_executor": "PHASE_CORRUPT",
+        "sequence_length_marginal": null
+      }
+    },
+    {
+      "snapshot_id": "169fd801acb06ef687bc1f3d8951631f41e1a3d25746999ee26bd9ed773d5dda",
+      "episode_id": "procedural-sokoban-97019",
+      "candidate_order": [
+        "PHASE_CORRUPT",
+        "ORDER_CORRUPT",
+        "AUTHENTIC",
+        "DIRECTION_CORRUPT"
+      ],
+      "gold_candidate_evaluator_only": "AUTHENTIC",
+      "predictions": {
+        "canonical_topology_executor": "AUTHENTIC",
+        "direction_permuted_executor": null,
+        "phase_reversed_executor": "PHASE_CORRUPT",
+        "sequence_length_marginal": null
+      }
+    },
+    {
+      "snapshot_id": "e81baa4d0b74fe50667d4880f2f5c4b29f72b76c98a30085e8dfcef47bc439fe",
+      "episode_id": "procedural-sokoban-97020",
+      "candidate_order": [
+        "ORDER_CORRUPT",
+        "PHASE_CORRUPT",
+        "DIRECTION_CORRUPT",
+        "AUTHENTIC"
+      ],
+      "gold_candidate_evaluator_only": "AUTHENTIC",
+      "predictions": {
+        "canonical_topology_executor": "AUTHENTIC",
+        "direction_permuted_executor": null,
+        "phase_reversed_executor": "PHASE_CORRUPT",
+        "sequence_length_marginal": null
+      }
+    },
+    {
+      "snapshot_id": "9ab5542092302a55973d13cf9b57255fd06d7f79bdefa566e21472661f58c4d7",
+      "episode_id": "procedural-sokoban-97021",
+      "candidate_order": [
+        "DIRECTION_CORRUPT",
+        "AUTHENTIC",
+        "ORDER_CORRUPT",
+        "PHASE_CORRUPT"
+      ],
+      "gold_candidate_evaluator_only": "AUTHENTIC",
+      "predictions": {
+        "canonical_topology_executor": "AUTHENTIC",
+        "direction_permuted_executor": null,
+        "phase_reversed_executor": "PHASE_CORRUPT",
+        "sequence_length_marginal": null
+      }
+    },
+    {
+      "snapshot_id": "355dbf3f7d52bc989d6e10e175740bb87580dfffe15b159bab1b79c221fc6189",
+      "episode_id": "procedural-sokoban-97021",
+      "candidate_order": [
+        "PHASE_CORRUPT",
+        "ORDER_CORRUPT",
+        "DIRECTION_CORRUPT",
+        "AUTHENTIC"
+      ],
+      "gold_candidate_evaluator_only": "AUTHENTIC",
+      "predictions": {
+        "canonical_topology_executor": "AUTHENTIC",
+        "direction_permuted_executor": null,
+        "phase_reversed_executor": "PHASE_CORRUPT",
+        "sequence_length_marginal": null
+      }
+    },
+    {
+      "snapshot_id": "fc8bf78ec6dc69cc932b84a54bf187fbbe7185241ee97ae348e030c451b8a4a5",
+      "episode_id": "procedural-sokoban-97021",
+      "candidate_order": [
+        "ORDER_CORRUPT",
+        "PHASE_CORRUPT",
+        "DIRECTION_CORRUPT",
+        "AUTHENTIC"
+      ],
+      "gold_candidate_evaluator_only": "AUTHENTIC",
+      "predictions": {
+        "canonical_topology_executor": "AUTHENTIC",
+        "direction_permuted_executor": null,
+        "phase_reversed_executor": "PHASE_CORRUPT",
+        "sequence_length_marginal": null
+      }
+    },
+    {
+      "snapshot_id": "a6fbe20022ff93ff64723937a15907bce486575fe2c33b2683149c9167242e48",
+      "episode_id": "procedural-sokoban-97022",
+      "candidate_order": [
+        "PHASE_CORRUPT",
+        "AUTHENTIC",
+        "ORDER_CORRUPT",
+        "DIRECTION_CORRUPT"
+      ],
+      "gold_candidate_evaluator_only": "AUTHENTIC",
+      "predictions": {
+        "canonical_topology_executor": "AUTHENTIC",
+        "direction_permuted_executor": null,
+        "phase_reversed_executor": "PHASE_CORRUPT",
+        "sequence_length_marginal": null
+      }
+    },
+    {
+      "snapshot_id": "ee4265d686713da529089507c501bfc8000b56f17b549745815f57c5b04fba8f",
+      "episode_id": "procedural-sokoban-97022",
+      "candidate_order": [
+        "DIRECTION_CORRUPT",
+        "AUTHENTIC",
+        "ORDER_CORRUPT",
+        "PHASE_CORRUPT"
+      ],
+      "gold_candidate_evaluator_only": "AUTHENTIC",
+      "predictions": {
+        "canonical_topology_executor": "AUTHENTIC",
+        "direction_permuted_executor": null,
+        "phase_reversed_executor": "PHASE_CORRUPT",
+        "sequence_length_marginal": null
+      }
+    },
+    {
+      "snapshot_id": "c75bc554848e659c977677d3315ca2564c77d114b39d01d45ec319ac7f5211d8",
+      "episode_id": "procedural-sokoban-97022",
+      "candidate_order": [
+        "DIRECTION_CORRUPT",
+        "PHASE_CORRUPT",
+        "AUTHENTIC",
+        "ORDER_CORRUPT"
+      ],
+      "gold_candidate_evaluator_only": "AUTHENTIC",
+      "predictions": {
+        "canonical_topology_executor": "AUTHENTIC",
+        "direction_permuted_executor": null,
+        "phase_reversed_executor": "PHASE_CORRUPT",
+        "sequence_length_marginal": null
+      }
+    },
+    {
+      "snapshot_id": "1d1f47c23a6b14fe5cde23de6f4e451b5b5175fbdcfe039eb5255c783ed80d31",
+      "episode_id": "procedural-sokoban-97022",
+      "candidate_order": [
+        "DIRECTION_CORRUPT",
+        "AUTHENTIC",
+        "ORDER_CORRUPT",
+        "PHASE_CORRUPT"
+      ],
+      "gold_candidate_evaluator_only": "AUTHENTIC",
+      "predictions": {
+        "canonical_topology_executor": "AUTHENTIC",
+        "direction_permuted_executor": null,
+        "phase_reversed_executor": "PHASE_CORRUPT",
+        "sequence_length_marginal": null
+      }
+    },
+    {
+      "snapshot_id": "651ed7775638b00c3a47f64122fcbf1969c4422cd7f9f4dfc3b11d5a2fd4f2e4",
+      "episode_id": "procedural-sokoban-97023",
+      "candidate_order": [
+        "DIRECTION_CORRUPT",
+        "ORDER_CORRUPT",
+        "PHASE_CORRUPT",
+        "AUTHENTIC"
+      ],
+      "gold_candidate_evaluator_only": "AUTHENTIC",
+      "predictions": {
+        "canonical_topology_executor": "AUTHENTIC",
+        "direction_permuted_executor": null,
+        "phase_reversed_executor": "PHASE_CORRUPT",
+        "sequence_length_marginal": null
+      }
+    },
+    {
+      "snapshot_id": "bc9f4d2b8c9ed2507ffca408d9255374dfb3e7a8b30829b6081ef4942f4ed2a6",
+      "episode_id": "procedural-sokoban-97023",
+      "candidate_order": [
+        "ORDER_CORRUPT",
+        "DIRECTION_CORRUPT",
+        "AUTHENTIC",
+        "PHASE_CORRUPT"
+      ],
+      "gold_candidate_evaluator_only": "AUTHENTIC",
+      "predictions": {
+        "canonical_topology_executor": "AUTHENTIC",
+        "direction_permuted_executor": null,
+        "phase_reversed_executor": "PHASE_CORRUPT",
+        "sequence_length_marginal": null
+      }
+    },
+    {
+      "snapshot_id": "4284c630f05f8f6ce49aa78b4ef491b1caf1a3c2bbb8899afa19e9ae26086bcd",
+      "episode_id": "procedural-sokoban-97024",
+      "candidate_order": [
+        "ORDER_CORRUPT",
+        "DIRECTION_CORRUPT",
+        "PHASE_CORRUPT",
+        "AUTHENTIC"
+      ],
+      "gold_candidate_evaluator_only": "AUTHENTIC",
+      "predictions": {
+        "canonical_topology_executor": "AUTHENTIC",
+        "direction_permuted_executor": null,
+        "phase_reversed_executor": "PHASE_CORRUPT",
+        "sequence_length_marginal": null
+      }
+    },
+    {
+      "snapshot_id": "5aeae6270e0469fd08e55982f17fd50ee040b1a6aeed8ab610666140657a361b",
+      "episode_id": "procedural-sokoban-97024",
+      "candidate_order": [
+        "PHASE_CORRUPT",
+        "AUTHENTIC",
+        "ORDER_CORRUPT",
+        "DIRECTION_CORRUPT"
+      ],
+      "gold_candidate_evaluator_only": "AUTHENTIC",
+      "predictions": {
+        "canonical_topology_executor": "AUTHENTIC",
+        "direction_permuted_executor": null,
+        "phase_reversed_executor": "PHASE_CORRUPT",
+        "sequence_length_marginal": null
+      }
+    },
+    {
+      "snapshot_id": "52db60a9687e1ed4a28e4e10b706e70cf4a6f4c4d7639a3a2b0e1315eda7d9b8",
+      "episode_id": "procedural-sokoban-97024",
+      "candidate_order": [
+        "PHASE_CORRUPT",
+        "AUTHENTIC",
+        "DIRECTION_CORRUPT",
+        "ORDER_CORRUPT"
+      ],
+      "gold_candidate_evaluator_only": "AUTHENTIC",
+      "predictions": {
+        "canonical_topology_executor": "AUTHENTIC",
+        "direction_permuted_executor": null,
+        "phase_reversed_executor": "PHASE_CORRUPT",
+        "sequence_length_marginal": null
+      }
+    }
+  ],
+  "report_sha256": "87e69e67da6b45feb983e3244e6c5da05b5a293244edc1b670b6aeb274bcef7d"
+}

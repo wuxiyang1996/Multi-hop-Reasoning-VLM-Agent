@@ -1,0 +1,3440 @@
+{
+  "schema_version": 1,
+  "task_id": "webshop.53",
+  "condition": "ledger_blind_control",
+  "goal": "Find me loose fit, light weight, slim fit men's henleys with long sleeve, short sleeve, contrast color, unique design for gym workout, teen girls with color: b-black, and size: medium, and price lower than 40.00 dollars",
+  "initial_state_hash": "137c6bf638e2be17e84c7eb439e207859865fae82fe96666317737a91112ba49",
+  "maximum_steps": 12,
+  "steps": [
+    {
+      "step": 0,
+      "prompt_sha256": "b930b511d9bce0381f5ca31895d29fcf6382a0d07ba8970f9f3ad7a08ff9f37c",
+      "response_sha256": "427dd34ed6257c0a5f7c0e9eaf58d5ddfcc8a6342c5ea318768f739f7ab34ced",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "427dd34ed6257c0a5f7c0e9eaf58d5ddfcc8a6342c5ea318768f739f7ab34ced",
+          "completion_diagnostic": {
+            "character_count": 524,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": true,
+            "original_usage": {
+              "prompt_tokens": 491,
+              "completion_tokens": 137,
+              "total_tokens": 628,
+              "cost": 0.0004156,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0004156,
+                "upstream_inference_prompt_cost": 0.0001964,
+                "upstream_inference_completions_cost": 0.0002192
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 5
+        }
+      ],
+      "before_hash": "a4095c4512859233a4ce76b0a0f94d68e99e309b8f1d18fedfa6eaac7bd5d99e",
+      "candidates": [
+        "fill('18','men\\'s henleys loose fit light weight slim fit long sleeve short sleeve contrast color unique design gym workout teen girls b-black medium under 40')",
+        "fill('18','men\\'s henleys b-black medium under 40')",
+        "fill('18','men\\'s henleys long sleeve short sleeve b-black medium under 40')",
+        "fill('18','men\\'s henleys gym workout b-black medium under 40')",
+        "fill('18','men\\'s henleys loose fit light weight slim fit b-black medium under 40')"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "fill",
+          "url_phase": "landing",
+          "element_role": "textbox",
+          "element_text": "[18] textbox 'Search...', required",
+          "action_bid": "18",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false
+        },
+        {
+          "verb": "fill",
+          "url_phase": "landing",
+          "element_role": "textbox",
+          "element_text": "[18] textbox 'Search...', required",
+          "action_bid": "18",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false
+        },
+        {
+          "verb": "fill",
+          "url_phase": "landing",
+          "element_role": "textbox",
+          "element_text": "[18] textbox 'Search...', required",
+          "action_bid": "18",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false
+        },
+        {
+          "verb": "fill",
+          "url_phase": "landing",
+          "element_role": "textbox",
+          "element_text": "[18] textbox 'Search...', required",
+          "action_bid": "18",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false
+        },
+        {
+          "verb": "fill",
+          "url_phase": "landing",
+          "element_role": "textbox",
+          "element_text": "[18] textbox 'Search...', required",
+          "action_bid": "18",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false
+        }
+      ],
+      "target_features": [
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.9809542664690936,
+          0.008910126680510508,
+          0.008915589732162521,
+          0.007047382472608437
+        ],
+        [
+          0.9809542664690936,
+          0.008910126680510508,
+          0.008915589732162521,
+          0.007047382472608437
+        ],
+        [
+          0.9809542664690936,
+          0.008910126680510508,
+          0.008915589732162521,
+          0.007047382472608437
+        ],
+        [
+          0.9809542664690936,
+          0.008910126680510508,
+          0.008915589732162521,
+          0.007047382472608437
+        ],
+        [
+          0.9809542664690936,
+          0.008910126680510508,
+          0.008915589732162521,
+          0.007047382472608437
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": false,
+        "visible_goal_constraint_unsatisfied": false,
+        "prior_action_had_no_effect": false
+      },
+      "selected_index": 0,
+      "selected_action": "fill('18','men\\'s henleys loose fit light weight slim fit long sleeve short sleeve contrast color unique design gym workout teen girls b-black medium under 40')",
+      "changed_from_target_rank_zero": false,
+      "abstract_kind": "POSITION",
+      "source_abstained": false,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "v16:UNBOUND->EXPLORE_UNTRIED:target_rank_zero",
+      "reward": 0.0,
+      "terminated": false,
+      "truncated": false,
+      "after_hash": "ddc0f3dec66e676ebe598c7064ab5c0950bcd64852f54d4c937dc9f70c52ecf0"
+    },
+    {
+      "step": 1,
+      "prompt_sha256": "0e4ac58382b43561d879f31ab7e25fe57c0e65cdd9cfaa2742ccf970d451af65",
+      "response_sha256": "4a7b7183c4cf732cc37dfd48337e555a384660ce39267673ae15d9aed644327d",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "4a7b7183c4cf732cc37dfd48337e555a384660ce39267673ae15d9aed644327d",
+          "completion_diagnostic": {
+            "character_count": 61,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": true,
+            "original_usage": {
+              "prompt_tokens": 683,
+              "completion_tokens": 19,
+              "total_tokens": 702,
+              "cost": 0.0003036,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0003036,
+                "upstream_inference_prompt_cost": 0.0002732,
+                "upstream_inference_completions_cost": 3.04e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 2
+        }
+      ],
+      "before_hash": "ddc0f3dec66e676ebe598c7064ab5c0950bcd64852f54d4c937dc9f70c52ecf0",
+      "candidates": [
+        "click('20')",
+        "noop()"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "click",
+          "url_phase": "landing",
+          "element_role": "button",
+          "element_text": "[20] button 'Search'",
+          "action_bid": "20",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "noop",
+          "url_phase": "landing",
+          "element_role": "other",
+          "element_text": "",
+          "action_bid": null,
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": true
+        }
+      ],
+      "target_features": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.09090909090909091
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.09090909090909091
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.9838093043631316,
+          0.007810760169351171,
+          0.007815314258614531,
+          0.007254276463657209
+        ],
+        [
+          0.9794556923764357,
+          0.009232307754060344,
+          0.009238037421806178,
+          0.007036402034354836
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": false,
+        "visible_goal_constraint_unsatisfied": false,
+        "prior_action_had_no_effect": false
+      },
+      "selected_index": 0,
+      "selected_action": "click('20')",
+      "changed_from_target_rank_zero": false,
+      "abstract_kind": "POSITION",
+      "source_abstained": false,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "v16:UNBOUND->EXPLORE_UNTRIED:target_rank_zero",
+      "reward": 0.0,
+      "terminated": false,
+      "truncated": false,
+      "after_hash": "6a56c9b9a761ee8bc513412b10c88f26cd8d3d2f14c8cc8b666a4b6891c71a20"
+    },
+    {
+      "step": 2,
+      "prompt_sha256": "53d719917c256f99493e430dcf76bc81bdb76a19d3873906f77e9e7be04a6cec",
+      "response_sha256": "27ae887ec725d5364cdba59759b49e3fde8ed7e2d44b30967506ff3d33922603",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "27ae887ec725d5364cdba59759b49e3fde8ed7e2d44b30967506ff3d33922603",
+          "completion_diagnostic": {
+            "character_count": 141,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": true,
+            "original_usage": {
+              "prompt_tokens": 4410,
+              "completion_tokens": 42,
+              "total_tokens": 4452,
+              "cost": 0.0018312,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0018312,
+                "upstream_inference_prompt_cost": 0.001764,
+                "upstream_inference_completions_cost": 6.72e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 5
+        }
+      ],
+      "before_hash": "6a56c9b9a761ee8bc513412b10c88f26cd8d3d2f14c8cc8b666a4b6891c71a20",
+      "candidates": [
+        "click('35')",
+        "click('47')",
+        "click('59')",
+        "click('71')",
+        "click('83')"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[35] link 'B085WQKRRJ', url=\"http://127.0.0.1:3000/item_page/fixed_53/B085WQKRRJ/%5B%22men's%22,%20'henleys',%20'loose',%20'fit',%20'light',%20'weight',%20'slim',%20'fit',%20'long',%20'sleeve',%20'short',%20'sleeve',%20'contrast',%20'color',%20'unique',%20'design',%20'gym',%20'workout',%20'teen',%20'girls',%20'b-black',%20'medium',%20'under',%20'40'%5D/1/%7B%7D\"",
+          "action_bid": "35",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "black",
+            "color",
+            "contrast",
+            "design",
+            "fit",
+            "girls",
+            "gym",
+            "henleys",
+            "light",
+            "long",
+            "loose",
+            "medium",
+            "short",
+            "sleeve",
+            "slim",
+            "teen",
+            "unique",
+            "weight",
+            "workout"
+          ],
+          "goal_overlap": 0.48717948717948717,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[47] link 'B09QGK5XHZ', url=\"http://127.0.0.1:3000/item_page/fixed_53/B09QGK5XHZ/%5B%22men's%22,%20'henleys',%20'loose',%20'fit',%20'light',%20'weight',%20'slim',%20'fit',%20'long',%20'sleeve',%20'short',%20'sleeve',%20'contrast',%20'color',%20'unique',%20'design',%20'gym',%20'workout',%20'teen',%20'girls',%20'b-black',%20'medium',%20'under',%20'40'%5D/1/%7B%7D\"",
+          "action_bid": "47",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "black",
+            "color",
+            "contrast",
+            "design",
+            "fit",
+            "girls",
+            "gym",
+            "henleys",
+            "light",
+            "long",
+            "loose",
+            "medium",
+            "short",
+            "sleeve",
+            "slim",
+            "teen",
+            "unique",
+            "weight",
+            "workout"
+          ],
+          "goal_overlap": 0.48717948717948717,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[59] link 'B09R9YCM6R', url=\"http://127.0.0.1:3000/item_page/fixed_53/B09R9YCM6R/%5B%22men's%22,%20'henleys',%20'loose',%20'fit',%20'light',%20'weight',%20'slim',%20'fit',%20'long',%20'sleeve',%20'short',%20'sleeve',%20'contrast',%20'color',%20'unique',%20'design',%20'gym',%20'workout',%20'teen',%20'girls',%20'b-black',%20'medium',%20'under',%20'40'%5D/1/%7B%7D\"",
+          "action_bid": "59",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "black",
+            "color",
+            "contrast",
+            "design",
+            "fit",
+            "girls",
+            "gym",
+            "henleys",
+            "light",
+            "long",
+            "loose",
+            "medium",
+            "short",
+            "sleeve",
+            "slim",
+            "teen",
+            "unique",
+            "weight",
+            "workout"
+          ],
+          "goal_overlap": 0.48717948717948717,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[71] link 'B09S3BN15C', url=\"http://127.0.0.1:3000/item_page/fixed_53/B09S3BN15C/%5B%22men's%22,%20'henleys',%20'loose',%20'fit',%20'light',%20'weight',%20'slim',%20'fit',%20'long',%20'sleeve',%20'short',%20'sleeve',%20'contrast',%20'color',%20'unique',%20'design',%20'gym',%20'workout',%20'teen',%20'girls',%20'b-black',%20'medium',%20'under',%20'40'%5D/1/%7B%7D\"",
+          "action_bid": "71",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "black",
+            "color",
+            "contrast",
+            "design",
+            "fit",
+            "girls",
+            "gym",
+            "henleys",
+            "light",
+            "long",
+            "loose",
+            "medium",
+            "short",
+            "sleeve",
+            "slim",
+            "teen",
+            "unique",
+            "weight",
+            "workout"
+          ],
+          "goal_overlap": 0.48717948717948717,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[83] link 'B09HGFV91W', url=\"http://127.0.0.1:3000/item_page/fixed_53/B09HGFV91W/%5B%22men's%22,%20'henleys',%20'loose',%20'fit',%20'light',%20'weight',%20'slim',%20'fit',%20'long',%20'sleeve',%20'short',%20'sleeve',%20'contrast',%20'color',%20'unique',%20'design',%20'gym',%20'workout',%20'teen',%20'girls',%20'b-black',%20'medium',%20'under',%20'40'%5D/1/%7B%7D\"",
+          "action_bid": "83",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "black",
+            "color",
+            "contrast",
+            "design",
+            "fit",
+            "girls",
+            "gym",
+            "henleys",
+            "light",
+            "long",
+            "loose",
+            "medium",
+            "short",
+            "sleeve",
+            "slim",
+            "teen",
+            "unique",
+            "weight",
+            "workout"
+          ],
+          "goal_overlap": 0.48717948717948717,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        }
+      ],
+      "target_features": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.48717948717948717,
+          0.0,
+          0.0,
+          0.0,
+          0.18181818181818182
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.48717948717948717,
+          0.0,
+          0.0,
+          0.0,
+          0.18181818181818182
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.48717948717948717,
+          0.0,
+          0.0,
+          0.0,
+          0.18181818181818182
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.48717948717948717,
+          0.0,
+          0.0,
+          0.0,
+          0.18181818181818182
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.48717948717948717,
+          0.0,
+          0.0,
+          0.0,
+          0.18181818181818182
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.751631536059178,
+          0.0060959910390869804,
+          0.006101764473593688,
+          0.004051436301723127
+        ],
+        [
+          0.751631536059178,
+          0.0060959910390869804,
+          0.006101764473593688,
+          0.004051436301723127
+        ],
+        [
+          0.751631536059178,
+          0.0060959910390869804,
+          0.006101764473593688,
+          0.004051436301723127
+        ],
+        [
+          0.751631536059178,
+          0.0060959910390869804,
+          0.006101764473593688,
+          0.004051436301723127
+        ],
+        [
+          0.751631536059178,
+          0.0060959910390869804,
+          0.006101764473593693,
+          0.004051436301723127
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": false,
+        "visible_goal_constraint_unsatisfied": false,
+        "prior_action_had_no_effect": false
+      },
+      "selected_index": 0,
+      "selected_action": "click('35')",
+      "changed_from_target_rank_zero": false,
+      "abstract_kind": "POSITION",
+      "source_abstained": false,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "v16:UNBOUND->EXPLORE_UNTRIED:target_rank_zero",
+      "reward": 0.0,
+      "terminated": false,
+      "truncated": false,
+      "after_hash": "63b88a1257958068a0e4645f05c37009d21e58b9814b70dabe1ee9e1fbd90de7"
+    },
+    {
+      "step": 3,
+      "prompt_sha256": "c6068c8af2e155b67fd3ed1a04a2281990c4eb5bac9511339f0eacb416b98283",
+      "response_sha256": "647800726b5b9ff2ff6767411a15daca84539856000c435dc5a7a364b2c1175e",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "647800726b5b9ff2ff6767411a15daca84539856000c435dc5a7a364b2c1175e",
+          "completion_diagnostic": {
+            "character_count": 141,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": true,
+            "original_usage": {
+              "prompt_tokens": 1564,
+              "completion_tokens": 42,
+              "total_tokens": 1606,
+              "cost": 0.0006928,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0006928,
+                "upstream_inference_prompt_cost": 0.0006256,
+                "upstream_inference_completions_cost": 6.72e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 5
+        }
+      ],
+      "before_hash": "63b88a1257958068a0e4645f05c37009d21e58b9814b70dabe1ee9e1fbd90de7",
+      "candidates": [
+        "click('30')",
+        "click('41')",
+        "click('70')",
+        "click('20')",
+        "click('17')",
+        "click('31')",
+        "go_back()"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "radio",
+          "element_text": "[30] radio 'medium', checked='false'",
+          "action_bid": "30",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "medium"
+          ],
+          "goal_overlap": 0.2,
+          "is_commit": false,
+          "is_constraint": true,
+          "is_goal_constraint": true,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false,
+          "goal_constraint_signature": "size:medium"
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "radio",
+          "element_text": "[41] radio 'black', checked='false'",
+          "action_bid": "41",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.2,
+          "is_commit": false,
+          "is_constraint": true,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false,
+          "goal_constraint_signature": null
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[70] button 'Buy Now'",
+          "action_bid": "70",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": true,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[20] button '< Prev'",
+          "action_bid": "20",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[17] button 'Back to Search'",
+          "action_bid": "17",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "other",
+          "element_text": "[31] LabelText ''",
+          "action_bid": "31",
+          "paired_constraint_bid": "30",
+          "paired_constraint_text": "[30] radio 'medium', checked='false'",
+          "goal_overlap_tokens": [
+            "medium"
+          ],
+          "goal_overlap": 0.14285714285714285,
+          "is_commit": false,
+          "is_constraint": true,
+          "is_goal_constraint": true,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false,
+          "goal_constraint_signature": "size:medium"
+        },
+        {
+          "verb": "go_back",
+          "url_phase": "item_page",
+          "element_role": "other",
+          "element_text": "",
+          "action_bid": null,
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        }
+      ],
+      "target_features": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.2,
+          0.0,
+          1.0,
+          0.0,
+          0.2727272727272727
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.2,
+          0.0,
+          1.0,
+          0.0,
+          0.2727272727272727
+        ],
+        [
+          1.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.2727272727272727
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.2727272727272727
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.2727272727272727
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          1.0,
+          0.0,
+          0.0,
+          0.14285714285714285,
+          0.0,
+          1.0,
+          0.0,
+          0.2727272727272727
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.2727272727272727
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.03149597889118872,
+          0.002909837242024155,
+          0.0029148384694254316,
+          0.004763806736018787
+        ],
+        [
+          0.03149597889118872,
+          0.002909837242024155,
+          0.0029148384694254316,
+          0.004763806736018787
+        ],
+        [
+          0.980629672605278,
+          0.9119372278402715,
+          0.9120139048767353,
+          0.007194583298645433
+        ],
+        [
+          0.7722152617895656,
+          0.0046759951538680065,
+          0.004680470905932585,
+          0.005408759333001475
+        ],
+        [
+          0.7722152617895656,
+          0.0046759951538680065,
+          0.004680470905932585,
+          0.005408759333001475
+        ],
+        [
+          0.9862985917527426,
+          0.011922797154128537,
+          0.011949582582204224,
+          0.8939422272327111
+        ],
+        [
+          0.05519908888067169,
+          0.0024341956597918,
+          0.002437951136389592,
+          0.0030030471033145245
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": false,
+        "visible_goal_constraint_unsatisfied": true,
+        "prior_action_had_no_effect": false
+      },
+      "selected_index": 6,
+      "selected_action": "go_back()",
+      "changed_from_target_rank_zero": true,
+      "abstract_kind": "REPLAN",
+      "source_abstained": false,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "v16:REFUTED->BACKTRACK_REPLAN:target_coverage_reject_incomplete_product",
+      "reward": 0.0,
+      "terminated": false,
+      "truncated": false,
+      "after_hash": "6a56c9b9a761ee8bc513412b10c88f26cd8d3d2f14c8cc8b666a4b6891c71a20"
+    },
+    {
+      "step": 4,
+      "prompt_sha256": "f9aa24f0f96894024d0e107b24ccf8744bf3105d9d5d3db8989ad16f3fa16a2b",
+      "response_sha256": "27ae887ec725d5364cdba59759b49e3fde8ed7e2d44b30967506ff3d33922603",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "27ae887ec725d5364cdba59759b49e3fde8ed7e2d44b30967506ff3d33922603",
+          "completion_diagnostic": {
+            "character_count": 141,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": true,
+            "original_usage": {
+              "prompt_tokens": 4440,
+              "completion_tokens": 42,
+              "total_tokens": 4482,
+              "cost": 0.0006528,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 3968,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0006528,
+                "upstream_inference_prompt_cost": 0.0005856,
+                "upstream_inference_completions_cost": 6.72e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 5
+        }
+      ],
+      "before_hash": "6a56c9b9a761ee8bc513412b10c88f26cd8d3d2f14c8cc8b666a4b6891c71a20",
+      "candidates": [
+        "click('35')",
+        "click('47')",
+        "click('59')",
+        "click('71')",
+        "click('83')"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[35] link 'B085WQKRRJ', url=\"http://127.0.0.1:3000/item_page/fixed_53/B085WQKRRJ/%5B%22men's%22,%20'henleys',%20'loose',%20'fit',%20'light',%20'weight',%20'slim',%20'fit',%20'long',%20'sleeve',%20'short',%20'sleeve',%20'contrast',%20'color',%20'unique',%20'design',%20'gym',%20'workout',%20'teen',%20'girls',%20'b-black',%20'medium',%20'under',%20'40'%5D/1/%7B%7D\"",
+          "action_bid": "35",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "black",
+            "color",
+            "contrast",
+            "design",
+            "fit",
+            "girls",
+            "gym",
+            "henleys",
+            "light",
+            "long",
+            "loose",
+            "medium",
+            "short",
+            "sleeve",
+            "slim",
+            "teen",
+            "unique",
+            "weight",
+            "workout"
+          ],
+          "goal_overlap": 0.48717948717948717,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[47] link 'B09QGK5XHZ', url=\"http://127.0.0.1:3000/item_page/fixed_53/B09QGK5XHZ/%5B%22men's%22,%20'henleys',%20'loose',%20'fit',%20'light',%20'weight',%20'slim',%20'fit',%20'long',%20'sleeve',%20'short',%20'sleeve',%20'contrast',%20'color',%20'unique',%20'design',%20'gym',%20'workout',%20'teen',%20'girls',%20'b-black',%20'medium',%20'under',%20'40'%5D/1/%7B%7D\"",
+          "action_bid": "47",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "black",
+            "color",
+            "contrast",
+            "design",
+            "fit",
+            "girls",
+            "gym",
+            "henleys",
+            "light",
+            "long",
+            "loose",
+            "medium",
+            "short",
+            "sleeve",
+            "slim",
+            "teen",
+            "unique",
+            "weight",
+            "workout"
+          ],
+          "goal_overlap": 0.48717948717948717,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[59] link 'B09R9YCM6R', url=\"http://127.0.0.1:3000/item_page/fixed_53/B09R9YCM6R/%5B%22men's%22,%20'henleys',%20'loose',%20'fit',%20'light',%20'weight',%20'slim',%20'fit',%20'long',%20'sleeve',%20'short',%20'sleeve',%20'contrast',%20'color',%20'unique',%20'design',%20'gym',%20'workout',%20'teen',%20'girls',%20'b-black',%20'medium',%20'under',%20'40'%5D/1/%7B%7D\"",
+          "action_bid": "59",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "black",
+            "color",
+            "contrast",
+            "design",
+            "fit",
+            "girls",
+            "gym",
+            "henleys",
+            "light",
+            "long",
+            "loose",
+            "medium",
+            "short",
+            "sleeve",
+            "slim",
+            "teen",
+            "unique",
+            "weight",
+            "workout"
+          ],
+          "goal_overlap": 0.48717948717948717,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[71] link 'B09S3BN15C', url=\"http://127.0.0.1:3000/item_page/fixed_53/B09S3BN15C/%5B%22men's%22,%20'henleys',%20'loose',%20'fit',%20'light',%20'weight',%20'slim',%20'fit',%20'long',%20'sleeve',%20'short',%20'sleeve',%20'contrast',%20'color',%20'unique',%20'design',%20'gym',%20'workout',%20'teen',%20'girls',%20'b-black',%20'medium',%20'under',%20'40'%5D/1/%7B%7D\"",
+          "action_bid": "71",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "black",
+            "color",
+            "contrast",
+            "design",
+            "fit",
+            "girls",
+            "gym",
+            "henleys",
+            "light",
+            "long",
+            "loose",
+            "medium",
+            "short",
+            "sleeve",
+            "slim",
+            "teen",
+            "unique",
+            "weight",
+            "workout"
+          ],
+          "goal_overlap": 0.48717948717948717,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[83] link 'B09HGFV91W', url=\"http://127.0.0.1:3000/item_page/fixed_53/B09HGFV91W/%5B%22men's%22,%20'henleys',%20'loose',%20'fit',%20'light',%20'weight',%20'slim',%20'fit',%20'long',%20'sleeve',%20'short',%20'sleeve',%20'contrast',%20'color',%20'unique',%20'design',%20'gym',%20'workout',%20'teen',%20'girls',%20'b-black',%20'medium',%20'under',%20'40'%5D/1/%7B%7D\"",
+          "action_bid": "83",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "black",
+            "color",
+            "contrast",
+            "design",
+            "fit",
+            "girls",
+            "gym",
+            "henleys",
+            "light",
+            "long",
+            "loose",
+            "medium",
+            "short",
+            "sleeve",
+            "slim",
+            "teen",
+            "unique",
+            "weight",
+            "workout"
+          ],
+          "goal_overlap": 0.48717948717948717,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        }
+      ],
+      "target_features": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.48717948717948717,
+          0.0,
+          0.0,
+          0.0,
+          0.36363636363636365
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.48717948717948717,
+          0.0,
+          0.0,
+          0.0,
+          0.36363636363636365
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.48717948717948717,
+          0.0,
+          0.0,
+          0.0,
+          0.36363636363636365
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.48717948717948717,
+          0.0,
+          0.0,
+          0.0,
+          0.36363636363636365
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.48717948717948717,
+          0.0,
+          0.0,
+          0.0,
+          0.36363636363636365
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.6661087475294628,
+          0.006404283346892774,
+          0.006410601637375203,
+          0.0038921163443204594
+        ],
+        [
+          0.6661087475294628,
+          0.006404283346892774,
+          0.006410601637375203,
+          0.0038921163443204594
+        ],
+        [
+          0.6661087475294628,
+          0.006404283346892774,
+          0.006410601637375203,
+          0.0038921163443204594
+        ],
+        [
+          0.6661087475294628,
+          0.006404283346892774,
+          0.006410601637375203,
+          0.0038921163443204594
+        ],
+        [
+          0.6661087475294629,
+          0.00640428334689278,
+          0.006410601637375197,
+          0.0038921163443204594
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": false,
+        "visible_goal_constraint_unsatisfied": false,
+        "prior_action_had_no_effect": false
+      },
+      "selected_index": 0,
+      "selected_action": "click('35')",
+      "changed_from_target_rank_zero": false,
+      "abstract_kind": "POSITION",
+      "source_abstained": false,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "v16:UNBOUND->EXPLORE_UNTRIED:target_rank_zero",
+      "reward": 0.0,
+      "terminated": false,
+      "truncated": false,
+      "after_hash": "63b88a1257958068a0e4645f05c37009d21e58b9814b70dabe1ee9e1fbd90de7"
+    },
+    {
+      "step": 5,
+      "prompt_sha256": "c514887a316c010d9dc9acbec74092400fe29770644d1a82a0b0608e5790a23c",
+      "response_sha256": "647800726b5b9ff2ff6767411a15daca84539856000c435dc5a7a364b2c1175e",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "647800726b5b9ff2ff6767411a15daca84539856000c435dc5a7a364b2c1175e",
+          "completion_diagnostic": {
+            "character_count": 141,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": false,
+            "original_usage": {
+              "prompt_tokens": 1596,
+              "completion_tokens": 42,
+              "total_tokens": 1638,
+              "cost": 0.0002832,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 1408,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0002832,
+                "upstream_inference_prompt_cost": 0.000216,
+                "upstream_inference_completions_cost": 6.72e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 5
+        }
+      ],
+      "before_hash": "63b88a1257958068a0e4645f05c37009d21e58b9814b70dabe1ee9e1fbd90de7",
+      "candidates": [
+        "click('30')",
+        "click('41')",
+        "click('70')",
+        "click('20')",
+        "click('17')",
+        "click('31')",
+        "go_back()"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "radio",
+          "element_text": "[30] radio 'medium', checked='false'",
+          "action_bid": "30",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "medium"
+          ],
+          "goal_overlap": 0.2,
+          "is_commit": false,
+          "is_constraint": true,
+          "is_goal_constraint": true,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false,
+          "goal_constraint_signature": "size:medium"
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "radio",
+          "element_text": "[41] radio 'black', checked='false'",
+          "action_bid": "41",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.2,
+          "is_commit": false,
+          "is_constraint": true,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false,
+          "goal_constraint_signature": null
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[70] button 'Buy Now'",
+          "action_bid": "70",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": true,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[20] button '< Prev'",
+          "action_bid": "20",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[17] button 'Back to Search'",
+          "action_bid": "17",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "other",
+          "element_text": "[31] LabelText ''",
+          "action_bid": "31",
+          "paired_constraint_bid": "30",
+          "paired_constraint_text": "[30] radio 'medium', checked='false'",
+          "goal_overlap_tokens": [
+            "medium"
+          ],
+          "goal_overlap": 0.14285714285714285,
+          "is_commit": false,
+          "is_constraint": true,
+          "is_goal_constraint": true,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false,
+          "goal_constraint_signature": "size:medium"
+        },
+        {
+          "verb": "go_back",
+          "url_phase": "item_page",
+          "element_role": "other",
+          "element_text": "",
+          "action_bid": null,
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        }
+      ],
+      "target_features": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.2,
+          0.0,
+          1.0,
+          0.0,
+          0.45454545454545453
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.2,
+          0.0,
+          1.0,
+          0.0,
+          0.45454545454545453
+        ],
+        [
+          1.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.45454545454545453
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.45454545454545453
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.45454545454545453
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          1.0,
+          0.0,
+          0.0,
+          0.14285714285714285,
+          0.0,
+          1.0,
+          0.0,
+          0.45454545454545453
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.45454545454545453
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.02612556487765603,
+          0.003036451458233791,
+          0.0030417479236145638,
+          0.004796288478857145
+        ],
+        [
+          0.02612556487765603,
+          0.003036451458233791,
+          0.0030417479236145638,
+          0.004796288478857145
+        ],
+        [
+          0.9772859517014632,
+          0.9148471980105212,
+          0.9149252613344849,
+          0.00745193140896747
+        ],
+        [
+          0.6897780436514334,
+          0.004860026205851086,
+          0.004864875002663511,
+          0.005270524543113795
+        ],
+        [
+          0.6897780436514334,
+          0.004860026205851086,
+          0.004864875002663511,
+          0.005270524543113795
+        ],
+        [
+          0.9854803814270393,
+          0.012176248931096015,
+          0.012203830859588616,
+          0.8982779953263738
+        ],
+        [
+          0.041432064932019834,
+          0.0024792011797717946,
+          0.0024830836983223406,
+          0.0029672821215512234
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": false,
+        "visible_goal_constraint_unsatisfied": true,
+        "prior_action_had_no_effect": false
+      },
+      "selected_index": 6,
+      "selected_action": "go_back()",
+      "changed_from_target_rank_zero": true,
+      "abstract_kind": "REPLAN",
+      "source_abstained": false,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "v16:REFUTED->BACKTRACK_REPLAN:target_coverage_reject_incomplete_product",
+      "reward": 0.0,
+      "terminated": false,
+      "truncated": false,
+      "after_hash": "6a56c9b9a761ee8bc513412b10c88f26cd8d3d2f14c8cc8b666a4b6891c71a20"
+    },
+    {
+      "step": 6,
+      "prompt_sha256": "ca89e024cb97fa13f0557b2405f047957ae54be9064e18877af9ebbf19495d21",
+      "response_sha256": "70524f879f4dfa9447455cc5aed9cadc9a7ce0e137686a524eff0ed09d3ea84d",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "70524f879f4dfa9447455cc5aed9cadc9a7ce0e137686a524eff0ed09d3ea84d",
+          "completion_diagnostic": {
+            "character_count": 141,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": false,
+            "original_usage": {
+              "prompt_tokens": 4472,
+              "completion_tokens": 42,
+              "total_tokens": 4514,
+              "cost": 0.0005888,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 4224,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0005888,
+                "upstream_inference_prompt_cost": 0.0005216,
+                "upstream_inference_completions_cost": 6.72e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 5
+        }
+      ],
+      "before_hash": "6a56c9b9a761ee8bc513412b10c88f26cd8d3d2f14c8cc8b666a4b6891c71a20",
+      "candidates": [
+        "click('35')",
+        "click('47')",
+        "click('59')",
+        "click('71')",
+        "click('95')"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[35] link 'B085WQKRRJ', url=\"http://127.0.0.1:3000/item_page/fixed_53/B085WQKRRJ/%5B%22men's%22,%20'henleys',%20'loose',%20'fit',%20'light',%20'weight',%20'slim',%20'fit',%20'long',%20'sleeve',%20'short',%20'sleeve',%20'contrast',%20'color',%20'unique',%20'design',%20'gym',%20'workout',%20'teen',%20'girls',%20'b-black',%20'medium',%20'under',%20'40'%5D/1/%7B%7D\"",
+          "action_bid": "35",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "black",
+            "color",
+            "contrast",
+            "design",
+            "fit",
+            "girls",
+            "gym",
+            "henleys",
+            "light",
+            "long",
+            "loose",
+            "medium",
+            "short",
+            "sleeve",
+            "slim",
+            "teen",
+            "unique",
+            "weight",
+            "workout"
+          ],
+          "goal_overlap": 0.48717948717948717,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[47] link 'B09QGK5XHZ', url=\"http://127.0.0.1:3000/item_page/fixed_53/B09QGK5XHZ/%5B%22men's%22,%20'henleys',%20'loose',%20'fit',%20'light',%20'weight',%20'slim',%20'fit',%20'long',%20'sleeve',%20'short',%20'sleeve',%20'contrast',%20'color',%20'unique',%20'design',%20'gym',%20'workout',%20'teen',%20'girls',%20'b-black',%20'medium',%20'under',%20'40'%5D/1/%7B%7D\"",
+          "action_bid": "47",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "black",
+            "color",
+            "contrast",
+            "design",
+            "fit",
+            "girls",
+            "gym",
+            "henleys",
+            "light",
+            "long",
+            "loose",
+            "medium",
+            "short",
+            "sleeve",
+            "slim",
+            "teen",
+            "unique",
+            "weight",
+            "workout"
+          ],
+          "goal_overlap": 0.48717948717948717,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[59] link 'B09R9YCM6R', url=\"http://127.0.0.1:3000/item_page/fixed_53/B09R9YCM6R/%5B%22men's%22,%20'henleys',%20'loose',%20'fit',%20'light',%20'weight',%20'slim',%20'fit',%20'long',%20'sleeve',%20'short',%20'sleeve',%20'contrast',%20'color',%20'unique',%20'design',%20'gym',%20'workout',%20'teen',%20'girls',%20'b-black',%20'medium',%20'under',%20'40'%5D/1/%7B%7D\"",
+          "action_bid": "59",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "black",
+            "color",
+            "contrast",
+            "design",
+            "fit",
+            "girls",
+            "gym",
+            "henleys",
+            "light",
+            "long",
+            "loose",
+            "medium",
+            "short",
+            "sleeve",
+            "slim",
+            "teen",
+            "unique",
+            "weight",
+            "workout"
+          ],
+          "goal_overlap": 0.48717948717948717,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[71] link 'B09S3BN15C', url=\"http://127.0.0.1:3000/item_page/fixed_53/B09S3BN15C/%5B%22men's%22,%20'henleys',%20'loose',%20'fit',%20'light',%20'weight',%20'slim',%20'fit',%20'long',%20'sleeve',%20'short',%20'sleeve',%20'contrast',%20'color',%20'unique',%20'design',%20'gym',%20'workout',%20'teen',%20'girls',%20'b-black',%20'medium',%20'under',%20'40'%5D/1/%7B%7D\"",
+          "action_bid": "71",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "black",
+            "color",
+            "contrast",
+            "design",
+            "fit",
+            "girls",
+            "gym",
+            "henleys",
+            "light",
+            "long",
+            "loose",
+            "medium",
+            "short",
+            "sleeve",
+            "slim",
+            "teen",
+            "unique",
+            "weight",
+            "workout"
+          ],
+          "goal_overlap": 0.48717948717948717,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[95] link 'B09KLQLLT2', url=\"http://127.0.0.1:3000/item_page/fixed_53/B09KLQLLT2/%5B%22men's%22,%20'henleys',%20'loose',%20'fit',%20'light',%20'weight',%20'slim',%20'fit',%20'long',%20'sleeve',%20'short',%20'sleeve',%20'contrast',%20'color',%20'unique',%20'design',%20'gym',%20'workout',%20'teen',%20'girls',%20'b-black',%20'medium',%20'under',%20'40'%5D/1/%7B%7D\"",
+          "action_bid": "95",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "black",
+            "color",
+            "contrast",
+            "design",
+            "fit",
+            "girls",
+            "gym",
+            "henleys",
+            "light",
+            "long",
+            "loose",
+            "medium",
+            "short",
+            "sleeve",
+            "slim",
+            "teen",
+            "unique",
+            "weight",
+            "workout"
+          ],
+          "goal_overlap": 0.48717948717948717,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        }
+      ],
+      "target_features": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.48717948717948717,
+          0.0,
+          0.0,
+          0.0,
+          0.5454545454545454
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.48717948717948717,
+          0.0,
+          0.0,
+          0.0,
+          0.5454545454545454
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.48717948717948717,
+          0.0,
+          0.0,
+          0.0,
+          0.5454545454545454
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.48717948717948717,
+          0.0,
+          0.0,
+          0.0,
+          0.5454545454545454
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.48717948717948717,
+          0.0,
+          0.0,
+          0.0,
+          0.5454545454545454
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.5660544922564078,
+          0.006716782201839216,
+          0.00672369513924379,
+          0.0037645619377058076
+        ],
+        [
+          0.5660544922564078,
+          0.006716782201839216,
+          0.00672369513924379,
+          0.0037645619377058076
+        ],
+        [
+          0.5660544922564078,
+          0.006716782201839216,
+          0.00672369513924379,
+          0.0037645619377058076
+        ],
+        [
+          0.5660544922564078,
+          0.006716782201839216,
+          0.00672369513924379,
+          0.0037645619377058076
+        ],
+        [
+          0.5660544922564078,
+          0.006716782201839216,
+          0.00672369513924379,
+          0.0037645619377058106
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": false,
+        "visible_goal_constraint_unsatisfied": false,
+        "prior_action_had_no_effect": false
+      },
+      "selected_index": 0,
+      "selected_action": "click('35')",
+      "changed_from_target_rank_zero": false,
+      "abstract_kind": "POSITION",
+      "source_abstained": false,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "v16:UNBOUND->EXPLORE_UNTRIED:target_rank_zero",
+      "reward": 0.0,
+      "terminated": false,
+      "truncated": false,
+      "after_hash": "63b88a1257958068a0e4645f05c37009d21e58b9814b70dabe1ee9e1fbd90de7"
+    },
+    {
+      "step": 7,
+      "prompt_sha256": "2397e0b04f00e70ec1c44efbe4ede5ee2fd2f51a7a65c7f8b36218f81e98c077",
+      "response_sha256": "8403d84e5ad4e980e296c310359d2ed0de79b053e38826d7923a97b6e4ee6175",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "8403d84e5ad4e980e296c310359d2ed0de79b053e38826d7923a97b6e4ee6175",
+          "completion_diagnostic": {
+            "character_count": 141,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": false,
+            "original_usage": {
+              "prompt_tokens": 1580,
+              "completion_tokens": 42,
+              "total_tokens": 1622,
+              "cost": 0.0006992,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0006992,
+                "upstream_inference_prompt_cost": 0.000632,
+                "upstream_inference_completions_cost": 6.72e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 5
+        }
+      ],
+      "before_hash": "63b88a1257958068a0e4645f05c37009d21e58b9814b70dabe1ee9e1fbd90de7",
+      "candidates": [
+        "click('30')",
+        "click('41')",
+        "click('70')",
+        "click('60')",
+        "click('63')",
+        "click('31')",
+        "go_back()"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "radio",
+          "element_text": "[30] radio 'medium', checked='false'",
+          "action_bid": "30",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "medium"
+          ],
+          "goal_overlap": 0.2,
+          "is_commit": false,
+          "is_constraint": true,
+          "is_goal_constraint": true,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false,
+          "goal_constraint_signature": "size:medium"
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "radio",
+          "element_text": "[41] radio 'black', checked='false'",
+          "action_bid": "41",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.2,
+          "is_commit": false,
+          "is_constraint": true,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false,
+          "goal_constraint_signature": null
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[70] button 'Buy Now'",
+          "action_bid": "70",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": true,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[60] button 'Description'",
+          "action_bid": "60",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[63] button 'Features'",
+          "action_bid": "63",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "other",
+          "element_text": "[31] LabelText ''",
+          "action_bid": "31",
+          "paired_constraint_bid": "30",
+          "paired_constraint_text": "[30] radio 'medium', checked='false'",
+          "goal_overlap_tokens": [
+            "medium"
+          ],
+          "goal_overlap": 0.14285714285714285,
+          "is_commit": false,
+          "is_constraint": true,
+          "is_goal_constraint": true,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false,
+          "goal_constraint_signature": "size:medium"
+        },
+        {
+          "verb": "go_back",
+          "url_phase": "item_page",
+          "element_role": "other",
+          "element_text": "",
+          "action_bid": null,
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        }
+      ],
+      "target_features": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.2,
+          0.0,
+          1.0,
+          0.0,
+          0.6363636363636364
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.2,
+          0.0,
+          1.0,
+          0.0,
+          0.6363636363636364
+        ],
+        [
+          1.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.6363636363636364
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.6363636363636364
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.6363636363636364
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          1.0,
+          0.0,
+          0.0,
+          0.14285714285714285,
+          0.0,
+          1.0,
+          0.0,
+          0.6363636363636364
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.6363636363636364
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.02233920942347036,
+          0.0031703021931310787,
+          0.003175913510679916,
+          0.004865623957897691
+        ],
+        [
+          0.02233920942347036,
+          0.0031703021931310787,
+          0.003175913510679916,
+          0.004865623957897691
+        ],
+        [
+          0.9729077243694799,
+          0.916836402528745,
+          0.9169168929231603,
+          0.007739464308693895
+        ],
+        [
+          0.5901283285378258,
+          0.005060693242684081,
+          0.005065954387504318,
+          0.005146676784365121
+        ],
+        [
+          0.5901283285378258,
+          0.005060693242684081,
+          0.005065954387504318,
+          0.005146676784365121
+        ],
+        [
+          0.9845540810551775,
+          0.012455629874206713,
+          0.012484068548299603,
+          0.901619851049605
+        ],
+        [
+          0.03209751362612737,
+          0.002523418469219373,
+          0.0025274284420829874,
+          0.0029472327273931953
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": false,
+        "visible_goal_constraint_unsatisfied": true,
+        "prior_action_had_no_effect": false
+      },
+      "selected_index": 6,
+      "selected_action": "go_back()",
+      "changed_from_target_rank_zero": true,
+      "abstract_kind": "REPLAN",
+      "source_abstained": false,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "v16:REFUTED->BACKTRACK_REPLAN:target_coverage_reject_incomplete_product",
+      "reward": 0.0,
+      "terminated": false,
+      "truncated": false,
+      "after_hash": "6a56c9b9a761ee8bc513412b10c88f26cd8d3d2f14c8cc8b666a4b6891c71a20"
+    },
+    {
+      "step": 8,
+      "prompt_sha256": "c0546528d99dc16aa9649db196c3c487fd1706506dfae90b847f567c7dae809a",
+      "response_sha256": "1e23feeec35cc7eeb937ad1e6ea4e6fda28c2352e0c2d2c60fd6a16f8ffa1877",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "1e23feeec35cc7eeb937ad1e6ea4e6fda28c2352e0c2d2c60fd6a16f8ffa1877",
+          "completion_diagnostic": {
+            "character_count": 141,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": false,
+            "original_usage": {
+              "prompt_tokens": 4439,
+              "completion_tokens": 42,
+              "total_tokens": 4481,
+              "cost": 0.0006524,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 3968,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0006524,
+                "upstream_inference_prompt_cost": 0.0005852,
+                "upstream_inference_completions_cost": 6.72e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 5
+        }
+      ],
+      "before_hash": "6a56c9b9a761ee8bc513412b10c88f26cd8d3d2f14c8cc8b666a4b6891c71a20",
+      "candidates": [
+        "click('47')",
+        "click('59')",
+        "click('71')",
+        "click('83')",
+        "click('95')"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[47] link 'B09QGK5XHZ', url=\"http://127.0.0.1:3000/item_page/fixed_53/B09QGK5XHZ/%5B%22men's%22,%20'henleys',%20'loose',%20'fit',%20'light',%20'weight',%20'slim',%20'fit',%20'long',%20'sleeve',%20'short',%20'sleeve',%20'contrast',%20'color',%20'unique',%20'design',%20'gym',%20'workout',%20'teen',%20'girls',%20'b-black',%20'medium',%20'under',%20'40'%5D/1/%7B%7D\"",
+          "action_bid": "47",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "black",
+            "color",
+            "contrast",
+            "design",
+            "fit",
+            "girls",
+            "gym",
+            "henleys",
+            "light",
+            "long",
+            "loose",
+            "medium",
+            "short",
+            "sleeve",
+            "slim",
+            "teen",
+            "unique",
+            "weight",
+            "workout"
+          ],
+          "goal_overlap": 0.48717948717948717,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[59] link 'B09R9YCM6R', url=\"http://127.0.0.1:3000/item_page/fixed_53/B09R9YCM6R/%5B%22men's%22,%20'henleys',%20'loose',%20'fit',%20'light',%20'weight',%20'slim',%20'fit',%20'long',%20'sleeve',%20'short',%20'sleeve',%20'contrast',%20'color',%20'unique',%20'design',%20'gym',%20'workout',%20'teen',%20'girls',%20'b-black',%20'medium',%20'under',%20'40'%5D/1/%7B%7D\"",
+          "action_bid": "59",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "black",
+            "color",
+            "contrast",
+            "design",
+            "fit",
+            "girls",
+            "gym",
+            "henleys",
+            "light",
+            "long",
+            "loose",
+            "medium",
+            "short",
+            "sleeve",
+            "slim",
+            "teen",
+            "unique",
+            "weight",
+            "workout"
+          ],
+          "goal_overlap": 0.48717948717948717,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[71] link 'B09S3BN15C', url=\"http://127.0.0.1:3000/item_page/fixed_53/B09S3BN15C/%5B%22men's%22,%20'henleys',%20'loose',%20'fit',%20'light',%20'weight',%20'slim',%20'fit',%20'long',%20'sleeve',%20'short',%20'sleeve',%20'contrast',%20'color',%20'unique',%20'design',%20'gym',%20'workout',%20'teen',%20'girls',%20'b-black',%20'medium',%20'under',%20'40'%5D/1/%7B%7D\"",
+          "action_bid": "71",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "black",
+            "color",
+            "contrast",
+            "design",
+            "fit",
+            "girls",
+            "gym",
+            "henleys",
+            "light",
+            "long",
+            "loose",
+            "medium",
+            "short",
+            "sleeve",
+            "slim",
+            "teen",
+            "unique",
+            "weight",
+            "workout"
+          ],
+          "goal_overlap": 0.48717948717948717,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[83] link 'B09HGFV91W', url=\"http://127.0.0.1:3000/item_page/fixed_53/B09HGFV91W/%5B%22men's%22,%20'henleys',%20'loose',%20'fit',%20'light',%20'weight',%20'slim',%20'fit',%20'long',%20'sleeve',%20'short',%20'sleeve',%20'contrast',%20'color',%20'unique',%20'design',%20'gym',%20'workout',%20'teen',%20'girls',%20'b-black',%20'medium',%20'under',%20'40'%5D/1/%7B%7D\"",
+          "action_bid": "83",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "black",
+            "color",
+            "contrast",
+            "design",
+            "fit",
+            "girls",
+            "gym",
+            "henleys",
+            "light",
+            "long",
+            "loose",
+            "medium",
+            "short",
+            "sleeve",
+            "slim",
+            "teen",
+            "unique",
+            "weight",
+            "workout"
+          ],
+          "goal_overlap": 0.48717948717948717,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[95] link 'B09KLQLLT2', url=\"http://127.0.0.1:3000/item_page/fixed_53/B09KLQLLT2/%5B%22men's%22,%20'henleys',%20'loose',%20'fit',%20'light',%20'weight',%20'slim',%20'fit',%20'long',%20'sleeve',%20'short',%20'sleeve',%20'contrast',%20'color',%20'unique',%20'design',%20'gym',%20'workout',%20'teen',%20'girls',%20'b-black',%20'medium',%20'under',%20'40'%5D/1/%7B%7D\"",
+          "action_bid": "95",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "black",
+            "color",
+            "contrast",
+            "design",
+            "fit",
+            "girls",
+            "gym",
+            "henleys",
+            "light",
+            "long",
+            "loose",
+            "medium",
+            "short",
+            "sleeve",
+            "slim",
+            "teen",
+            "unique",
+            "weight",
+            "workout"
+          ],
+          "goal_overlap": 0.48717948717948717,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        }
+      ],
+      "target_features": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.48717948717948717,
+          0.0,
+          0.0,
+          0.0,
+          0.7272727272727273
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.48717948717948717,
+          0.0,
+          0.0,
+          0.0,
+          0.7272727272727273
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.48717948717948717,
+          0.0,
+          0.0,
+          0.0,
+          0.7272727272727273
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.48717948717948717,
+          0.0,
+          0.0,
+          0.0,
+          0.7272727272727273
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.48717948717948717,
+          0.0,
+          0.0,
+          0.0,
+          0.7272727272727273
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.4604765915476204,
+          0.007024400656573969,
+          0.007031955283023411,
+          0.0036729493164231464
+        ],
+        [
+          0.4604765915476204,
+          0.007024400656573969,
+          0.007031955283023411,
+          0.0036729493164231464
+        ],
+        [
+          0.4604765915476204,
+          0.007024400656573969,
+          0.007031955283023411,
+          0.0036729493164231464
+        ],
+        [
+          0.4604765915476204,
+          0.007024400656573969,
+          0.007031955283023411,
+          0.0036729493164231464
+        ],
+        [
+          0.4604765915476204,
+          0.007024400656573969,
+          0.007031955283023405,
+          0.0036729493164231464
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": false,
+        "visible_goal_constraint_unsatisfied": false,
+        "prior_action_had_no_effect": false
+      },
+      "selected_index": 0,
+      "selected_action": "click('47')",
+      "changed_from_target_rank_zero": false,
+      "abstract_kind": "POSITION",
+      "source_abstained": false,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "v16:UNBOUND->EXPLORE_UNTRIED:target_rank_zero",
+      "reward": 0.0,
+      "terminated": false,
+      "truncated": false,
+      "after_hash": "e40f6787aabebe1da3e64dd90f0bba6ec90dd557a7da579e854f2433c3ac6d19"
+    },
+    {
+      "step": 9,
+      "prompt_sha256": "5d16cadf07909abb873ff01f6fab48c0387188ada5842f666f232c2bf075d355",
+      "response_sha256": "fec8ce280152159c416b626d62355a8e073be5c8cd9e9938c9cb1cb68085a3b8",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "fec8ce280152159c416b626d62355a8e073be5c8cd9e9938c9cb1cb68085a3b8",
+          "completion_diagnostic": {
+            "character_count": 141,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": false,
+            "original_usage": {
+              "prompt_tokens": 1146,
+              "completion_tokens": 42,
+              "total_tokens": 1188,
+              "cost": 0.0005256,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0005256,
+                "upstream_inference_prompt_cost": 0.0004584,
+                "upstream_inference_completions_cost": 6.72e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 5
+        }
+      ],
+      "before_hash": "e40f6787aabebe1da3e64dd90f0bba6ec90dd557a7da579e854f2433c3ac6d19",
+      "candidates": [
+        "click('42')",
+        "click('32')",
+        "click('38')",
+        "click('20')",
+        "click('17')",
+        "go_back()"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[42] button 'Buy Now'",
+          "action_bid": "42",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": true,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[32] button 'Description'",
+          "action_bid": "32",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[38] button 'Reviews'",
+          "action_bid": "38",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[20] button '< Prev'",
+          "action_bid": "20",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[17] button 'Back to Search'",
+          "action_bid": "17",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "go_back",
+          "url_phase": "item_page",
+          "element_role": "other",
+          "element_text": "",
+          "action_bid": null,
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        }
+      ],
+      "target_features": [
+        [
+          1.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.8181818181818182
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.8181818181818182
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.8181818181818182
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.8181818181818182
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.8181818181818182
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.8181818181818182
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.9934774419586917,
+          0.955357047896784,
+          0.9553913975504119,
+          0.008589435452663042
+        ],
+        [
+          0.9685810449826816,
+          0.010425556994781577,
+          0.01043221974407372,
+          0.007203302577101376
+        ],
+        [
+          0.9685810449826816,
+          0.010425556994781577,
+          0.01043221974407372,
+          0.007203302577101376
+        ],
+        [
+          0.9685810449826816,
+          0.010425556994781577,
+          0.01043221974407372,
+          0.007203302577101376
+        ],
+        [
+          0.9685810449826816,
+          0.010425556994781577,
+          0.01043221974407372,
+          0.007203302577101376
+        ],
+        [
+          0.40672927548526405,
+          0.004491709067239408,
+          0.004496703504769686,
+          0.0036601234336769706
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": false,
+        "visible_goal_constraint_unsatisfied": false,
+        "prior_action_had_no_effect": false
+      },
+      "selected_index": 0,
+      "selected_action": "click('42')",
+      "changed_from_target_rank_zero": false,
+      "abstract_kind": "TARGET",
+      "source_abstained": true,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "target_budget_infeasible_immediate_reward_salvage:remaining=3:strict_lb=5",
+      "reward": 0.3333333333333333,
+      "terminated": true,
+      "truncated": false,
+      "after_hash": "f62259bf97ceb757935a31c8fc86ed7ad9fb32fb9e87bd7d0d4af5130b88996e"
+    }
+  ],
+  "step_count": 10,
+  "official_reward": 0.3333333333333333,
+  "strict_success": false,
+  "pass_success": false,
+  "terminated": true,
+  "truncated": false,
+  "failure": null,
+  "failure_traceback": null,
+  "changed_from_target_rank_zero_count": 3,
+  "source_decision_count": 9,
+  "session_namespace": "phase2-ws-83be4ad55f-c09-ledger-blind-control",
+  "manifest_sha256": "83be4ad55fd78eacbdf7bae1bdee675676a566a3060f76034ea8d658fb6e19f8",
+  "target_identity": "webshop.synthetic.phase2v2.seed4145324235.index53.77597faf8a39930e",
+  "goal_sha256": "77597faf8a39930ea3f8129084d49a1fd85c95f9f0e700bf4a94700c8f7bdaac",
+  "source_game": "gymv_streets_of_rage_2",
+  "source_artifact_sha256": "0811312fd98f697b572a72e5c1d2da4417ec6ec35c9db00e51d8f1bb4d1123d6",
+  "v16_controller": {
+    "condition": "ledger_blind_control",
+    "source_artifact_sha256": "0811312fd98f697b572a72e5c1d2da4417ec6ec35c9db00e51d8f1bb4d1123d6",
+    "source_decisions": 9,
+    "source_action_counts": {
+      "BACKTRACK_REPLAN": 3,
+      "EXPLORE_UNTRIED": 6
+    },
+    "target_fallbacks": 1,
+    "coverage_controller": {
+      "condition": "target_native_coverage_only",
+      "coverage_enabled": true,
+      "coverage_ready": false,
+      "goal_option_signatures": [
+        "color:b black",
+        "size:medium"
+      ],
+      "coverage_interventions": 4,
+      "source_calls_after_coverage": 0,
+      "rejected_product_ids": [],
+      "last_selected_product_id": null,
+      "anytime_reward_salvage": true,
+      "maximum_steps": 12,
+      "budget_abstentions": 1,
+      "product_ledger_resets": 0,
+      "ledger": {
+        "required": [
+          "color:b black",
+          "size:medium"
+        ],
+        "verified": [],
+        "missing": [
+          "color:b black",
+          "size:medium"
+        ],
+        "commit_authorized": false,
+        "pending_signature": null
+      }
+    },
+    "source_trace": [
+      {
+        "domain": "webshop",
+        "episode_id": "webshop.synthetic.phase2v2.seed4145324235.index53.77597faf8a39930e",
+        "decision_index": 0,
+        "target_event": "NO_ACTIVE_CANDIDATE_AND_UNTRIED_REMAIN",
+        "source_action": "EXPLORE_UNTRIED",
+        "native_action_id": "7f882189b215a5233e5d7e33ac22ce8aaf36be811cde49c60ec062a7bc6b415c",
+        "native_action": "fill('18','men\\'s henleys loose fit light weight slim fit long sleeve short sleeve contrast color unique design gym workout teen girls b-black medium under 40')",
+        "admitted": true,
+        "reason": "SOURCE_EVENT_ROUTE_TARGET_NATIVE_REALIZATION",
+        "source_artifact_sha256": "0811312fd98f697b572a72e5c1d2da4417ec6ec35c9db00e51d8f1bb4d1123d6",
+        "target_evidence_sha256": "7b91b1608d44339da17e4d97132a74a2e25215ecc5f42b7b089a606cfa3d3dea",
+        "receipt_sha256": "859e675a96d00311d92b00cc752adbfa588ac4b56b6aa77a6ced962573f7ba5d"
+      },
+      {
+        "domain": "webshop",
+        "episode_id": "webshop.synthetic.phase2v2.seed4145324235.index53.77597faf8a39930e",
+        "decision_index": 1,
+        "target_event": "NO_ACTIVE_CANDIDATE_AND_UNTRIED_REMAIN",
+        "source_action": "EXPLORE_UNTRIED",
+        "native_action_id": "7d34a3108b402f6abf8d9fa9e91d361610448d2a8452795e07ba4c6e9ed62af9",
+        "native_action": "click('20')",
+        "admitted": true,
+        "reason": "SOURCE_EVENT_ROUTE_TARGET_NATIVE_REALIZATION",
+        "source_artifact_sha256": "0811312fd98f697b572a72e5c1d2da4417ec6ec35c9db00e51d8f1bb4d1123d6",
+        "target_evidence_sha256": "6be554a27e6affeb0930dcdc5d189cfd0c275e6f43713654910c95ea6df2d245",
+        "receipt_sha256": "61dc3f5500765b1e3ed4bdf2b8440c583456be7b8d076cb5d788e4be10b7bfa5"
+      },
+      {
+        "domain": "webshop",
+        "episode_id": "webshop.synthetic.phase2v2.seed4145324235.index53.77597faf8a39930e",
+        "decision_index": 2,
+        "target_event": "NO_ACTIVE_CANDIDATE_AND_UNTRIED_REMAIN",
+        "source_action": "EXPLORE_UNTRIED",
+        "native_action_id": "bcd8c236cf00e2131c370bd750433c407eed928d285f2814fdd5be542aa57300",
+        "native_action": "click('35')",
+        "admitted": true,
+        "reason": "SOURCE_EVENT_ROUTE_TARGET_NATIVE_REALIZATION",
+        "source_artifact_sha256": "0811312fd98f697b572a72e5c1d2da4417ec6ec35c9db00e51d8f1bb4d1123d6",
+        "target_evidence_sha256": "d3e40ecdef5e3285d8ee9ad94d4b597c2fcc7843fd0323fea37e7354e496f601",
+        "receipt_sha256": "c47382a0ad8dd5f59758b6ca804f77cc4c65c63105e432b44251ad6a04d043f4"
+      },
+      {
+        "domain": "webshop",
+        "episode_id": "webshop.synthetic.phase2v2.seed4145324235.index53.77597faf8a39930e",
+        "decision_index": 3,
+        "target_event": "ACTIVE_CANDIDATE_REFUTED",
+        "source_action": "BACKTRACK_REPLAN",
+        "native_action_id": "971f67dc67defc77901afffe3b070984107d5b7986341b09808b0cb3d50da4a2",
+        "native_action": "go_back()",
+        "admitted": true,
+        "reason": "SOURCE_EVENT_ROUTE_TARGET_NATIVE_REALIZATION",
+        "source_artifact_sha256": "0811312fd98f697b572a72e5c1d2da4417ec6ec35c9db00e51d8f1bb4d1123d6",
+        "target_evidence_sha256": "4afac274c65727664638f05fb3f053571408527912e39ec5d6b66c609ec14b67",
+        "receipt_sha256": "d94a79635fc89e978fca7db344b31e2481e9b0bdc786654fc9d64b82fcd2396b"
+      },
+      {
+        "domain": "webshop",
+        "episode_id": "webshop.synthetic.phase2v2.seed4145324235.index53.77597faf8a39930e",
+        "decision_index": 4,
+        "target_event": "NO_ACTIVE_CANDIDATE_AND_UNTRIED_REMAIN",
+        "source_action": "EXPLORE_UNTRIED",
+        "native_action_id": "bcd8c236cf00e2131c370bd750433c407eed928d285f2814fdd5be542aa57300",
+        "native_action": "click('35')",
+        "admitted": true,
+        "reason": "SOURCE_EVENT_ROUTE_TARGET_NATIVE_REALIZATION",
+        "source_artifact_sha256": "0811312fd98f697b572a72e5c1d2da4417ec6ec35c9db00e51d8f1bb4d1123d6",
+        "target_evidence_sha256": "66171304a7ca68aa96fc4c7f55405cb4c0103cedfed0fde1b2b3af135845ad9f",
+        "receipt_sha256": "fdb26965c5d99d75183e124fb7f208363472b2b59b2275f7cd3891603532ca1a"
+      },
+      {
+        "domain": "webshop",
+        "episode_id": "webshop.synthetic.phase2v2.seed4145324235.index53.77597faf8a39930e",
+        "decision_index": 5,
+        "target_event": "ACTIVE_CANDIDATE_REFUTED",
+        "source_action": "BACKTRACK_REPLAN",
+        "native_action_id": "971f67dc67defc77901afffe3b070984107d5b7986341b09808b0cb3d50da4a2",
+        "native_action": "go_back()",
+        "admitted": true,
+        "reason": "SOURCE_EVENT_ROUTE_TARGET_NATIVE_REALIZATION",
+        "source_artifact_sha256": "0811312fd98f697b572a72e5c1d2da4417ec6ec35c9db00e51d8f1bb4d1123d6",
+        "target_evidence_sha256": "511b7b1b4fa30ffd8b512ba918defd336e71bdaa574a4bdb0a4f47db05990292",
+        "receipt_sha256": "6477734a5d701cfd710e16e42c44ce852f0196d33227f4b99dbaf52e84031ea6"
+      },
+      {
+        "domain": "webshop",
+        "episode_id": "webshop.synthetic.phase2v2.seed4145324235.index53.77597faf8a39930e",
+        "decision_index": 6,
+        "target_event": "NO_ACTIVE_CANDIDATE_AND_UNTRIED_REMAIN",
+        "source_action": "EXPLORE_UNTRIED",
+        "native_action_id": "bcd8c236cf00e2131c370bd750433c407eed928d285f2814fdd5be542aa57300",
+        "native_action": "click('35')",
+        "admitted": true,
+        "reason": "SOURCE_EVENT_ROUTE_TARGET_NATIVE_REALIZATION",
+        "source_artifact_sha256": "0811312fd98f697b572a72e5c1d2da4417ec6ec35c9db00e51d8f1bb4d1123d6",
+        "target_evidence_sha256": "3bc8ede0259747c62e287401a48df46c591bd7300c662bbe5917f3d5ef431e10",
+        "receipt_sha256": "2c2c5fb0027c41ac4bc76b2615f054d565dbc8ff394818bb4778448e2b47db1d"
+      },
+      {
+        "domain": "webshop",
+        "episode_id": "webshop.synthetic.phase2v2.seed4145324235.index53.77597faf8a39930e",
+        "decision_index": 7,
+        "target_event": "ACTIVE_CANDIDATE_REFUTED",
+        "source_action": "BACKTRACK_REPLAN",
+        "native_action_id": "971f67dc67defc77901afffe3b070984107d5b7986341b09808b0cb3d50da4a2",
+        "native_action": "go_back()",
+        "admitted": true,
+        "reason": "SOURCE_EVENT_ROUTE_TARGET_NATIVE_REALIZATION",
+        "source_artifact_sha256": "0811312fd98f697b572a72e5c1d2da4417ec6ec35c9db00e51d8f1bb4d1123d6",
+        "target_evidence_sha256": "2d4d49c8dcf22b4a46f6b1ed4deb9b30cb55ee64c8dcba27a6fd5154d024afda",
+        "receipt_sha256": "6cdc859f4cf3475d674d7950d858220ef0083206b9c9d79af5cf75e2309f6489"
+      },
+      {
+        "domain": "webshop",
+        "episode_id": "webshop.synthetic.phase2v2.seed4145324235.index53.77597faf8a39930e",
+        "decision_index": 8,
+        "target_event": "NO_ACTIVE_CANDIDATE_AND_UNTRIED_REMAIN",
+        "source_action": "EXPLORE_UNTRIED",
+        "native_action_id": "dc5275d319d6b9b1b759d92af96ff06b7b0a8927e94839c51eecf9c23569acff",
+        "native_action": "click('47')",
+        "admitted": true,
+        "reason": "SOURCE_EVENT_ROUTE_TARGET_NATIVE_REALIZATION",
+        "source_artifact_sha256": "0811312fd98f697b572a72e5c1d2da4417ec6ec35c9db00e51d8f1bb4d1123d6",
+        "target_evidence_sha256": "43ab175279d0627fa86931039bb5139bb19578ae61882bd447562e31cb7eb402",
+        "receipt_sha256": "ada1b899f4dcb7642d2b937979ec0b47cec7a1b6e928e28c11cdde63ce16699d"
+      }
+    ]
+  },
+  "commit_audit": [
+    {
+      "step": 9,
+      "selected_action": "click('42')",
+      "authorized": false,
+      "coverage": {
+        "required": [
+          "size:medium"
+        ],
+        "verified": [],
+        "missing": [
+          "size:medium"
+        ],
+        "commit_authorized": false,
+        "pending_signature": null
+      }
+    }
+  ],
+  "unsafe_commits": [],
+  "historical_target_outcome_reused": false,
+  "target_reset_or_sample_open_count": 1,
+  "runtime_hashes": {
+    "runner": "0cf4f0c993f7b13915df4c5acf3455e1a5fd6b4d8db561972b4f7575536ccd81",
+    "controller": "478994c5da56ee783e59823a79f026dfa2f7185d0f733a835bfe11e5cdd46c38",
+    "utility_contract": "7b30994bd6b293af713e4b6ab414e16adc94ae02fdc943f4106f514668bfda85",
+    "source_artifact": "a66acf806e6188a22782054520f00a1a8142e79874fef5b7f8cc42b9f82dbc54",
+    "target_grounder": "bbf8a22ebec8e7ab6d55e570f230ba4fcb2b8630d1dc81bd24ba103f68701782"
+  },
+  "receipt_sha256": "1e8f1a86138c70b8670b37c624048e933c232ae9e3e5ace059c04ab107dfb97d"
+}

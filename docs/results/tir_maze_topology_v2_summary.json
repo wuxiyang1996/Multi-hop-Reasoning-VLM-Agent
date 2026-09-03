@@ -1,0 +1,80 @@
+{
+  "schema_version": "tir-maze-sokoban-topology-summary-v2",
+  "status": "FRESH_FORMAL_TRANSFER_VALIDATED",
+  "claim_boundary": "Game-to-TIR transfer is validated only for single-image maze action-sequence tasks. It does not establish transfer to RefCOCO, rotation, visual search, or TIR as a whole.",
+  "mechanism": {
+    "source_symbolic_payload": "Anonymous graph-edge execution, invalid-sequence refutation, unique-goal verification, commit, and abstain.",
+    "target_neural_grounding": "GPT-4.1-mini binds the meanings of R/L/U/D and start/goal colors without answer choices or gold; target-native pixel processing constructs the maze graph.",
+    "source_forbidden_information": [
+      "target image",
+      "target coordinates",
+      "target color names",
+      "answer labels",
+      "gold answer",
+      "source path lengths"
+    ]
+  },
+  "source_receipt": "docs/results/sokoban_topology_skill_v1_compact_receipt.json",
+  "consumed_development": {
+    "tasks": 9,
+    "raw_successes": 7,
+    "authentic_successes": 9,
+    "wins": 2,
+    "losses": 0,
+    "status": "CONSUMED_DEVELOPMENT_GATE_PASSED"
+  },
+  "fresh_qualification": {
+    "tasks": 12,
+    "raw_successes": 5,
+    "authentic_successes": 8,
+    "wins": 3,
+    "losses": 0,
+    "status": "FRESH_QUALIFICATION_GATE_PASSED",
+    "report_sha256": "d84083b6f42858f5ba013fe87ae0045a0180ecb3331fcd6bc85a128985d257d0",
+    "report_file_sha256": "5565437e643dc1358d1483c0f4f6dbbb53ef1ea42a78b3a0ccb32329591ff755"
+  },
+  "fresh_formal": {
+    "tasks": 24,
+    "raw_target_only": {
+      "successes": 14,
+      "success_rate": 0.5833333333333334
+    },
+    "authentic_sokoban_topology_plus_target": {
+      "successes": 23,
+      "success_rate": 0.9583333333333334,
+      "action_changes": 9,
+      "source_abstentions": 1
+    },
+    "alpha_renamed_authentic": {
+      "successes": 23,
+      "success_rate": 0.9583333333333334
+    },
+    "direction_permuted_source_control": {
+      "successes": 14,
+      "success_rate": 0.5833333333333334,
+      "source_abstentions": 24
+    },
+    "endpoint_only_target_control": {
+      "successes": 21,
+      "success_rate": 0.875
+    },
+    "path_length_marginal_control": {
+      "successes": 7,
+      "success_rate": 0.2916666666666667
+    },
+    "paired_vs_raw": {
+      "wins": 9,
+      "losses": 0,
+      "ties": 15,
+      "exact_two_sided_p": 0.00390625
+    },
+    "all_frozen_gates_passed": true,
+    "report_sha256": "356c571808df874abf1cfe0e3a58c7004df91ff47308c34478156e0215b06849",
+    "report_file_sha256": "f84fd825eaf0b085211ea1ce9fcb707ce19810bf68507381d60b5f57c2395b36"
+  },
+  "failed_broader_attempt": {
+    "protocol": "TIR Sokoban effect V7 four-family fresh qualification",
+    "result": "All conditions scored 4/12; formal remained locked.",
+    "diagnosis": "The generic POSITION/VERIFY/COMMIT abstraction did not supply the target-native measurement operators required by ratio, comparison, rotation, and visual-search tasks. This negative result is not overwritten by the narrower maze result."
+  }
+}

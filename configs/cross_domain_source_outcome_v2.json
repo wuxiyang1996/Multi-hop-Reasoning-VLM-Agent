@@ -1,0 +1,70 @@
+{
+  "schema_version": 2,
+  "status": "DECLARED_NOT_YET_APPLIED",
+  "supersedes": "configs/cross_domain_source_outcome_v1.json",
+  "claim": "One shared skill-quality labelling for every cross-domain memory method",
+  "label_semantics": {
+    "positive_class": "HIGH_QUALITY_SKILL_DEMONSTRATION",
+    "negative_class": "POOR_SKILL_DEMONSTRATION",
+    "is_task_success": false,
+    "why": "The six source games are score-maximisation and survival games with no win condition, so 'did this episode succeed' has no answer and any absolute cut-off would be invented. What this study transfers is skill, not victory, and skill quality is exactly what separates a well-played episode from a badly played one within the same game. The three baselines consume a positive and a negative class; those classes are defined here as demonstration quality, and the artifacts record that so no reader mistakes them for task success.",
+    "reported_as": "Papers must not describe these as success rates."
+  },
+  "why_v1_was_withdrawn": {
+    "finding": "v1 declared ABSTAIN for all six games and delegated to an LLM judge asking whether the game's objective was achieved.",
+    "evidence": [
+      "The judge's verdict was predicted by the terminated flag alone in 33/36 episodes (92%).",
+      "It returned 14 SUCCESS, 0 FAILURE, 22 UNKNOWN, leaving ExpeL with no contrast and ReasoningBank with no pitfalls.",
+      "It was anti-correlated with actual play quality: tetris episodes that terminated had median score 128 versus 220 for those that survived, and every terminated episode was labelled SUCCESS.",
+      "On gymv_columns it labelled an episode whose observation reads 'Gameover: 3' with a near-minimum score of 60 as 'successfully achieved the game's objective before game over'."
+    ],
+    "conclusion": "Asking for victory in a game that has none forces the judge onto a structural proxy. The question was wrong, not the judge."
+  },
+  "resolution_order": [
+    "OFFICIAL",
+    "BENCHMARK_PREDICATE",
+    "SHARED_EVALUATOR",
+    "UNRESOLVED"
+  ],
+  "rules": {
+    "absent_official_success_is_unknown": true,
+    "unknown_is_withheld_from_every_method": true,
+    "generic_reward_greater_than_zero_is_forbidden": true,
+    "absolute_score_thresholds_are_forbidden": true,
+    "same_evaluator_instance_for_all_methods": true
+  },
+  "cohort_rule": {
+    "kind": "WITHIN_GAME_SCORE_TERCILE",
+    "metric": "total_reward",
+    "low_quantile": 0.3333333333333333,
+    "high_quantile": 0.6666666666666666,
+    "minimum_cohort": 6,
+    "why_this_is_not_reward_greater_than_zero": "The comparison is relative and within-game: an episode is ranked only against other episodes of the same game produced by the same policy. No fixed number is applied, and no threshold crosses domains.",
+    "abstention": "The middle tercile is withheld. A game whose cohort is below minimum_cohort, or whose scores tie so heavily that the two quantiles collapse onto one value, abstains entirely rather than forcing a tie-break.",
+    "observed_on_pilot_n6": {
+      "high": 12,
+      "low": 10,
+      "withheld": 14,
+      "fully_abstained_games": ["gymv_thunder_force_iii"],
+      "decorrelation_check": "terminated=True gives 2 high / 6 low and terminated=False gives 10 high / 4 low, so the label is no longer a proxy for the termination flag and now runs in the correct direction."
+    }
+  },
+  "predicates": {
+    "tetris": {"kind": "WITHIN_GAME_SCORE_TERCILE"},
+    "candy_crush": {"kind": "WITHIN_GAME_SCORE_TERCILE"},
+    "gymv_columns": {"kind": "WITHIN_GAME_SCORE_TERCILE"},
+    "gymv_streets_of_rage_2": {"kind": "WITHIN_GAME_SCORE_TERCILE"},
+    "gymv_strider": {"kind": "WITHIN_GAME_SCORE_TERCILE"},
+    "gymv_thunder_force_iii": {"kind": "WITHIN_GAME_SCORE_TERCILE"}
+  },
+  "shared_evaluator": {
+    "kind": "NONE",
+    "why": "The cohort rule resolves what the game's own metric can resolve and abstains otherwise. Re-adding an LLM judge on top would only relabel the abstention band, which is precisely the band the game provides no evidence about, and v1 showed that a judge asked to fill that band answers from structural artefacts instead.",
+    "may_be_reinstated_if": "A judge is shown to decorrelate from terminated/truncated on a held-out cohort and to agree with the within-game ranking where the two overlap."
+  },
+  "preregistered_empty_bank_rule": {
+    "trigger": "A method resolves to fewer than 1 eligible source episode",
+    "action": "induce_memory_artifact raises InsufficientEligibleSourceError and the arm is reported as empty rather than rescued by widening the quantiles",
+    "quantiles_may_be_changed_after_seeing_downstream_results": false
+  }
+}

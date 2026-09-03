@@ -1,0 +1,33 @@
+{
+  "schema_version": "agqa-full-train-broad-semantic-repair-amendment-v1",
+  "status": "FROZEN_AFTER_QUESTION_ONLY_PARSE_AND_BEFORE_ANY_RAW_VIDEO_OR_OUTCOME_RUNTIME",
+  "parent_preregistration_sha256": "81163627aa431d2ae0afbce4f6822d1b75fb11280e5368e3239f76d9536d8d1f",
+  "base_semantic_runtime_sha256": "bd3d90899421183f5f0f8564875dfc4f7d983664a6f36936661a1e132b88f7ed",
+  "base_semantic_runtime_file_sha256": "e1e1e85acae329c4289096fda6ca57c3f107b77f34c076fddb006bef2987729b",
+  "base_result": {
+    "rows": 405,
+    "valid": 404,
+    "invalid": 1,
+    "invalid_task_id": "S3TZ1-9653",
+    "failure": "operator-free DSL parse failure: trailing token comma"
+  },
+  "authorized_repair": {
+    "implementation": "scripts/repair_agqa_layer_b_semantic_runtime.py",
+    "implementation_sha256": "679f2fa456c0fa182eadd6f79a1ee114159a04c2dcce22d657b1cfc94fa7c8b7",
+    "scope": "invalid row only",
+    "model": "same frozen qualified Flan-T5-small parser",
+    "input": "same public question only",
+    "decoding_change": "max_new_tokens 512 to 1024 only",
+    "allowed_postprocessing": "unique minimal trailing-parenthesis balance only",
+    "if_still_invalid": "fail closed; do not inspect target outcome or video and do not invent semantic content"
+  },
+  "authority": {
+    "raw_video_calls_before_amendment": 0,
+    "reserve_answers_read": false,
+    "reserve_functional_programs_read": false,
+    "reserve_scene_graphs_read": false,
+    "formal_outcomes_read": false,
+    "source_or_threshold_changed": false,
+    "formal_gates_changed": false
+  }
+}

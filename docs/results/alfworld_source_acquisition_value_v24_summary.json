@@ -1,0 +1,87 @@
+{
+  "schema_version": "alfworld-source-acquisition-value-v24-summary",
+  "status": "ALFWORLD_SOURCE_ACQUISITION_VALUE_MECHANISM_VALIDATED",
+  "answer": "Correct symbolic program content, not source provenance, causes the execution gain. Source interventions contribute acquisition value by obtaining that content with zero complete target trajectories; the source-blind target learner abstains at K=0 and needs one complete target trajectory to recover it.",
+  "retrospective_acquisition_curve": {
+    "development_complete_target_trajectories": 9,
+    "heldout_complete_target_trajectories": 11,
+    "target_k0_status": "ABSTAIN_NO_COMPLETE_TARGET_TRAJECTORY",
+    "target_k0_heldout_support": 0,
+    "target_k1_status": "TARGET_ONLY_RECURRENT_PROGRAM_INDUCED",
+    "target_k1_heldout_support": 11,
+    "target_k1_heldout_total": 11,
+    "target_k1_shuffled_effect_support": 0,
+    "target_k1_binding_relation_permuted_support": 0,
+    "source_complete_target_trajectory_budget": 0,
+    "target_complete_target_trajectory_budget": 1
+  },
+  "consumed_execution_equivalence": {
+    "tasks": 21,
+    "raw_successes": 11,
+    "source_successes": 18,
+    "target_k1_successes": 18,
+    "exact_action_and_state_effect_traces": 21
+  },
+  "fresh_compiler_valid_replication": {
+    "tasks": 14,
+    "raw_successes": 4,
+    "source_successes": 9,
+    "source_cardinality_control_successes": 4,
+    "source_effect_control_successes": 4,
+    "generic_scaffold_successes": 4,
+    "target_k1_successes": 9,
+    "target_k1_permuted_successes": 4,
+    "source_vs_raw": {
+      "wins": 5,
+      "losses": 0,
+      "ties": 9,
+      "net_wins": 5,
+      "exact_two_sided_p": 0.0625
+    },
+    "target_k1_vs_raw": {
+      "wins": 5,
+      "losses": 0,
+      "ties": 9,
+      "net_wins": 5,
+      "exact_two_sided_p": 0.0625
+    },
+    "target_k1_vs_permuted": {
+      "wins": 5,
+      "losses": 0,
+      "ties": 9,
+      "net_wins": 5,
+      "exact_two_sided_p": 0.0625
+    },
+    "source_target_k1_exact_action_traces": 14,
+    "source_target_k1_exact_state_effect_traces": 14,
+    "source_target_k1_trace_total": 14,
+    "mechanism_not_powered_population_claim": true
+  },
+  "recovery_boundary": {
+    "original_execution_role": "prospective_execution_untouched_mechanism_replication",
+    "original_execution_completed_all_condition_episodes": true,
+    "original_failure_stage": "post_episode_report_assembly",
+    "original_exception": "KeyError: 'selection_used_observation_walkthrough_or_policy_outcome'",
+    "freshness_applies_to_original_execution_only": true,
+    "reconstruction_reuses_consumed_deterministic_tasks": true,
+    "policy_program_threshold_or_task_change": false,
+    "read_time_metadata_alias_only": {
+      "selection_used_observation_walkthrough_or_policy_outcome": "selection_used_compiler_solvability_observation_or_policy_outcome"
+    },
+    "frozen_runner_sha256": "bc05364847edacd3daa0c6ffe43624abb8921657add7e018c3a767f1129aeaab",
+    "recovery_wrapper_sha256": "f9d37d121e12c1d15f3499dd49e2412dab351646df0323c06936f178fd1fcc51"
+  },
+  "claim_limits": [
+    "A correctly hand-written isomorphic target controller can match the source program.",
+    "The measured source advantage is one complete ordered target trajectory, not human authoring time or all target-side priors.",
+    "The fresh n=14 compiler-valid slice is a mechanism replication, not a powered ALFWorld population estimate.",
+    "This validates the ALFWorld multiplicity interface, not arbitrary ALFWorld task families."
+  ],
+  "lineage": {
+    "v16_report_sha256": "c04be83dbf50fd348bbe41738022399295f2026d2ed760f1c77a05ea1e05f5ee",
+    "v17_report_sha256": "20757c00c5049c33e13b333b0cae36f96596b1292ef78614487aca7cd86b45ed",
+    "v24_report_sha256": "dd8786e782b029365f8bc2747bbe7ffe5f847d2d4a552337f8c1b3a37054cc91",
+    "target_k1_program_sha256": "9e2987123fe8c4d9f34fde5f9ac366764df3ea41fee876feb7279765fc492c05"
+  },
+  "summary_sha256": "e6d9a866f7153bfe4015537c743ce2567b10c3258e7e64e3b3baa51fe791fc16"
+}

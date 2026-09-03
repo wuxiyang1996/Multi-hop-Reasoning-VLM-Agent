@@ -1,0 +1,47 @@
+{
+  "schema_version": "discoveryworld-sokoban-frozen-fork-v2",
+  "status": "FORMAL_RESERVE_FROZEN_NO_ADAPTATION",
+  "claim_boundary": "Independent prospective replication on Space Sick and Proteomics Easy seeds11-20 with the unchanged source artifact, target policy, fork rule, five matched conditions, spatial realizer, and selector thresholds.",
+  "reference_episode": "runs/discoveryworld_replication_v1_baseline/space_sick.easy.seed19.json",
+  "reference_episode_sha256": "660bedec9430ce8ecc235c5b70b02d174bb949e1aaf7495a66c5082e784ff71a",
+  "fork_after_episode_step": 63,
+  "recovery_horizon": 8,
+  "conditions": [
+    "target_native_myopic",
+    "authentic_sokoban_effect_plus_target",
+    "commit_availability_control_plus_target",
+    "inverted_effect_control_plus_target",
+    "position_prior_control_plus_target"
+  ],
+  "source_contract": {
+    "compact_receipt": "docs/results/sokoban_effect_program_v2_compact_receipt.json",
+    "require_source_gate_passed": true,
+    "source_confirmation_sha256": "d64606c916ce6e812ae1b920771d5175cb48983a2f141b2dab6f43d491a6c1ed",
+    "source_program_sha256": "6b02dc1d7271bbd435e90539cedd7d56d04fcc1ad03798dd6dd06146d67f1fcd",
+    "transferred_structure": "DIRECT_PROGRESS_AVAILABLE_OR_ASSIGNMENT_IMPROVEMENT_AVAILABLE_THEN_COMMIT_AND_VERIFY_ELSE_POSITION_AND_RECOMPUTE"
+  },
+  "selector": {
+    "positive_effect_threshold": 0.65,
+    "prerequisite_threshold": 0.9
+  },
+  "model": {
+    "api_key_name": "OPENROUTER_API_KEY",
+    "base_url": "https://openrouter.ai/api/v1",
+    "hidden_reasoning_effort": "none",
+    "maximum_output_tokens": 1600,
+    "model": "qwen/qwen3.5-35b-a3b",
+    "provider": "openrouter",
+    "schema_attempts": 4,
+    "temperature": 0
+  },
+  "qualification_protocol_sha256": "ae17a292d694e63240e2cbb8a3cd58517aa968b22818df829152a93f24e45994",
+  "fork_receipt_sha256": "5cc8aa25721dfae5e045991dcb949f04f445d9a23624d89af88e181d3d8103d1",
+  "target_native_spatial_realizer": {
+    "activation": "AFTER_SUCCESSFUL_TARGET_BOUND_TELEPORT",
+    "enabled": true,
+    "may_select_commit": false,
+    "objective": "STRICT_WORST_CASE_RELATION_ERROR_REDUCTION_OVER_UI_COMPATIBLE_VECTORS",
+    "schema_version": "discoveryworld-local-spatial-realization-v1",
+    "shared_across_all_conditions": true
+  }
+}

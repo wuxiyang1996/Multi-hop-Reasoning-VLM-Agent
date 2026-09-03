@@ -1,0 +1,25 @@
+{
+  "artifact_sha256": "ba848d54a10c785912f2dbe29c9ea8e35ef8eec3daf2cea4e5d303919b6cd75f",
+  "claim_boundary": "REAL_SOKOBAN_STATES_WITH_SOLVER_GENERATED_CANDIDATE_CORRUPTIONS; TRANSFER_EVENT_ROUTING_AND_CLOSED_LOOP_LEDGER_ONLY; NO_SOURCE_COORDINATES_ACTION_TOKENS_CANDIDATE_ORDER_OR_PATH_LENGTHS; NO_TARGET_DATA_READ",
+  "learned_policy": {
+    "ACTIVE_CANDIDATE_REFUTED": "BACKTRACK_REPLAN",
+    "ACTIVE_CANDIDATE_VERIFIED": "COMMIT_VERIFY",
+    "NO_ACTIVE_CANDIDATE_AND_UNTRIED_REMAIN": "EXPLORE_UNTRIED"
+  },
+  "schema_version": "sokoban-search-automaton-artifact-v16",
+  "source_lineage": {
+    "calibration_plan_sha256": "802fec94d8e9a7b1d831dc1a94af038bce99ccf7efa2bf296308c54fd0557bf5",
+    "config_file_sha256": "69bd9de92a68ff5fe791efdea129cf8551217ee126a29c45c77dd3a6d4cac89c",
+    "discovery_plan_file_sha256": "d4a94a76a37e98a0961894c7424c51938d46bc45dceec6cfd47c9b86b5ecfce6",
+    "discovery_plan_sha256": "b12321771390a569344eca914d9ef49c3bfec2ddbf783f6ac6e7d1527ae627e9",
+    "fresh_confirmation_plan_sha256": "5749ec2df7252d58134d6e6ac5bc540df4e6c013bfd5894d1721a0fac3063eb7"
+  },
+  "status": "SOURCE_SEARCH_AUTOMATON_FROZEN",
+  "target_authorized": true,
+  "transfer_contract": {
+    "advance_only_after_observed_effect": true,
+    "state": "ABSTRACT_EVENT_PLUS_ATTEMPT_LEDGER",
+    "target_permission": "TARGET_BINDS_EVENTS_CANDIDATES_AND_NATIVE_ACTIONS_FROM_ITS_OWN_ADAPTATION_RECEIPTS; SOURCE_PATHS_TOKENS_AND_ORDER_FORBIDDEN",
+    "unknown_event": "ABSTAIN"
+  }
+}

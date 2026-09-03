@@ -1,0 +1,29 @@
+{
+  "candidate_grounder_sha256": "bdca5c4a06aeb2c3e877d9fa6c2d0794cb01ce3faa7d6e3c009434172c0189c7",
+  "claim_boundary": "DEVELOPMENT_ONLY_TOKEN_TRUNCATION_REPAIR;PRIMARY_ONTOLOGY_MAX_TOKENS_300_TO_500;NO_PROMPT_MODEL_FRAME_THRESHOLD_SOURCE_OR_EVALUATOR_CHANGE",
+  "development_manifest": "configs/agqa2_query_object_v24_development_manifest.json",
+  "development_manifest_file_sha256": "6cd6fbb6ef868c11d3509ccc3b5d32212f4177f64befda960fe309bea139662c",
+  "evaluation_protocol_sha256": "74ac82fe2c519ee3437f2ad40a3c916b3e61c1cd0a00c4ec209dbff588a9ca01",
+  "failure_policy": "QUALIFY_ON_EXISTING_DEVELOPMENT_TASKS_ONLY;DO_NOT_READ_V26_GOLD;FREEZE_V27_REPLAY_ONLY_IF_ALL_EXISTING_GATES_PASS",
+  "only_semantic_change": {
+    "after": 500,
+    "before": 300,
+    "field": "query_object_grounder.model.max_ontology_tokens"
+  },
+  "parent_v24_grounder_sha256": "2a84c1c9f170206bd216e171072c70d8faf73bd6d7c89d562fff808bf7141a3e",
+  "qualification_gates": {
+    "maximum_reported_provider_cost_usd": 0.3,
+    "maximum_typed_vs_direct_losses": 0,
+    "minimum_decisive_accuracy": 0.75,
+    "minimum_decisive_executions": 10,
+    "minimum_route_correct": 18,
+    "minimum_typed_vs_direct_wins": 2,
+    "required_source_permuted_abstentions": 18,
+    "required_target_written_equivalent_matches": 18,
+    "required_valid_runtime_rows": 18
+  },
+  "schema_version": "agqa2-query-object-development-preregistration-v27",
+  "status": "FROZEN_BEFORE_ANY_V27_DEVELOPMENT_CALL",
+  "v26_formal_outcomes_inspected": false,
+  "v26_formal_report_created": false
+}

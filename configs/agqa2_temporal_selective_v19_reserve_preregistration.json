@@ -1,0 +1,92 @@
+{
+  "claim_boundary": "QUALIFIED_V19_TEMPORAL_OPERATOR_SELECTIVE_GROUNDER;72_NEW_CROSS_EXPERIMENT_VIDEO_DISJOINT_CANDIDATES;60_ROW_OUTCOME_BLIND_FINAL_CONFIRMATION;RELATION_SOURCE_OVERRIDE_ABSTAINS;NOT_UNTOUCHED_METADATA",
+  "claim_scope": "TEMPORAL_PAIR_SINGLE_OCCURRENCE_AND_TEMPORAL_SINGLE_DURATION_TOPOLOGY_TRANSFER;RELATION_SOURCE_OVERRIDE_EXCLUDED",
+  "cost_projection": {
+    "development_candidate_count": 54,
+    "development_cost_usd": 0.377716624,
+    "frozen_cap_usd": 0.6,
+    "linear_projection_usd": 0.5036221653333334,
+    "reserve_candidate_count": 72
+  },
+  "development_qualification_summary": "docs/results/agqa2_temporal_selective_v19_development_summary.json",
+  "development_qualification_summary_file_sha256": "0f8bb66e994f7806adf939cb15160df19e2ba471d3bdcbfb8b23b9a20672d02b",
+  "download_receipt_file_sha256": "11e7859aba2bb8d28c751902259f9b0b19652295f2698b98e6dd0c145e969756",
+  "execution_calibration": {
+    "agreement_authorizes_without_claiming_gain": true,
+    "allow_exists_source_override": false,
+    "direct_corroboration_cannot_change_direct_prediction": true,
+    "forbidden_fields": [
+      "official_answer",
+      "functional_program",
+      "scene_graph_grounding",
+      "source_identity"
+    ],
+    "maximum_order_override_events_per_operand": 1,
+    "minimum_duration_margin_frames": 3,
+    "minimum_exists_override_confidence": 0.8,
+    "minimum_repeated_interval_dominance_margin_frames": 2,
+    "minimum_single_interval_nesting_margin_frames": 6,
+    "mode": "INDEPENDENT_TARGET_EVIDENCE_V1",
+    "new_v10_topologies": [
+      "BOUNDARY_ALIGNED_SINGLE_INTERVAL_NESTING",
+      "ALIGNED_REPEATED_INTERVAL_DOMINANCE"
+    ],
+    "new_v16_soundness_conditions": [
+      "EXISTS_OVERRIDE_MINIMUM_SUPPORTED_EVENT_CONFIDENCE",
+      "ORDER_OVERRIDE_GLOBAL_INTERVAL_SEPARATION"
+    ],
+    "new_v19_typed_applicability_rules": [
+      "RELATION_EXISTS_TARGET_ONTOLOGY_UNQUALIFIED_ABSTAIN",
+      "TEMPORAL_PAIR_REQUIRES_SINGLE_EVENT_PER_OPERAND",
+      "TEMPORAL_SINGLE_REUSES_QUALIFIED_DURATION_TOPOLOGY"
+    ],
+    "require_globally_separated_order_override": true,
+    "typed_override_requires_independent_symbolic_topology": true
+  },
+  "failure_policy": {
+    "qualification": "FAIL_CLOSED_TO_MATCHED_DIRECT_BASELINE",
+    "reserve": "RUN_ONCE_ON_FROZEN_V19_POOL;NO_POST_RESERVE_TUNING"
+  },
+  "power_planning": {
+    "development_decisive": 23,
+    "development_evaluated_rows": 45,
+    "development_losses": 0,
+    "development_wins": 3,
+    "grounder_semantics_changed_after_development": false,
+    "minimum_reserve_decisive": 30,
+    "minimum_reserve_wins": 2,
+    "reserve_candidate_rows": 72,
+    "reserve_evaluated_rows": 60
+  },
+  "powered_evaluation_protocol_sha256": "c3f54cd6f3e9c02d73a65b09b20dc115057ebd4199ab6f1e03e1c861637270bb",
+  "qualified_grounder_sha256": "b7b9c21142a91582edc67a31e87f8e96e7ec407d4a8ebc2334434626b09ef40a",
+  "reserve_gates": {
+    "maximum_reported_provider_cost_usd": 0.6,
+    "maximum_typed_vs_direct_losses": 0,
+    "minimum_decisive_accuracy": 0.6666666666666666,
+    "minimum_decisive_executions": 30,
+    "minimum_route_correct": 60,
+    "minimum_typed_vs_direct_wins": 2,
+    "required_source_permuted_abstentions": 60,
+    "required_target_written_equivalent_matches": 60,
+    "required_valid_runtime_rows": 60
+  },
+  "reserve_manifest": "configs/agqa2_temporal_selective_v19_reserve_manifest.json",
+  "reserve_manifest_sha256": "028d4aafaeb4925b737fc05440952f6474319ecd0c21b434b549f7e56d4acbfa",
+  "reserve_selection": "configs/agqa2_temporal_selective_v19_reserve_selection.json",
+  "reserve_selection_sha256": "28325614ed87700fba0807ffbb398256e1c34709ca7898e571fdf79b9f9919f4",
+  "runtime_selection": {
+    "candidate_count": 72,
+    "forbidden": [
+      "answer",
+      "program",
+      "scene_graph",
+      "source_identity"
+    ],
+    "mode": "OUTCOME_BLIND_CALIBRATED_EVIDENCE_RANK_V1",
+    "per_predicted_route": 20,
+    "reads_direct_response_only_inside_frozen_calibration": true
+  },
+  "schema_version": "agqa2-temporal-selective-preregistration-v19-reserve",
+  "status": "FROZEN_BEFORE_ANY_V19_FINAL_RESERVE_CALL"
+}

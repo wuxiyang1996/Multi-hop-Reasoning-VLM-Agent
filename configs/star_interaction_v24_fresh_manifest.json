@@ -1,0 +1,699 @@
+{
+  "schema_version": 24,
+  "status": "FROZEN_BEFORE_V24_VIDEO_DOWNLOAD_OR_RUNTIME_OUTCOMES",
+  "selection_rule": "Exclude all videos recoverable from historical consumed sample IDs and all V15 development/formal/reserve videos. Among remaining STAR val videos with at least two Interaction questions, select the 64 minimum sha256(salt|video|video_id) clusters and the two minimum sha256(salt|question|sample_id) questions per cluster.",
+  "selection_fields": [
+    "question_id",
+    "video_id",
+    "question_family"
+  ],
+  "forbidden_selection_fields": [
+    "answer",
+    "choices",
+    "question",
+    "question_program",
+    "choice_programs",
+    "situations",
+    "model_outcome"
+  ],
+  "outcomes_or_answers_read_by_selector": false,
+  "adaptation_source": "V19/V21 consumed development showed source guard vs matched direct 4W/0L on STAR Interaction; this family/operator choice is adaptation, not a pre-existing confirmatory hypothesis.",
+  "fresh_video_clusters_vs_historical_and_v15": true,
+  "questions_per_video_cluster": 2,
+  "primary_independence_unit": "video_id",
+  "salt_sha256": "5c571d9f57aefb958704800269bde0db55011f1ce6662c82fea7ed4a08fbb4a0",
+  "v15_manifest": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/configs/natural_video_recovery_v15_splits.json",
+  "v15_manifest_sha256": "e8dd63417c8db357490c81cb4ab860fc247cdaae45bfead14ec758fa538aa04b",
+  "star_annotations": "/fs/gamma-projects/vlm-robot/datasets/STAR-official/annotations/STAR_val.json",
+  "star_annotations_sha256": "c88335ce19281d882cb9b47f8126296cddee864f4ad0cf99bebc9c0a8533097c",
+  "historical_exclusion_sha256": {
+    "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/configs/three_video_benchmark_splits_v1.json": "578086b9829b095483e470f0fbe67972de6edc29a3726492fc6ef2fbdd37439d",
+    "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/configs/three_video_v7_confirmation_splits.json": "fc1419db7657187990f383ea045417910319da83f95cc23035af16d93ae51417",
+    "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/structured_nextqa_v1/receipts.json": "655062f8cdc6dd5e56778e6c015afc4ab18e81f96dc6cc965e9bfde9eb846e96",
+    "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/structured_nextqa_v2/receipts.json": "3fcc2b29da9164959251c5fd0f7b8b92d82bf5e73bfcf8adf935b1d2eb6e7250",
+    "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/structured_nextqa_v3/receipts.json": "f26ffcd8f61853d26d891be860133f152af9523290a60c6fc8e95d74cb14a6ae",
+    "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/structured_nextqa_v4_answer_complete/receipts.json": "464549d63816f5e64ea62c4f224d87678420baf3777322159d45f1d882b4fdc2",
+    "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/structured_nextqa_v5_gpt54_dynamics/receipts.json": "2aa6899bc4639e715604d63c57c5621683e085332ad5afc6bd0e9829e6ca4d5f",
+    "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/structured_star_v1/receipts.json": "76f62466fd87029964d3a3024f2c1b320e6af4b6876f7bb654aa321d2ec41217",
+    "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/structured_star_v2/receipts.json": "be90c046702d9c2da80aadb821c4932e16064dfa41fb5bb2c7cb427c608af7e1",
+    "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/structured_star_v3_answer_complete/receipts.json": "36a7430880f3119671e5162eacdcf14ef21e9a97d4b249902b02e3422e5a1d3a",
+    "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/structured_star_v4_gpt54_dynamics/receipts.json": "f43b64dd8f19f9a2b3bba2d6c9facd27d23f2f3542bbdd592bb73afd4b93822c",
+    "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/typed_nextqa_v4_gpt54/receipts.json": "98a5c76f3713107fc83e2d71232a7d6913894100c6d2373d1af257d70fbad779",
+    "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/typed_nextqa_v4b_gpt54/receipts.json": "32e9b2907a6d65f9d0648574bd3d24ef51725f189291100091b83eb946d70333",
+    "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/typed_nextqa_v6_qualification/receipts.json": "fe357faf86b41c19d7f0a70e7016b7e0111f66232a731f9c4c164719218fdea8",
+    "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/typed_star_v4_gpt54/receipts.json": "8c6cefd38742c2cd62c382fbc7d9307293fe588147de9ead36be855be01c9f27",
+    "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/typed_star_v4b_gpt54/receipts.json": "3cc9d6f7ba0a7625443d2ef745b3498761c1578af6dfc2c4a8d4768dee437277"
+  },
+  "historical_consumed_video_count": 80,
+  "v15_video_count": 40,
+  "excluded_video_count": 80,
+  "eligible_fresh_video_count": 673,
+  "raw_video_archive": {
+    "url": "https://ai2-public-datasets.s3-us-west-2.amazonaws.com/charades/Charades_v1_480.zip",
+    "content_length": 16339546533,
+    "etag": "d37c91565b08ce1f432a46e11351751e-1948",
+    "archive_prefix": "Charades_v1_480/"
+  },
+  "samples": [
+    {
+      "sample_id": "Interaction_T1_5704",
+      "video_id": "JJON5",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T2_4961",
+      "video_id": "JJON5",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T2_7754",
+      "video_id": "LY10X",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T1_8928",
+      "video_id": "LY10X",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T3_853",
+      "video_id": "R971Z",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T1_1108",
+      "video_id": "R971Z",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T1_3740",
+      "video_id": "KLP7V",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T2_3325",
+      "video_id": "KLP7V",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T4_2676",
+      "video_id": "9X208",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T1_4385",
+      "video_id": "9X208",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T4_2492",
+      "video_id": "SM5WL",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T4_2491",
+      "video_id": "SM5WL",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T4_2221",
+      "video_id": "PON7X",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T2_2814",
+      "video_id": "PON7X",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T1_171",
+      "video_id": "LBRYS",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T1_173",
+      "video_id": "LBRYS",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T2_4264",
+      "video_id": "01KML",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T1_4892",
+      "video_id": "01KML",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T1_2532",
+      "video_id": "WR2Q2",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T2_2323",
+      "video_id": "WR2Q2",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T2_2599",
+      "video_id": "6PL9Z",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T1_2871",
+      "video_id": "6PL9Z",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T1_4964",
+      "video_id": "6JGXL",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T2_4329",
+      "video_id": "6JGXL",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T2_7538",
+      "video_id": "9632M",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T1_8720",
+      "video_id": "9632M",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T1_4129",
+      "video_id": "ZS9XR",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T4_2576",
+      "video_id": "ZS9XR",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T2_3903",
+      "video_id": "N7GBK",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T3_3111",
+      "video_id": "N7GBK",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T1_297",
+      "video_id": "MXATD",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T1_298",
+      "video_id": "MXATD",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T1_4184",
+      "video_id": "BGQIF",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T1_4183",
+      "video_id": "BGQIF",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T3_2740",
+      "video_id": "FX1T5",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T1_3810",
+      "video_id": "FX1T5",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T1_7605",
+      "video_id": "8BBX0",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T1_7606",
+      "video_id": "8BBX0",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T2_2306",
+      "video_id": "V3RAX",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T1_2507",
+      "video_id": "V3RAX",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T1_293",
+      "video_id": "VIN5T",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T1_294",
+      "video_id": "VIN5T",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T3_3425",
+      "video_id": "3Z1YC",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T2_4337",
+      "video_id": "3Z1YC",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T2_215",
+      "video_id": "DGPAW",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T1_235",
+      "video_id": "DGPAW",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T2_2600",
+      "video_id": "7NBPG",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T3_2139",
+      "video_id": "7NBPG",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T1_9122",
+      "video_id": "Z6LYG",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T2_7904",
+      "video_id": "Z6LYG",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T1_1361",
+      "video_id": "4U8WV",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T1_1360",
+      "video_id": "4U8WV",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T2_4045",
+      "video_id": "17RPG",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T3_3221",
+      "video_id": "17RPG",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T1_9090",
+      "video_id": "CJ58B",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T1_9091",
+      "video_id": "CJ58B",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T1_818",
+      "video_id": "G6ZOB",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T3_633",
+      "video_id": "G6ZOB",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T2_1796",
+      "video_id": "M8OYC",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T2_1798",
+      "video_id": "M8OYC",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T3_5072",
+      "video_id": "0OE6M",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T3_5071",
+      "video_id": "0OE6M",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T1_6790",
+      "video_id": "YVH4J",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T2_5875",
+      "video_id": "YVH4J",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T1_777",
+      "video_id": "YOCI8",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T1_776",
+      "video_id": "YOCI8",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T1_6969",
+      "video_id": "59KH0",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T4_3792",
+      "video_id": "59KH0",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T1_2413",
+      "video_id": "RXLKF",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T2_2233",
+      "video_id": "RXLKF",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T2_5106",
+      "video_id": "92UB5",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T1_5867",
+      "video_id": "92UB5",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T4_2931",
+      "video_id": "E0ZBC",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T1_4980",
+      "video_id": "E0ZBC",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T1_2552",
+      "video_id": "IWF0U",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T2_2346",
+      "video_id": "IWF0U",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T1_7908",
+      "video_id": "0OSJY",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T4_4128",
+      "video_id": "0OSJY",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T2_3288",
+      "video_id": "1MZJF",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T1_3688",
+      "video_id": "1MZJF",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T1_7007",
+      "video_id": "6KIA4",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T2_6072",
+      "video_id": "6KIA4",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T1_5800",
+      "video_id": "BDWIX",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T4_3315",
+      "video_id": "BDWIX",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T1_2428",
+      "video_id": "LOSLI",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T1_2429",
+      "video_id": "LOSLI",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T2_2201",
+      "video_id": "WOD0G",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T1_2354",
+      "video_id": "WOD0G",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T1_6856",
+      "video_id": "BLIFO",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T2_5939",
+      "video_id": "BLIFO",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T2_5437",
+      "video_id": "5JSFE",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T1_6246",
+      "video_id": "5JSFE",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T2_8126",
+      "video_id": "MOQIU",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T1_9383",
+      "video_id": "MOQIU",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T2_330",
+      "video_id": "3XL0K",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T2_331",
+      "video_id": "3XL0K",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T1_4657",
+      "video_id": "CLW8L",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T2_4044",
+      "video_id": "CLW8L",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T1_5284",
+      "video_id": "JBZF5",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T4_3084",
+      "video_id": "JBZF5",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T2_4278",
+      "video_id": "3EIRZ",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T1_4905",
+      "video_id": "3EIRZ",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T2_2214",
+      "video_id": "FCBEQ",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T1_2382",
+      "video_id": "FCBEQ",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T1_5234",
+      "video_id": "H41MY",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T1_5233",
+      "video_id": "H41MY",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T4_4736",
+      "video_id": "OZSB3",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T4_4740",
+      "video_id": "OZSB3",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T1_7094",
+      "video_id": "IKJB4",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T2_6140",
+      "video_id": "IKJB4",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T2_1868",
+      "video_id": "W7CR5",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T1_1976",
+      "video_id": "W7CR5",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T1_7088",
+      "video_id": "937EW",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T2_6136",
+      "video_id": "937EW",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T2_3088",
+      "video_id": "C9HLB",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T1_3442",
+      "video_id": "C9HLB",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T2_7024",
+      "video_id": "84893",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T4_4246",
+      "video_id": "84893",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T1_7947",
+      "video_id": "ELBLK",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T2_6896",
+      "video_id": "ELBLK",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T1_5582",
+      "video_id": "MI0UK",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T1_5583",
+      "video_id": "MI0UK",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T2_3093",
+      "video_id": "WRW74",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T1_3451",
+      "video_id": "WRW74",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T1_3989",
+      "video_id": "NCRCW",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T1_3990",
+      "video_id": "NCRCW",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T1_9171",
+      "video_id": "0CG15",
+      "family": "Interaction"
+    },
+    {
+      "sample_id": "Interaction_T2_7939",
+      "video_id": "0CG15",
+      "family": "Interaction"
+    }
+  ]
+}

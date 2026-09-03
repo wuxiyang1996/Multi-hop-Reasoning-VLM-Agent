@@ -1,0 +1,171 @@
+{
+  "claim_boundary": "The V4 cardinality experiment remains a valid source-only test of a typed-effect function interpreter. It does not directly cover the recurrent relational, finite structural-delta, or recurrent goal-acquisition programs responsible for the Phase-8 live success results.",
+  "coverage": {
+    "directly_covered": 0,
+    "required_ir_kinds": [
+      "FINITE_STRUCTURAL_DELTA_SEQUENCE",
+      "RECURRENT_GOAL_ACQUISITION_RELATION_PROGRAM",
+      "RECURRENT_RELATIONAL_TRANSITION_PROGRAM"
+    ],
+    "routes": 4,
+    "successful_program_hash_overlap": []
+  },
+  "gates": {
+    "all_v4_programs_share_declared_neural_schema": true,
+    "direct_phase8_live_ir_coverage_is_complete": false,
+    "phase9_live_route_audit_gate_clean": true,
+    "successful_phase8_program_hash_overlap_with_v4_is_zero": true,
+    "v4_is_source_only_and_gate_clean": true
+  },
+  "inputs": {
+    "phase9_audit": {
+      "path": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/docs/results/phase9_source_program_heterogeneity_v1.json",
+      "sha256": "75bdb3012370cf2af155ff6d9b5752969163188ed62e6e03dcafe0bb0201882f"
+    },
+    "v4_manifest": {
+      "path": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/harness_controller_sft_v4_cardinality/manifest.json",
+      "sha256": "8a5931098683b0fc5119bdd7e53f179a5a8a6cd7c954685b37dc71c13db0f591"
+    }
+  },
+  "next_legal_step": "BUILD_SOURCE_ONLY_MULTI_IR_CONTROLLER_SUPERVISION_FOR_PHASE8_PROGRAMS;DO_NOT_CLAIM_V4_TARGET_IR_GATE_AS_PHASE8_LIVE_REPLACEMENT",
+  "phase8_live_routes": [
+    {
+      "directly_represented_by_v4_neural_input_schema": false,
+      "operator_sequence": [
+        {
+          "arity": 1,
+          "operation": "UPDATE",
+          "predicate_family": "CONTROL_STATE",
+          "value_kind": "POSITION"
+        }
+      ],
+      "recurrent": true,
+      "route_id": "sokoban-relational-to-webshop-v21",
+      "successful_ir_kind": "RECURRENT_RELATIONAL_TRANSITION_PROGRAM",
+      "successful_program_present_in_v4_training_lineage": false,
+      "successful_source_program_sha256": "8e751718cd5df14141a8dce0b10f4c57eb4d676a9ff3d125e3f293fdbe9c83ce",
+      "target_domain": "webshop"
+    },
+    {
+      "directly_represented_by_v4_neural_input_schema": false,
+      "operator_sequence": [
+        {
+          "arity": 1,
+          "operation": "ADD",
+          "predicate_family": "ENTITY_SLOT",
+          "value_kind": "ENTITY_REFERENCE"
+        },
+        {
+          "arity": 1,
+          "operation": "REMOVE",
+          "predicate_family": "ENTITY_SLOT",
+          "value_kind": "ENTITY_REFERENCE"
+        }
+      ],
+      "recurrent": false,
+      "route_id": "minigrid-put-near-to-discoveryworld-easy-v1",
+      "successful_ir_kind": "FINITE_STRUCTURAL_DELTA_SEQUENCE",
+      "successful_program_present_in_v4_training_lineage": false,
+      "successful_source_program_sha256": "b0d3b7cd706f8c18f35217a30d72e2f5d88b60f437f8c9980d9dbbf7478ee2c0",
+      "target_domain": "discoveryworld"
+    },
+    {
+      "directly_represented_by_v4_neural_input_schema": false,
+      "operator_sequence": [
+        {
+          "arity": 1,
+          "operation": "UPDATE",
+          "predicate_family": "CONTROL_STATE",
+          "value_kind": "POSITION"
+        }
+      ],
+      "recurrent": true,
+      "route_id": "sokoban-relational-to-tir-maze-v3",
+      "successful_ir_kind": "RECURRENT_RELATIONAL_TRANSITION_PROGRAM",
+      "successful_program_present_in_v4_training_lineage": false,
+      "successful_source_program_sha256": "8e751718cd5df14141a8dce0b10f4c57eb4d676a9ff3d125e3f293fdbe9c83ce",
+      "target_domain": "tir"
+    },
+    {
+      "directly_represented_by_v4_neural_input_schema": false,
+      "operator_sequence": [
+        {
+          "arity": 2,
+          "operation": "UPDATE",
+          "predicate_family": "ENTITY_RELATION",
+          "value_kind": "POSITION"
+        },
+        {
+          "arity": 1,
+          "operation": "UPDATE",
+          "predicate_family": "CONTROL_STATE",
+          "value_kind": "POSITION"
+        },
+        {
+          "arity": 1,
+          "operation": "UPDATE",
+          "predicate_family": "POSITIVE_EFFECT_BINDING",
+          "value_kind": "CANDIDATE_CARDINALITY"
+        },
+        {
+          "arity": 2,
+          "operation": "UPDATE",
+          "predicate_family": "ENTITY_GOAL_RELATION",
+          "value_kind": "RELATION_COVERAGE"
+        }
+      ],
+      "recurrent": true,
+      "route_id": "sokoban-goal-acquisition-to-alfworld-multiplicity-v11",
+      "successful_ir_kind": "RECURRENT_GOAL_ACQUISITION_RELATION_PROGRAM",
+      "successful_program_present_in_v4_training_lineage": false,
+      "successful_source_program_sha256": "7ff3e950f3eebaf75cca015df88ab6a01f2f364fe246102984a3cb4ee095f0d7",
+      "target_domain": "alfworld"
+    }
+  ],
+  "schema_version": "harness-controller-v4-phase8-live-ir-coverage-audit-v1",
+  "status": "V4_DIRECT_PHASE8_LIVE_REPLACEMENT_BLOCKED_IR_SCHEMA_GAP",
+  "v4_controller_scope": {
+    "learned_function": "RANK_TYPED_EFFECT_CANDIDATES_AND_APPLY_ONE_SOURCE_FUNCTION_TRANSITION",
+    "neural_input_schemas": [
+      "ANONYMOUS_TYPED_CONTROLLER_IR_V2"
+    ],
+    "source_programs": [
+      {
+        "neural_input_schema": "ANONYMOUS_TYPED_CONTROLLER_IR_V2",
+        "program_sha256": "cc5f177fd54a2f17ccaa688ea1ecf6d0ae2395554a97a921563e70c32721601d",
+        "program_status": "SOURCE_DOMAIN_FUNCTION_QUALIFIED",
+        "source_family": "candy_crush"
+      },
+      {
+        "neural_input_schema": "ANONYMOUS_TYPED_CONTROLLER_IR_V2",
+        "program_sha256": "85e37d2459fb684e63e83be591573bf78539b32721d70aa579639b585e822465",
+        "program_status": "SOURCE_DOMAIN_FUNCTION_QUALIFIED",
+        "source_family": "gymv_columns"
+      },
+      {
+        "neural_input_schema": "ANONYMOUS_TYPED_CONTROLLER_IR_V2",
+        "program_sha256": "0c07633bee316940db0bfeb1825d30d928a652659f1e18e71c7917d7b020e439",
+        "program_status": "SOURCE_DOMAIN_FUNCTION_ABSTENTION_INDUCED",
+        "source_family": "gymv_streets_of_rage_2"
+      },
+      {
+        "neural_input_schema": "ANONYMOUS_TYPED_CONTROLLER_IR_V2",
+        "program_sha256": "01f6def57262e80f82e0ab1fd47a4c4c13285ad14d229ce9b7a7ce615fb759a8",
+        "program_status": "SOURCE_DOMAIN_FUNCTION_ABSTENTION_INDUCED",
+        "source_family": "gymv_strider"
+      },
+      {
+        "neural_input_schema": "ANONYMOUS_TYPED_CONTROLLER_IR_V2",
+        "program_sha256": "a60daf1d3c38928156d72201750739b00c46d9f1e931156efbc147da89642c3a",
+        "program_status": "SOURCE_DOMAIN_FUNCTION_QUALIFIED",
+        "source_family": "gymv_thunder_force_iii"
+      },
+      {
+        "neural_input_schema": "ANONYMOUS_TYPED_CONTROLLER_IR_V2",
+        "program_sha256": "098ba5686a2de8ea14b5da118b8bbfb6bb0d3509a6d9cffb89dda3e90aceea17",
+        "program_status": "SOURCE_DOMAIN_FUNCTION_QUALIFIED",
+        "source_family": "tetris"
+      }
+    ]
+  }
+}

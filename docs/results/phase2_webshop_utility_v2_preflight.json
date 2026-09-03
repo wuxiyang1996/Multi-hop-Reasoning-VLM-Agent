@@ -1,0 +1,17 @@
+{
+  "schema_version": "phase2-webshop-utility-preflight-v1",
+  "status": "PHASE2_WEBSHOP_LIVE_PREFLIGHT_PASSED",
+  "manifest_sha256": "83be4ad55fd78eacbdf7bae1bdee675676a566a3060f76034ea8d658fb6e19f8",
+  "live_goals_checked": 32,
+  "mismatches": [],
+  "gates": {
+    "manifest_valid_before_preflight": true,
+    "all_32_live_goal_hashes_match": true,
+    "unique_live_goal_hashes": true,
+    "unique_live_asins": true,
+    "zero_actions": true,
+    "zero_provider_calls": true,
+    "zero_outcomes_read": true
+  },
+  "preflight_sha256": "073ff2f24950432c8f0c501fdc31f8ecde0515ac55c39ce4df5b0cd377de151f"
+}

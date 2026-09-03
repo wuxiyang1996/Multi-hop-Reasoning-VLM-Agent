@@ -1,0 +1,26 @@
+{
+  "schema_version": "agqa2-active-grounding-reserve-result-v5",
+  "status": "AGQA2_ACTIVE_GROUNDER_V5_RESERVE_NOT_QUALIFIED",
+  "split": "reserve",
+  "config_file_sha256": "3ec590b8d4de543fa09bd1ce2a09675cf00805321c0086a0461a4b0ce445e2aa",
+  "grounder_sha256": "714762fe1e428508545235d32cd6b963e3e3e6014dc9198fba58b0a8d356bede",
+  "report_sha256": "119fbe1a1e29022eea96c0c789daecc14852f4057b97ae6ed1b1431120d7e947",
+  "valid_runtime_rows": 9,
+  "route_correct": 9,
+  "decisive_executions": 5,
+  "decisive_correct": 3,
+  "decisive_accuracy": 0.6,
+  "direct_correct": 2,
+  "typed_fallback_correct": 3,
+  "typed_vs_direct_wins": 1,
+  "typed_vs_direct_losses": 0,
+  "source_permuted_abstentions": 9,
+  "target_written_equivalent_matches": 9,
+  "provider_calls": 33,
+  "reported_provider_cost_usd": 0.061939208,
+  "failed_gates": [
+    "minimum_decisive_executions",
+    "minimum_decisive_accuracy"
+  ],
+  "adaptation_boundary": "V6 may use these completed V5 outcomes as development evidence, but must exclude all V5 videos and run once on a newly frozen reserve without lowering any gate."
+}

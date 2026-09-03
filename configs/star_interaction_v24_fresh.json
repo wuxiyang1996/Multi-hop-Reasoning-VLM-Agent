@@ -1,0 +1,72 @@
+{
+  "schema_version": 24,
+  "status": "FROZEN_BEFORE_V24_FRESH_RUNTIME_OUTCOMES",
+  "claim_boundary": "Prospective adaptation-based confirmation of the real-Sokoban COMMIT -> VERIFY_EXPECTED_EFFECT; EXPECTED_EFFECT_REFUTED -> REPLAN structure on STAR Interaction questions. The operator/family was selected because consumed V19/V21 development showed source guard vs matched direct 4W/0L on STAR Interaction; therefore this is explicitly adaptation-based, not zero-shot. The 128 questions come from 64 official Charades videos absent from all recoverable historical consumed videos and all V15 development/formal/reserve videos. GPT-5.4 supplies the primary; blind Gemini 3.1 Pro receives 24 frames and independently produces a joint candidate-factorized typed proof plus a same-model/same-frame generic direct answer. The deterministic source executor, binding rotation, and proof-topology derangement run before gold is attached. No source actions, coordinates, game tokens, target answers, official programs, or situation graphs cross the boundary. This can test success-rate transfer of the source structure after target adaptation, but cannot prove Sokoban provenance is necessary versus an extensionally identical target-designed controller.",
+  "source_receipt": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/docs/results/sokoban_effect_program_v2_compact_receipt.json",
+  "manifest": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/configs/star_interaction_v24_fresh_manifest.json",
+  "download_receipt": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/star_interaction_v24_fresh/download_receipt.json",
+  "wrapper_root": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent",
+  "benchmark": {
+    "root": "/fs/gamma-projects/vlm-robot/datasets/STAR-official",
+    "split": "val",
+    "family": "Interaction",
+    "samples": 128,
+    "video_clusters": 64,
+    "questions_per_video_cluster": 2
+  },
+  "primary_model": {
+    "provider": "openai",
+    "api_key_name": "OPENAI_API_KEY",
+    "id": "gpt-5.4",
+    "base_url": "https://us.api.openai.com/v1",
+    "timeout_seconds": 300,
+    "max_retries": 2,
+    "schema_retries": 3,
+    "max_primary_tokens": 1200
+  },
+  "proof_model": {
+    "provider": "openrouter",
+    "api_key_name": "OPENROUTER_API_KEY",
+    "id": "google/gemini-3.1-pro-preview",
+    "base_url": "https://openrouter.ai/api/v1",
+    "timeout_seconds": 300,
+    "max_retries": 2,
+    "schema_retries": 3,
+    "max_proof_tokens": 5200,
+    "max_tokens": 5200
+  },
+  "media": {
+    "primary_frame_count": 12,
+    "proof_frame_count": 24,
+    "proof_frames_per_panel": 12,
+    "proxy_frame_max_side": 720,
+    "primary_frame_width": 224,
+    "proof_frame_width": 192,
+    "jpeg_quality": 88
+  },
+  "formal_gates": {
+    "minimum_source_net_wins_vs_primary": 1,
+    "minimum_source_net_wins_vs_matched_generic_direct": 1,
+    "maximum_source_vs_generic_question_exact_two_sided_p": 0.05,
+    "source_vs_generic_video_cluster_bootstrap_lower_bound_must_exceed": 0.0,
+    "minimum_positive_minus_negative_video_clusters_vs_generic": 1,
+    "source_strictly_above_raw_typed_proof": true,
+    "source_strictly_above_binding_control": true,
+    "source_strictly_above_topology_control": true
+  },
+  "cluster_bootstrap": {
+    "resamples": 20000,
+    "seed": 24143,
+    "primary_independence_unit": "video_id"
+  },
+  "frozen_lineage": {
+    "source_receipt_sha256": "8f175c0edda951eba2064e9c53a8db6a25cdfa9fb0de8049d371dbf5335c9e80",
+    "manifest_sha256": "a950ad10f4da7be6057c89131697a09a2f671fb0057838c23ff787e9613c61f2",
+    "download_receipt_sha256": "3cba4533a104e03f3ebd5c88e92c1a07d23b279ebd7755e5ba596b6d9058257f",
+    "collector_sha256": "c3248baff7a51a8084cd8a2e34a21541f9d3b4a192c7a89e24ed03d77ea5249a",
+    "paired_collector_sha256": "1a2cba5619aee6a767cf73bcbaa7044594911f5c5903ef65ae98e6e62921bee1",
+    "generic_collector_sha256": "2566c89492c43e9dfe366aa49f6c1de63ed53a5c5f7b330f009ef77ab64acf46",
+    "transport_module_sha256": "2675beb07d86fe31124c9588b4dde61ff86c1915b31dd829e57f90b8c058f335",
+    "symbolic_executor_sha256": "167b6ad313440615531d2f023b474ef70999c0de635768215458222d17f31294"
+  }
+}

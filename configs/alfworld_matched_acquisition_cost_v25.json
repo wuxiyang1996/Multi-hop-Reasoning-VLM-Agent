@@ -1,0 +1,72 @@
+{
+  "schema_version": "alfworld-matched-acquisition-cost-v25-protocol",
+  "status": "FROZEN_RETROSPECTIVE_MECHANISM_PROTOCOL",
+  "role": "retrospective_source_vs_target_acquisition_audit",
+  "claim_boundary": "Uses already-consumed source discovery/held-out receipts and already-consumed V13/V14 target trajectories. It resets no environment, reads no new target outcome, and adds no prospective success claim. Source episode counts, retained successful-path primitive transitions, and target complete-trajectory transitions are reported separately; they are not asserted to be a common sample-cost unit.",
+  "estimand": "Evidence required to recover the validated ALFWorld recurrence normal form from source-only intervention tuples versus complete target-only successful trajectories.",
+  "source_discovery_acquisition": "runs/sokoban_goal_acquisition_v1/discovery_acquisition_interventions.json",
+  "source_fresh_acquisition": "runs/sokoban_goal_acquisition_v1/fresh_acquisition_interventions.json",
+  "source_discovery_relation": "runs/sokoban_goal_relation_macro_v3/discovery_macro_interventions.json",
+  "source_fresh_relation": "runs/sokoban_goal_relation_macro_v3/fresh_macro_interventions.json",
+  "source_causal_inducer": "src/motif_transfer/source_goal_relation_causal_budget.py",
+  "source_relation_inducer": "src/motif_transfer/source_goal_relation_induction.py",
+  "source_acquisition_inducer": "src/motif_transfer/source_goal_acquisition_induction.py",
+  "target_recurrent_inducer": "src/motif_transfer/alfworld_target_recurrent_induction.py",
+  "target_v13_report": "runs/alfworld_unified_goal_acquisition_v13_formal/report.json",
+  "target_v14_report": "runs/alfworld_program_driven_policy_v14_formal/report.json",
+  "phase13_acquisition_report": "docs/results/alfworld_target_acquisition_value_v16_qualification.json",
+  "analyzer": "scripts/analyze_alfworld_matched_acquisition_cost_v25.py",
+  "source_discovery_acquisition_file_sha256": "7060ba1603d8cdc1af64dd75eead7bf1d5685dc568000e4ed26db38aca72d184",
+  "source_fresh_acquisition_file_sha256": "39e3d7ea040168e5c32cf71a8790360588712df612cb89604872c21860e5c036",
+  "source_discovery_relation_file_sha256": "80ab573f7c41d3121810b70e7299a33d049c78829fa9f872690e201ae97a1bcd",
+  "source_fresh_relation_file_sha256": "a63f1b5ba47937ed4bd244999f1211e78f3d91c53d5130c725800ac44d8d5693",
+  "source_causal_inducer_file_sha256": "642181a31b871dd14e5a68452951f18756e60e7dfc2936e1e0ea6bd87661dab7",
+  "source_relation_inducer_file_sha256": "f1c849715c561da3db224f9c1632c468abee18f7eac0424418ce449e1b563fe6",
+  "source_acquisition_inducer_file_sha256": "18c51419e3d6add04b69dfb97c7c586aefb7a7c28e0d677d520bbf1c57fe6577",
+  "target_recurrent_inducer_file_sha256": "c5841a4862b891e3722664380e44901d1f2d081674ba86d5af596e69c355d289",
+  "target_v13_report_file_sha256": "ea8bb2bdbfa1a759762a37a3c28b6a83194af08a670345520a1e9fbb09ee1a38",
+  "target_v14_report_file_sha256": "cd9a585611c44cad4be8b2369bbbb9660823ee7aec95395c269ef92896b2ea99",
+  "phase13_acquisition_report_file_sha256": "be1631bba768ff8842682bca5ec7616016c7abb90ecf1d7ddc75e0b00d37a6e6",
+  "analyzer_file_sha256": "d98f018946efbe6f233fc2a03922dfe451e027b62b10eba0c3ef28952210de36",
+  "dependency_fields": {
+    "source_discovery_acquisition_file_sha256": "source_discovery_acquisition",
+    "source_fresh_acquisition_file_sha256": "source_fresh_acquisition",
+    "source_discovery_relation_file_sha256": "source_discovery_relation",
+    "source_fresh_relation_file_sha256": "source_fresh_relation",
+    "source_causal_inducer_file_sha256": "source_causal_inducer",
+    "source_relation_inducer_file_sha256": "source_relation_inducer",
+    "source_acquisition_inducer_file_sha256": "source_acquisition_inducer",
+    "target_recurrent_inducer_file_sha256": "target_recurrent_inducer",
+    "target_v13_report_file_sha256": "target_v13_report",
+    "target_v14_report_file_sha256": "target_v14_report",
+    "phase13_acquisition_report_file_sha256": "phase13_acquisition_report",
+    "analyzer_file_sha256": "analyzer"
+  },
+  "source_budget": {
+    "primary_order_namespace": "phase14-matched-acquisition-order-v1",
+    "robustness_namespace_prefix": "phase14-matched-acquisition-order-v1/repeat/",
+    "robustness_repetitions": 64,
+    "maximum_episodes": 16,
+    "qualification": "MATCH_FULL_SOURCE_EXECUTION_NORMAL_FORM_AND_PASS_BOTH_UNCHANGED_FRESH_SOURCE_CONFIRMATION_GATES"
+  },
+  "target_budget": {
+    "complete_successful_trajectory_budgets": [
+      0,
+      1
+    ],
+    "single_demo_robustness": "EACH_ELIGIBLE_V13_DEMONSTRATION_INDEPENDENTLY",
+    "heldout_pool": "LATER_V14_RAW_TARGET_ONLY_SUCCESS_PATHS"
+  },
+  "frozen_gates": {
+    "source_primary_maximum_episodes": 16,
+    "source_robustness_repetitions": 64,
+    "require_all_source_orders_recover": true,
+    "require_every_target_single_demo_match": true,
+    "require_every_target_single_demo_support_all_heldout": true,
+    "require_zero_shuffled_and_permuted_support": true,
+    "require_source_target_data_read_false": true,
+    "forbid_common_cost_unit_claim": true
+  },
+  "output": "docs/results/alfworld_matched_acquisition_cost_v25.json",
+  "config_sha256": "298a378653be174f480ee6e435cfe703822b6f92a0dc26b13061f8c5b858e886"
+}

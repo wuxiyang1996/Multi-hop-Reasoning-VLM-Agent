@@ -1,0 +1,3555 @@
+{
+  "schema_version": 1,
+  "task_id": "webshop.96",
+  "condition": "authentic_search_automaton_plus_target",
+  "goal": "Find me quick drying women's swimsuits & cover ups with nylon spandex, long sleeve with color: purple, and size: tag 4xl = us 16, and price lower than 120.00 dollars",
+  "initial_state_hash": "f0c62ae1149ed8f085acb10e22b510dc2d329879803a34820c5f9dbbbe6150ae",
+  "maximum_steps": 12,
+  "steps": [
+    {
+      "step": 0,
+      "prompt_sha256": "999cac5c90334ffbe39f4ec8c74f316d751fd2a3c590a232c08034b54b5fb973",
+      "response_sha256": "a97a32972b6b0bd59d7e7ac8e6dd7f77fffc872e213d7bd7c6ad9ad150d667df",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "a97a32972b6b0bd59d7e7ac8e6dd7f77fffc872e213d7bd7c6ad9ad150d667df",
+          "completion_diagnostic": {
+            "character_count": 438,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": true,
+            "original_usage": {
+              "prompt_tokens": 458,
+              "completion_tokens": 112,
+              "total_tokens": 570,
+              "cost": 0.0003624,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0003624,
+                "upstream_inference_prompt_cost": 0.0001832,
+                "upstream_inference_completions_cost": 0.0001792
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 5
+        }
+      ],
+      "before_hash": "d0c18441d0a24e33ccc8d7c1aca884e389ea0cdf24586a41475ebbe56d026ed7",
+      "candidates": [
+        "fill('18','quick drying women swimsuits nylon spandex long sleeve purple 4xl under 120')",
+        "fill('18','women swimsuits nylon spandex long sleeve purple size 4xl price <120')",
+        "fill('18','quick drying swimsuits cover ups nylon spandex long sleeve purple 4xl under 120')",
+        "fill('18','women swimsuits long sleeve purple nylon spandex 4xl price less than 120')",
+        "noop()"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "fill",
+          "url_phase": "landing",
+          "element_role": "textbox",
+          "element_text": "[18] textbox 'Search...', required",
+          "action_bid": "18",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false
+        },
+        {
+          "verb": "fill",
+          "url_phase": "landing",
+          "element_role": "textbox",
+          "element_text": "[18] textbox 'Search...', required",
+          "action_bid": "18",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false
+        },
+        {
+          "verb": "fill",
+          "url_phase": "landing",
+          "element_role": "textbox",
+          "element_text": "[18] textbox 'Search...', required",
+          "action_bid": "18",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false
+        },
+        {
+          "verb": "fill",
+          "url_phase": "landing",
+          "element_role": "textbox",
+          "element_text": "[18] textbox 'Search...', required",
+          "action_bid": "18",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false
+        },
+        {
+          "verb": "noop",
+          "url_phase": "landing",
+          "element_role": "other",
+          "element_text": "",
+          "action_bid": null,
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": true
+        }
+      ],
+      "target_features": [
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.9809542664690936,
+          0.008910126680510508,
+          0.008915589732162521,
+          0.007047382472608437
+        ],
+        [
+          0.9809542664690936,
+          0.008910126680510508,
+          0.008915589732162521,
+          0.007047382472608437
+        ],
+        [
+          0.9809542664690936,
+          0.008910126680510508,
+          0.008915589732162521,
+          0.007047382472608437
+        ],
+        [
+          0.9809542664690936,
+          0.008910126680510508,
+          0.008915589732162521,
+          0.007047382472608437
+        ],
+        [
+          0.9809542664690936,
+          0.008910126680510508,
+          0.008915589732162521,
+          0.007047382472608437
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": false,
+        "visible_goal_constraint_unsatisfied": false,
+        "prior_action_had_no_effect": false
+      },
+      "selected_index": 0,
+      "selected_action": "fill('18','quick drying women swimsuits nylon spandex long sleeve purple 4xl under 120')",
+      "changed_from_target_rank_zero": false,
+      "abstract_kind": "POSITION",
+      "source_abstained": false,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "v16:UNBOUND->EXPLORE_UNTRIED:target_rank_zero",
+      "reward": 0.0,
+      "terminated": false,
+      "truncated": false,
+      "after_hash": "fe9909b634d8b24a062163273f1d734ec29caa8ba44b3492a4ee9d1c1a46bdb7"
+    },
+    {
+      "step": 1,
+      "prompt_sha256": "86a18b7e0a5d307e7d7c9e3220fb17f7b7829cc7132282d46f999e8c708ca23b",
+      "response_sha256": "4a7b7183c4cf732cc37dfd48337e555a384660ce39267673ae15d9aed644327d",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "4a7b7183c4cf732cc37dfd48337e555a384660ce39267673ae15d9aed644327d",
+          "completion_diagnostic": {
+            "character_count": 61,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": true,
+            "original_usage": {
+              "prompt_tokens": 591,
+              "completion_tokens": 19,
+              "total_tokens": 610,
+              "cost": 0.0002668,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0002668,
+                "upstream_inference_prompt_cost": 0.0002364,
+                "upstream_inference_completions_cost": 3.04e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 2
+        }
+      ],
+      "before_hash": "fe9909b634d8b24a062163273f1d734ec29caa8ba44b3492a4ee9d1c1a46bdb7",
+      "candidates": [
+        "click('20')",
+        "noop()"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "click",
+          "url_phase": "landing",
+          "element_role": "button",
+          "element_text": "[20] button 'Search'",
+          "action_bid": "20",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "noop",
+          "url_phase": "landing",
+          "element_role": "other",
+          "element_text": "",
+          "action_bid": null,
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": true
+        }
+      ],
+      "target_features": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.09090909090909091
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.09090909090909091
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.9838093043631316,
+          0.007810760169351171,
+          0.007815314258614531,
+          0.007254276463657209
+        ],
+        [
+          0.9794556923764357,
+          0.009232307754060344,
+          0.009238037421806178,
+          0.007036402034354836
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": false,
+        "visible_goal_constraint_unsatisfied": false,
+        "prior_action_had_no_effect": false
+      },
+      "selected_index": 0,
+      "selected_action": "click('20')",
+      "changed_from_target_rank_zero": false,
+      "abstract_kind": "POSITION",
+      "source_abstained": false,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "v16:UNBOUND->EXPLORE_UNTRIED:target_rank_zero",
+      "reward": 0.0,
+      "terminated": false,
+      "truncated": false,
+      "after_hash": "492b940564f2ce181e583311f488d5ded9206ac025fb03effc29f9db3e55a41c"
+    },
+    {
+      "step": 2,
+      "prompt_sha256": "ca2bb676e5973900cf8d3abedc63e18c62d83a678fccd746f2eb5ddba9d3f80d",
+      "response_sha256": "a731f439627647840e4b36dd390b2b1b81d07514dbb01a27c607e01b0dc2e4c7",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "a731f439627647840e4b36dd390b2b1b81d07514dbb01a27c607e01b0dc2e4c7",
+          "completion_diagnostic": {
+            "character_count": 142,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": true,
+            "original_usage": {
+              "prompt_tokens": 3555,
+              "completion_tokens": 42,
+              "total_tokens": 3597,
+              "cost": 0.0014892,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0014892,
+                "upstream_inference_prompt_cost": 0.001422,
+                "upstream_inference_completions_cost": 6.72e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 5
+        }
+      ],
+      "before_hash": "492b940564f2ce181e583311f488d5ded9206ac025fb03effc29f9db3e55a41c",
+      "candidates": [
+        "click('59')",
+        "click('47')",
+        "click('71')",
+        "click('95')",
+        "click('119')"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[59] link 'B09PB9MWKR', url=\"http://127.0.0.1:3000/item_page/fixed_96/B09PB9MWKR/%5B'quick',%20'drying',%20'women',%20'swimsuits',%20'nylon',%20'spandex',%20'long',%20'sleeve',%20'purple',%20'4xl',%20'under',%20'120'%5D/1/%7B%7D\"",
+          "action_bid": "59",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "4xl",
+            "drying",
+            "long",
+            "nylon",
+            "purple",
+            "quick",
+            "sleeve",
+            "spandex",
+            "swimsuits",
+            "women"
+          ],
+          "goal_overlap": 0.35714285714285715,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[47] link 'B08JD14GJF', url=\"http://127.0.0.1:3000/item_page/fixed_96/B08JD14GJF/%5B'quick',%20'drying',%20'women',%20'swimsuits',%20'nylon',%20'spandex',%20'long',%20'sleeve',%20'purple',%20'4xl',%20'under',%20'120'%5D/1/%7B%7D\"",
+          "action_bid": "47",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "4xl",
+            "drying",
+            "long",
+            "nylon",
+            "purple",
+            "quick",
+            "sleeve",
+            "spandex",
+            "swimsuits",
+            "women"
+          ],
+          "goal_overlap": 0.35714285714285715,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[71] link 'B09KRLGSC5', url=\"http://127.0.0.1:3000/item_page/fixed_96/B09KRLGSC5/%5B'quick',%20'drying',%20'women',%20'swimsuits',%20'nylon',%20'spandex',%20'long',%20'sleeve',%20'purple',%20'4xl',%20'under',%20'120'%5D/1/%7B%7D\"",
+          "action_bid": "71",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "4xl",
+            "drying",
+            "long",
+            "nylon",
+            "purple",
+            "quick",
+            "sleeve",
+            "spandex",
+            "swimsuits",
+            "women"
+          ],
+          "goal_overlap": 0.35714285714285715,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[95] link 'B0861GWJV2', url=\"http://127.0.0.1:3000/item_page/fixed_96/B0861GWJV2/%5B'quick',%20'drying',%20'women',%20'swimsuits',%20'nylon',%20'spandex',%20'long',%20'sleeve',%20'purple',%20'4xl',%20'under',%20'120'%5D/1/%7B%7D\"",
+          "action_bid": "95",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "4xl",
+            "drying",
+            "long",
+            "nylon",
+            "purple",
+            "quick",
+            "sleeve",
+            "spandex",
+            "swimsuits",
+            "women"
+          ],
+          "goal_overlap": 0.35714285714285715,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[119] link 'B09N3CDKGV', url=\"http://127.0.0.1:3000/item_page/fixed_96/B09N3CDKGV/%5B'quick',%20'drying',%20'women',%20'swimsuits',%20'nylon',%20'spandex',%20'long',%20'sleeve',%20'purple',%20'4xl',%20'under',%20'120'%5D/1/%7B%7D\"",
+          "action_bid": "119",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "4xl",
+            "drying",
+            "long",
+            "nylon",
+            "purple",
+            "quick",
+            "sleeve",
+            "spandex",
+            "swimsuits",
+            "women"
+          ],
+          "goal_overlap": 0.35714285714285715,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        }
+      ],
+      "target_features": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.35714285714285715,
+          0.0,
+          0.0,
+          0.0,
+          0.18181818181818182
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.35714285714285715,
+          0.0,
+          0.0,
+          0.0,
+          0.18181818181818182
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.35714285714285715,
+          0.0,
+          0.0,
+          0.0,
+          0.18181818181818182
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.35714285714285715,
+          0.0,
+          0.0,
+          0.0,
+          0.18181818181818182
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.35714285714285715,
+          0.0,
+          0.0,
+          0.0,
+          0.18181818181818182
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.8976450759386417,
+          0.006646724154867031,
+          0.006652087619272619,
+          0.004942663610925892
+        ],
+        [
+          0.8976450759386417,
+          0.006646724154867031,
+          0.006652087619272619,
+          0.004942663610925892
+        ],
+        [
+          0.8976450759386417,
+          0.006646724154867031,
+          0.006652087619272619,
+          0.004942663610925892
+        ],
+        [
+          0.8976450759386417,
+          0.006646724154867031,
+          0.006652087619272619,
+          0.004942663610925892
+        ],
+        [
+          0.8976450759386417,
+          0.006646724154867031,
+          0.006652087619272619,
+          0.004942663610925892
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": false,
+        "visible_goal_constraint_unsatisfied": false,
+        "prior_action_had_no_effect": false
+      },
+      "selected_index": 0,
+      "selected_action": "click('59')",
+      "changed_from_target_rank_zero": false,
+      "abstract_kind": "POSITION",
+      "source_abstained": false,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "v16:UNBOUND->EXPLORE_UNTRIED:target_rank_zero",
+      "reward": 0.0,
+      "terminated": false,
+      "truncated": false,
+      "after_hash": "b5a137e1c0d55391f3e9a2a553cd827452350aa5503f75d9512ba3b35ed32bcc"
+    },
+    {
+      "step": 3,
+      "prompt_sha256": "4db698be2a5a78490d43c9d037f80627c964b49b6a6817ea75f718545a1cdb44",
+      "response_sha256": "a84a4f1f02c5740ae19c594aaad022171ffbe39299ba9c224320ce1125a7adaf",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "a84a4f1f02c5740ae19c594aaad022171ffbe39299ba9c224320ce1125a7adaf",
+          "completion_diagnostic": {
+            "character_count": 136,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": true,
+            "original_usage": {
+              "prompt_tokens": 1477,
+              "completion_tokens": 40,
+              "total_tokens": 1517,
+              "cost": 0.0006548,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0006548,
+                "upstream_inference_prompt_cost": 0.0005908,
+                "upstream_inference_completions_cost": 6.4e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 5
+        }
+      ],
+      "before_hash": "b5a137e1c0d55391f3e9a2a553cd827452350aa5503f75d9512ba3b35ed32bcc",
+      "candidates": [
+        "click('67')",
+        "click('17')",
+        "click('60')",
+        "click('63')",
+        "noop()",
+        "go_back()"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[67] button 'Buy Now'",
+          "action_bid": "67",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": true,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[17] button 'Back to Search'",
+          "action_bid": "17",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[60] button 'Features'",
+          "action_bid": "60",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[63] button 'Reviews'",
+          "action_bid": "63",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "noop",
+          "url_phase": "item_page",
+          "element_role": "other",
+          "element_text": "",
+          "action_bid": null,
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": true
+        },
+        {
+          "verb": "go_back",
+          "url_phase": "item_page",
+          "element_role": "other",
+          "element_text": "",
+          "action_bid": null,
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        }
+      ],
+      "target_features": [
+        [
+          1.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.2727272727272727
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.2727272727272727
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.2727272727272727
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.2727272727272727
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.2727272727272727
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.2727272727272727
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.994885157686231,
+          0.9470821687910175,
+          0.9471222562405014,
+          0.008508245475611022
+        ],
+        [
+          0.981637754133237,
+          0.00832013658879997,
+          0.00832510698187581,
+          0.0072617329483947385
+        ],
+        [
+          0.981637754133237,
+          0.00832013658879997,
+          0.00832510698187581,
+          0.0072617329483947385
+        ],
+        [
+          0.981637754133237,
+          0.00832013658879997,
+          0.00832510698187581,
+          0.0072617329483947385
+        ],
+        [
+          0.9755988086182656,
+          0.009958421402996217,
+          0.009964748979975478,
+          0.007003146224615175
+        ],
+        [
+          0.7172731004354966,
+          0.00409714339221366,
+          0.004101192257724013,
+          0.004113872349845248
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": false,
+        "visible_goal_constraint_unsatisfied": false,
+        "prior_action_had_no_effect": false
+      },
+      "selected_index": 5,
+      "selected_action": "go_back()",
+      "changed_from_target_rank_zero": true,
+      "abstract_kind": "REPLAN",
+      "source_abstained": false,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "v16:REFUTED->BACKTRACK_REPLAN:target_coverage_reject_incomplete_product",
+      "reward": 0.0,
+      "terminated": false,
+      "truncated": false,
+      "after_hash": "492b940564f2ce181e583311f488d5ded9206ac025fb03effc29f9db3e55a41c"
+    },
+    {
+      "step": 4,
+      "prompt_sha256": "0f19b058c4535f4a21bdfb1c58823a0893b0102d000120d3d6efd3199abecf31",
+      "response_sha256": "bdaa956a8e508fc60f31615062b9ecc70a6597ecf229d62a5b44d6f1f2047db9",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "bdaa956a8e508fc60f31615062b9ecc70a6597ecf229d62a5b44d6f1f2047db9",
+          "completion_diagnostic": {
+            "character_count": 143,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": false,
+            "original_usage": {
+              "prompt_tokens": 3585,
+              "completion_tokens": 42,
+              "total_tokens": 3627,
+              "cost": 0.0005028,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 3328,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0005028,
+                "upstream_inference_prompt_cost": 0.0004356,
+                "upstream_inference_completions_cost": 6.72e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 5
+        }
+      ],
+      "before_hash": "492b940564f2ce181e583311f488d5ded9206ac025fb03effc29f9db3e55a41c",
+      "candidates": [
+        "click('59')",
+        "click('47')",
+        "click('71')",
+        "click('119')",
+        "click('143')"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[59] link 'B09PB9MWKR', url=\"http://127.0.0.1:3000/item_page/fixed_96/B09PB9MWKR/%5B'quick',%20'drying',%20'women',%20'swimsuits',%20'nylon',%20'spandex',%20'long',%20'sleeve',%20'purple',%20'4xl',%20'under',%20'120'%5D/1/%7B%7D\"",
+          "action_bid": "59",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "4xl",
+            "drying",
+            "long",
+            "nylon",
+            "purple",
+            "quick",
+            "sleeve",
+            "spandex",
+            "swimsuits",
+            "women"
+          ],
+          "goal_overlap": 0.35714285714285715,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[47] link 'B08JD14GJF', url=\"http://127.0.0.1:3000/item_page/fixed_96/B08JD14GJF/%5B'quick',%20'drying',%20'women',%20'swimsuits',%20'nylon',%20'spandex',%20'long',%20'sleeve',%20'purple',%20'4xl',%20'under',%20'120'%5D/1/%7B%7D\"",
+          "action_bid": "47",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "4xl",
+            "drying",
+            "long",
+            "nylon",
+            "purple",
+            "quick",
+            "sleeve",
+            "spandex",
+            "swimsuits",
+            "women"
+          ],
+          "goal_overlap": 0.35714285714285715,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[71] link 'B09KRLGSC5', url=\"http://127.0.0.1:3000/item_page/fixed_96/B09KRLGSC5/%5B'quick',%20'drying',%20'women',%20'swimsuits',%20'nylon',%20'spandex',%20'long',%20'sleeve',%20'purple',%20'4xl',%20'under',%20'120'%5D/1/%7B%7D\"",
+          "action_bid": "71",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "4xl",
+            "drying",
+            "long",
+            "nylon",
+            "purple",
+            "quick",
+            "sleeve",
+            "spandex",
+            "swimsuits",
+            "women"
+          ],
+          "goal_overlap": 0.35714285714285715,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[119] link 'B09N3CDKGV', url=\"http://127.0.0.1:3000/item_page/fixed_96/B09N3CDKGV/%5B'quick',%20'drying',%20'women',%20'swimsuits',%20'nylon',%20'spandex',%20'long',%20'sleeve',%20'purple',%20'4xl',%20'under',%20'120'%5D/1/%7B%7D\"",
+          "action_bid": "119",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "4xl",
+            "drying",
+            "long",
+            "nylon",
+            "purple",
+            "quick",
+            "sleeve",
+            "spandex",
+            "swimsuits",
+            "women"
+          ],
+          "goal_overlap": 0.35714285714285715,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[143] link 'B09N974RWN', url=\"http://127.0.0.1:3000/item_page/fixed_96/B09N974RWN/%5B'quick',%20'drying',%20'women',%20'swimsuits',%20'nylon',%20'spandex',%20'long',%20'sleeve',%20'purple',%20'4xl',%20'under',%20'120'%5D/1/%7B%7D\"",
+          "action_bid": "143",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "4xl",
+            "drying",
+            "long",
+            "nylon",
+            "purple",
+            "quick",
+            "sleeve",
+            "spandex",
+            "swimsuits",
+            "women"
+          ],
+          "goal_overlap": 0.35714285714285715,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        }
+      ],
+      "target_features": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.35714285714285715,
+          0.0,
+          0.0,
+          0.0,
+          0.36363636363636365
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.35714285714285715,
+          0.0,
+          0.0,
+          0.0,
+          0.36363636363636365
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.35714285714285715,
+          0.0,
+          0.0,
+          0.0,
+          0.36363636363636365
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.35714285714285715,
+          0.0,
+          0.0,
+          0.0,
+          0.36363636363636365
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.35714285714285715,
+          0.0,
+          0.0,
+          0.0,
+          0.36363636363636365
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.8594190073494666,
+          0.007047663825728482,
+          0.007053570643442871,
+          0.004760115707969383
+        ],
+        [
+          0.8594190073494666,
+          0.007047663825728482,
+          0.007053570643442871,
+          0.004760115707969383
+        ],
+        [
+          0.8594190073494666,
+          0.007047663825728482,
+          0.007053570643442871,
+          0.004760115707969383
+        ],
+        [
+          0.8594190073494666,
+          0.007047663825728482,
+          0.007053570643442871,
+          0.004760115707969383
+        ],
+        [
+          0.8594190073494666,
+          0.007047663825728488,
+          0.007053570643442871,
+          0.004760115707969388
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": false,
+        "visible_goal_constraint_unsatisfied": false,
+        "prior_action_had_no_effect": false
+      },
+      "selected_index": 1,
+      "selected_action": "click('47')",
+      "changed_from_target_rank_zero": true,
+      "abstract_kind": "POSITION",
+      "source_abstained": false,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "v16:UNBOUND->EXPLORE_UNTRIED:target_coverage_explore_untried_product",
+      "reward": 0.0,
+      "terminated": false,
+      "truncated": false,
+      "after_hash": "2b361167cbf7bea82b1ba2780c5a7d8b30e1af969d65ebdb2cd037b3a91da404"
+    },
+    {
+      "step": 5,
+      "prompt_sha256": "543ad029eaabd9fe37c6e507c45b0c5d26417f45683f84ce44d19915a1a42596",
+      "response_sha256": "8cdf4c8b4c384d2eea4a1bf888d92025a551e196c464ece9319f6d0e5c2b25d3",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "8cdf4c8b4c384d2eea4a1bf888d92025a551e196c464ece9319f6d0e5c2b25d3",
+          "completion_diagnostic": {
+            "character_count": 136,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": false,
+            "original_usage": {
+              "prompt_tokens": 2014,
+              "completion_tokens": 40,
+              "total_tokens": 2054,
+              "cost": 0.0008696,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0008696,
+                "upstream_inference_prompt_cost": 0.0008056,
+                "upstream_inference_completions_cost": 6.4e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 5
+        }
+      ],
+      "before_hash": "2b361167cbf7bea82b1ba2780c5a7d8b30e1af969d65ebdb2cd037b3a91da404",
+      "candidates": [
+        "click('71')",
+        "click('73')",
+        "click('59')",
+        "click('17')",
+        "noop()",
+        "go_back()"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "radio",
+          "element_text": "[71] radio 'x-large', checked='false'",
+          "action_bid": "71",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": true,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false,
+          "goal_constraint_signature": null
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "radio",
+          "element_text": "[73] radio 'xx-large', checked='false'",
+          "action_bid": "73",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": true,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false,
+          "goal_constraint_signature": null
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "other",
+          "element_text": "[59] LabelText ''",
+          "action_bid": "59",
+          "paired_constraint_bid": "58",
+          "paired_constraint_text": "[58] radio 'b-purple-thumbhole', checked='false'",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.125,
+          "is_commit": false,
+          "is_constraint": true,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false,
+          "goal_constraint_signature": null
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[17] button 'Back to Search'",
+          "action_bid": "17",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "noop",
+          "url_phase": "item_page",
+          "element_role": "other",
+          "element_text": "",
+          "action_bid": null,
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": true
+        },
+        {
+          "verb": "go_back",
+          "url_phase": "item_page",
+          "element_role": "other",
+          "element_text": "",
+          "action_bid": null,
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        }
+      ],
+      "target_features": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.45454545454545453
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.45454545454545453
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          1.0,
+          0.0,
+          0.0,
+          0.125,
+          0.0,
+          1.0,
+          0.0,
+          0.45454545454545453
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.45454545454545453
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.45454545454545453
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.45454545454545453
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.29023037150261827,
+          0.005692972487739908,
+          0.005700106888750426,
+          0.006007028371108113
+        ],
+        [
+          0.29023037150261827,
+          0.005692972487739908,
+          0.005700106888750426,
+          0.006007028371108113
+        ],
+        [
+          0.9859028683788051,
+          0.012274120178846543,
+          0.012301863840849872,
+          0.8987328130572168
+        ],
+        [
+          0.6897780436514334,
+          0.004860026205851086,
+          0.004864875002663511,
+          0.005270524543113795
+        ],
+        [
+          0.5010706625329848,
+          0.005412232380324505,
+          0.005418147857438691,
+          0.004808361304102779
+        ],
+        [
+          0.04143206493201987,
+          0.002479201179771799,
+          0.0024830836983223406,
+          0.0029672821215512234
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": false,
+        "visible_goal_constraint_unsatisfied": true,
+        "prior_action_had_no_effect": false
+      },
+      "selected_index": 0,
+      "selected_action": "click('71')",
+      "changed_from_target_rank_zero": false,
+      "abstract_kind": "POSITION",
+      "source_abstained": false,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "v16:UNBOUND->EXPLORE_UNTRIED:target_rank_zero",
+      "reward": 0.0,
+      "terminated": false,
+      "truncated": false,
+      "after_hash": "2b361167cbf7bea82b1ba2780c5a7d8b30e1af969d65ebdb2cd037b3a91da404"
+    },
+    {
+      "step": 6,
+      "prompt_sha256": "7e55dab5bb683adc617eb3e176544a26ee159bfa5ecb8d6950f6290d6d1325c8",
+      "response_sha256": "bec52c0d9d1d4624fffb8406c5fd6b20c91d45f5b06c1820d58c42fc027bd925",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "bec52c0d9d1d4624fffb8406c5fd6b20c91d45f5b06c1820d58c42fc027bd925",
+          "completion_diagnostic": {
+            "character_count": 141,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": false,
+            "original_usage": {
+              "prompt_tokens": 2322,
+              "completion_tokens": 42,
+              "total_tokens": 2364,
+              "cost": 0.000996,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.000996,
+                "upstream_inference_prompt_cost": 0.0009288,
+                "upstream_inference_completions_cost": 6.72e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 5
+        }
+      ],
+      "before_hash": "2b361167cbf7bea82b1ba2780c5a7d8b30e1af969d65ebdb2cd037b3a91da404",
+      "candidates": [
+        "click('73')",
+        "click('76')",
+        "click('44')",
+        "click('92')",
+        "click('17')",
+        "go_back()"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "radio",
+          "element_text": "[73] radio 'xx-large', checked='false'",
+          "action_bid": "73",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": true,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false,
+          "goal_constraint_signature": null
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "heading",
+          "element_text": "[76] heading \"COOrun Women's UPF 50+ Sun Protection Shirts Quick Dry Long Sleeve Shirts Lightweight T-Shirt Outdoor Hiking Runing Fishing\"",
+          "action_bid": "76",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "long",
+            "quick",
+            "sleeve",
+            "women"
+          ],
+          "goal_overlap": 0.21052631578947367,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "radio",
+          "element_text": "[44] radio 'c-purple', checked='false'",
+          "action_bid": "44",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.2,
+          "is_commit": false,
+          "is_constraint": true,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false,
+          "goal_constraint_signature": null
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[92] button 'Buy Now'",
+          "action_bid": "92",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": true,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[17] button 'Back to Search'",
+          "action_bid": "17",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "go_back",
+          "url_phase": "item_page",
+          "element_role": "other",
+          "element_text": "",
+          "action_bid": null,
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        }
+      ],
+      "target_features": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          0.5454545454545454
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.21052631578947367,
+          0.0,
+          1.0,
+          1.0,
+          0.5454545454545454
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.2,
+          0.0,
+          1.0,
+          1.0,
+          0.5454545454545454
+        ],
+        [
+          1.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          0.5454545454545454
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          0.5454545454545454
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          0.5454545454545454
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.06307101722834868,
+          0.0037531078606084897,
+          0.003758984456186641,
+          0.006115171944945326
+        ],
+        [
+          0.06210535777703844,
+          0.005012253587693424,
+          0.005019779415511258,
+          0.004633879338112954
+        ],
+        [
+          0.013504485831889174,
+          0.0024837956547911445,
+          0.002488493832184753,
+          0.005126938025060671
+        ],
+        [
+          0.9048910231647728,
+          0.8457884700060654,
+          0.8459581271171834,
+          0.009112902839440128
+        ],
+        [
+          0.2026261310641157,
+          0.0032275805215119593,
+          0.0032318700300916804,
+          0.005351769586608255
+        ],
+        [
+          0.015253848864127154,
+          0.0020390238734064804,
+          0.0020425007219373216,
+          0.0031259590600741815
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": false,
+        "visible_goal_constraint_unsatisfied": true,
+        "prior_action_had_no_effect": true
+      },
+      "selected_index": 5,
+      "selected_action": "go_back()",
+      "changed_from_target_rank_zero": true,
+      "abstract_kind": "REPLAN",
+      "source_abstained": false,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "v16:REFUTED->BACKTRACK_REPLAN:target_coverage_reject_incomplete_product",
+      "reward": 0.0,
+      "terminated": false,
+      "truncated": false,
+      "after_hash": "492b940564f2ce181e583311f488d5ded9206ac025fb03effc29f9db3e55a41c"
+    },
+    {
+      "step": 7,
+      "prompt_sha256": "c10825debbb54ad78630958b41491bdad637ae2bec4fa0c7bb505c42fd878cd1",
+      "response_sha256": "98f66ecbee7fed4592a5e85b22ac5b701f72b4cea6ac8e3928bc02f42f973a37",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "98f66ecbee7fed4592a5e85b22ac5b701f72b4cea6ac8e3928bc02f42f973a37",
+          "completion_diagnostic": {
+            "character_count": 143,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": false,
+            "original_usage": {
+              "prompt_tokens": 3599,
+              "completion_tokens": 42,
+              "total_tokens": 3641,
+              "cost": 0.0006236,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 2944,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0006236,
+                "upstream_inference_prompt_cost": 0.0005564,
+                "upstream_inference_completions_cost": 6.72e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 5
+        }
+      ],
+      "before_hash": "492b940564f2ce181e583311f488d5ded9206ac025fb03effc29f9db3e55a41c",
+      "candidates": [
+        "click('59')",
+        "click('95')",
+        "click('119')",
+        "click('143')",
+        "click('47')"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[59] link 'B09PB9MWKR', url=\"http://127.0.0.1:3000/item_page/fixed_96/B09PB9MWKR/%5B'quick',%20'drying',%20'women',%20'swimsuits',%20'nylon',%20'spandex',%20'long',%20'sleeve',%20'purple',%20'4xl',%20'under',%20'120'%5D/1/%7B%7D\"",
+          "action_bid": "59",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "4xl",
+            "drying",
+            "long",
+            "nylon",
+            "purple",
+            "quick",
+            "sleeve",
+            "spandex",
+            "swimsuits",
+            "women"
+          ],
+          "goal_overlap": 0.35714285714285715,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[95] link 'B0861GWJV2', url=\"http://127.0.0.1:3000/item_page/fixed_96/B0861GWJV2/%5B'quick',%20'drying',%20'women',%20'swimsuits',%20'nylon',%20'spandex',%20'long',%20'sleeve',%20'purple',%20'4xl',%20'under',%20'120'%5D/1/%7B%7D\"",
+          "action_bid": "95",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "4xl",
+            "drying",
+            "long",
+            "nylon",
+            "purple",
+            "quick",
+            "sleeve",
+            "spandex",
+            "swimsuits",
+            "women"
+          ],
+          "goal_overlap": 0.35714285714285715,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[119] link 'B09N3CDKGV', url=\"http://127.0.0.1:3000/item_page/fixed_96/B09N3CDKGV/%5B'quick',%20'drying',%20'women',%20'swimsuits',%20'nylon',%20'spandex',%20'long',%20'sleeve',%20'purple',%20'4xl',%20'under',%20'120'%5D/1/%7B%7D\"",
+          "action_bid": "119",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "4xl",
+            "drying",
+            "long",
+            "nylon",
+            "purple",
+            "quick",
+            "sleeve",
+            "spandex",
+            "swimsuits",
+            "women"
+          ],
+          "goal_overlap": 0.35714285714285715,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[143] link 'B09N974RWN', url=\"http://127.0.0.1:3000/item_page/fixed_96/B09N974RWN/%5B'quick',%20'drying',%20'women',%20'swimsuits',%20'nylon',%20'spandex',%20'long',%20'sleeve',%20'purple',%20'4xl',%20'under',%20'120'%5D/1/%7B%7D\"",
+          "action_bid": "143",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "4xl",
+            "drying",
+            "long",
+            "nylon",
+            "purple",
+            "quick",
+            "sleeve",
+            "spandex",
+            "swimsuits",
+            "women"
+          ],
+          "goal_overlap": 0.35714285714285715,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[47] link 'B08JD14GJF', url=\"http://127.0.0.1:3000/item_page/fixed_96/B08JD14GJF/%5B'quick',%20'drying',%20'women',%20'swimsuits',%20'nylon',%20'spandex',%20'long',%20'sleeve',%20'purple',%20'4xl',%20'under',%20'120'%5D/1/%7B%7D\"",
+          "action_bid": "47",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "4xl",
+            "drying",
+            "long",
+            "nylon",
+            "purple",
+            "quick",
+            "sleeve",
+            "spandex",
+            "swimsuits",
+            "women"
+          ],
+          "goal_overlap": 0.35714285714285715,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        }
+      ],
+      "target_features": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.35714285714285715,
+          0.0,
+          0.0,
+          0.0,
+          0.6363636363636364
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.35714285714285715,
+          0.0,
+          0.0,
+          0.0,
+          0.6363636363636364
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.35714285714285715,
+          0.0,
+          0.0,
+          0.0,
+          0.6363636363636364
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.35714285714285715,
+          0.0,
+          0.0,
+          0.0,
+          0.6363636363636364
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.35714285714285715,
+          0.0,
+          0.0,
+          0.0,
+          0.6363636363636364
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.7728317272041643,
+          0.007711180538502892,
+          0.007718040826730602,
+          0.00451984328847566
+        ],
+        [
+          0.7728317272041643,
+          0.007711180538502892,
+          0.007718040826730602,
+          0.00451984328847566
+        ],
+        [
+          0.7728317272041643,
+          0.007711180538502892,
+          0.007718040826730602,
+          0.00451984328847566
+        ],
+        [
+          0.7728317272041643,
+          0.007711180538502892,
+          0.007718040826730602,
+          0.00451984328847566
+        ],
+        [
+          0.7728317272041642,
+          0.007711180538502892,
+          0.007718040826730602,
+          0.00451984328847566
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": false,
+        "visible_goal_constraint_unsatisfied": false,
+        "prior_action_had_no_effect": false
+      },
+      "selected_index": 1,
+      "selected_action": "click('95')",
+      "changed_from_target_rank_zero": true,
+      "abstract_kind": "POSITION",
+      "source_abstained": false,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "v16:UNBOUND->EXPLORE_UNTRIED:target_coverage_explore_untried_product",
+      "reward": 0.0,
+      "terminated": false,
+      "truncated": false,
+      "after_hash": "d96a34ba6b8a63c274661053eb159a90ffb1ecf8581f6bdb17aeefe0f3670fdc"
+    },
+    {
+      "step": 8,
+      "prompt_sha256": "92b6e83946410ea0c43b266d8528ab964388606d484558748b1058c94ec03c0c",
+      "response_sha256": "1c4a49e6328420bdb9a2a61544f0f2bcb90799a81990e33165a907fadf0357ad",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "1c4a49e6328420bdb9a2a61544f0f2bcb90799a81990e33165a907fadf0357ad",
+          "completion_diagnostic": {
+            "character_count": 141,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": false,
+            "original_usage": {
+              "prompt_tokens": 1508,
+              "completion_tokens": 42,
+              "total_tokens": 1550,
+              "cost": 0.0006704,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0006704,
+                "upstream_inference_prompt_cost": 0.0006032,
+                "upstream_inference_completions_cost": 6.72e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 5
+        }
+      ],
+      "before_hash": "d96a34ba6b8a63c274661053eb159a90ffb1ecf8581f6bdb17aeefe0f3670fdc",
+      "candidates": [
+        "click('30')",
+        "click('47')",
+        "click('68')",
+        "click('17')",
+        "click('20')",
+        "click('31')",
+        "click('48')",
+        "go_back()"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "radio",
+          "element_text": "[30] radio 'purple', checked='false'",
+          "action_bid": "30",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "purple"
+          ],
+          "goal_overlap": 0.2,
+          "is_commit": false,
+          "is_constraint": true,
+          "is_goal_constraint": true,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false,
+          "goal_constraint_signature": "color:purple"
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "radio",
+          "element_text": "[47] radio 'tag 4xl = us 16', checked='false'",
+          "action_bid": "47",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "16",
+            "4xl",
+            "tag",
+            "us"
+          ],
+          "goal_overlap": 0.5,
+          "is_commit": false,
+          "is_constraint": true,
+          "is_goal_constraint": true,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false,
+          "goal_constraint_signature": "size:tag 4xl us 16"
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[68] button 'Buy Now'",
+          "action_bid": "68",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": true,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[17] button 'Back to Search'",
+          "action_bid": "17",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[20] button '< Prev'",
+          "action_bid": "20",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "other",
+          "element_text": "[31] LabelText ''",
+          "action_bid": "31",
+          "paired_constraint_bid": "30",
+          "paired_constraint_text": "[30] radio 'purple', checked='false'",
+          "goal_overlap_tokens": [
+            "purple"
+          ],
+          "goal_overlap": 0.14285714285714285,
+          "is_commit": false,
+          "is_constraint": true,
+          "is_goal_constraint": true,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false,
+          "goal_constraint_signature": "color:purple"
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "other",
+          "element_text": "[48] LabelText ''",
+          "action_bid": "48",
+          "paired_constraint_bid": "47",
+          "paired_constraint_text": "[47] radio 'tag 4xl = us 16', checked='false'",
+          "goal_overlap_tokens": [
+            "16",
+            "4xl",
+            "tag",
+            "us"
+          ],
+          "goal_overlap": 0.4,
+          "is_commit": false,
+          "is_constraint": true,
+          "is_goal_constraint": true,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false,
+          "goal_constraint_signature": "size:tag 4xl us 16"
+        },
+        {
+          "verb": "go_back",
+          "url_phase": "item_page",
+          "element_role": "other",
+          "element_text": "",
+          "action_bid": null,
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        }
+      ],
+      "target_features": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.2,
+          0.0,
+          1.0,
+          0.0,
+          0.7272727272727273
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.5,
+          0.0,
+          1.0,
+          0.0,
+          0.7272727272727273
+        ],
+        [
+          1.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.7272727272727273
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.7272727272727273
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.7272727272727273
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          1.0,
+          0.0,
+          0.0,
+          0.14285714285714285,
+          0.0,
+          1.0,
+          0.0,
+          0.7272727272727273
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          1.0,
+          0.0,
+          0.0,
+          0.4,
+          0.0,
+          1.0,
+          0.0,
+          0.7272727272727273
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.7272727272727273
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.020877067856590235,
+          0.0032405608184270037,
+          0.003246338082443717,
+          0.004914274819309167
+        ],
+        [
+          0.010817675377869256,
+          0.0028167777214189033,
+          0.0028220667401965115,
+          0.004117118645369447
+        ],
+        [
+          0.9702133908406705,
+          0.9175138147152586,
+          0.9175959102661861,
+          0.007895066444551421
+        ],
+        [
+          0.5362978165849569,
+          0.005165933419178564,
+          0.0051714158428391895,
+          0.005092420330712018
+        ],
+        [
+          0.5362978165849569,
+          0.005165933419178564,
+          0.0051714158428391895,
+          0.005092420330712018
+        ],
+        [
+          0.9840342422084232,
+          0.012606506748130733,
+          0.012635399927978519,
+          0.902944219025187
+        ],
+        [
+          0.968909561155598,
+          0.011445253832496064,
+          0.011472765726703601,
+          0.8843460377520854
+        ],
+        [
+          0.02859888378309376,
+          0.0025454584500080447,
+          0.002549532640415396,
+          0.0029426487083762227
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": false,
+        "visible_goal_constraint_unsatisfied": true,
+        "prior_action_had_no_effect": false
+      },
+      "selected_index": 5,
+      "selected_action": "click('31')",
+      "changed_from_target_rank_zero": true,
+      "abstract_kind": "POSITION",
+      "source_abstained": false,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "v16:UNBOUND->EXPLORE_UNTRIED:target_coverage_prepare:color:purple,size:tag 4xl us 16",
+      "reward": 0.0,
+      "terminated": false,
+      "truncated": false,
+      "after_hash": "8999df0c12a6d5e84c718add545d3eacbfdf3c0901c28cbc45e89ed587023b88"
+    },
+    {
+      "step": 9,
+      "prompt_sha256": "49d844856f4ac226d74a451c3fe51e372d14efcdc95ae23f57a7a7ea307987fd",
+      "response_sha256": "6f66201b2cd2d46baa03a3eb82ef306b120ef93b90be0c1b3b458615820cfec6",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "6f66201b2cd2d46baa03a3eb82ef306b120ef93b90be0c1b3b458615820cfec6",
+          "completion_diagnostic": {
+            "character_count": 141,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": false,
+            "original_usage": {
+              "prompt_tokens": 1522,
+              "completion_tokens": 42,
+              "total_tokens": 1564,
+              "cost": 0.000676,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.000676,
+                "upstream_inference_prompt_cost": 0.0006088,
+                "upstream_inference_completions_cost": 6.72e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 5
+        }
+      ],
+      "before_hash": "8999df0c12a6d5e84c718add545d3eacbfdf3c0901c28cbc45e89ed587023b88",
+      "candidates": [
+        "click('68')",
+        "click('58')",
+        "click('61')",
+        "click('64')",
+        "click('17')",
+        "click('48')",
+        "go_back()"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[68] button 'Buy Now'",
+          "action_bid": "68",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": true,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[58] button 'Description'",
+          "action_bid": "58",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[61] button 'Features'",
+          "action_bid": "61",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[64] button 'Reviews'",
+          "action_bid": "64",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[17] button 'Back to Search'",
+          "action_bid": "17",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "other",
+          "element_text": "[48] LabelText ''",
+          "action_bid": "48",
+          "paired_constraint_bid": "47",
+          "paired_constraint_text": "[47] radio 'tag 4xl = us 16', checked='false'",
+          "goal_overlap_tokens": [
+            "16",
+            "4xl",
+            "tag",
+            "us"
+          ],
+          "goal_overlap": 0.4,
+          "is_commit": false,
+          "is_constraint": true,
+          "is_goal_constraint": true,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false,
+          "goal_constraint_signature": "size:tag 4xl us 16"
+        },
+        {
+          "verb": "go_back",
+          "url_phase": "item_page",
+          "element_role": "other",
+          "element_text": "",
+          "action_bid": null,
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        }
+      ],
+      "target_features": [
+        [
+          1.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          0.0,
+          0.8181818181818182
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          0.0,
+          0.8181818181818182
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          0.0,
+          0.8181818181818182
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          0.0,
+          0.8181818181818182
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          0.0,
+          0.8181818181818182
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          1.0,
+          0.0,
+          0.0,
+          0.4,
+          1.0,
+          1.0,
+          0.0,
+          0.8181818181818182
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          0.0,
+          0.8181818181818182
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.989650706987652,
+          0.9650378149203788,
+          0.9650689244797865,
+          0.008277420789156114
+        ],
+        [
+          0.8514964619658816,
+          0.028402901209823136,
+          0.028423129346080826,
+          0.004933458703001023
+        ],
+        [
+          0.8514964619658816,
+          0.028402901209823136,
+          0.028423129346080826,
+          0.004933458703001023
+        ],
+        [
+          0.8514964619658816,
+          0.028402901209823136,
+          0.028423129346080826,
+          0.004933458703001023
+        ],
+        [
+          0.8514964619658816,
+          0.028402901209823136,
+          0.028423129346080826,
+          0.004933458703001023
+        ],
+        [
+          0.9806762180227491,
+          0.023313900386284333,
+          0.02336583631618875,
+          0.882124648182361
+        ],
+        [
+          0.08663915967288822,
+          0.007010444128201626,
+          0.007020062006748178,
+          0.0026457509455967854
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": true,
+        "visible_goal_constraint_unsatisfied": true,
+        "prior_action_had_no_effect": false
+      },
+      "selected_index": 5,
+      "selected_action": "click('48')",
+      "changed_from_target_rank_zero": true,
+      "abstract_kind": "POSITION",
+      "source_abstained": false,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "v16:UNBOUND->EXPLORE_UNTRIED:target_coverage_prepare:size:tag 4xl us 16",
+      "reward": 0.0,
+      "terminated": false,
+      "truncated": false,
+      "after_hash": "5fc9bf9ed88a10b599254003f71f94fd958812c2d7e810a7d4e3b8e70b3a235e"
+    },
+    {
+      "step": 10,
+      "prompt_sha256": "e4c7af10480d675487b492ddb1e6ce3f6fe2442456b434483110571c1111e19c",
+      "response_sha256": "2030db31c4e4b64abc54e21d32610bddedeb1bd648baf1b30e7e333040294c2f",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "2030db31c4e4b64abc54e21d32610bddedeb1bd648baf1b30e7e333040294c2f",
+          "completion_diagnostic": {
+            "character_count": 111,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": false,
+            "original_usage": {
+              "prompt_tokens": 1566,
+              "completion_tokens": 33,
+              "total_tokens": 1599,
+              "cost": 0.0006792,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0006792,
+                "upstream_inference_prompt_cost": 0.0006264,
+                "upstream_inference_completions_cost": 5.28e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 4
+        }
+      ],
+      "before_hash": "5fc9bf9ed88a10b599254003f71f94fd958812c2d7e810a7d4e3b8e70b3a235e",
+      "candidates": [
+        "click('68')",
+        "click('17')",
+        "click('20')",
+        "noop()",
+        "go_back()"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[68] button 'Buy Now'",
+          "action_bid": "68",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": true,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[17] button 'Back to Search'",
+          "action_bid": "17",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[20] button '< Prev'",
+          "action_bid": "20",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "noop",
+          "url_phase": "item_page",
+          "element_role": "other",
+          "element_text": "",
+          "action_bid": null,
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": true
+        },
+        {
+          "verb": "go_back",
+          "url_phase": "item_page",
+          "element_role": "other",
+          "element_text": "",
+          "action_bid": null,
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        }
+      ],
+      "target_features": [
+        [
+          1.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          0.0,
+          0.9090909090909091
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          0.0,
+          0.9090909090909091
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          0.0,
+          0.9090909090909091
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          1.0,
+          1.0,
+          0.0,
+          0.9090909090909091
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          0.0,
+          0.9090909090909091
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.9890170801661406,
+          0.9649815054361506,
+          0.9650132619447679,
+          0.008354854164485328
+        ],
+        [
+          0.8290838953545586,
+          0.029855380045361105,
+          0.02987715975876031,
+          0.004942976512814113
+        ],
+        [
+          0.8290838953545586,
+          0.029855380045361105,
+          0.02987715975876031,
+          0.004942976512814113
+        ],
+        [
+          0.7266583306597341,
+          0.03810248564273403,
+          0.0381341681700768,
+          0.004816954206933455
+        ],
+        [
+          0.07626771072439711,
+          0.007078847404185783,
+          0.007088756886959542,
+          0.002685311334010256
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": true,
+        "visible_goal_constraint_unsatisfied": true,
+        "prior_action_had_no_effect": false
+      },
+      "selected_index": 0,
+      "selected_action": "click('68')",
+      "changed_from_target_rank_zero": false,
+      "abstract_kind": "COMMIT",
+      "source_abstained": false,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "v16:VERIFIED->COMMIT_VERIFY:target_rank_zero",
+      "reward": 1.0,
+      "terminated": true,
+      "truncated": false,
+      "after_hash": "0acb123aa86886043f30e3f0ad568b5f936678d02b02f1ce75bd5b54c8aa6a7a"
+    }
+  ],
+  "step_count": 11,
+  "official_reward": 1.0,
+  "strict_success": true,
+  "pass_success": true,
+  "terminated": true,
+  "truncated": false,
+  "failure": null,
+  "failure_traceback": null,
+  "changed_from_target_rank_zero_count": 6,
+  "source_decision_count": 11,
+  "session_namespace": "phase2-ws-83be4ad55f-c14-authentic-search-automaton-plus-target",
+  "manifest_sha256": "83be4ad55fd78eacbdf7bae1bdee675676a566a3060f76034ea8d658fb6e19f8",
+  "target_identity": "webshop.synthetic.phase2v2.seed4145324235.index96.ef0c0002690d9195",
+  "goal_sha256": "ef0c0002690d9195a06f04499e2cdeb4a47e2bd0b9dbcf01357fd99bc256f2ec",
+  "source_game": "gymv_columns",
+  "source_artifact_sha256": "39c5194016c037072aaa4a82137a8d242ceda17ed7ccd72caf16b495784000d0",
+  "v16_controller": {
+    "condition": "authentic_search_automaton_plus_target",
+    "source_artifact_sha256": "39c5194016c037072aaa4a82137a8d242ceda17ed7ccd72caf16b495784000d0",
+    "source_decisions": 11,
+    "source_action_counts": {
+      "BACKTRACK_REPLAN": 2,
+      "COMMIT_VERIFY": 1,
+      "EXPLORE_UNTRIED": 8
+    },
+    "target_fallbacks": 0,
+    "coverage_controller": {
+      "condition": "target_native_coverage_only",
+      "coverage_enabled": true,
+      "coverage_ready": true,
+      "goal_option_signatures": [
+        "color:purple",
+        "size:tag 4xl us 16"
+      ],
+      "coverage_interventions": 6,
+      "source_calls_after_coverage": 0,
+      "rejected_product_ids": [
+        "B08JD14GJF",
+        "B09PB9MWKR"
+      ],
+      "last_selected_product_id": "B0861GWJV2",
+      "anytime_reward_salvage": true,
+      "maximum_steps": 12,
+      "budget_abstentions": 0,
+      "product_ledger_resets": 2,
+      "ledger": {
+        "required": [
+          "color:purple",
+          "size:tag 4xl us 16"
+        ],
+        "verified": [
+          "color:purple",
+          "size:tag 4xl us 16"
+        ],
+        "missing": [],
+        "commit_authorized": true,
+        "pending_signature": null
+      }
+    },
+    "source_trace": [
+      {
+        "domain": "webshop",
+        "episode_id": "webshop.synthetic.phase2v2.seed4145324235.index96.ef0c0002690d9195",
+        "decision_index": 0,
+        "target_event": "NO_ACTIVE_CANDIDATE_AND_UNTRIED_REMAIN",
+        "source_action": "EXPLORE_UNTRIED",
+        "native_action_id": "88bb336474fc5539cc9f3fc2a02e09f9c68cc7113e7e758cfd4c6a91424d85f0",
+        "native_action": "fill('18','quick drying women swimsuits nylon spandex long sleeve purple 4xl under 120')",
+        "admitted": true,
+        "reason": "SOURCE_EVENT_ROUTE_TARGET_NATIVE_REALIZATION",
+        "source_artifact_sha256": "39c5194016c037072aaa4a82137a8d242ceda17ed7ccd72caf16b495784000d0",
+        "target_evidence_sha256": "ea4cb8becadce524634bd6b302ab778c12039583afa3072609b82b740814758b",
+        "receipt_sha256": "4517c97e3482ea1eaa73e9a1ccb90dfcc64e8da83248f96002c3182e654431a0"
+      },
+      {
+        "domain": "webshop",
+        "episode_id": "webshop.synthetic.phase2v2.seed4145324235.index96.ef0c0002690d9195",
+        "decision_index": 1,
+        "target_event": "NO_ACTIVE_CANDIDATE_AND_UNTRIED_REMAIN",
+        "source_action": "EXPLORE_UNTRIED",
+        "native_action_id": "7d34a3108b402f6abf8d9fa9e91d361610448d2a8452795e07ba4c6e9ed62af9",
+        "native_action": "click('20')",
+        "admitted": true,
+        "reason": "SOURCE_EVENT_ROUTE_TARGET_NATIVE_REALIZATION",
+        "source_artifact_sha256": "39c5194016c037072aaa4a82137a8d242ceda17ed7ccd72caf16b495784000d0",
+        "target_evidence_sha256": "1d9c2e3efa37efa673e69873ab5cb8e0b6034ffa2ee0c7543c9402662b0f6b5a",
+        "receipt_sha256": "ada9e94d693143f79077d52c3201885aa4fb398a094210852f601ed2e9b9d0da"
+      },
+      {
+        "domain": "webshop",
+        "episode_id": "webshop.synthetic.phase2v2.seed4145324235.index96.ef0c0002690d9195",
+        "decision_index": 2,
+        "target_event": "NO_ACTIVE_CANDIDATE_AND_UNTRIED_REMAIN",
+        "source_action": "EXPLORE_UNTRIED",
+        "native_action_id": "86d7c1b6600b17aa294526ac0b984066342c26b4b75c11d439708d977f99f3f3",
+        "native_action": "click('59')",
+        "admitted": true,
+        "reason": "SOURCE_EVENT_ROUTE_TARGET_NATIVE_REALIZATION",
+        "source_artifact_sha256": "39c5194016c037072aaa4a82137a8d242ceda17ed7ccd72caf16b495784000d0",
+        "target_evidence_sha256": "1765495e5184d767c63dc9ac439f3d5bfa62d1bafb0378757223b1232227632f",
+        "receipt_sha256": "96f1e91cd9bf5c23256bd565f50be2073200c7c07ed3b9e6a250e7ea14c2ccbd"
+      },
+      {
+        "domain": "webshop",
+        "episode_id": "webshop.synthetic.phase2v2.seed4145324235.index96.ef0c0002690d9195",
+        "decision_index": 3,
+        "target_event": "ACTIVE_CANDIDATE_REFUTED",
+        "source_action": "BACKTRACK_REPLAN",
+        "native_action_id": "971f67dc67defc77901afffe3b070984107d5b7986341b09808b0cb3d50da4a2",
+        "native_action": "go_back()",
+        "admitted": true,
+        "reason": "SOURCE_EVENT_ROUTE_TARGET_NATIVE_REALIZATION",
+        "source_artifact_sha256": "39c5194016c037072aaa4a82137a8d242ceda17ed7ccd72caf16b495784000d0",
+        "target_evidence_sha256": "be422eecf08e241449516327be5df249ea6d53fa4e374a106a12dce06eec6484",
+        "receipt_sha256": "fe36c6d753591afcf2d892b40a7d1125fbe5bf849f2632cf4108358c92863bc8"
+      },
+      {
+        "domain": "webshop",
+        "episode_id": "webshop.synthetic.phase2v2.seed4145324235.index96.ef0c0002690d9195",
+        "decision_index": 4,
+        "target_event": "NO_ACTIVE_CANDIDATE_AND_UNTRIED_REMAIN",
+        "source_action": "EXPLORE_UNTRIED",
+        "native_action_id": "dc5275d319d6b9b1b759d92af96ff06b7b0a8927e94839c51eecf9c23569acff",
+        "native_action": "click('47')",
+        "admitted": true,
+        "reason": "SOURCE_EVENT_ROUTE_TARGET_NATIVE_REALIZATION",
+        "source_artifact_sha256": "39c5194016c037072aaa4a82137a8d242ceda17ed7ccd72caf16b495784000d0",
+        "target_evidence_sha256": "3169a7fffd92f6a04b2b11738971acaffa76d412d2dde4962f504fbaa14f3025",
+        "receipt_sha256": "8805141c5a26e1db772c97f01cc2e35d2d01e896652e51f7a83833762001c95d"
+      },
+      {
+        "domain": "webshop",
+        "episode_id": "webshop.synthetic.phase2v2.seed4145324235.index96.ef0c0002690d9195",
+        "decision_index": 5,
+        "target_event": "NO_ACTIVE_CANDIDATE_AND_UNTRIED_REMAIN",
+        "source_action": "EXPLORE_UNTRIED",
+        "native_action_id": "1d3d4d3d72f1c0b141780fa551b7d4fb0548f6777de9c5193dd3390fccaf2bb3",
+        "native_action": "click('71')",
+        "admitted": true,
+        "reason": "SOURCE_EVENT_ROUTE_TARGET_NATIVE_REALIZATION",
+        "source_artifact_sha256": "39c5194016c037072aaa4a82137a8d242ceda17ed7ccd72caf16b495784000d0",
+        "target_evidence_sha256": "75cf786c47dc1a8dc88610be192dace03eb4d944d5d69691987d1bd7748da5d4",
+        "receipt_sha256": "990f34d2f5d5abad959858839279df642f4b46832d5e4a6f8dfe71f1a7fedc2b"
+      },
+      {
+        "domain": "webshop",
+        "episode_id": "webshop.synthetic.phase2v2.seed4145324235.index96.ef0c0002690d9195",
+        "decision_index": 6,
+        "target_event": "ACTIVE_CANDIDATE_REFUTED",
+        "source_action": "BACKTRACK_REPLAN",
+        "native_action_id": "971f67dc67defc77901afffe3b070984107d5b7986341b09808b0cb3d50da4a2",
+        "native_action": "go_back()",
+        "admitted": true,
+        "reason": "SOURCE_EVENT_ROUTE_TARGET_NATIVE_REALIZATION",
+        "source_artifact_sha256": "39c5194016c037072aaa4a82137a8d242ceda17ed7ccd72caf16b495784000d0",
+        "target_evidence_sha256": "f270b1a5a679e05b1a0544c12e85581fe9a28cb439019532110c61c4686ee7e2",
+        "receipt_sha256": "767e2c3a7b289968ef04fd71dede272ea7b6f1ba7621885297011b175f8fc02d"
+      },
+      {
+        "domain": "webshop",
+        "episode_id": "webshop.synthetic.phase2v2.seed4145324235.index96.ef0c0002690d9195",
+        "decision_index": 7,
+        "target_event": "NO_ACTIVE_CANDIDATE_AND_UNTRIED_REMAIN",
+        "source_action": "EXPLORE_UNTRIED",
+        "native_action_id": "16eaa0aaa56468f2f1313cbf8aac23ae3ab68fac57758285ca291dbebf1ff9c3",
+        "native_action": "click('95')",
+        "admitted": true,
+        "reason": "SOURCE_EVENT_ROUTE_TARGET_NATIVE_REALIZATION",
+        "source_artifact_sha256": "39c5194016c037072aaa4a82137a8d242ceda17ed7ccd72caf16b495784000d0",
+        "target_evidence_sha256": "f8aeedc455966ba47ded69bcb5fe7e1fc5ffeafd29fc45ef707dfc5b27dd482e",
+        "receipt_sha256": "f3e844fb4e1971445911477ac913f45ae75a1a37355ac5853def87f8329dc959"
+      },
+      {
+        "domain": "webshop",
+        "episode_id": "webshop.synthetic.phase2v2.seed4145324235.index96.ef0c0002690d9195",
+        "decision_index": 8,
+        "target_event": "NO_ACTIVE_CANDIDATE_AND_UNTRIED_REMAIN",
+        "source_action": "EXPLORE_UNTRIED",
+        "native_action_id": "a299cd2f005db39f283a87a2c12eab470fe7ce5ebf5ea26e89dc6d2462b0ec09",
+        "native_action": "click('31')",
+        "admitted": true,
+        "reason": "SOURCE_EVENT_ROUTE_TARGET_NATIVE_REALIZATION",
+        "source_artifact_sha256": "39c5194016c037072aaa4a82137a8d242ceda17ed7ccd72caf16b495784000d0",
+        "target_evidence_sha256": "5ee0d06cfd8493d135d072af8dce832a1a382ff7090b65339155a34c6bef78ac",
+        "receipt_sha256": "f461d4020ca5e7941cf78a056bdde57db684804248e235c1c182c1335f9d4656"
+      },
+      {
+        "domain": "webshop",
+        "episode_id": "webshop.synthetic.phase2v2.seed4145324235.index96.ef0c0002690d9195",
+        "decision_index": 9,
+        "target_event": "NO_ACTIVE_CANDIDATE_AND_UNTRIED_REMAIN",
+        "source_action": "EXPLORE_UNTRIED",
+        "native_action_id": "515a559f2a195ce2b79146dc26a80450b298baca223605c2d069b531381f0966",
+        "native_action": "click('48')",
+        "admitted": true,
+        "reason": "SOURCE_EVENT_ROUTE_TARGET_NATIVE_REALIZATION",
+        "source_artifact_sha256": "39c5194016c037072aaa4a82137a8d242ceda17ed7ccd72caf16b495784000d0",
+        "target_evidence_sha256": "f26533e0041be90af3dfaf8edb8a7a904e1625e8e4a9752cd6b390df4c4af6d1",
+        "receipt_sha256": "4a7ca0921e2a50ebd9a116056845828d2af4986583d52e963e9c441b3d1277c0"
+      },
+      {
+        "domain": "webshop",
+        "episode_id": "webshop.synthetic.phase2v2.seed4145324235.index96.ef0c0002690d9195",
+        "decision_index": 10,
+        "target_event": "ACTIVE_CANDIDATE_VERIFIED",
+        "source_action": "COMMIT_VERIFY",
+        "native_action_id": "068796f061af3943104699f4cbc92030bf9d41a0af90c2347dc3e3c6cf83c4d3",
+        "native_action": "click('68')",
+        "admitted": true,
+        "reason": "SOURCE_EVENT_ROUTE_TARGET_NATIVE_REALIZATION",
+        "source_artifact_sha256": "39c5194016c037072aaa4a82137a8d242ceda17ed7ccd72caf16b495784000d0",
+        "target_evidence_sha256": "5edf9ad32a34224f0ac97fa3cebd7d8c16e6d02edb9ff80259c9f428a295401d",
+        "receipt_sha256": "0aed28821e610fa463341ae57fa3b97d4f1d4ac0e552e84b0f41dfc3178944c2"
+      }
+    ]
+  },
+  "commit_audit": [
+    {
+      "step": 10,
+      "selected_action": "click('68')",
+      "authorized": true,
+      "coverage": {
+        "required": [
+          "color:purple",
+          "size:tag 4xl us 16"
+        ],
+        "verified": [
+          "color:purple",
+          "size:tag 4xl us 16"
+        ],
+        "missing": [],
+        "commit_authorized": true,
+        "pending_signature": null
+      }
+    }
+  ],
+  "unsafe_commits": [],
+  "historical_target_outcome_reused": false,
+  "target_reset_or_sample_open_count": 1,
+  "runtime_hashes": {
+    "runner": "0cf4f0c993f7b13915df4c5acf3455e1a5fd6b4d8db561972b4f7575536ccd81",
+    "controller": "478994c5da56ee783e59823a79f026dfa2f7185d0f733a835bfe11e5cdd46c38",
+    "utility_contract": "7b30994bd6b293af713e4b6ab414e16adc94ae02fdc943f4106f514668bfda85",
+    "source_artifact": "0a47aa22c60266226132e667dbfaf16c03382ca03fd730d95afc751be878255e",
+    "target_grounder": "bbf8a22ebec8e7ab6d55e570f230ba4fcb2b8630d1dc81bd24ba103f68701782"
+  },
+  "receipt_sha256": "bc0a0402198e3e3c0d6f0bb12dd93fbecfdb3696e6dd2b0605740c3705899c0e"
+}

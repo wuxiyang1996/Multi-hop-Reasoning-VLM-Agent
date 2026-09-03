@@ -1,0 +1,30 @@
+{
+  "schema_version": "phase3-discoveryworld-structured-acquisition-config-v2",
+  "status": "DEVELOPMENT_ON_CONSUMED_SEEDS_ONLY",
+  "role": "development",
+  "claim_boundary": "Structured acquisition development on consumed seeds45-50; no formal reserve task or outcome is read.",
+  "model": {
+    "provider": "openrouter",
+    "base_url": "https://openrouter.ai/api/v1",
+    "api_key_name": "OPENROUTER_API_KEY",
+    "model": "openai/gpt-4.1-mini",
+    "affordance_model": "openai/gpt-4.1",
+    "temperature": 0,
+    "maximum_output_tokens": 1200,
+    "schema_attempts": 3
+  },
+  "runtime": {
+    "maximum_acquisition_steps": 24,
+    "continuation_horizon": 0,
+    "task_workers": 3,
+    "thread_id_base": 159000
+  },
+  "tasks": [
+    {"task_id": "proteomics.easy.seed45", "scenario": "Proteomics", "difficulty": "Easy", "seed": 45},
+    {"task_id": "proteomics.easy.seed46", "scenario": "Proteomics", "difficulty": "Easy", "seed": 46},
+    {"task_id": "proteomics.easy.seed47", "scenario": "Proteomics", "difficulty": "Easy", "seed": 47},
+    {"task_id": "proteomics.easy.seed48", "scenario": "Proteomics", "difficulty": "Easy", "seed": 48},
+    {"task_id": "proteomics.easy.seed49", "scenario": "Proteomics", "difficulty": "Easy", "seed": 49},
+    {"task_id": "proteomics.easy.seed50", "scenario": "Proteomics", "difficulty": "Easy", "seed": 50}
+  ]
+}

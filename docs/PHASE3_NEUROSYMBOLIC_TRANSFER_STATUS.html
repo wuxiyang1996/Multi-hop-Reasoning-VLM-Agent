@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Phase 3 Neural-Symbolic Transfer</title>
+  <style>
+    :root { --ink:#17212b; --muted:#627180; --paper:#f4f1e8; --card:#fffdf7; --ok:#19715a; --bad:#b44435; --line:#d8d1c3; --accent:#315d8a; }
+    * { box-sizing:border-box; }
+    body { margin:0; color:var(--ink); background:linear-gradient(135deg,#eef2ef,var(--paper) 45%,#eee7dc); font:16px/1.55 ui-sans-serif,system-ui,sans-serif; }
+    main { max-width:1120px; margin:auto; padding:48px 24px 72px; }
+    h1 { font:700 clamp(2.2rem,6vw,4.8rem)/.95 ui-serif,Georgia,serif; letter-spacing:-.04em; max-width:900px; margin:0 0 20px; }
+    h2 { margin:42px 0 14px; font:700 1.65rem/1.1 ui-serif,Georgia,serif; }
+    .lead { max-width:850px; font-size:1.14rem; color:var(--muted); }
+    .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:14px; margin:30px 0; }
+    .card { background:color-mix(in srgb,var(--card) 93%,transparent); border:1px solid var(--line); border-radius:16px; padding:20px; box-shadow:0 8px 30px #24313d0d; }
+    .metric { font:750 2.35rem/1 ui-serif,Georgia,serif; }
+    .ok { color:var(--ok); } .bad { color:var(--bad); } .muted { color:var(--muted); }
+    .label { margin-top:8px; color:var(--muted); }
+    table { width:100%; border-collapse:collapse; background:var(--card); border:1px solid var(--line); }
+    th,td { text-align:left; padding:11px 14px; border-bottom:1px solid var(--line); }
+    th { color:var(--muted); font-size:.82rem; text-transform:uppercase; letter-spacing:.06em; }
+    code { background:#e8e3d8; padding:.12em .35em; border-radius:5px; }
+    .flow { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; margin:22px 0; }
+    .flow div { padding:13px 10px; background:var(--card); border:1px solid var(--line); border-radius:10px; text-align:center; font-size:.9rem; }
+    .note { border-left:4px solid var(--accent); padding:12px 18px; background:#f7fafc; }
+    a { color:var(--accent); }
+    @media(max-width:760px){ .flow{grid-template-columns:1fr;} main{padding-top:30px;} }
+  </style>
+</head>
+<body><main>
+  <div class="note"><strong>Updated 2026-08-16:</strong> this is the historical typed-horizon Phase 3 page. The current state-delta / relational shared-IR result includes a validated TIR second-target replication. <a href="PHASE3_STRUCTURAL_IR_TRANSFER_V2_STATUS.html">Open the current V2 status page.</a></div>
+  <h1>One transfer validated. One replication failed.</h1>
+  <p class="lead">Phase 3 replaced hand-written policy templates with source-only typed program induction. The unchanged programs produced a large untouched DiscoveryWorld gain, then failed a strict ALFWorld same-IR formal replication. Both outcomes are part of the result.</p>
+
+  <section class="grid">
+    <article class="card"><div class="metric ok">18/22</div><div class="label">held-out source program accuracy; shuffled 1/22</div></article>
+    <article class="card"><div class="metric ok">22/24</div><div class="label">DiscoveryWorld source-induced; neural 3/24</div></article>
+    <article class="card"><div class="metric bad">11/24</div><div class="label">ALFWorld source-induced; neural 12/24</div></article>
+    <article class="card"><div class="metric">3 + 3</div><div class="label">qualified source lineages plus induced abstentions</div></article>
+  </section>
+
+  <h2>The actual transfer boundary</h2>
+  <div class="flow">
+    <div>source intervention tuples</div><div>induced anonymous operators</div><div>typed H1/H4/H8 effects</div><div>target-native neural grounding</div><div>native target actions</div>
+  </div>
+  <p>No source game identity is a runtime feature. Columns learned H4, Thunder learned H8, and Tetris learned transition persistence. Candy Crush, Streets of Rage 2, and Strider fail closed.</p>
+
+  <h2>Untouched DiscoveryWorld</h2>
+  <table><thead><tr><th>Arm</th><th>Success</th></tr></thead><tbody>
+    <tr><td>Neural-only</td><td>3/24</td></tr><tr><td>Source-induced</td><td><strong>22/24</strong></td></tr>
+    <tr><td>Source-permuted</td><td>11/24</td></tr><tr><td>Generic scaffold</td><td>1/24</td></tr><tr><td>Target-native ceiling</td><td>24/24</td></tr>
+  </tbody></table>
+  <p>Source versus neural: 19 wins, 0 losses, 5 ties; exact two-sided sign-test <code>p=3.81e-6</code>. Development acquisition fallback fell to zero; formal fallback was 3.55% under the frozen bound.</p>
+
+  <h2>ALFWorld same-IR replication</h2>
+  <table><thead><tr><th>Arm</th><th>Qualification (11)</th><th>Formal (24)</th></tr></thead><tbody>
+    <tr><td>Neural-only</td><td>6</td><td><strong>12</strong></td></tr><tr><td>Source-induced</td><td><strong>7</strong></td><td class="bad">11</td></tr>
+    <tr><td>Source-permuted</td><td>6</td><td><strong>12</strong></td></tr><tr><td>Generic scaffold</td><td>5</td><td>11</td></tr>
+  </tbody></table>
+  <p>The ALFWorld grounder was trained on 314 development option forks and never read formal success. Qualification passed every gate. Formal source versus neural was 0 wins / 1 loss / 23 ties, so negative transfer was 4.17% and the replication failed.</p>
+
+  <div class="note"><strong>Bitter lesson.</strong> Policy support 0.9 and a predicted positive horizon effect are not enough for sequential tasks with deadlines. One H8 detour at support 0.986 displaced a critical placement and erased the benefit of an earlier correct H4 intervention.</div>
+
+  <h2>What remains</h2>
+  <p>Do not tune on the consumed ALFWorld formal population. A valid second positive replication needs a new reserve—preferably TIR non-maze with genuine temporally extended tool interventions—and a target-native downside/applicability grounder that models missed commitments, irreversibility, and remaining budget. The source IR and all source programs must stay unchanged.</p>
+
+  <p class="muted">Details: <a href="PHASE3_SOURCE_INDUCTION_DISCOVERYWORLD_ALFWORLD_RESULTS.md">full protocol and results</a> · <a href="results/phase3_neurosymbolic_transfer_v1_summary.json">machine-readable summary</a></p>
+</main></body></html>

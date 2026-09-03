@@ -1,0 +1,144 @@
+{
+  "adjudicator_forbidden_fields": [
+    "typed_decision",
+    "direct_response",
+    "gold_answer",
+    "functional_program",
+    "scene_graph",
+    "source_identity"
+  ],
+  "adjudicator_visible_fields": [
+    "public_question",
+    "chronological_frames",
+    "frame_timestamps"
+  ],
+  "archive_path": "/fs/gamma-projects/vlm-robot/datasets/AGQA2-official/AGQA_balanced.zip",
+  "archive_sha256": "3cd4cc741864ac4bb875e3c1dc41d0ddea559259059b01d229527b08323bea0d",
+  "claim_boundary": "ALL_AND_ONLY_V17_SOURCE_TYPED_OVERRIDES;INDEPENDENT_CLAUDE_FULL_TIMELINE_ADJUDICATION;NO_TYPED_OR_DIRECT_CANDIDATE_VISIBLE_TO_MODEL;DEVELOPMENT_ONLY",
+  "entry": "AGQA_balanced/test_balanced.txt",
+  "manifest_sha256": "2b2c790e4642fd0799c1095e34079fcc0a7cd66c9c6fcae76a5614d0e9b42f55",
+  "parent_v17_manifest_sha256": "3329b13fc51e9da3308bb1adc132d86fab7a2e0497b72c32fa5d00096a91f2b2",
+  "parent_v17_report": "runs/agqa2_active_grounding_v17_powered_reserve/report.json",
+  "parent_v17_report_file_sha256": "143065c91feadc143c92589cfa2d8592ca8b30cf4c1934ea3b6a95060f964cf3",
+  "parent_v17_report_sha256": "c7f34697cdd6922ad030b11102af608e95ce05c1d5e3edb7bf228fcd213e692d",
+  "sample_count": 7,
+  "samples": [
+    {
+      "allowed_decisions": [
+        "yes",
+        "no"
+      ],
+      "direct_response_sha256": "a8c537bb7ae509b2bbe268a43e0ac7ee230058177f221743fa86666d80c8f4ce",
+      "grounding_receipt_sha256": "431199880b6a4c8087b1a16ecf72f6b428b292c2fb1d0a7fdb8b178c91fb70ce",
+      "query_plan_sha256": "0e551c6548a4b3385ede6aa3a6b9495bf3af8cd378c9b88c8800c41137d95a7f",
+      "question_sha256": "c312724be4ddd3a1a8dfb28b31ba4915a6566d51449d55fd3fa6d1ed370f2db4",
+      "selection_reason": "ALL_V17_SOURCE_TYPED_OVERRIDES",
+      "task_id": "02SKC-34566",
+      "typed_decision_sha256": "04a06452677210a3cdaec376fd5ebbca1714cb7af9e62bf5cce1644310a9086a",
+      "video_id": "02SKC",
+      "video_path": "/fs/gamma-projects/vlm-robot/datasets/STAR-official/videos/charades/02SKC.mp4",
+      "video_sha256": "64d15e5baa39266670edeb6eec7dbe530136abb4848c3d24c09208e43f5c7334"
+    },
+    {
+      "allowed_decisions": [
+        "before",
+        "after"
+      ],
+      "direct_response_sha256": "fdca2f5d4715a3cb12a6502e76cc2fdae0040ecb51502b89631a705bd8562497",
+      "grounding_receipt_sha256": "d23c1061de6fec2589bbbdf0efc26625faeccfa9b2a6d5f8e8104ea4a26ecfef",
+      "query_plan_sha256": "0dbedea522503ced8c21f85101f1c022e5dfb0c76be5cdf3c9ec533e2c4abbb7",
+      "question_sha256": "35ff4004c4aa2945ad190231d5734e55a87951540d29dabe781e573a195d1dcc",
+      "selection_reason": "ALL_V17_SOURCE_TYPED_OVERRIDES",
+      "task_id": "51N2C-6288",
+      "typed_decision_sha256": "e5396a5787cfb54f2f489fc64a419526b04056feae5dd1785217ec70f4dc8b18",
+      "video_id": "51N2C",
+      "video_path": "/fs/gamma-projects/vlm-robot/datasets/STAR-official/videos/charades/51N2C.mp4",
+      "video_sha256": "f6d3f1961280ee1c84ee63eb8f531dd7fcb8a7b7db88a26450a80d815479d2ad"
+    },
+    {
+      "allowed_decisions": [
+        "yes",
+        "no"
+      ],
+      "direct_response_sha256": "9265a7d7b6067b3dc9d14ba12974ce3cb199d8d46f8d3b014218ee62c431ca00",
+      "grounding_receipt_sha256": "9e9072509a70466fc63ef4b56bc59a0cfafe70c459873025efc27e7b7927f41f",
+      "query_plan_sha256": "77cd8c83572f961424e6a984f673c4d2667f300f323836cc6dbc9bf5696d3322",
+      "question_sha256": "6907e0c072361451f9ebc29614e7ca49292f2281d35e837528a8789c43a62024",
+      "selection_reason": "ALL_V17_SOURCE_TYPED_OVERRIDES",
+      "task_id": "7XCAP-3085",
+      "typed_decision_sha256": "6c76a9331e7f5ff9db2754d119a61395717be0c0877d0d8bd462197dff961e4c",
+      "video_id": "7XCAP",
+      "video_path": "/fs/gamma-projects/vlm-robot/datasets/STAR-official/videos/charades/7XCAP.mp4",
+      "video_sha256": "61872f9f4875f1fb2afe8c76a5c0fcb712b9af6a466efb983b52b8678e898001"
+    },
+    {
+      "allowed_decisions": [
+        "yes",
+        "no"
+      ],
+      "direct_response_sha256": "152fca14bfe6dab651d4e1400e07fbbe28963c80055d2d1f91d59ec95b17479e",
+      "grounding_receipt_sha256": "40007736fe3fa26b943e57c95811af61735f15ed778bcc2f635ca738196c01da",
+      "query_plan_sha256": "2725eb5c205e5e817b81f9e80f4434c18892189b1a29458e3035010df3e6fe0d",
+      "question_sha256": "23885d1a830e9d48c7d5da1771c2fa40865b2542f2ec9d596d58f6da30ae6a17",
+      "selection_reason": "ALL_V17_SOURCE_TYPED_OVERRIDES",
+      "task_id": "YAFX0-3542",
+      "typed_decision_sha256": "6c76a9331e7f5ff9db2754d119a61395717be0c0877d0d8bd462197dff961e4c",
+      "video_id": "YAFX0",
+      "video_path": "/fs/gamma-projects/vlm-robot/datasets/STAR-official/videos/charades/YAFX0.mp4",
+      "video_sha256": "ec1a65ce1139bba33bc067f0a9bf870e23f32f6679656963fee9221a0c50c4eb"
+    },
+    {
+      "allowed_decisions": [
+        "before",
+        "after"
+      ],
+      "direct_response_sha256": "fd5810b06ae1034fd6b34afc654113b58080b4d5d60e372db772b8a860040cef",
+      "grounding_receipt_sha256": "576380fd5624cfc8800a19ae272bde328de04f3f3b8494da5c3aa9de59df34ca",
+      "query_plan_sha256": "3722d759d24de63fe085bfe937f87fcb91b64fa4aa8b51ae86904e504745f4fc",
+      "question_sha256": "207e43e7b3a49fc1e7bae5e386125ef9caa6b024e2e51bb4fe3f5adbc8ba9470",
+      "selection_reason": "ALL_V17_SOURCE_TYPED_OVERRIDES",
+      "task_id": "LRJKT-32905",
+      "typed_decision_sha256": "26c4f38e162a98454d54dcd80b8e01c962b52de3b4c965ccfe9d1a91ae7f1862",
+      "video_id": "LRJKT",
+      "video_path": "/fs/gamma-projects/vlm-robot/datasets/STAR-official/videos/charades/LRJKT.mp4",
+      "video_sha256": "f8b0529a6d555d15ffe777311e0e3cfa2e8e4ced075784c7fd8ecdbe96d6352d"
+    },
+    {
+      "allowed_decisions": [
+        "before",
+        "after"
+      ],
+      "direct_response_sha256": "d06758b079929aaa1191d50b49643a53d5474898ec283e36ebd2ec19f4b66474",
+      "grounding_receipt_sha256": "7c6a0848ede7cd64bcac51487d807dbf2c56c223a9d84a73fb036b49c310144a",
+      "query_plan_sha256": "bd54e70f4c60075dde2e3a3f7f72d0a739ee3bade0121bc34f33a62df0e56338",
+      "question_sha256": "14863401543b46f06a6b3e2c01f2cd1920221f13fdffb453ec718ddf85c82da3",
+      "selection_reason": "ALL_V17_SOURCE_TYPED_OVERRIDES",
+      "task_id": "DUZDL-127689",
+      "typed_decision_sha256": "26c4f38e162a98454d54dcd80b8e01c962b52de3b4c965ccfe9d1a91ae7f1862",
+      "video_id": "DUZDL",
+      "video_path": "/fs/gamma-projects/vlm-robot/datasets/STAR-official/videos/charades/DUZDL.mp4",
+      "video_sha256": "48abcb5a6d1be899072856df955e84316d2ce87f65c02213763c9604e27ecf72"
+    },
+    {
+      "allowed_decisions": [
+        "yes",
+        "no"
+      ],
+      "direct_response_sha256": "48e412f7afbe9e2b77b33b6f6f6f162a3671c34897fcec11ea4135840c0a7474",
+      "grounding_receipt_sha256": "031f707c77ada79a369f88b7ebe44dcd3de3d74aed15703b676c453f20337509",
+      "query_plan_sha256": "ec3a3d72c60f1ba22f9d923419fd37c68e991c58b90cef9cc3a8e525cfca4b93",
+      "question_sha256": "f62233e911573e21f6d8d7fba69b11246274fee18d1d35c79a9a7539cb67208f",
+      "selection_reason": "ALL_V17_SOURCE_TYPED_OVERRIDES",
+      "task_id": "BDZNW-1202",
+      "typed_decision_sha256": "6c76a9331e7f5ff9db2754d119a61395717be0c0877d0d8bd462197dff961e4c",
+      "video_id": "BDZNW",
+      "video_path": "/fs/gamma-projects/vlm-robot/datasets/STAR-official/videos/charades/BDZNW.mp4",
+      "video_sha256": "86c95ddf82a37f3cc971d4569a8e115dd1787c0a56b1e56a66bde6816c001fcd"
+    }
+  ],
+  "schema_version": "agqa2-override-adjudicator-manifest-v18-development",
+  "selection_reads_gold_or_correctness": false,
+  "selection_reads_only_frozen_authorization_class": true,
+  "split": "consumed_v17_development",
+  "status": "FROZEN_BEFORE_ANY_V18_ADJUDICATOR_CALL"
+}

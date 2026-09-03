@@ -1,0 +1,36 @@
+{
+  "schema_version": "phase3-discoveryworld-grounding-summary-v1",
+  "status": "DISCOVERYWORLD_GROUNDING_QUALIFICATION_PASSED",
+  "role": "development",
+  "tasks": 8,
+  "steps": 192,
+  "schema_fallback_steps": 14,
+  "schema_fallback_rate": 0.07291666666666667,
+  "invalid_native_actions": 0,
+  "gates": {
+    "minimum_steps": true,
+    "schema_fallback_rate": true,
+    "zero_invalid_native_actions": true,
+    "zero_evaluator_calls": true,
+    "zero_oracle_scorecard_use": true
+  },
+  "required_gates": [
+    "minimum_steps",
+    "schema_fallback_rate",
+    "zero_invalid_native_actions",
+    "zero_evaluator_calls",
+    "zero_oracle_scorecard_use"
+  ],
+  "task_receipt_sha256s": [
+    "61924ab111ce30305e70cb62a2edfc8a07f131c979f5f5074289c236dd958faa",
+    "425f9e1baca97c30fdfec85d71830c688bbbc1cf1984b442fbf3835aa98154ea",
+    "20deb5fd36a88793bef9211d156156322c4ea59e4cae2d09db357215067d0407",
+    "1a066a2653a9fb7b480faedaf14225e22d5b010a22dbdf64b6e859e1c7df74f1",
+    "19cfa0e62c04717aaf2185714ff5ac5f9ecc43a865c4ccce282b13a9d227ba68",
+    "87c68cab3eaec361030b2440978c383b24a8711256e93ce545087d42fc6fac08",
+    "02abb08bc557848b3b6add10c1f85e956ce93db44f92a4ff8ad5f052aace1c7d",
+    "2a9aa90618a4c8341d093416f7279843082133e17ebf25df80c33b1e666b1f27"
+  ],
+  "claim_boundary": "Grounding/schema qualification only on previously consumed Proteomics Easy tasks; no evaluator call, official success persistence, source program, or formal-reserve task.",
+  "summary_sha256": "910a5f79686db818fcf32773d65269f2031fe42ed3a423cb73de0032497117bb"
+}

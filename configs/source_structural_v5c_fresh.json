@@ -1,0 +1,44 @@
+{
+  "schema_version": "source-structural-fresh-config-v5c",
+  "claim_boundary": "UNOPENED_AT_FREEZE;FRESH_SOURCE_QUALIFICATION_ONLY;NO_NAMED_EFFECT_LIST;NO_TARGET_DATA",
+  "maximum_success_paths": 2,
+  "control_paths_per_success": 2,
+  "tasks": [
+    {
+      "task_id": "doorkey_5x5",
+      "environment_id": "MiniGrid-DoorKey-5x5-v0",
+      "max_depth": 18,
+      "max_states": 800,
+      "seeds": [
+        {"seed": 31, "split": "qualification"},
+        {"seed": 32, "split": "qualification"},
+        {"seed": 33, "split": "qualification"},
+        {"seed": 34, "split": "qualification"}
+      ]
+    },
+    {
+      "task_id": "unlock_pickup",
+      "environment_id": "MiniGrid-UnlockPickup-v0",
+      "max_depth": 24,
+      "max_states": 3000,
+      "seeds": [
+        {"seed": 31, "split": "qualification"},
+        {"seed": 32, "split": "qualification"},
+        {"seed": 33, "split": "qualification"},
+        {"seed": 34, "split": "qualification"}
+      ]
+    },
+    {
+      "task_id": "put_near",
+      "environment_id": "MiniGrid-PutNear-6x6-N2-v0",
+      "max_depth": 20,
+      "max_states": 1200,
+      "seeds": [
+        {"seed": 31, "split": "qualification"},
+        {"seed": 32, "split": "qualification"},
+        {"seed": 33, "split": "qualification"},
+        {"seed": 34, "split": "qualification"}
+      ]
+    }
+  ]
+}

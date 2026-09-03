@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>V16 Neural-Symbolic Transfer Status</title>
+  <style>
+    :root { color-scheme: dark; --bg:#09111f; --card:#101c30; --ink:#e8eef9; --muted:#9caec8; --line:#263a58; --green:#54d69b; --amber:#ffc66d; --blue:#72a7ff; }
+    * { box-sizing:border-box; }
+    body { margin:0; font:16px/1.55 Inter,ui-sans-serif,system-ui,sans-serif; background:radial-gradient(circle at 10% 0,#17345d 0,transparent 36%),var(--bg); color:var(--ink); }
+    main { width:min(1120px,92vw); margin:0 auto; padding:64px 0 84px; }
+    h1 { max-width:850px; margin:0; font-size:clamp(2.3rem,6vw,5.5rem); line-height:.98; letter-spacing:-.055em; }
+    h2 { margin:0 0 18px; font-size:1.35rem; }
+    p { color:var(--muted); }
+    .tag { display:inline-block; margin-bottom:22px; padding:7px 12px; border:1px solid #2b9d74; border-radius:999px; color:var(--green); font-size:.78rem; letter-spacing:.08em; text-transform:uppercase; }
+    .lead { max-width:820px; font-size:1.12rem; }
+    .grid { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin:42px 0; }
+    .card,.panel { background:linear-gradient(160deg,rgba(22,39,65,.96),rgba(12,24,42,.96)); border:1px solid var(--line); border-radius:18px; padding:22px; box-shadow:0 18px 50px rgba(0,0,0,.18); }
+    .domain { color:var(--blue); font-weight:700; }
+    .score { margin:14px 0 2px; font-size:2rem; font-weight:800; letter-spacing:-.04em; }
+    .score span { color:var(--green); }
+    .tier { min-height:48px; color:var(--muted); font-size:.82rem; }
+    .pair { color:var(--green); font-size:.9rem; }
+    .flow { display:grid; grid-template-columns:1fr auto 1fr auto 1fr; align-items:center; gap:12px; margin:22px 0 42px; }
+    .node { min-height:120px; padding:18px; border:1px solid var(--line); border-radius:14px; background:#0d192b; }
+    .arrow { color:var(--amber); font-size:1.6rem; }
+    code { color:#b8d1ff; }
+    table { width:100%; border-collapse:collapse; }
+    th,td { padding:11px 12px; border-bottom:1px solid var(--line); text-align:left; }
+    th { color:var(--muted); font-size:.78rem; text-transform:uppercase; letter-spacing:.07em; }
+    .ok { color:var(--green); }
+    .warn { color:var(--amber); }
+    .two { display:grid; grid-template-columns:1.2fr .8fr; gap:14px; margin-top:14px; }
+    ul { padding-left:20px; color:var(--muted); }
+    footer { margin-top:36px; color:#7185a3; font-size:.82rem; }
+    a { color:#8db7ff; }
+    @media (max-width:850px) { .grid { grid-template-columns:1fr 1fr; } .flow { grid-template-columns:1fr; } .arrow { transform:rotate(90deg); text-align:center; } .two { grid-template-columns:1fr; } }
+    @media (max-width:520px) { .grid { grid-template-columns:1fr; } main { padding-top:38px; } }
+  </style>
+</head>
+<body>
+<main>
+  <div class="tag">Four-domain mechanism supported · mixed evidence tiers</div>
+  <h1>Game skill transferred as a search automaton.</h1>
+  <p class="lead">从 Sokoban 冻结的不是动作或语义，而是 intervention-grounded event routing 与闭环 ledger。四个 target 使用自己的 neural grounding 和 native executor。</p>
+
+  <section class="grid">
+    <article class="card"><div class="domain">WebShop</div><div class="score">7 → <span>18</span>/32</div><div class="tier">Prospectively frozen fresh formal</div><div class="pair">11W · 0L · p=.00098</div></article>
+    <article class="card"><div class="domain">ALFWorld</div><div class="score">4 → <span>7</span>/8</div><div class="tier">Consumed development reexecution</div><div class="pair">3W · 0L</div></article>
+    <article class="card"><div class="domain">DiscoveryWorld</div><div class="score">10 → <span>13</span>/16</div><div class="tier">Retrospective V16 equivalence</div><div class="pair">3W · 0L</div></article>
+    <article class="card"><div class="domain">TIRBench</div><div class="score">14 → <span>23</span>/24</div><div class="tier">Consumed formal reanalysis</div><div class="pair">9W · 0L · p=.00391</div></article>
+  </section>
+
+  <section class="panel">
+    <h2>Transfer boundary</h2>
+    <div class="flow">
+      <div class="node"><strong>Frozen source</strong><p><code>UNBOUND → EXPLORE</code><br><code>REFUTED → BACKTRACK</code><br><code>VERIFIED → COMMIT</code></p></div>
+      <div class="arrow">→</div>
+      <div class="node"><strong>Target-native neural grounding</strong><p>绑定 event、候选、effect confidence 与 native action；source token/坐标禁止进入。</p></div>
+      <div class="arrow">→</div>
+      <div class="node"><strong>Closed-loop executor</strong><p>只有观察到 native effect 才更新 ledger；未知或冲突 evidence 会 abstain。</p></div>
+    </div>
+    <table>
+      <thead><tr><th>Gate</th><th>Status</th><th>Meaning</th></tr></thead>
+      <tbody>
+        <tr><td>Same source artifact</td><td class="ok">Passed</td><td>四域均绑定 <code>ba848d…cd75f</code></td></tr>
+        <tr><td>Correct controls</td><td class="ok">Passed</td><td>Permuted 与 ledger-blind 暴露 event binding / memory 必要性</td></tr>
+        <tr><td>Target ceiling parity</td><td class="ok">Passed</td><td>证明可移植，不证明优于 target 端同构实现</td></tr>
+        <tr><td>All-four prospective V16</td><td class="warn">Not yet</td><td>ALFWorld、DiscoveryWorld、TIRBench 仍需新的预冻结 reserve</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="two">
+    <article class="panel"><h2>WebShop fresh result</h2><p>Strict 7/32 → 18/32；pass 15/32 → 19/32；mean reward .465 → .590。Authentic 与 target ceiling 32/32 一致，event-permuted 等于 raw。</p><p class="warn">Reward 为 13W/5L/14T：平均提升，但不是逐任务 dominance。</p></article>
+    <article class="panel"><h2>Remaining work</h2><ul><li>ALFWorld prospective V16 reserve</li><li>DiscoveryWorld prospective V16 reserve</li><li>New V16-specific TIRBench reserve</li><li>WebShop target-native incumbent memory</li></ul></article>
+  </section>
+
+  <footer>Machine-readable audit: <a href="results/search_automaton_transfer_v16_summary.json">search_automaton_transfer_v16_summary.json</a> · Full methodology: <a href="SEARCH_AUTOMATON_TRANSFER_V16_RESULTS.md">SEARCH_AUTOMATON_TRANSFER_V16_RESULTS.md</a></footer>
+</main>
+</body>
+</html>

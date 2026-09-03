@@ -1,0 +1,146 @@
+{
+  "claim_boundary": "Development-only composition and gate calibration. This report does not add a success-rate claim. The old V14 reserve remains sealed and may be read only after an independently hashed V15 configuration is frozen.",
+  "conditions": {
+    "authentic_sokoban_proof_cate_recover": {
+      "accuracy": 0.7097222222222223,
+      "correct": 511,
+      "recoveries": 59
+    },
+    "permuted_uplift_cate_recover": {
+      "accuracy": 0.6722222222222223,
+      "correct": 484,
+      "recoveries": 122
+    },
+    "shuffled_proof_binding_recover": {
+      "accuracy": 0.6986111111111111,
+      "correct": 503,
+      "recoveries": 69
+    },
+    "target_base_receipt_cate_recover": {
+      "accuracy": 0.7027777777777777,
+      "correct": 506,
+      "recoveries": 68
+    },
+    "target_error_only_recover": {
+      "accuracy": 0.7027777777777777,
+      "correct": 506,
+      "recoveries": 66
+    },
+    "target_explicit_no_recovery": {
+      "accuracy": 0.6791666666666667,
+      "correct": 489,
+      "recoveries": 0
+    }
+  },
+  "cost": {
+    "external_provider_calls": 0,
+    "external_provider_cost_usd": 0.0,
+    "local_prediction_files_reused": true
+  },
+  "diagnostics": {
+    "authentic_vs_target_base": {
+      "exact_two_sided_p": 0.42435622215270996,
+      "losses": 10,
+      "net_wins": 5,
+      "ties": 695,
+      "wins": 15
+    },
+    "external_provider_call_count": 0,
+    "external_provider_cost_usd": 0.0,
+    "reserve_exposure_matches": [],
+    "target_base_difference_is_not_confirmatory": true
+  },
+  "gates": {
+    "authentic_strictly_above_generic_scaffold": true,
+    "authentic_strictly_above_neural": true,
+    "authentic_strictly_above_shuffled_binding": true,
+    "authentic_strictly_above_source_permuted": true,
+    "authentic_strictly_above_target_base": true,
+    "development_sample_count": true,
+    "external_provider_calls": true,
+    "minimum_action_contrast": true,
+    "only_authorized_rows_reach_target_executor": true,
+    "paired_authenticity_exact_p_at_most_0p01": true,
+    "paired_utility_exact_p_at_most_0p01": true,
+    "reserve_has_no_prior_result_exposure": true,
+    "source_program_is_source_only_template_free_and_fresh": true,
+    "unified_harness_exact_action_parity": true,
+    "unified_harness_exact_answer_parity": true,
+    "v14_consumed_development_evidence_validated": true,
+    "zero_current_target_outcome_exposure": true
+  },
+  "lineage": {
+    "adapter_file_sha256": "cd08b8faa69328e6757ec2175d80693b07a6424196987b1248ffb88283eadf3d",
+    "auditor_file_sha256": "74d70806ce1f95dcde00b9f186295d1fc2ae030ca5b94cadf727c54890e35164",
+    "grounder_artifact_file_sha256": "f2c380de4d451746517d849dab45ed54385068ee562998d646058f8f38a6423b",
+    "source_artifact_file_sha256": "a0edf3b2f4e095c3e31e1eec45c284aed58d83c8a9b49d0d880cd93027148b1c",
+    "source_confirmation_file_sha256": "c7e8cd6969eea897513e11e4ac20db27ada1f9d06d69b85e2844020d931e9af7",
+    "source_inducer_file_sha256": "f1c849715c561da3db224f9c1632c468abee18f7eac0424418ce449e1b563fe6",
+    "split_manifest_file_sha256": "cde4d9b8f12fcf6cd6cb70d4635c3335123d91156e2eac5ab07bf1d591a616be",
+    "v14_report_file_sha256": "82cf5f9cf4c75171f4589e7db5b0abad691b69d107ec9429556b6998571f3949"
+  },
+  "paired_authentic": {
+    "permuted_uplift_cate_recover": {
+      "exact_two_sided_p": 0.00014197068519905542,
+      "losses": 11,
+      "net_wins": 27,
+      "ties": 671,
+      "wins": 38
+    },
+    "shuffled_proof_binding_recover": {
+      "exact_two_sided_p": 0.13380050659179688,
+      "losses": 7,
+      "net_wins": 8,
+      "ties": 698,
+      "wins": 15
+    },
+    "target_base_receipt_cate_recover": {
+      "exact_two_sided_p": 0.42435622215270996,
+      "losses": 10,
+      "net_wins": 5,
+      "ties": 695,
+      "wins": 15
+    },
+    "target_error_only_recover": {
+      "exact_two_sided_p": 0.4048728942871094,
+      "losses": 9,
+      "net_wins": 5,
+      "ties": 697,
+      "wins": 14
+    },
+    "target_explicit_no_recovery": {
+      "exact_two_sided_p": 0.00011307420209050179,
+      "losses": 5,
+      "net_wins": 22,
+      "ties": 688,
+      "wins": 27
+    }
+  },
+  "report_sha256": "7c354b754656bbb58127a241d43596081f46f57ae76f59b4229ce33877e84946",
+  "role": "consumed_v14_formal_repurposed_as_v15_development",
+  "samples": 720,
+  "schema_version": "clevrer-unified-goal-relation-v15-development-audit",
+  "source_program": {
+    "artifact_sha256": "ed31de8757a12b57ea6d9a711a9b646646be5ebd0f1176b07320ef601f5fcb35",
+    "confirmation_sha256": "0b9151dfe8c10d77c099d178cc7b7efe781e82b543aad048dfe4d703b9e0da81",
+    "contract_sha256": "dfff2e39f894a71deab9c8bfeffbbc2b03c859f7ad4c12b4fc90c89f21f07c46",
+    "envelope_sha256": "bd8d0c164685ff2e1c6bd2c887659e402bc17db3967833bb1d3389b14df3f952",
+    "named_policy_template_used": false,
+    "target_data_read": false
+  },
+  "status": "CLEVRER_UNIFIED_V15_DEVELOPMENT_GATE_PASSED",
+  "target_interface": {
+    "executor_sha256": "cd08b8faa69328e6757ec2175d80693b07a6424196987b1248ffb88283eadf3d",
+    "grounder_artifact_sha256": "f82dd626d6403cbed9949b74cf589c8b560c5a99d5ed734bddd7ba70ad251482",
+    "name": "paired_event_graph_goal_relation_recovery_v15",
+    "runtime_gold_or_official_program_read": false
+  },
+  "unified_authority": {
+    "abstained_rows": 661,
+    "action_parity": 720,
+    "answer_parity": 720,
+    "authorization_receipts_sha256": "802bc301f5afd1f02b67d545cd4ac6d417defd757a722fb43000bf2988542f2a",
+    "selected_rows": 59,
+    "target_executor_calls": 59
+  }
+}

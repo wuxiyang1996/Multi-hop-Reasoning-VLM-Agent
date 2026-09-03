@@ -1,0 +1,26 @@
+{
+  "all_non_cost_gates_preserved": true,
+  "atomic_route_artifacts_modified": false,
+  "claim_boundary": "EXACT_V20_V21_AGQA_TRAIN_DEVELOPMENT_SPLIT;UNCHANGED_TWO_OF_THREE_CONSENSUS;CHEAPER_THIRD_MODEL;NOT_CONFIRMATORY",
+  "confirmatory_claim_allowed": false,
+  "consensus_rule_changed": false,
+  "cost_cap_changed": false,
+  "evaluation_protocol_sha256": "73722a6f62dc6ed785d6d0d7f658222502b604324f576fe1071d32cc66fad9f8",
+  "grounder_sha256": "9034fd2d58e6b055f0d8f0cb0291ff0e7804603917d9659632ce83f834409cda",
+  "new_calls": "GEMINI3_FIXED_ONTOLOGY_VIEW_ONLY",
+  "qualification_gates": {
+    "maximum_reported_provider_cost_usd": 0.3,
+    "maximum_typed_vs_direct_losses": 0,
+    "minimum_decisive_accuracy": 0.75,
+    "minimum_decisive_executions": 10,
+    "minimum_route_correct": 18,
+    "minimum_typed_vs_direct_wins": 2,
+    "required_source_permuted_abstentions": 18,
+    "required_target_written_equivalent_matches": 18,
+    "required_valid_runtime_rows": 18
+  },
+  "schema_version": "agqa2-query-object-development-preregistration-v22",
+  "status": "FROZEN_BEFORE_ANY_V22_GEMINI3_CALL",
+  "v21_report_file_sha256": "2345d874d2f9bdd90d3533464427bcf4589cc65a3c198efc584d20b2189f7da0",
+  "v21_report_sha256": "b1c07088c150d5c768046b025da566ea0704a3df389f4d3b2bc1a67ef1d84310"
+}

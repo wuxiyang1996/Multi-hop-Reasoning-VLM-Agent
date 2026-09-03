@@ -1,0 +1,58 @@
+{
+  "schema_version": "harness-controller-v5-fresh-target-reserve-config-v1",
+  "status": "FROZEN_BEFORE_V5_MIXED_WEIGHT_UPDATES",
+  "selection_seed": "HARNESS_V5_MIXED_TARGET_IR_RESERVE_20260830",
+  "candidate_pool": {
+    "path": "runs/target_harness_sft_five_domain_v1/train.jsonl",
+    "sha256": "f5be7ab178928c225536ee6cecff1032da6b743234d54608b3db19990c4ba62c"
+  },
+  "consumed_target_diagnostics": [
+    {
+      "dataset": {
+        "path": "runs/harness_controller_scientific_v4_zero_shot/zero_shot_eval.jsonl",
+        "sha256": "82a4c04b048501b0596e07e5ff6f82f22f0d62ad7a1573a92e4c38ef15acc65c"
+      },
+      "report": {
+        "path": "runs/harness_controller_scientific_v4_zero_shot/qwen35_9b_v3_report_retry1.json",
+        "sha256": "4102c040d43924b3d8cd8ea506f1f9395e8b3b38910a23198733e4353a005f89"
+      }
+    },
+    {
+      "dataset": {
+        "path": "runs/harness_controller_v4_fresh_target_reserve/reserve.jsonl",
+        "sha256": "15facd3edc42b4ded01c650bfd3dcef9e3a0a3bd45588ab97dfebf3235cbaa15"
+      },
+      "report": {
+        "path": "runs/harness_controller_qwen35_9b_v4/cardinality_sft_v1/fresh_target_report.json",
+        "sha256": "82d2324d2c5f0b03c68fc334a1049a858630e0ec46fc00b84742c5a198f923fe"
+      }
+    }
+  ],
+  "source_only_mixed_dataset": {
+    "manifest": {
+      "path": "runs/harness_mixed_source_sft_v1/manifest.json",
+      "sha256": "58da0286adb51d2fe7e63b70098435013d554ce1932df0e00ece3959738b3ef3"
+    },
+    "train": {
+      "path": "runs/harness_mixed_source_sft_v1/train.jsonl",
+      "sha256": "d25235f31a76f0d40cf64d6f662be6bf82f884310267d57b12acbed4fd57f6ec"
+    }
+  },
+  "pair_quota_by_group": {
+    "alfworld": 100,
+    "discoveryworld": 100,
+    "tirbench": 100,
+    "video/agqa2": 50,
+    "video/clevrer": 50,
+    "webshop": 100
+  },
+  "selection_policy": {
+    "unit": "matched_pair",
+    "ranking": "SHA256_OF_SELECTION_SEED_AND_PAIR_ID",
+    "uses_completion_or_decision": false,
+    "uses_v3_or_v4_prediction_or_correctness": false,
+    "uses_target_reward_or_success": false,
+    "uses_pair_identity_and_audit_group_only": true
+  },
+  "claim_boundary": "FRESH_TO_V5_MODEL_PROSPECTIVE_TARGET_IR_RESERVE;FROZEN_BEFORE_V5_MIXED_TRAINING;DISJOINT_FROM_CONSUMED_V3_AND_V4_TARGET_ROWS;TARGET_DEVELOPMENT_GROUNDING_NOT_UNTOUCHED_OFFICIAL_BENCHMARK_FORMAL"
+}

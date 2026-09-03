@@ -1,0 +1,45 @@
+{
+  "controls": {
+    "source_permuted_abstentions": 9,
+    "target_written_equivalent_matches": 9
+  },
+  "grounder_qualified": true,
+  "grounder_sha256": "541c8af09a5e7bb24159c3b7ed991c5235fdfe3e84c474e84f16b034a1d56041",
+  "metrics": {
+    "decisive_accuracy": 1.0,
+    "decisive_correct": 8,
+    "decisive_coverage": 0.8888888888888888,
+    "decisive_executions": 8,
+    "direct_correct": 6,
+    "raw_typed_decisive_executions": 7,
+    "rescans_triggered": 9,
+    "route_accuracy": 1.0,
+    "route_correct": 9,
+    "source_typed_overrides": 3,
+    "typed_fallback_correct": 9,
+    "typed_vs_direct_losses": 0,
+    "typed_vs_direct_wins": 3,
+    "unified_harness_correct": 9,
+    "unified_harness_executor_authorizations": 8,
+    "unified_harness_vs_direct_delta": 3,
+    "valid_runtime_rows": 9
+  },
+  "qualification_gates": {
+    "minimum_decisive_accuracy": true,
+    "minimum_decisive_executions": true,
+    "minimum_route_correct": true,
+    "minimum_typed_vs_direct_wins": true,
+    "no_typed_vs_direct_losses": true,
+    "prequalification_harness_abstained": true,
+    "provider_cost_within_cap": true,
+    "required_valid_runtime_rows": true,
+    "runtime_no_answer_program_scene_graph_or_source_identity": true,
+    "source_permuted_wrong_type_abstains": true,
+    "target_written_equivalent_matches": true
+  },
+  "report_sha256": "68afba5b2d4662e991f5b9bde4b04aa4cd18ddca69c99d628af325e36ff03583",
+  "reported_provider_cost_usd": 0.091533204,
+  "schema_version": "agqa2-active-grounding-v9-development-summary",
+  "status": "AGQA2_ACTIVE_GROUNDER_V9_DEVELOPMENT_QUALIFIED",
+  "summary_sha256": "73c0c091ae6e4c1f69244a193fb2300d6ece90530da2d9f1d674aa45cb0397bd"
+}

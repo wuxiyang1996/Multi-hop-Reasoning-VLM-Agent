@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Phase 4–7 · Unified Neural-Symbolic Transfer</title>
+  <style>
+    :root { --bg:#f3f1e8; --paper:#fffdf7; --ink:#18211d; --muted:#69736d;
+      --line:#d7d9d0; --green:#147653; --greenbg:#e8f6ed; --amber:#946300;
+      --amberbg:#fff3d2; --blue:#245e8c; --bluebg:#edf5fb; --red:#a83b31; }
+    * { box-sizing:border-box; }
+    body { margin:0; color:var(--ink); background:
+      radial-gradient(circle at 8% 0,rgba(36,94,140,.10),transparent 31rem),
+      radial-gradient(circle at 96% 8%,rgba(20,118,83,.10),transparent 29rem),var(--bg);
+      font:16px/1.62 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif; }
+    .wrap { width:min(1120px,calc(100% - 34px)); margin:auto; }
+    header { padding:58px 0 34px; border-bottom:1px solid var(--line); }
+    .eyebrow { color:var(--blue); font-size:.78rem; font-weight:800; letter-spacing:.1em;
+      text-transform:uppercase; }
+    h1 { max-width:930px; margin:10px 0 16px; font-size:clamp(2.3rem,5.6vw,4.9rem);
+      line-height:1.02; letter-spacing:-.045em; }
+    h2 { margin:0 0 13px; font-size:1.55rem; letter-spacing:-.02em; }
+    h3 { margin:0 0 8px; font-size:1rem; }
+    p { margin:0 0 12px; }
+    .lead { max-width:900px; color:#3f4b45; font-size:1.08rem; }
+    nav { position:sticky; top:0; z-index:3; border-bottom:1px solid var(--line);
+      background:rgba(243,241,232,.94); backdrop-filter:blur(12px); }
+    nav .wrap { display:flex; gap:18px; overflow:auto; padding:10px 0; }
+    nav a { color:#46514b; font-size:.86rem; text-decoration:none; white-space:nowrap; }
+    main { padding:26px 0 60px; }
+    section { margin:22px 0; padding:24px; border:1px solid var(--line); border-radius:13px;
+      background:rgba(255,253,247,.95); box-shadow:0 10px 28px rgba(35,42,38,.035); }
+    .grid { display:grid; grid-template-columns:repeat(12,minmax(0,1fr)); gap:13px; }
+    .c3 { grid-column:span 3; } .c4 { grid-column:span 4; }
+    .c6 { grid-column:span 6; } .c12 { grid-column:span 12; }
+    .card { min-width:0; padding:16px; border:1px solid var(--line); border-radius:10px;
+      background:#fffefa; }
+    .metric { color:var(--muted); font-size:.78rem; }
+    .value { margin-top:2px; font-size:1.48rem; font-weight:800; line-height:1.2; }
+    .tag { display:inline-block; margin-top:9px; padding:2px 8px; border-radius:999px;
+      font-size:.73rem; font-weight:800; }
+    .good { color:var(--green); background:var(--greenbg); border:1px solid #9fd5bb; }
+    .warn { color:var(--amber); background:var(--amberbg); border:1px solid #e5c66e; }
+    .flow { display:grid; grid-template-columns:repeat(6,minmax(115px,1fr)); gap:20px; margin-top:18px; }
+    .node { position:relative; min-height:118px; padding:13px; border:1px solid var(--line);
+      border-top:4px solid var(--blue); border-radius:9px; background:#fffefa; }
+    .node:nth-child(2n) { border-top-color:var(--green); }
+    .node:not(:last-child)::after { content:"→"; position:absolute; right:-17px; top:39px;
+      color:#7b857f; font-weight:900; }
+    .node strong { display:block; margin-bottom:5px; }
+    table { width:100%; border-collapse:collapse; margin-top:14px; font-size:.9rem; }
+    th,td { padding:10px; text-align:left; vertical-align:top; border-bottom:1px solid var(--line); }
+    th { color:#47524c; font-size:.78rem; text-transform:uppercase; letter-spacing:.04em; }
+    .callout { margin-top:15px; padding:14px 16px; border-left:4px solid var(--blue);
+      background:var(--bluebg); }
+    .callout.warn { border-left-color:var(--amber); background:var(--amberbg); }
+    code { padding:.12em .34em; border-radius:4px; color:#29342e; background:#eeeee8; }
+    a { color:var(--blue); text-underline-offset:.18em; }
+    ul { margin:9px 0 0; padding-left:20px; } li { margin:5px 0; }
+    .small { color:var(--muted); font-size:.84rem; }
+    footer { padding:0 0 40px; color:var(--muted); font-size:.84rem; }
+    @media(max-width:850px) { .c3,.c4,.c6 { grid-column:span 12; }
+      .flow { grid-template-columns:1fr; gap:10px; }
+      .node:not(:last-child)::after { content:"↓"; right:18px; top:auto; bottom:-18px; } }
+  </style>
+</head>
+<body>
+  <div style="padding:12px 20px;background:#e8f6ed;border-bottom:1px solid #9fd5bb;text-align:center"><strong>Phase 8 successor:</strong> a new source-induced ALFWorld acquisition route has passed independent formal replication, so the unified registered route set is now 4/4. The older PutNear route shown below remains an abstention. <a href="PHASE8_FOUR_DOMAIN_UNIFIED_NEUROSYMBOLIC_STATUS.html">Open current status →</a></div>
+  <header><div class="wrap">
+    <div class="eyebrow">Non-video roadmap · Phase 4 → Phase 7</div>
+    <h1>不是统一 controller，<br>而是统一的证据链。</h1>
+    <p class="lead">Source-only induction、target-native neural grounding、匿名结构匹配、冻结 utility calibration 与 target-native action authority 已经接成一个 fail-closed harness。</p>
+  </div></header>
+  <nav><div class="wrap">
+    <a href="#outcome">结论</a><a href="#results">正式结果</a><a href="#pipeline">统一流程</a>
+    <a href="#phases">Phase 4–7</a><a href="#limits">边界与下一步</a>
+  </div></nav>
+  <main class="wrap">
+    <section id="outcome">
+      <h2>当前最强结论</h2>
+      <p>三条非视频 route 已有 matched formal success evidence；第四条 ALFWorld route 在同一系统中被正确拒绝。Phase 7 证明 harness 的组合与 authority boundary，不把 routing canary 误算为新的 success trial。</p>
+      <div class="grid">
+        <div class="card c3"><div class="metric">WebShop</div><div class="value">23 / 32</div><span class="tag good">validated</span></div>
+        <div class="card c3"><div class="metric">DiscoveryWorld</div><div class="value">12 / 12</div><span class="tag good">validated</span></div>
+        <div class="card c3"><div class="metric">TIR maze</div><div class="value">12 / 18</div><span class="tag good">validated</span></div>
+        <div class="card c3"><div class="metric">ALFWorld</div><div class="value">abstain</div><span class="tag warn">positive route unvalidated</span></div>
+      </div>
+      <div class="callout"><strong>准确说法：</strong> neural-symbolic structural transfer 在 WebShop、DiscoveryWorld Easy 和 TIR maze 成立；ALFWorld 只有小幅、非 source-specific 的历史差异，因此当前 harness 不执行迁移。</div>
+    </section>
+
+    <section id="results">
+      <h2>正式 target evidence</h2>
+      <table>
+        <thead><tr><th>Target</th><th>Neural</th><th>Source</th><th>Permuted</th><th>Matched inference</th></tr></thead>
+        <tbody>
+          <tr><td>WebShop V21</td><td>7/32</td><td><strong>23/32</strong></td><td>7/32</td><td>16W/0L/16T；two-sided exact <code>p=3.05e-5</code></td></tr>
+          <tr><td>DiscoveryWorld Easy</td><td>3/12</td><td><strong>12/12</strong></td><td>3/12</td><td>9W/0L/3T；<code>p=0.00390625</code></td></tr>
+          <tr><td>TIR single-image maze</td><td>6/18</td><td><strong>12/18</strong></td><td>6/18</td><td>6W/0L/12T；<code>p=0.03125</code></td></tr>
+          <tr><td>ALFWorld multiplicity</td><td>20/72</td><td>22/72</td><td>22/72</td><td>vs neural 2W/0L/70T；vs permuted 1W/1L/70T</td></tr>
+        </tbody>
+      </table>
+      <p class="small">WebShop: 261 source-authorized decisions, 0 unsafe. ALFWorld 的 22/72 不构成 cross-domain validation。</p>
+    </section>
+
+    <section id="pipeline">
+      <h2>Phase 7 authority chain</h2>
+      <div class="flow">
+        <div class="node"><strong>1 · Source tuples</strong><span class="small">state, action, effect, next_state</span></div>
+        <div class="node"><strong>2 · Learned IR</strong><span class="small">typed operators, graph, terminal, abstention</span></div>
+        <div class="node"><strong>3 · Target grounder</strong><span class="small">native entities, relations, candidates</span></div>
+        <div class="node"><strong>4 · Type checker</strong><span class="small">anonymous exact structural match</span></div>
+        <div class="node"><strong>5 · Utility gate</strong><span class="small">vs neural and source-permuted</span></div>
+        <div class="node"><strong>6 · Native executor</strong><span class="small">only component allowed to act</span></div>
+      </div>
+      <div class="callout">Selector authorization 没有 action field。Program、grounder、executor、target state 和 evidence 都 content-addressed；outcome exposure、hash drift、route/program disagreement 和非 native action 均 fail closed。</div>
+    </section>
+
+    <section id="phases">
+      <h2>Phase 4–7 交付状态</h2>
+      <div class="grid">
+        <div class="card c6"><h3>Phase 4 · WebShop fresh formal</h3><p>32-task × 5 matched arms 完整运行；16/16 gates 通过；source 与 target-native ceiling 的 trajectory 32/32 一致。</p><span class="tag good">complete</span></div>
+        <div class="card c6"><h3>Phase 5 · Frozen routing</h3><p>不 reset probe、不读 outcome。4 个 probe 允许，12 个拒绝；包括 8 个 untouched ALFWorld task 因 utility 不足而拒绝。</p><span class="tag good">8 / 8 gates</span></div>
+        <div class="card c6"><h3>Phase 6 · Source-specific catalog</h3><p>10 个自动归纳 program：3 MiniGrid、1 Sokoban、6 arcade。四个 structural target 唯一选对 source；program swap 4/4 被拒绝。</p><span class="tag good">selective applicability validated</span></div>
+        <div class="card c6"><h3>Phase 7 · Unified harness</h3><p>10 个 induction envelopes、4 个 target interfaces；3 条 route 到达 executor，ALFWorld executor 调用为 0。</p><span class="tag good">9 / 9 gates</span></div>
+      </div>
+      <div class="callout warn"><strong>保留的 negative result：</strong>六个 arcade temporal functions 在 V4 fresh source reserve 上 authentic 与 source-permuted 都是 22/27。不同权重不等于不同可迁移行为；这些 function 在当前四个 structural target 上 0 次误匹配，并保持 abstain。</div>
+    </section>
+
+    <section id="limits">
+      <h2>Phase 7 后仍然缺什么</h2>
+      <ul>
+        <li>只用 development tasks 改进 ALFWorld target-native grounding/decision variables，再冻结新的 formal reserve。</li>
+        <li>执行已冻结但尚未打开的 DiscoveryWorld/ALFWorld probes；执行前不能修改 threshold 或 source artifacts。</li>
+        <li>重做 arcade IR：学习 delayed gain、hazard、irreversibility、recoverability 等非共线 causal predicates。</li>
+        <li>对 WebShop、DiscoveryWorld、TIR 做不同 seed/model 或独立实现 replication。</li>
+        <li>视频在本阶段明确跳过；恢复时先建立 target-native event graph，不能直接搬 maze executor。</li>
+      </ul>
+      <p style="margin-top:16px"><a href="PHASE4_TO_PHASE7_UNIFIED_NEUROSYMBOLIC_TRANSFER_RESULTS.md">阅读完整实验说明</a> ·
+        <a href="results/phase7_unified_neurosymbolic_harness_v1.json">Phase 7 machine-readable report</a></p>
+    </section>
+  </main>
+  <footer class="wrap">Phase 4–7 non-video neural-symbolic transfer status · generated from frozen local reports</footer>
+</body>
+</html>

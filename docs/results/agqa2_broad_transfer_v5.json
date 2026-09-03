@@ -1,0 +1,75 @@
+{
+  "claim_boundary": "Fresh train-reserve qualification of the frozen broad target-native stack plus source-induced temporal specialization; not official-test SOTA and not raw-video evaluation.",
+  "gates": {
+    "all_videos_unseen_in_v62_v2_v3": true,
+    "isomorphic_target_equivalence_disclosed": true,
+    "matched_tool_budget": true,
+    "source_correct_strictly_above_generic": true,
+    "source_correct_strictly_above_temporal_permutation": true,
+    "source_losses_vs_generic": true,
+    "zero_runtime_answer_program_grounding_read": true
+  },
+  "lineage": {
+    "broad_authorization_sha256": "0f964662dab77b65f392fa857df6b2a0370ea11cad4f2a5c1b7507f7ca94389a",
+    "evaluator_artifact_sha256": "7807305d6219f113153a8b55ffc6feb46900e5079248c937e0b7b576af01fed9",
+    "official_stsg_sha256": "9273ec6055df1c4730b9ea971994ae6f552a14620711273da81eab9d11d85061",
+    "preregistration_sha256": "3f6fdf7876f745fd5ff6497461a33ff870285201f8fb3d1ba14c4aecfa5dfa38",
+    "public_artifact_sha256": "f6584009871a5242fdd7ea8c6b03c6c52de91f763789b7ad115d2d72c838896e",
+    "runtime_artifact_sha256": "4814f51d2fd9d4f4dc7868bd8bae8c3f1c7e54b41e5f9c4ec8ea39611ef64afd"
+  },
+  "metrics": {
+    "generic_scaffold": {
+      "accuracy": 0.3711111111111111,
+      "committed": 334,
+      "conditional_accuracy": 1.0,
+      "correct": 334,
+      "coverage": 0.3711111111111111
+    },
+    "isomorphic_target_controller": {
+      "accuracy": 0.42444444444444446,
+      "committed": 382,
+      "conditional_accuracy": 1.0,
+      "correct": 382,
+      "coverage": 0.42444444444444446
+    },
+    "source_induced": {
+      "accuracy": 0.42444444444444446,
+      "committed": 382,
+      "conditional_accuracy": 1.0,
+      "correct": 382,
+      "coverage": 0.42444444444444446
+    },
+    "source_permuted": {
+      "accuracy": 0.37777777777777777,
+      "committed": 345,
+      "conditional_accuracy": 0.9855072463768116,
+      "correct": 340,
+      "coverage": 0.38333333333333336
+    }
+  },
+  "report_sha256": "cd7c41a2e5ec0cbe81c33b4b4d66a86e11bf72990485bcff7032dd8c978e5d29",
+  "schema_version": "agqa2-broad-transfer-qualification-v5",
+  "source_paired": {
+    "generic_scaffold": {
+      "losses": 0,
+      "net_wins": 48,
+      "ties": 852,
+      "wins": 48
+    },
+    "isomorphic_target_controller": {
+      "losses": 0,
+      "net_wins": 0,
+      "ties": 900,
+      "wins": 0
+    },
+    "source_permuted": {
+      "losses": 0,
+      "net_wins": 42,
+      "ties": 858,
+      "wins": 42
+    }
+  },
+  "status": "PASSED",
+  "tasks": 900,
+  "unique_videos": 300
+}

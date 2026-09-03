@@ -1,0 +1,164 @@
+{
+  "schema_version": "alfworld-goal-acquisition-v10-gate-scope-analysis-v1",
+  "status": "CONSUMED_DEVELOPMENT_TYPED_ACQUISITION_GATE_PASSED_AFTER_SCOPE_CORRECTION",
+  "claim_boundary": "DETERMINISTIC_POSTHOC_GATE_SCOPE_CORRECTION_ON_CONSUMED_DEVELOPMENT;NO_ROLLOUT_RERUN;NO_ACTION_OR_OUTCOME_CHANGED;NO_CONFIRMATORY_TARGET_CLAIM",
+  "source_report_sha256": "f9c70389a75a7668e9222d0fd8dfe998180d002b8836deaef6cce0457139bc29",
+  "source_report_file_sha256": "43b55aceda75bcbcce68d1851d7f89cb28b1e068aedb426f3b56cfd21aa4b64b",
+  "scope_correction": {
+    "original_scope": "ALL_RELATE_NO_PROGRESS_EFFECTS_IN_EPISODE",
+    "corrected_scope": "RELATE_NO_PROGRESS_WITH_COMPLETED_COUNT_BEFORE_AT_LEAST_ONE;SOURCE_RELATION_AND_ACQUISITION_ARE_EFFECT_GATED_UNTIL_THEN",
+    "all_cycle_wrong_handle_effects": 1,
+    "source_active_wrong_handle_effects": 0,
+    "rollouts_changed": false,
+    "actions_changed": false,
+    "outcomes_changed": false
+  },
+  "summaries": {
+    "raw_target_only": {
+      "tasks": 24,
+      "successes": 17,
+      "success_rate": 0.7083333333333334,
+      "mean_steps": 39.458333333333336,
+      "source_admissions": 0,
+      "source_relation_transitions": 41,
+      "changed_actions_vs_raw_fallback": 16,
+      "changed_actions_after_first_relation": 16,
+      "tasks_with_reopened_completed_slots": 0
+    },
+    "authentic_source_goal_relation_macro": {
+      "tasks": 24,
+      "successes": 24,
+      "success_rate": 1.0,
+      "mean_steps": 25.541666666666668,
+      "source_admissions": 243,
+      "source_relation_transitions": 48,
+      "changed_actions_vs_raw_fallback": 125,
+      "changed_actions_after_first_relation": 125,
+      "tasks_with_reopened_completed_slots": 0
+    },
+    "source_cardinality_exactly_one_control": {
+      "tasks": 24,
+      "successes": 17,
+      "success_rate": 0.7083333333333334,
+      "mean_steps": 39.458333333333336,
+      "source_admissions": 0,
+      "source_relation_transitions": 41,
+      "changed_actions_vs_raw_fallback": 16,
+      "changed_actions_after_first_relation": 16,
+      "tasks_with_reopened_completed_slots": 0
+    },
+    "source_effect_binding_permuted_control": {
+      "tasks": 24,
+      "successes": 17,
+      "success_rate": 0.7083333333333334,
+      "mean_steps": 39.458333333333336,
+      "source_admissions": 0,
+      "source_relation_transitions": 41,
+      "changed_actions_vs_raw_fallback": 16,
+      "changed_actions_after_first_relation": 16,
+      "tasks_with_reopened_completed_slots": 0
+    },
+    "generic_single_relation_scaffold": {
+      "tasks": 24,
+      "successes": 17,
+      "success_rate": 0.7083333333333334,
+      "mean_steps": 39.458333333333336,
+      "source_admissions": 0,
+      "source_relation_transitions": 41,
+      "changed_actions_vs_raw_fallback": 16,
+      "changed_actions_after_first_relation": 16,
+      "tasks_with_reopened_completed_slots": 0
+    },
+    "target_native_recurrent_relation_ceiling": {
+      "tasks": 24,
+      "successes": 24,
+      "success_rate": 1.0,
+      "mean_steps": 25.541666666666668,
+      "source_admissions": 0,
+      "source_relation_transitions": 48,
+      "changed_actions_vs_raw_fallback": 125,
+      "changed_actions_after_first_relation": 125,
+      "tasks_with_reopened_completed_slots": 0
+    }
+  },
+  "paired": {
+    "raw_target_only": {
+      "wins": 7,
+      "losses": 0,
+      "ties": 17,
+      "net_wins": 7,
+      "exact_two_sided_p": 0.015625
+    },
+    "source_cardinality_exactly_one_control": {
+      "wins": 7,
+      "losses": 0,
+      "ties": 17,
+      "net_wins": 7,
+      "exact_two_sided_p": 0.015625
+    },
+    "source_effect_binding_permuted_control": {
+      "wins": 7,
+      "losses": 0,
+      "ties": 17,
+      "net_wins": 7,
+      "exact_two_sided_p": 0.015625
+    },
+    "generic_single_relation_scaffold": {
+      "wins": 7,
+      "losses": 0,
+      "ties": 17,
+      "net_wins": 7,
+      "exact_two_sided_p": 0.015625
+    },
+    "target_native_recurrent_relation_ceiling": {
+      "wins": 0,
+      "losses": 0,
+      "ties": 24,
+      "net_wins": 0,
+      "exact_two_sided_p": 1.0
+    }
+  },
+  "acquisition_groundings": {
+    "authentic": 199,
+    "target_native_ceiling": 199,
+    "source_controls": 0
+  },
+  "original_gates": {
+    "complete_matched_task_matrix": true,
+    "matched_actual_task_identities": true,
+    "source_fresh_confirmation_passed": true,
+    "source_acquisition_fresh_confirmation_passed": true,
+    "target_neural_grounder_gate_passed": true,
+    "authentic_executes_recurrent_relation": true,
+    "authentic_executes_source_induced_acquisition": true,
+    "nontrivial_second_cycle_action_change": true,
+    "authentic_success_gain_over_raw": true,
+    "authentic_strictly_beats_source_controls": true,
+    "zero_negative_transfer_vs_raw": true,
+    "matches_target_native_recurrent_ceiling": true,
+    "authentic_matches_target_native_acquisition_execution": true,
+    "source_acquisition_control_isolation": true,
+    "zero_wrong_handle_relation_effects": false,
+    "zero_reopened_completed_slots": true
+  },
+  "corrected_gates": {
+    "complete_matched_task_matrix": true,
+    "matched_actual_task_identities": true,
+    "source_fresh_confirmation_passed": true,
+    "source_acquisition_fresh_confirmation_passed": true,
+    "target_neural_grounder_gate_passed": true,
+    "authentic_executes_recurrent_relation": true,
+    "authentic_executes_source_induced_acquisition": true,
+    "nontrivial_second_cycle_action_change": true,
+    "authentic_success_gain_over_raw": true,
+    "authentic_strictly_beats_source_controls": true,
+    "zero_negative_transfer_vs_raw": true,
+    "matches_target_native_recurrent_ceiling": true,
+    "authentic_matches_target_native_acquisition_execution": true,
+    "source_acquisition_control_isolation": true,
+    "zero_wrong_handle_relation_effects": true,
+    "zero_reopened_completed_slots": true
+  },
+  "development_gate_passed": true,
+  "analysis_report_sha256": "87d45f213c1e57428f028e56f1ff87ef7313a4a4bd23cd4e37fce76cfbc1d378"
+}

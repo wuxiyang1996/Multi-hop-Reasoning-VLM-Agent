@@ -1,0 +1,174 @@
+{
+  "schema_version": "four-domain-neurosymbolic-library-audit-v1",
+  "status": "FOUR_DOMAIN_FRESH_FORMAL_SKILL_DISPATCH_VALIDATED",
+  "claim_boundary": "The harness validates evidence-bound selection and target-native authority for four exact interfaces. It does not claim that one universal skill transfers to every domain or unsupported interface.",
+  "registry_file_sha256": "36d669b6ee10a45dea6b6f8f2e018df46a014960d01a1f4315a67085c15dca4a",
+  "domains": [
+    "webshop",
+    "alfworld",
+    "discoveryworld",
+    "tir"
+  ],
+  "all_four_exact_routes_selected": true,
+  "all_selected_routes_target_native_action_authority": true,
+  "unsupported_routes_abstain": true,
+  "dispatch_receipts": [
+    {
+      "verdict": "SELECT_SKILL",
+      "reason": "EXACT_INTERFACE_AND_CAPABILITY_MATCH",
+      "request": {
+        "domain": "webshop",
+        "interface": "product_search_and_option_commit",
+        "capabilities": [
+          "candidate_outcomes",
+          "effect_verification",
+          "native_commit",
+          "native_search"
+        ]
+      },
+      "skill_id": "sokoban-positive-effect-guard-v2",
+      "source_artifact_sha256": "6b02dc1d7271bbd435e90539cedd7d56d04fcc1ad03798dd6dd06146d67f1fcd",
+      "evidence_tier": "FRESH_FORMAL",
+      "target_adapter": "webshop-sokoban-effect-v13",
+      "target_grounder": "motif_transfer.webshop_neural_symbolic_v9.TargetOutcomeMLP",
+      "target_executor": "motif_transfer.webshop_sokoban_effect_transfer.choose_sokoban_effect_action",
+      "action_authority": "TARGET_NATIVE_GROUNDER_AND_EXECUTOR",
+      "source_permission": "SELECT_SYMBOLIC_PROGRAM_OR_ABSTAIN; NEVER_EMIT_TARGET_ACTION",
+      "receipt_sha256": "54593e8caafe3152d47135d693bf2aca12f3c5e2e171bf1a3f16680d705e00cc"
+    },
+    {
+      "verdict": "SELECT_SKILL",
+      "reason": "EXACT_INTERFACE_AND_CAPABILITY_MATCH",
+      "request": {
+        "domain": "alfworld",
+        "interface": "text_household_workflow",
+        "capabilities": [
+          "admissible_actions",
+          "effect_prediction",
+          "goal_binding",
+          "workflow_state"
+        ]
+      },
+      "skill_id": "procedural-game-typed-workflow-value-v1",
+      "source_artifact_sha256": "5f54973b8f46b977a5339bfb608215703a72ecf7a38e626ed36598256f47e81f",
+      "evidence_tier": "FRESH_FORMAL",
+      "target_adapter": "alfworld-procedural-game-neurosymbolic-v1",
+      "target_grounder": "motif_transfer.alfworld_hierarchical_grounder.score_actions",
+      "target_executor": "scripts.run_multisource_alfworld_v2_qualification._choose_action",
+      "action_authority": "TARGET_NATIVE_GROUNDER_AND_EXECUTOR",
+      "source_permission": "SELECT_SYMBOLIC_PROGRAM_OR_ABSTAIN; NEVER_EMIT_TARGET_ACTION",
+      "receipt_sha256": "5bf50962978ac494d5902e8b179e6a39cff92092fb7c90da4f8506fd709c4148"
+    },
+    {
+      "verdict": "SELECT_SKILL",
+      "reason": "EXACT_INTERFACE_AND_CAPABILITY_MATCH",
+      "request": {
+        "domain": "discoveryworld",
+        "interface": "scientific_spatial_commit",
+        "capabilities": [
+          "commit_effect_prediction",
+          "inventory_state",
+          "object_relation_state",
+          "spatial_realization"
+        ]
+      },
+      "skill_id": "sokoban-positive-effect-guard-v2-discoveryworld",
+      "source_artifact_sha256": "6b02dc1d7271bbd435e90539cedd7d56d04fcc1ad03798dd6dd06146d67f1fcd",
+      "evidence_tier": "FRESH_FORMAL",
+      "target_adapter": "discoveryworld-sokoban-effect-v23",
+      "target_grounder": "motif_transfer.discoveryworld_sokoban_transfer.parse_grounded_candidates",
+      "target_executor": "motif_transfer.discoveryworld_sokoban_transfer.select_candidate",
+      "action_authority": "TARGET_NATIVE_GROUNDER_AND_EXECUTOR",
+      "source_permission": "SELECT_SYMBOLIC_PROGRAM_OR_ABSTAIN; NEVER_EMIT_TARGET_ACTION",
+      "receipt_sha256": "2ae2fd54b613c3fed85a9784a25f236cccc7b7e1c980f091260355d1e82bf950"
+    },
+    {
+      "verdict": "SELECT_SKILL",
+      "reason": "EXACT_INTERFACE_AND_CAPABILITY_MATCH",
+      "request": {
+        "domain": "tir",
+        "interface": "single_image_maze",
+        "capabilities": [
+          "direction_binding",
+          "pixel_graph",
+          "sequence_execution",
+          "unique_goal_verification"
+        ]
+      },
+      "skill_id": "sokoban-anonymous-topology-executor-v1",
+      "source_artifact_sha256": "bdbfd067f77a75ed87a815050e52556aad509812270b1d9e214476f4382525a9",
+      "evidence_tier": "FRESH_FORMAL",
+      "target_adapter": "tir-maze-topology-v2",
+      "target_grounder": "scripts.run_tir_maze_topology_v2._bind",
+      "target_executor": "motif_transfer.tir_maze_topology.execute_maze_topology",
+      "action_authority": "TARGET_NATIVE_GROUNDER_AND_EXECUTOR",
+      "source_permission": "SELECT_SYMBOLIC_PROGRAM_OR_ABSTAIN; NEVER_EMIT_TARGET_ACTION",
+      "receipt_sha256": "285383d0ff004635d5d1ba12ef57432b9e85666304358493f6717c790f49578e"
+    }
+  ],
+  "negative_dispatch_receipts": [
+    {
+      "verdict": "ABSTAIN",
+      "reason": "NO_EXACT_ROUTE",
+      "request": {
+        "domain": "tir",
+        "interface": "rotation",
+        "capabilities": [
+          "direction_binding",
+          "pixel_graph"
+        ]
+      },
+      "skill_id": null,
+      "source_artifact_sha256": null,
+      "evidence_tier": null,
+      "target_adapter": null,
+      "target_grounder": null,
+      "target_executor": null,
+      "action_authority": null,
+      "source_permission": "SELECT_SYMBOLIC_PROGRAM_OR_ABSTAIN; NEVER_EMIT_TARGET_ACTION",
+      "receipt_sha256": "d58f75e8f2bfcddf3c24b4ec39a0b8d7b51fbf46431cc84593dc061a78d4085d"
+    },
+    {
+      "verdict": "ABSTAIN",
+      "reason": "NO_EXACT_ROUTE",
+      "request": {
+        "domain": "video",
+        "interface": "causal_video_qa",
+        "capabilities": [
+          "event_graph"
+        ]
+      },
+      "skill_id": null,
+      "source_artifact_sha256": null,
+      "evidence_tier": null,
+      "target_adapter": null,
+      "target_grounder": null,
+      "target_executor": null,
+      "action_authority": null,
+      "source_permission": "SELECT_SYMBOLIC_PROGRAM_OR_ABSTAIN; NEVER_EMIT_TARGET_ACTION",
+      "receipt_sha256": "f0eae9fe3f325cb10c5ae00aae432332f54dfadc4cd7ea5dfe8f552c5bc78041"
+    },
+    {
+      "verdict": "ABSTAIN",
+      "reason": "NO_EXACT_ROUTE",
+      "request": {
+        "domain": "discoveryworld",
+        "interface": "scientific_spatial_commit",
+        "capabilities": [
+          "inventory_state",
+          "spatial_realization"
+        ]
+      },
+      "skill_id": null,
+      "source_artifact_sha256": null,
+      "evidence_tier": null,
+      "target_adapter": null,
+      "target_grounder": null,
+      "target_executor": null,
+      "action_authority": null,
+      "source_permission": "SELECT_SYMBOLIC_PROGRAM_OR_ABSTAIN; NEVER_EMIT_TARGET_ACTION",
+      "receipt_sha256": "9901dc33754c9b76e109622d3b20bd6f0a4c6a39c6b32a683e626e0ca3c15693"
+    }
+  ],
+  "report_sha256": "f4c4ca5470663af9863b9db62b75fa929c9e6b47991fb7ca11f0c93894f57dd7"
+}

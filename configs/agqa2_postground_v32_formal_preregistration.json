@@ -1,0 +1,58 @@
+{
+  "base_evaluation_protocol_sha256": "6a3ce4149443e4edb2eda2a33d62dbce1d0d03f82dc74b2dcd921a182e207f79",
+  "base_neural_grounder_sha256": "19ff586a6f28da233b89401775a266f27174f06fe753f3ebdb7fa267fbf8eb42",
+  "calibration": {
+    "authenticity_vs_effect_shuffled": {
+      "losses": 1,
+      "ties": 253,
+      "wins": 15
+    },
+    "utility_vs_target_native": {
+      "losses": 1,
+      "ties": 253,
+      "wins": 15
+    }
+  },
+  "claim_boundary": "FRESH_120_VIDEO_DISJOINT_POSTGROUND_CONFIRMATION;SOURCE_PROGRAM_AND_TARGET_GROUNDER_FROZEN_AFTER_V31_DEVELOPMENT;ONE_PRIMARY_PAIRED_ENDPOINT;NO_OUTCOME_ADAPTATION",
+  "controls": {
+    "generic_scaffold": "MATCHED_HANDWRITTEN_THREE_VIEW_CONSENSUS_CEILING",
+    "neural_only": "TWO_ONTOLOGY_AGREEMENT_ELSE_MATCHED_DIRECT",
+    "source_effect_shuffled": "SOURCE_HELDOUT_SHUFFLED_EFFECT_FAIL_CLOSED",
+    "source_induced": "POSTGROUND_UNIQUE_BINDING_PLUS_SOURCE_RECURRENT_ACQUISITION",
+    "target_written_equivalent": "EXTENSIONALLY_IDENTICAL_CEILING_EXPECTED_TO_MATCH_SOURCE"
+  },
+  "development_report_sha256": "978da92610cef3d6471e69a260137b948c8873c74c3aec0ffa1fd1d66e2bcef6",
+  "download_receipt_file_sha256": "a16ef2828fb2b52aa19aa7173e82447758ef18c70e7df0457ad42d4ae9a5520c",
+  "failure_policy": "RUN_EXACT_120_ROWS_ONCE;REPORT_ALL_CONTROLS;NO_RULE_THRESHOLD_OR_SAMPLE_CHANGES_AFTER_OUTCOMES;NO_CLAIM_IF_ANY_GATE_FAILS",
+  "multiplicity_policy": "ONE_PRIMARY_ENDPOINT;ALL_CONTROLS_REPORTED",
+  "postground_evaluation_protocol_sha256": "42dc2480f33bd276707bd723af0858e3faa2516237c7a7f259d88d6e1ca6c0a2",
+  "preregistration_sha256": "32fd0af5008e36a272b3c031e118861bb065e36d3fd52419ed4504e216bc4a73",
+  "primary_endpoint": "SOURCE_INDUCED_VS_TARGET_NATIVE_PAIRED_CORRECTNESS",
+  "provider_cost_cap_usd": 1.3,
+  "provider_or_gold_calls_before_freeze": false,
+  "qualification_gates": {
+    "maximum_exact_one_sided_pvalue": 0.05,
+    "maximum_reported_provider_cost_usd": 1.3,
+    "maximum_source_vs_target_losses": 2,
+    "minimum_source_authorizations": 50,
+    "minimum_source_minus_target_correct": 4,
+    "minimum_source_vs_target_wins": 5,
+    "required_valid_rows": 120
+  },
+  "sample_size_rationale": {
+    "development_disagreement_rate": 0.05947955390334572,
+    "development_rows": 269,
+    "development_source_losses": 1,
+    "development_source_wins": 15,
+    "fixed_total_rows": 120,
+    "formal_sample_size_frozen_before_video_download_or_calls": true,
+    "rows_per_relation_group": 40
+  },
+  "schema_version": "agqa2-postground-preregistration-v32",
+  "sealed_manifest_sha256": "40c9e4edd90da6454049880bdb753e2a1e8d518f9e5e50cde3a3a5c7e4309909",
+  "selection_manifest_sha256": "071d695fbcd21ca371622cbd415e926c5216924667f99f621f9bf173c5b0902d",
+  "source_program_sha256": "ed31de8757a12b57ea6d9a711a9b646646be5ebd0f1176b07320ef601f5fcb35",
+  "status": "FROZEN_BEFORE_ANY_V32_PROVIDER_OR_GOLD_CALL",
+  "target_executor_sha256": "68aaf901b23ea7f672775332c473682b28bf15676cdd0540843767e3378c3728",
+  "target_grounder_sha256": "ca1f6e8f530be4655117f7b6a1b487313961599f2084d60a27d014252995102c"
+}

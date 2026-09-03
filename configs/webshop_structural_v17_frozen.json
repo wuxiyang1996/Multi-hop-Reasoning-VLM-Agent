@@ -1,0 +1,1138 @@
+{
+  "schema_version": "webshop-structural-v17-reserve-v1",
+  "artifact_role": "OUTCOME_BLIND_OPTION_RELATION_WEBSHOP_V17_RESERVE",
+  "status": "FROZEN_BEFORE_ANY_V17_PROVIDER_CALL_OR_OUTCOME",
+  "claim_boundary": "Native synthetic WebShop goals with nonempty option relations; unique ASIN and semantics; product-disjoint from human goals and every V14 development/formal goal. Formal outcomes remain sealed.",
+  "goal_seed": 617,
+  "server_goal_count": 6910,
+  "number_of_registered_tasks_required": 204,
+  "roles": {
+    "transport_qualification": [
+      {
+        "task_id": "webshop.8",
+        "server_goal_index": 8,
+        "asin": "B09B9QLDKD",
+        "instruction_text": "Find me easy clean skin care sets & kits with stainless steel for dead skin with color: 20 pack, and price lower than 130.00 dollars",
+        "goal": {
+          "asin": "B09B9QLDKD",
+          "category": "beauty",
+          "query": "skin care sets & kits",
+          "name": "Professional Pedicure Tools Kit, 20/23 in 1 Stainless Steel Foot Spa Care Set Foot Rasp Dead Skin Callus Remover Foot File Foot Scrubber for Women Men Salon or Home Use",
+          "product_category": "Beauty & Personal Care › Foot, Hand & Nail Care › Tools & Accessories › Foot Files",
+          "instruction_text": "Find me easy clean skin care sets & kits with stainless steel for dead skin with color: 20 pack, and price lower than 130.00 dollars",
+          "attributes": [
+            "easy clean",
+            "stainless steel",
+            "dead skin"
+          ],
+          "price_upper": 130.0,
+          "goal_options": {
+            "color": "20 pack"
+          },
+          "weight": 0.03220108153694492
+        },
+        "goal_sha256": "996bf026b4964c378e554b26cba9648cbc0630e70f65481c5cfdb5274be74385"
+      },
+      {
+        "task_id": "webshop.10",
+        "server_goal_index": 10,
+        "asin": "B09B7ZKMVY",
+        "instruction_text": "Find me queen size, spot clean, easy clean mattresses with color: blue, and size: queen, and style: contemporary, and price lower than 310.00 dollars",
+        "goal": {
+          "asin": "B09B7ZKMVY",
+          "category": "garden",
+          "query": "mattresses",
+          "name": "Trupedic x Mozaic - 10 inch Queen Size Standard Futon Mattress (Frame Not Included) | Basic Midnight Black | Great for Kid's Rooms or Guest Areas - Many Color Options",
+          "product_category": "Home & Kitchen › Furniture › Living Room Furniture › Futons › Futon Mattresses",
+          "instruction_text": "Find me queen size, spot clean, easy clean mattresses with color: blue, and size: queen, and style: contemporary, and price lower than 310.00 dollars",
+          "attributes": [
+            "queen size",
+            "spot clean",
+            "easy clean"
+          ],
+          "price_upper": 310.0,
+          "goal_options": {
+            "color": "blue",
+            "size": "queen",
+            "style": "contemporary"
+          },
+          "weight": 0.04196142237313714
+        },
+        "goal_sha256": "7f4a9980c7357d557d048820623e870d7a56eed0bd1021a2a04ee06816ac847d"
+      },
+      {
+        "task_id": "webshop.14",
+        "server_goal_index": 14,
+        "asin": "B08D4MH7XQ",
+        "instruction_text": "Find me oil free, clinically proven, paraben free scrubs & body treatments for dead skin with style: marks pm treatment with retinol sa, and price lower than 20.00 dollars",
+        "goal": {
+          "asin": "B08D4MH7XQ",
+          "category": "beauty",
+          "query": "scrubs & body treatments",
+          "name": "Neutrogena Stubborn Acne AM Face Treatment with 2.5% Micronized Benzoyl Peroxide Acne Medicine, Oil-Free Daily Facial Treatment to Reduce Size & Redness of Breakouts, Paraben-Free, 2 oz",
+          "product_category": "Beauty & Personal Care › Skin Care › Face › Treatments & Masks › Facial Peels",
+          "instruction_text": "Find me oil free, clinically proven, paraben free scrubs & body treatments for dead skin with style: marks pm treatment with retinol sa, and price lower than 20.00 dollars",
+          "attributes": [
+            "oil free",
+            "clinically proven",
+            "paraben free",
+            "dead skin"
+          ],
+          "price_upper": 20.0,
+          "goal_options": {
+            "style": "marks pm treatment with retinol sa"
+          },
+          "weight": 0.10685331825037707
+        },
+        "goal_sha256": "9c96203013d532ae3bcb4771ded78c443401b7c24ca2c39a24eb26bdcc068d98"
+      },
+      {
+        "task_id": "webshop.16",
+        "server_goal_index": 16,
+        "asin": "B07G4HJR5V",
+        "instruction_text": "Find me easy clean living room sets with faux leather with color: brown, and price lower than 720.00 dollars",
+        "goal": {
+          "asin": "B07G4HJR5V",
+          "category": "garden",
+          "query": "living room sets",
+          "name": "Best Choice Products Tufted Faux Leather 3-Seat L-Shape Sectional Sofa Couch Set w/Chaise Lounge, Ottoman Coffee Table Bench, Black",
+          "product_category": "Automotive › Motorcycle & Powersports › Protective Gear › Knee & Shin Protection",
+          "instruction_text": "Find me easy clean living room sets with faux leather with color: brown, and price lower than 720.00 dollars",
+          "attributes": [
+            "easy clean",
+            "faux leather"
+          ],
+          "price_upper": 720.0,
+          "goal_options": {
+            "color": "brown"
+          },
+          "weight": 0.027115474520804116
+        },
+        "goal_sha256": "eea7c425ac73718c5dd7e8a794ec7a8d11ba20cfd419a9c6887a5f19beaddf41"
+      },
+      {
+        "task_id": "webshop.18",
+        "server_goal_index": 18,
+        "asin": "B08226NDZW",
+        "instruction_text": "Find me officially licensed, machine wash men's t-shirts & tanks with polyester heathers, heathers cotton, cotton heather, needle sleeve, classic fit with color: navy, and fit type: women, and size: large, and price lower than 50.00 dollars",
+        "goal": {
+          "asin": "B08226NDZW",
+          "category": "fashion",
+          "query": "men's t-shirts & tanks",
+          "name": "Disney Winnie The Pooh Tigger Upside Down Portrait Tank Top",
+          "product_category": "Clothing, Shoes & Jewelry › Novelty & More › Clothing › Novelty › Women › Tops & Tees › Tanks & Camis",
+          "instruction_text": "Find me officially licensed, machine wash men's t-shirts & tanks with polyester heathers, heathers cotton, cotton heather, needle sleeve, classic fit with color: navy, and fit type: women, and size: large, and price lower than 50.00 dollars",
+          "attributes": [
+            "officially licensed",
+            "machine wash",
+            "polyester heathers",
+            "heathers cotton",
+            "cotton heather",
+            "needle sleeve",
+            "classic fit"
+          ],
+          "price_upper": 50.0,
+          "goal_options": {
+            "color": "navy",
+            "fit type": "women",
+            "size": "large"
+          },
+          "weight": 0.0012094824261668269
+        },
+        "goal_sha256": "56b3101ea7d54a2befa19ee38cd830e9b8171e87f62a09a4d4ebc8853c9f650c"
+      },
+      {
+        "task_id": "webshop.22",
+        "server_goal_index": 22,
+        "asin": "B09Q37JQZ6",
+        "instruction_text": "Find me machine wash women's swimsuits & cover ups with tummy control, high waist with color: blue, and size: small, and price lower than 50.00 dollars",
+        "goal": {
+          "asin": "B09Q37JQZ6",
+          "category": "fashion",
+          "query": "women's swimsuits & cover ups",
+          "name": "Women's Sexy Swimsuit One Piece High Neck Halter Bikini Floral Stiching See Through Monokini Tummy Control Beachwear",
+          "product_category": "Clothing, Shoes & Jewelry › Women › Clothing › Swimsuits & Cover Ups › One-Pieces",
+          "instruction_text": "Find me machine wash women's swimsuits & cover ups with tummy control, high waist with color: blue, and size: small, and price lower than 50.00 dollars",
+          "attributes": [
+            "machine wash",
+            "tummy control",
+            "high waist"
+          ],
+          "price_upper": 50.0,
+          "goal_options": {
+            "color": "blue",
+            "size": "small"
+          },
+          "weight": 0.0044432700621902955
+        },
+        "goal_sha256": "d08677c738aeaf3063678bcafff25e9bb1620fffd2e795dd7144c120d9b1ebd2"
+      },
+      {
+        "task_id": "webshop.24",
+        "server_goal_index": 24,
+        "asin": "B08BC7JRLQ",
+        "instruction_text": "Find me machine wash women's pants with high waist, elastic closure with color: army green, and size: large, and price lower than 40.00 dollars",
+        "goal": {
+          "asin": "B08BC7JRLQ",
+          "category": "fashion",
+          "query": "women's pants",
+          "name": "YEAQING Women's Sweatpants Pockets High Waist Gym Athletic Cinch Bottom Jogger Pants Baggy Lounge Trousers",
+          "product_category": "Clothing, Shoes & Jewelry › Women › Clothing › Active › Active Pants › Sweatpants",
+          "instruction_text": "Find me machine wash women's pants with high waist, elastic closure with color: army green, and size: large, and price lower than 40.00 dollars",
+          "attributes": [
+            "machine wash",
+            "high waist",
+            "elastic closure"
+          ],
+          "price_upper": 40.0,
+          "goal_options": {
+            "color": "army green",
+            "size": "large"
+          },
+          "weight": 0.007488820909647923
+        },
+        "goal_sha256": "d635f22af876cbec2462e9e35d2279718dbae6e03b1c481be0a150b8833cd4ea"
+      },
+      {
+        "task_id": "webshop.30",
+        "server_goal_index": 30,
+        "asin": "B094Q7B3SS",
+        "instruction_text": "Find me slim fit, loose fit women's tops, tees & blouses with long sleeve, short sleeve with color: a01#purple, and size: 4x-large, and price lower than 40.00 dollars",
+        "goal": {
+          "asin": "B094Q7B3SS",
+          "category": "fashion",
+          "query": "women's tops, tees & blouses",
+          "name": "Women Cold Shoulder Tops, Summer Butterfly Print Shirts Fashion Casual Short Sleeve Plus-Size Tunic Top Tee and Blouse",
+          "product_category": "Clothing, Shoes & Jewelry › Women › Clothing › Tops, Tees & Blouses › Tunics",
+          "instruction_text": "Find me slim fit, loose fit women's tops, tees & blouses with long sleeve, short sleeve with color: a01#purple, and size: 4x-large, and price lower than 40.00 dollars",
+          "attributes": [
+            "slim fit",
+            "loose fit",
+            "long sleeve",
+            "short sleeve"
+          ],
+          "price_upper": 40.0,
+          "goal_options": {
+            "color": "a01#purple",
+            "size": "4x-large"
+          },
+          "weight": 0.001049415721996561
+        },
+        "goal_sha256": "c9cdaf7cd3a3cbc6d88b27d1707380c8552ad27befba79c87f71a10fd6622378"
+      }
+    ],
+    "formal_reserve": [
+      {
+        "task_id": "webshop.31",
+        "server_goal_index": 31,
+        "asin": "B079PH6955",
+        "instruction_text": "Find me men's t-shirts & tanks with needle sleeve, classic fit with color: navy, and fit type: men, and size: xx-large, and price lower than 50.00 dollars",
+        "goal": {
+          "asin": "B079PH6955",
+          "category": "fashion",
+          "query": "men's t-shirts & tanks",
+          "name": "Need Some Hank & A Drank Country Music T Shirt for Rednecks",
+          "product_category": "Clothing, Shoes & Jewelry › Novelty & More › Clothing › Novelty › Men › Shirts › T-Shirts",
+          "instruction_text": "Find me men's t-shirts & tanks with needle sleeve, classic fit with color: navy, and fit type: men, and size: xx-large, and price lower than 50.00 dollars",
+          "attributes": [
+            "needle sleeve",
+            "classic fit"
+          ],
+          "price_upper": 50.0,
+          "goal_options": {
+            "color": "navy",
+            "fit type": "men",
+            "size": "xx-large"
+          },
+          "weight": 0.0006702055583641998
+        },
+        "goal_sha256": "c9c2072cb40e7673be8d35548ca5b716dead980ea46f6381bd36aff45555b492"
+      },
+      {
+        "task_id": "webshop.33",
+        "server_goal_index": 33,
+        "asin": "B09BYX42DW",
+        "instruction_text": "Find me machine washable living room sets for living room with color: christmas red, and price lower than 50.00 dollars",
+        "goal": {
+          "asin": "B09BYX42DW",
+          "category": "garden",
+          "query": "living room sets",
+          "name": "Grommet Blackout Curtains for Bedroom and Living Room - 2 Panels Set Thermal Insulated Room Darkening Curtains (52 x 84 Inch, Navy Blue, 2 Panels)",
+          "product_category": "Home & Kitchen › Home Décor Products › Window Treatments › Curtains & Drapes › Panels",
+          "instruction_text": "Find me machine washable living room sets for living room with color: christmas red, and price lower than 50.00 dollars",
+          "attributes": [
+            "machine washable",
+            "living room"
+          ],
+          "price_upper": 50.0,
+          "goal_options": {
+            "color": "christmas red"
+          },
+          "weight": 0.0029161562542534365
+        },
+        "goal_sha256": "a48263a7c3bc57cb5e7ce848582e86462a23b0aa96e1516055b768d8252d2af9"
+      },
+      {
+        "task_id": "webshop.43",
+        "server_goal_index": 43,
+        "asin": "B09RK77R3V",
+        "instruction_text": "Find me butt lifting, machine washable, hand wash men's shorts with short sleeve, elastic waistband with color: dark blue, and size: medium, and price lower than 20.00 dollars",
+        "goal": {
+          "asin": "B09RK77R3V",
+          "category": "fashion",
+          "query": "men's shorts",
+          "name": "Gym Shorts For Men Quick Dry Lightweight Training Running Jogger Drawstring Pockets Solid Zipper Shorts",
+          "product_category": "",
+          "instruction_text": "Find me butt lifting, machine washable, hand wash men's shorts with short sleeve, elastic waistband with color: dark blue, and size: medium, and price lower than 20.00 dollars",
+          "attributes": [
+            "butt lifting",
+            "machine washable",
+            "hand wash",
+            "short sleeve",
+            "elastic waistband"
+          ],
+          "price_upper": 20.0,
+          "goal_options": {
+            "color": "dark blue",
+            "size": "medium"
+          },
+          "weight": 0.005032334491579875
+        },
+        "goal_sha256": "27aa858018fcb84281a836beefa6bbf27ac2dedede2925e6ca48d251d8fbc006"
+      },
+      {
+        "task_id": "webshop.50",
+        "server_goal_index": 50,
+        "asin": "B07DKGJR74",
+        "instruction_text": "Find me women's sweaters with relaxed fit, long sleeve with color: light heather grey, and size: medium, and price lower than 60.00 dollars",
+        "goal": {
+          "asin": "B07DKGJR74",
+          "category": "fashion",
+          "query": "women's sweaters",
+          "name": "Amazon Brand - Daily Ritual Women's 100% Cotton Oversized Fit V-Neck Pullover Sweater",
+          "product_category": "Clothing, Shoes & Jewelry › Women › Clothing › Sweaters › Pullovers",
+          "instruction_text": "Find me women's sweaters with relaxed fit, long sleeve with color: light heather grey, and size: medium, and price lower than 60.00 dollars",
+          "attributes": [
+            "relaxed fit",
+            "long sleeve"
+          ],
+          "price_upper": 60.0,
+          "goal_options": {
+            "color": "light heather grey",
+            "size": "medium"
+          },
+          "weight": 0.002224053512221451
+        },
+        "goal_sha256": "ab9a4ada4c0f69dc579c8424adc108782bce8d31a1d7878dcf46fc5ad28742f2"
+      },
+      {
+        "task_id": "webshop.56",
+        "server_goal_index": 56,
+        "asin": "B099WX3CV5",
+        "instruction_text": "Find me slim fit, machine wash women's jumpsuits, rompers & overalls with short sleeve, high waist, polyester spandex for daily wear with color: yellow, and size: x-large, and price lower than 60.00 dollars",
+        "goal": {
+          "asin": "B099WX3CV5",
+          "category": "fashion",
+          "query": "women's jumpsuits, rompers & overalls",
+          "name": "Women Aesthetic Short Sleeve Jumpsuit Bodycon Sexy V Neck Button Shorts Rompers Knitted One Piece Bodysuit Overall",
+          "product_category": "Clothing, Shoes & Jewelry › Women › Clothing › Jumpsuits, Rompers & Overalls › Jumpsuits",
+          "instruction_text": "Find me slim fit, machine wash women's jumpsuits, rompers & overalls with short sleeve, high waist, polyester spandex for daily wear with color: yellow, and size: x-large, and price lower than 60.00 dollars",
+          "attributes": [
+            "slim fit",
+            "machine wash",
+            "short sleeve",
+            "high waist",
+            "polyester spandex",
+            "daily wear"
+          ],
+          "price_upper": 60.0,
+          "goal_options": {
+            "color": "yellow",
+            "size": "x-large"
+          },
+          "weight": 0.0019367444148733742
+        },
+        "goal_sha256": "5b8e1bfda9552cbce8ca3632de4d73352f057ca964615f3eaa83202aab2f05b5"
+      },
+      {
+        "task_id": "webshop.59",
+        "server_goal_index": 59,
+        "asin": "B082MT9162",
+        "instruction_text": "Find me anti slip men's loafers & slip-ons with rubber sole with color: 2005brown, and size: 11, and price lower than 80.00 dollars",
+        "goal": {
+          "asin": "B082MT9162",
+          "category": "fashion",
+          "query": "men's loafers & slip-ons",
+          "name": "GLOBALWIN Men's Casual Slip On Penny Loafers Lightweight Driving Shoes",
+          "product_category": "Clothing, Shoes & Jewelry › Men › Shoes › Loafers & Slip-Ons",
+          "instruction_text": "Find me anti slip men's loafers & slip-ons with rubber sole with color: 2005brown, and size: 11, and price lower than 80.00 dollars",
+          "attributes": [
+            "anti slip",
+            "rubber sole"
+          ],
+          "price_upper": 80.0,
+          "goal_options": {
+            "color": "2005brown",
+            "size": "11"
+          },
+          "weight": 0.007767942926061449
+        },
+        "goal_sha256": "6283774a379143a388d9cad3fe139aa407a40e7ba2cd84df27f254800796dbe8"
+      },
+      {
+        "task_id": "webshop.60",
+        "server_goal_index": 60,
+        "asin": "B09T756KQ5",
+        "instruction_text": "Find me slim fit, loose fit men's tuxedo shirts with long sleeve, short sleeve, contrast color, classic fit for teen girls with color: b-bk4, and size: 4x-large, and price lower than 30.00 dollars",
+        "goal": {
+          "asin": "B09T756KQ5",
+          "category": "fashion",
+          "query": "men's tuxedo shirts",
+          "name": "WENKOMG1 Men's Crewneck Goth Tee Shirts Skull Print Tops Spring/Summer Long Sleeve Sports T-Shirt Baggy Y2K Soft Streetwear",
+          "product_category": "Clothing, Shoes & Jewelry › Men › Clothing › Shirts › T-Shirts",
+          "instruction_text": "Find me slim fit, loose fit men's tuxedo shirts with long sleeve, short sleeve, contrast color, classic fit for teen girls with color: b-bk4, and size: 4x-large, and price lower than 30.00 dollars",
+          "attributes": [
+            "slim fit",
+            "loose fit",
+            "long sleeve",
+            "short sleeve",
+            "contrast color",
+            "classic fit",
+            "teen girls"
+          ],
+          "price_upper": 30.0,
+          "goal_options": {
+            "color": "b-bk4",
+            "size": "4x-large"
+          },
+          "weight": 0.002027250552457214
+        },
+        "goal_sha256": "3904ba3ec4b8efee676f945ede9d18266f4c0bcbb9ffb926846580ac86ae5ea9"
+      },
+      {
+        "task_id": "webshop.66",
+        "server_goal_index": 66,
+        "asin": "B09C896SN6",
+        "instruction_text": "Find me tv stands with exquisite workmanship for living room with size: 2pcs-1, and price lower than 50.00 dollars",
+        "goal": {
+          "asin": "B09C896SN6",
+          "category": "garden",
+          "query": "tv stands",
+          "name": "Owl Statue for Modern Home Decor Accents Living Room, Bedroom Figurines,TV Stand Resin Decorations,Kitchen for Shelf,Office Desktop,Book Shelves,Unique for Animal Lovers(2 PCS)",
+          "product_category": "Home & Kitchen › Home Décor Products › Home Décor Accents › Sculptures › Statues",
+          "instruction_text": "Find me tv stands with exquisite workmanship for living room with size: 2pcs-1, and price lower than 50.00 dollars",
+          "attributes": [
+            "exquisite workmanship",
+            "living room"
+          ],
+          "price_upper": 50.0,
+          "goal_options": {
+            "size": "2pcs-1"
+          },
+          "weight": 0.05080645161290323
+        },
+        "goal_sha256": "065ea62e17b0f3eda8ac13f1ecd0bba45f53560c7e4bf7ee3b844d8a60495047"
+      },
+      {
+        "task_id": "webshop.68",
+        "server_goal_index": 68,
+        "asin": "B09N9T673Q",
+        "instruction_text": "Find me open toe, knee high, non slip women's pumps with ankle strap, high heel, memory foam, rubber sole for teen girls with size: 7, and price lower than 140.00 dollars",
+        "goal": {
+          "asin": "B09N9T673Q",
+          "category": "fashion",
+          "query": "women's pumps",
+          "name": "Women's Heeled Sandals Sexy Minimalistic Cut out Rear Zipper Wedge Roman Sandals Casual Solid Stiletto Pump for Night Party Comfy Lightweight Summer Shoes",
+          "product_category": "Clothing, Shoes & Jewelry › Women › Shoes › Sandals › Heeled Sandals",
+          "instruction_text": "Find me open toe, knee high, non slip women's pumps with ankle strap, high heel, memory foam, rubber sole for teen girls with size: 7, and price lower than 140.00 dollars",
+          "attributes": [
+            "open toe",
+            "knee high",
+            "non slip",
+            "ankle strap",
+            "high heel",
+            "memory foam",
+            "rubber sole",
+            "teen girls"
+          ],
+          "price_upper": 140.0,
+          "goal_options": {
+            "size": "7"
+          },
+          "weight": 0.010960347354406815
+        },
+        "goal_sha256": "b761e2900b0e9323afd56bd6e5cdc17b86603d718550edd99a3782382cb019de"
+      },
+      {
+        "task_id": "webshop.78",
+        "server_goal_index": 78,
+        "asin": "B09NSC5VDG",
+        "instruction_text": "Find me women's lingerie, sleep & lounge with long sleeve, tummy control, high waist, short sleeve with color: purple, and size: small, and price lower than 50.00 dollars",
+        "goal": {
+          "asin": "B09NSC5VDG",
+          "category": "fashion",
+          "query": "women's lingerie, sleep & lounge",
+          "name": "CofeeMO Womens Lingerie Sleep Lounge Everyday Nursing Bras Printed Underwear Seamless Printed Bralette for Sex Naughty Play",
+          "product_category": "",
+          "instruction_text": "Find me women's lingerie, sleep & lounge with long sleeve, tummy control, high waist, short sleeve with color: purple, and size: small, and price lower than 50.00 dollars",
+          "attributes": [
+            "long sleeve",
+            "tummy control",
+            "high waist",
+            "short sleeve"
+          ],
+          "price_upper": 50.0,
+          "goal_options": {
+            "color": "purple",
+            "size": "small"
+          },
+          "weight": 0.0035333751432063474
+        },
+        "goal_sha256": "ce572901925bf127e6c88acf4001dd0136aefffeaa6ed6dde4e8a81384b69a19"
+      },
+      {
+        "task_id": "webshop.80",
+        "server_goal_index": 80,
+        "asin": "B09LHM4WQS",
+        "instruction_text": "Find me coffee tables with steel frame, storage space for living room with color: chestnut, and size: no shelf, and price lower than 120.00 dollars",
+        "goal": {
+          "asin": "B09LHM4WQS",
+          "category": "garden",
+          "query": "coffee tables",
+          "name": "Lift Top Coffee Tables for Living Room Coffee Table with Storage, Lift Cable Coffee Table, Dining Table with Hidden Storage Compartment Chestnut",
+          "product_category": "Home & Kitchen › Furniture › Living Room Furniture › Tables › Coffee Tables",
+          "instruction_text": "Find me coffee tables with steel frame, storage space for living room with color: chestnut, and size: no shelf, and price lower than 120.00 dollars",
+          "attributes": [
+            "steel frame",
+            "storage space",
+            "living room"
+          ],
+          "price_upper": 120.0,
+          "goal_options": {
+            "color": "chestnut",
+            "size": "no shelf"
+          },
+          "weight": 0.02998625596248686
+        },
+        "goal_sha256": "fdd600aee8575cfb0f9e6ded6f2e631a7123bc38140674f245655c7a38f51c76"
+      },
+      {
+        "task_id": "webshop.82",
+        "server_goal_index": 82,
+        "asin": "B07XPR3R7N",
+        "instruction_text": "Find me officially licensed men's t-shirts & tanks with needle sleeve, classic fit with color: black, and fit type: men, and size: small, and price lower than 60.00 dollars",
+        "goal": {
+          "asin": "B07XPR3R7N",
+          "category": "fashion",
+          "query": "men's t-shirts & tanks",
+          "name": "Marvel Avengers: Endgame Captain America America's Language T-Shirt",
+          "product_category": "Clothing, Shoes & Jewelry › Novelty & More › Clothing › Novelty › Women › Tops & Tees › T-Shirts",
+          "instruction_text": "Find me officially licensed men's t-shirts & tanks with needle sleeve, classic fit with color: black, and fit type: men, and size: small, and price lower than 60.00 dollars",
+          "attributes": [
+            "officially licensed",
+            "needle sleeve",
+            "classic fit"
+          ],
+          "price_upper": 60.0,
+          "goal_options": {
+            "color": "black",
+            "fit type": "men",
+            "size": "small"
+          },
+          "weight": 0.0017142308285165641
+        },
+        "goal_sha256": "001c1713c7bf292ace715bb841f675deccba2b2645a88b5867eec823b0dde5d7"
+      },
+      {
+        "task_id": "webshop.83",
+        "server_goal_index": 83,
+        "asin": "B08G8DXR5N",
+        "instruction_text": "Find me hand wash, machine wash women's activewear with nylon spandex with color: white, and size: large, and price lower than 20.00 dollars",
+        "goal": {
+          "asin": "B08G8DXR5N",
+          "category": "fashion",
+          "query": "women's activewear",
+          "name": "Beninos Sports Bras for Women - Activewear Tops for Yoga Running Fitness",
+          "product_category": "Clothing, Shoes & Jewelry › Women › Clothing › Lingerie, Sleep & Lounge › Lingerie › Bras › Sports Bras",
+          "instruction_text": "Find me hand wash, machine wash women's activewear with nylon spandex with color: white, and size: large, and price lower than 20.00 dollars",
+          "attributes": [
+            "hand wash",
+            "machine wash",
+            "nylon spandex"
+          ],
+          "price_upper": 20.0,
+          "goal_options": {
+            "color": "white",
+            "size": "large"
+          },
+          "weight": 0.009004160560580794
+        },
+        "goal_sha256": "f8b27045832ff18768132491515c5beae4145c4961774a69631cddbd26fe4628"
+      },
+      {
+        "task_id": "webshop.85",
+        "server_goal_index": 85,
+        "asin": "B07F2G93BJ",
+        "instruction_text": "Find me slim fit, machine wash men's casual button-down shirts with button closure, long sleeve with color: white, and size: medium, and price lower than 40.00 dollars",
+        "goal": {
+          "asin": "B07F2G93BJ",
+          "category": "fashion",
+          "query": "men's casual button-down shirts",
+          "name": "Amazon Essentials Men's Slim-fit Long-Sleeve Solid Pocket Oxford Shirt",
+          "product_category": "Clothing, Shoes & Jewelry › Men › Clothing › Shirts › Casual Button-Down Shirts",
+          "instruction_text": "Find me slim fit, machine wash men's casual button-down shirts with button closure, long sleeve with color: white, and size: medium, and price lower than 40.00 dollars",
+          "attributes": [
+            "slim fit",
+            "machine wash",
+            "button closure",
+            "long sleeve"
+          ],
+          "price_upper": 40.0,
+          "goal_options": {
+            "color": "white",
+            "size": "medium"
+          },
+          "weight": 0.001377917922010289
+        },
+        "goal_sha256": "2fca94fa37cbf7a011d7144e1af35a9c73618d14a3b4b04a2438458c5f7981d5"
+      },
+      {
+        "task_id": "webshop.88",
+        "server_goal_index": 88,
+        "asin": "B09NDS8F4V",
+        "instruction_text": "Find me women's jumpsuits, rompers & overalls with button closure, quality polyester, polyester spandex, long sleeve for daily wear with color: red, and size: xx-large, and price lower than 20.00 dollars",
+        "goal": {
+          "asin": "B09NDS8F4V",
+          "category": "fashion",
+          "query": "women's jumpsuits, rompers & overalls",
+          "name": "AODONG Onesie Pajamas for Women Onesies Romper Pajamas Printed Bodycon Jumpsuit Shorts Sexy One Piece Pjs Overall",
+          "product_category": "Clothing, Shoes & Jewelry › Women › Clothing › Lingerie, Sleep & Lounge › Sleep & Lounge › Sets",
+          "instruction_text": "Find me women's jumpsuits, rompers & overalls with button closure, quality polyester, polyester spandex, long sleeve for daily wear with color: red, and size: xx-large, and price lower than 20.00 dollars",
+          "attributes": [
+            "button closure",
+            "quality polyester",
+            "polyester spandex",
+            "long sleeve",
+            "daily wear"
+          ],
+          "price_upper": 20.0,
+          "goal_options": {
+            "color": "red",
+            "size": "xx-large"
+          },
+          "weight": 0.00858723710831699
+        },
+        "goal_sha256": "800df6b261e0917a861af015662d1ee755d398bd4fe0df260a90022baa1d920d"
+      },
+      {
+        "task_id": "webshop.90",
+        "server_goal_index": 90,
+        "asin": "B07BB1FJV8",
+        "instruction_text": "Find me long lasting, high quality hair loss products with color: 1b, and price lower than 60.00 dollars",
+        "goal": {
+          "asin": "B07BB1FJV8",
+          "category": "beauty",
+          "query": "hair loss products",
+          "name": "Edna Wig Color FS4/30 - Foxy Silver Wigs Short Pixie Wispy Fringe Synthetic Straight Layers African American Women's Machine Wefted Lightweight Average Cap Bundle with MaxWigs Hairloss Booklet",
+          "product_category": "Beauty & Personal Care › Hair Care › Hair Extensions, Wigs & Accessories › Wigs",
+          "instruction_text": "Find me long lasting, high quality hair loss products with color: 1b, and price lower than 60.00 dollars",
+          "attributes": [
+            "long lasting",
+            "high quality"
+          ],
+          "price_upper": 60.0,
+          "goal_options": {
+            "color": "1b"
+          },
+          "weight": 0.011058162267839688
+        },
+        "goal_sha256": "d901bf93aa94279842ae8c71bfd82ef2c8a8c5b4b7794c970203210dbbf27617"
+      },
+      {
+        "task_id": "webshop.95",
+        "server_goal_index": 95,
+        "asin": "B09R7H66FC",
+        "instruction_text": "Find me slim fit men's suits & sport coats with button closure, classic fit with color: gold, and size: xx-large, and price lower than 90.00 dollars",
+        "goal": {
+          "asin": "B09R7H66FC",
+          "category": "fashion",
+          "query": "men's suits & sport coats",
+          "name": "Men's Shiny Sequins Suit Jacket Blazer One Button Weddings Prom Dinner Party Tuxedo BZ07",
+          "product_category": "Clothing, Shoes & Jewelry › Men › Clothing › Suits & Sport Coats › Sport Coats & Blazers",
+          "instruction_text": "Find me slim fit men's suits & sport coats with button closure, classic fit with color: gold, and size: xx-large, and price lower than 90.00 dollars",
+          "attributes": [
+            "slim fit",
+            "button closure",
+            "classic fit"
+          ],
+          "price_upper": 90.0,
+          "goal_options": {
+            "color": "gold",
+            "size": "xx-large"
+          },
+          "weight": 0.0016742010421391753
+        },
+        "goal_sha256": "d9f368cc4d968504496ad3060ba937fcd9f2857cb6f7f60a9c92f1c725bd69b7"
+      },
+      {
+        "task_id": "webshop.104",
+        "server_goal_index": 104,
+        "asin": "B09RVF4JP1",
+        "instruction_text": "Find me machine wash men's t-shirts & tanks with polyester heathers, heathers cotton, cotton heather, needle sleeve, classic fit with color: black, and fit type: women, and size: medium, and price lower than 40.00 dollars",
+        "goal": {
+          "asin": "B09RVF4JP1",
+          "category": "fashion",
+          "query": "men's t-shirts & tanks",
+          "name": "Once Upon A Time Queen Born In 1982 T Shirts It Was Me Tank Top",
+          "product_category": "Clothing, Shoes & Jewelry › Novelty & More › Clothing › Novelty › Women › Tops & Tees › Tanks & Camis",
+          "instruction_text": "Find me machine wash men's t-shirts & tanks with polyester heathers, heathers cotton, cotton heather, needle sleeve, classic fit with color: black, and fit type: women, and size: medium, and price lower than 40.00 dollars",
+          "attributes": [
+            "machine wash",
+            "polyester heathers",
+            "heathers cotton",
+            "cotton heather",
+            "needle sleeve",
+            "classic fit"
+          ],
+          "price_upper": 40.0,
+          "goal_options": {
+            "color": "black",
+            "fit type": "women",
+            "size": "medium"
+          },
+          "weight": 0.0007773492690577492
+        },
+        "goal_sha256": "53908c945564f313c4843ec4b742b90e2705b7055fa0981ba3f9457164c437c3"
+      },
+      {
+        "task_id": "webshop.110",
+        "server_goal_index": 110,
+        "asin": "B07XDRVVYM",
+        "instruction_text": "Find me women's sandals with arch support, rubber outsole, rubber sole with color: navy combi, and size: 5, and price lower than 90.00 dollars",
+        "goal": {
+          "asin": "B07XDRVVYM",
+          "category": "fashion",
+          "query": "women's sandals",
+          "name": "Clarks Women's Un Adorn Sling Sandal",
+          "product_category": "Clothing, Shoes & Jewelry › Women › Shoes › Sandals › Platforms & Wedges",
+          "instruction_text": "Find me women's sandals with arch support, rubber outsole, rubber sole with color: navy combi, and size: 5, and price lower than 90.00 dollars",
+          "attributes": [
+            "arch support",
+            "rubber outsole",
+            "rubber sole"
+          ],
+          "price_upper": 90.0,
+          "goal_options": {
+            "color": "navy combi",
+            "size": "5"
+          },
+          "weight": 0.003853628237984253
+        },
+        "goal_sha256": "2f3eae0fb5d105ee69a1edebae33867f790df1393d568c3984d3a62798ee7a4e"
+      },
+      {
+        "task_id": "webshop.137",
+        "server_goal_index": 137,
+        "asin": "B09RPRRNVP",
+        "instruction_text": "Find me open toe, slip resistant women's work & safety footwear with arch support, high heel, ankle strap, memory foam with color: black, and size: 8.5, and price lower than 30.00 dollars",
+        "goal": {
+          "asin": "B09RPRRNVP",
+          "category": "fashion",
+          "query": "women's work & safety footwear",
+          "name": "ZSWWang Slip On Sneakers Flats Shoes for Women Walking Sock Shoes Lightweight Breathable Mesh Knit Yoga Sneakers Fashion Casual Comfortable Platform Wedge Work Outdoor Walking Sports Shoes",
+          "product_category": "Clothing, Shoes & Jewelry › Women › Shoes › Athletic › Walking",
+          "instruction_text": "Find me open toe, slip resistant women's work & safety footwear with arch support, high heel, ankle strap, memory foam with color: black, and size: 8.5, and price lower than 30.00 dollars",
+          "attributes": [
+            "open toe",
+            "slip resistant",
+            "arch support",
+            "high heel",
+            "ankle strap",
+            "memory foam"
+          ],
+          "price_upper": 30.0,
+          "goal_options": {
+            "color": "black",
+            "size": "8.5"
+          },
+          "weight": 0.010234892080811731
+        },
+        "goal_sha256": "dde5b7f7f9875e297da7a6bd0a479455a0b641ed309c2230896a5fcb4f24ea70"
+      },
+      {
+        "task_id": "webshop.140",
+        "server_goal_index": 140,
+        "asin": "B07MGB73NJ",
+        "instruction_text": "Find me machine wash women's tops, tees & blouses with short sleeve, unique design, relaxed fit, button closure, polyester spandex with color: green2, and size: large, and price lower than 60.00 dollars",
+        "goal": {
+          "asin": "B07MGB73NJ",
+          "category": "fashion",
+          "query": "women's tops, tees & blouses",
+          "name": "Viracy Women's Short Sleeve V-Neck Casual Flowy Tunic Shirt (M-3XL)",
+          "product_category": "",
+          "instruction_text": "Find me machine wash women's tops, tees & blouses with short sleeve, unique design, relaxed fit, button closure, polyester spandex with color: green2, and size: large, and price lower than 60.00 dollars",
+          "attributes": [
+            "machine wash",
+            "short sleeve",
+            "unique design",
+            "relaxed fit",
+            "button closure",
+            "polyester spandex"
+          ],
+          "price_upper": 60.0,
+          "goal_options": {
+            "color": "green2",
+            "size": "large"
+          },
+          "weight": 0.0033373485494731267
+        },
+        "goal_sha256": "adc5f4c5b371aa588db947350bc3898930b63d031137a1e967d0706c2c876c4d"
+      },
+      {
+        "task_id": "webshop.143",
+        "server_goal_index": 143,
+        "asin": "B085WQKRRJ",
+        "instruction_text": "Find me slim fit, wash cold, hand wash, machine wash men's henleys with short sleeve, regular fit with color: light grey, and size: small, and price lower than 30.00 dollars",
+        "goal": {
+          "asin": "B085WQKRRJ",
+          "category": "fashion",
+          "query": "men's henleys",
+          "name": "CLANMILUMS Men's Classic Comfort Soft Regular Fit Short Sleeve Henley T-Shirt Tee",
+          "product_category": "Clothing, Shoes & Jewelry › Men › Clothing › Shirts › Henleys",
+          "instruction_text": "Find me slim fit, wash cold, hand wash, machine wash men's henleys with short sleeve, regular fit with color: light grey, and size: small, and price lower than 30.00 dollars",
+          "attributes": [
+            "slim fit",
+            "wash cold",
+            "hand wash",
+            "machine wash",
+            "short sleeve",
+            "regular fit"
+          ],
+          "price_upper": 30.0,
+          "goal_options": {
+            "color": "light grey",
+            "size": "small"
+          },
+          "weight": 0.002628963959903525
+        },
+        "goal_sha256": "23644c932a547a894ce7329078a8e3369757c57096cb8162be81390fdc2e1bad"
+      },
+      {
+        "task_id": "webshop.147",
+        "server_goal_index": 147,
+        "asin": "B08TR23329",
+        "instruction_text": "Find me floor lamps with bronze finish, steel frame with color: blackened bronze, and price lower than 90.00 dollars",
+        "goal": {
+          "asin": "B08TR23329",
+          "category": "garden",
+          "query": "floor lamps",
+          "name": "Henn&Hart Contemporary Metal Floor Lamp in Blackened Bronze, (FL0656)",
+          "product_category": "Tools & Home Improvement › Lighting & Ceiling Fans › Lamps & Shades › Floor Lamps",
+          "instruction_text": "Find me floor lamps with bronze finish, steel frame with color: blackened bronze, and price lower than 90.00 dollars",
+          "attributes": [
+            "bronze finish",
+            "steel frame"
+          ],
+          "price_upper": 90.0,
+          "goal_options": {
+            "color": "blackened bronze"
+          },
+          "weight": 0.12631578947368421
+        },
+        "goal_sha256": "86bf37e28b2e5dec1c04161d310ad3f61ef578db26f1538c03fc99124c1b0514"
+      },
+      {
+        "task_id": "webshop.151",
+        "server_goal_index": 151,
+        "asin": "B09J2QLPR1",
+        "instruction_text": "Find me hands free headphones for wireless bluetooth with color: navy red, and price lower than 70.00 dollars",
+        "goal": {
+          "asin": "B09J2QLPR1",
+          "category": "electronics",
+          "query": "headphones",
+          "name": "NAUTICA H120 Bluetooth Headphones, On-Ear Wireless Headphones with Built-in Microphone Bluetooth v5.0 Wireless and Wired Stereo Headset with Deep Bass, Foldable Over-Ear Headphones (White Nude)",
+          "product_category": "Electronics › Headphones › Over-Ear Headphones",
+          "instruction_text": "Find me hands free headphones for wireless bluetooth with color: navy red, and price lower than 70.00 dollars",
+          "attributes": [
+            "hands free",
+            "wireless bluetooth"
+          ],
+          "price_upper": 70.0,
+          "goal_options": {
+            "color": "navy red"
+          },
+          "weight": 0.05861244019138756
+        },
+        "goal_sha256": "7c223dd3326af7b3686648a0061a6624e6317119e7009d25ec85582eecf4540b"
+      },
+      {
+        "task_id": "webshop.152",
+        "server_goal_index": 152,
+        "asin": "B018A8MPJ2",
+        "instruction_text": "Find me queen size beds with storage unit with color: chocolate",
+        "goal": {
+          "asin": "B018A8MPJ2",
+          "category": "garden",
+          "query": "beds",
+          "name": "Bestar Pur Collection, Queen Murphy Bed kit (101“)",
+          "product_category": "Home & Kitchen › Furniture › Bedroom Furniture › Beds, Frames & Bases › Beds",
+          "instruction_text": "Find me queen size beds with storage unit with color: chocolate",
+          "attributes": [
+            "queen size",
+            "storage unit"
+          ],
+          "price_upper": 1000000,
+          "goal_options": {
+            "color": "chocolate"
+          },
+          "weight": 0.19298245614035087
+        },
+        "goal_sha256": "93f3a8cbda6feed0abd1b2e591b248806611cacdf4f87adb22c420c7d4a642e6"
+      },
+      {
+        "task_id": "webshop.168",
+        "server_goal_index": 168,
+        "asin": "B0927BXC6B",
+        "instruction_text": "Find me high quality, easy carry eyes makeup for eye shadow with color: dark blue, and price lower than 30.00 dollars",
+        "goal": {
+          "asin": "B0927BXC6B",
+          "category": "beauty",
+          "query": "eyes makeup",
+          "name": "Makeup brushes 8 pieces and a high quality leather bag, easy for you to carry out,Makeup Brushes Premium Synthetic Liquid foundation , loose powder , blush , eyelash , nose shadow , eye shadow , eyebrow powder , lip brush. (apricot)",
+          "product_category": "Beauty & Personal Care › Tools & Accessories › Makeup Brushes & Tools › Brush Sets",
+          "instruction_text": "Find me high quality, easy carry eyes makeup for eye shadow with color: dark blue, and price lower than 30.00 dollars",
+          "attributes": [
+            "high quality",
+            "easy carry",
+            "eye shadow"
+          ],
+          "price_upper": 30.0,
+          "goal_options": {
+            "color": "dark blue"
+          },
+          "weight": 0.034007509813961424
+        },
+        "goal_sha256": "6466c04dbf9c072f3b53ce58ac010e9112daefe583a04b34e94eaa6dddef3213"
+      },
+      {
+        "task_id": "webshop.174",
+        "server_goal_index": 174,
+        "asin": "B09S3TWKSC",
+        "instruction_text": "Find me knee high, open toe women's loafers & slip-ons with steel toe, high heel, faux fur, arch support with color: beige, and size: 7, and price lower than 40.00 dollars",
+        "goal": {
+          "asin": "B09S3TWKSC",
+          "category": "fashion",
+          "query": "women's loafers & slip-ons",
+          "name": "Womens Summer Sandals Casual Bohemia Gladiator Wedge Shoes Outdoor Loafers Open Toe Sandals Buckle Sandals Hollow Out Shoes",
+          "product_category": "Clothing, Shoes & Jewelry › Women › Shoes › Sandals › Flats",
+          "instruction_text": "Find me knee high, open toe women's loafers & slip-ons with steel toe, high heel, faux fur, arch support with color: beige, and size: 7, and price lower than 40.00 dollars",
+          "attributes": [
+            "knee high",
+            "open toe",
+            "steel toe",
+            "high heel",
+            "faux fur",
+            "arch support"
+          ],
+          "price_upper": 40.0,
+          "goal_options": {
+            "color": "beige",
+            "size": "7"
+          },
+          "weight": 0.022651759277898083
+        },
+        "goal_sha256": "96fcfde0f1a64cc79ce08adb6abdb321bd45b3299e7f005611309af2545fafe0"
+      },
+      {
+        "task_id": "webshop.175",
+        "server_goal_index": 175,
+        "asin": "B096P77XMD",
+        "instruction_text": "Find me men's shorts with comfortable fit, elastic waistband for gym workout, daily wear with color: blue, and size: xx-large, and price lower than 40.00 dollars",
+        "goal": {
+          "asin": "B096P77XMD",
+          "category": "fashion",
+          "query": "men's shorts",
+          "name": "Runhit 2 in 1 Men’s Running Shorts 5\" Quick Dry Workout Shorts for Men with Pockets Gym Athletic Shorts",
+          "product_category": "Clothing, Shoes & Jewelry › Men › Clothing › Active › Active Shorts",
+          "instruction_text": "Find me men's shorts with comfortable fit, elastic waistband for gym workout, daily wear with color: blue, and size: xx-large, and price lower than 40.00 dollars",
+          "attributes": [
+            "comfortable fit",
+            "elastic waistband",
+            "gym workout",
+            "daily wear"
+          ],
+          "price_upper": 40.0,
+          "goal_options": {
+            "color": "blue",
+            "size": "xx-large"
+          },
+          "weight": 0.012052128692907506
+        },
+        "goal_sha256": "9e8212d6fc99813c4f22eaae8b46fb892b7370fdd4f7a02a679eef4cf38d6c4d"
+      },
+      {
+        "task_id": "webshop.185",
+        "server_goal_index": 185,
+        "asin": "B09SHRV5JW",
+        "instruction_text": "Find me high quality hair loss products with seed oil for hair growth, hair loss with size: 30ml 01, and price lower than 50.00 dollars",
+        "goal": {
+          "asin": "B09SHRV5JW",
+          "category": "beauty",
+          "query": "hair loss products",
+          "name": "Herbal Hair Regrowth Spray, Hair-growth Essence Spray, Herbal Hair Growth Essence Spray, Hair Growth Treatement Germinal Oil, Hair Growth Maximizer Spray for Prevent Postpartum Hair Loss Men Women (10ml 4PC)",
+          "product_category": "Beauty & Personal Care › Hair Care › Hair Loss Products › Hair Regrowth Treatments",
+          "instruction_text": "Find me high quality hair loss products with seed oil for hair growth, hair loss with size: 30ml 01, and price lower than 50.00 dollars",
+          "attributes": [
+            "high quality",
+            "seed oil",
+            "hair growth",
+            "hair loss"
+          ],
+          "price_upper": 50.0,
+          "goal_options": {
+            "size": "30ml 01"
+          },
+          "weight": 0.07572738772928526
+        },
+        "goal_sha256": "3f3442d111d0a7826db8dfd9d84e19ac0631b5f0ed53f33658a2e8c39b379a0d"
+      },
+      {
+        "task_id": "webshop.196",
+        "server_goal_index": 196,
+        "asin": "B09Q67H373",
+        "instruction_text": "Find me loose fit, slim fit men's tuxedo shirts with long sleeve, short sleeve, polyester cotton, elastic waist, regular fit for gym workout with color: a-yellow, and size: small, and price lower than 40.00 dollars",
+        "goal": {
+          "asin": "B09Q67H373",
+          "category": "fashion",
+          "query": "men's tuxedo shirts",
+          "name": "JSPOYOU 2022 Newly T-Shirt for Mens Funny 3D Graphics Pattern Crewneck Short Sleeve Tees Big and Tall Summer Casual Comfy Top",
+          "product_category": "Clothing, Shoes & Jewelry › Men › Clothing › Shirts › T-Shirts",
+          "instruction_text": "Find me loose fit, slim fit men's tuxedo shirts with long sleeve, short sleeve, polyester cotton, elastic waist, regular fit for gym workout with color: a-yellow, and size: small, and price lower than 40.00 dollars",
+          "attributes": [
+            "loose fit",
+            "slim fit",
+            "long sleeve",
+            "short sleeve",
+            "polyester cotton",
+            "elastic waist",
+            "regular fit",
+            "gym workout"
+          ],
+          "price_upper": 40.0,
+          "goal_options": {
+            "color": "a-yellow",
+            "size": "small"
+          },
+          "weight": 0.004610993331726694
+        },
+        "goal_sha256": "e2ca48627a47cbf249be9ff077752d59103e2b62067f197adcc13f9f4d6b176b"
+      },
+      {
+        "task_id": "webshop.198",
+        "server_goal_index": 198,
+        "asin": "B0769HRGD2",
+        "instruction_text": "Find me beds with wood frame, box spring, solid wood with color: natural, and size: full, and price lower than 390.00 dollars",
+        "goal": {
+          "asin": "B0769HRGD2",
+          "category": "garden",
+          "query": "beds",
+          "name": "Abbey Avenue Grace Upholstered Queen Platform Bed, Blue",
+          "product_category": "Home & Kitchen › Furniture › Bedroom Furniture › Beds, Frames & Bases › Beds",
+          "instruction_text": "Find me beds with wood frame, box spring, solid wood with color: natural, and size: full, and price lower than 390.00 dollars",
+          "attributes": [
+            "wood frame",
+            "box spring",
+            "solid wood"
+          ],
+          "price_upper": 390.0,
+          "goal_options": {
+            "color": "natural",
+            "size": "full"
+          },
+          "weight": 0.02866512345679012
+        },
+        "goal_sha256": "9f453095aa50f6f72e20931b631acc0a2b6da4191cd0272874e895044068d427"
+      },
+      {
+        "task_id": "webshop.203",
+        "server_goal_index": 203,
+        "asin": "B07NZ173GY",
+        "instruction_text": "Find me day comfort men's sandals with rubber sole with color: black, and size: 12.5, and price lower than 80.00 dollars",
+        "goal": {
+          "asin": "B07NZ173GY",
+          "category": "fashion",
+          "query": "men's sandals",
+          "name": "FitFlop Men's Hollis Neoprene Sport Sandal",
+          "product_category": "Clothing, Shoes & Jewelry › Men › Shoes › Sandals",
+          "instruction_text": "Find me day comfort men's sandals with rubber sole with color: black, and size: 12.5, and price lower than 80.00 dollars",
+          "attributes": [
+            "day comfort",
+            "rubber sole"
+          ],
+          "price_upper": 80.0,
+          "goal_options": {
+            "color": "black",
+            "size": "12.5"
+          },
+          "weight": 0.002432174046572913
+        },
+        "goal_sha256": "fd7b0def97d7cc764f6d4644704e448562489070b2a175a14a81a18f2cbb87b9"
+      }
+    ]
+  },
+  "preflight": {
+    "all_selected_vs_prior_and_human": {
+      "tasks": 40,
+      "unique_goal_semantics": 40,
+      "required_unique_goal_semantics": 40,
+      "duplicate_goal_semantics": [],
+      "duplicate_multiplicities": {},
+      "consumed_instruction_overlap": [],
+      "candidate_unique_asins": 40,
+      "consumed_asin_overlap": [],
+      "gates": {
+        "enough_unique_goal_semantics": true,
+        "one_task_per_goal_semantics": true,
+        "instruction_disjoint_from_consumed": true,
+        "asin_disjoint_from_consumed": true,
+        "one_task_per_asin": true
+      },
+      "passed": true
+    },
+    "formal_vs_qualification_prior_and_human": {
+      "tasks": 32,
+      "unique_goal_semantics": 32,
+      "required_unique_goal_semantics": 32,
+      "duplicate_goal_semantics": [],
+      "duplicate_multiplicities": {},
+      "consumed_instruction_overlap": [],
+      "candidate_unique_asins": 32,
+      "consumed_asin_overlap": [],
+      "gates": {
+        "enough_unique_goal_semantics": true,
+        "one_task_per_goal_semantics": true,
+        "instruction_disjoint_from_consumed": true,
+        "asin_disjoint_from_consumed": true,
+        "one_task_per_asin": true
+      },
+      "passed": true
+    },
+    "all_goals_have_nonempty_target_relation_schema": true
+  },
+  "prior_manifest_sha256": "bcd08bd8c037811053bdb069cb1e97b5711cce914e002ffbfa55e56faf7588e7",
+  "selection_rule": "Seed native synthetic generator, then take first unique-ASIN, unique-instruction goals with nonempty goal_options after exclusions.",
+  "runtime_contract": {
+    "server_launcher": "scripts/run_webshop_structural_server_v17.py",
+    "formal_requires_development_gate": "PHASE4_WEBSHOP_DEVELOPMENT_GATE_PASSED",
+    "formal_run_once": true
+  },
+  "runtime_hashes": {
+    "products": "30a4765c3a327af72d9a9a95a6b2486d516f0fa1d3ecd83681901ce82a21b269",
+    "human_instructions": "cf78667548a71786e1d9049c24b802e48e1084ad4bb021cae56ce1f6d96954a3",
+    "prior_manifest": "fc5d8a8ea2c5b9cfe6296fab6d36d623bdf8c539e31b45cd3c0bc7e2601705ee",
+    "freezer": "ea51d9f28060ad25f878ab26952d3375dc7ba3d224d8728e66b1d74abec7b83d",
+    "server_launcher": "f985a6cc40778ee417eff78d1577ec7cf8c48ca2ffe96997732e1c787ab60351"
+  },
+  "formal_outcomes_read_or_run": false,
+  "artifact_sha256": "bd7cb1dfe5c05b0d76fbf6022003720493e450bf504b73d5192e80eb3813ae04"
+}

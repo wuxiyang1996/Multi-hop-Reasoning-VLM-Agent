@@ -1,0 +1,255 @@
+{
+  "atomic_route_artifacts_modified": false,
+  "claim_boundary": "ATOMIC_OPEN_ANSWER_QUERY_OBJECT_STRUCTURAL_MECHANISM_TRANSFER_QUALIFIED_ON_30_NEW_VIDEOS;SOURCE_PROVENANCE_NOT_ESTABLISHED",
+  "experiments": {
+    "v20_development": {
+      "controls": {
+        "source_permuted_abstentions": 18,
+        "target_written_equivalent_matches": 18
+      },
+      "failed_gates": [
+        "minimum_decisive_executions"
+      ],
+      "grounder_sha256": "95ad941e64b7ec4c809120cc589ae3fddfd84a400e0b8ebd1582c4c4541eff69",
+      "metrics": {
+        "decisive_accuracy": 0.8,
+        "decisive_correct": 4,
+        "decisive_executions": 5,
+        "direct_correct": 6,
+        "route_correct": 18,
+        "source_typed_overrides": 3,
+        "typed_fallback_correct": 9,
+        "typed_vs_direct_losses": 0,
+        "typed_vs_direct_wins": 3,
+        "unified_harness_correct": 6,
+        "unified_harness_executor_authorizations": 0,
+        "unified_harness_vs_direct_delta": 0,
+        "valid_runtime_rows": 18
+      },
+      "qualified": false,
+      "report_file_sha256": "16d78b76f88369a43c00f9075a7cf0ee93d72e4d6c999032d51d6e799e8ff989",
+      "report_path": "runs/agqa2_query_object_v20_development/report.json",
+      "report_sha256": "c751b30120e7317d3a2bf4c9a6f77e1915c530652eb9331efe4a68dc4938f0e8",
+      "reported_provider_cost_usd": 0.070144584,
+      "status": "AGQA2_QUERY_OBJECT_V20_DEVELOPMENT_NOT_QUALIFIED"
+    },
+    "v21_development": {
+      "controls": {
+        "source_permuted_abstentions": 18,
+        "target_written_equivalent_matches": 18
+      },
+      "failed_gates": [
+        "provider_cost_within_cap"
+      ],
+      "grounder_sha256": "24c68a393dab59841d86300f903003516f9de38c99d21c004aa0ab42ede15dc7",
+      "metrics": {
+        "decisive_accuracy": 0.8,
+        "decisive_correct": 8,
+        "decisive_executions": 10,
+        "direct_correct": 6,
+        "route_correct": 18,
+        "source_typed_overrides": 5,
+        "typed_fallback_correct": 10,
+        "typed_vs_direct_losses": 0,
+        "typed_vs_direct_wins": 4,
+        "unified_harness_correct": 6,
+        "unified_harness_executor_authorizations": 0,
+        "unified_harness_vs_direct_delta": 0,
+        "valid_runtime_rows": 18
+      },
+      "qualified": false,
+      "report_file_sha256": "2345d874d2f9bdd90d3533464427bcf4589cc65a3c198efc584d20b2189f7da0",
+      "report_path": "runs/agqa2_query_object_v21_development/report.json",
+      "report_sha256": "b1c07088c150d5c768046b025da566ea0704a3df389f4d3b2bc1a67ef1d84310",
+      "reported_provider_cost_usd": 0.40352858399999997,
+      "status": "AGQA2_QUERY_OBJECT_V21_DEVELOPMENT_NOT_QUALIFIED"
+    },
+    "v22_development": {
+      "controls": {
+        "source_permuted_abstentions": 18,
+        "target_written_equivalent_matches": 18
+      },
+      "failed_gates": [],
+      "grounder_sha256": "9034fd2d58e6b055f0d8f0cb0291ff0e7804603917d9659632ce83f834409cda",
+      "metrics": {
+        "decisive_accuracy": 0.9,
+        "decisive_correct": 9,
+        "decisive_executions": 10,
+        "direct_correct": 6,
+        "route_correct": 18,
+        "source_typed_overrides": 4,
+        "typed_fallback_correct": 10,
+        "typed_vs_direct_losses": 0,
+        "typed_vs_direct_wins": 4,
+        "unified_harness_correct": 10,
+        "unified_harness_executor_authorizations": 10,
+        "unified_harness_vs_direct_delta": 4,
+        "valid_runtime_rows": 18
+      },
+      "qualified": true,
+      "report_file_sha256": "1670adf9fb90797bc14a5a5f7aa199b8105d726bc7a72bb971b672fda2f51929",
+      "report_path": "runs/agqa2_query_object_v22_development/report.json",
+      "report_sha256": "31e5a001a5dada8c50b7d499fccbe9489b500be407028f330b919a1996f28b12",
+      "reported_provider_cost_usd": 0.158650084,
+      "status": "AGQA2_QUERY_OBJECT_V22_DEVELOPMENT_QUALIFIED"
+    },
+    "v24_development": {
+      "controls": {
+        "source_permuted_abstentions": 18,
+        "target_written_equivalent_matches": 18
+      },
+      "failed_gates": [],
+      "grounder_sha256": "2a84c1c9f170206bd216e171072c70d8faf73bd6d7c89d562fff808bf7141a3e",
+      "metrics": {
+        "decisive_accuracy": 0.9,
+        "decisive_correct": 9,
+        "decisive_executions": 10,
+        "direct_correct": 6,
+        "route_correct": 18,
+        "source_typed_overrides": 4,
+        "typed_fallback_correct": 10,
+        "typed_vs_direct_losses": 0,
+        "typed_vs_direct_wins": 4,
+        "unified_harness_correct": 10,
+        "unified_harness_executor_authorizations": 10,
+        "unified_harness_vs_direct_delta": 4,
+        "valid_runtime_rows": 18
+      },
+      "qualified": true,
+      "report_file_sha256": "896ee84a280082b20d2f27f29abeafa89898d9c11528a8f0534aa8bd3439e2f7",
+      "report_path": "runs/agqa2_query_object_v24_development/report.json",
+      "report_sha256": "8bd78f8da8e6d1e07c7e907bb5166116a69f3eae8839584502f257083538ddf7",
+      "reported_provider_cost_usd": 0.158650084,
+      "status": "AGQA2_QUERY_OBJECT_V24_DEVELOPMENT_QUALIFIED"
+    },
+    "v25_reserve": {
+      "controls": {
+        "source_permuted_abstentions": 30,
+        "target_written_equivalent_matches": 30
+      },
+      "failed_gates": [],
+      "grounder_sha256": "2a84c1c9f170206bd216e171072c70d8faf73bd6d7c89d562fff808bf7141a3e",
+      "metrics": {
+        "decisive_accuracy": 0.75,
+        "decisive_correct": 12,
+        "decisive_executions": 16,
+        "direct_correct": 4,
+        "route_correct": 30,
+        "source_typed_overrides": 12,
+        "typed_fallback_correct": 14,
+        "typed_vs_direct_losses": 0,
+        "typed_vs_direct_wins": 10,
+        "unified_harness_correct": 14,
+        "unified_harness_executor_authorizations": 16,
+        "unified_harness_vs_direct_delta": 10,
+        "valid_runtime_rows": 30
+      },
+      "qualified": true,
+      "report_file_sha256": "bf447b7f426fcbe8fc3f6fd35b5ea8fa9b573134fccfada6c3790e12fe62b773",
+      "report_path": "runs/agqa2_query_object_v25_reserve/report.json",
+      "report_sha256": "61243c3a6d9df0f83788211eb22b914ba2909713c3e33e305d4fc76d57d1ea39",
+      "reported_provider_cost_usd": 0.264821712,
+      "status": "AGQA2_QUERY_OBJECT_V24_RESERVE_QUALIFIED"
+    }
+  },
+  "schema_version": "agqa2-query-object-v20-v25-audit-v1",
+  "source_provenance_claim": false,
+  "status": "AGQA2_QUERY_OBJECT_V25_RESERVE_QUALIFIED",
+  "summary_sha256": "21f8e26ef979c763bce5a4c21559b89686e2bd594a66154b83034656504054c8",
+  "target_written_equivalent_dynamics_match": "30/30",
+  "v23_runtime_abort": {
+    "abort_sha256": "44025c467491d7055bfca165e3c308d6fefb27434457eae0c546b9bb7e13aee2",
+    "accepted_provider_calls": 176,
+    "accepted_reported_provider_cost_usd": 0.268223084,
+    "completed_runtime_receipts": 29,
+    "formal_gold_evaluation_started": false,
+    "formal_report_created": false,
+    "repair": "V24_DETERMINISTIC_INTERVAL_EVIDENCE_ENVELOPE;REQUALIFIED_ON_DEVELOPMENT;V23_VIDEOS_EXCLUDED_FROM_V25",
+    "required_runtime_receipts": 30,
+    "schema_version": "agqa2-query-object-v23-runtime-abort-v1",
+    "stage": "OPERAND_RECEIPT_SCHEMA_VALIDATION",
+    "status": "V23_RUNTIME_INCOMPLETE_BEFORE_FORMAL_EVALUATION",
+    "worker_errors": {
+      "3P055-2691": "ValueError: operand schema retries exhausted: evidence frames must lie inside the claimed interval"
+    },
+    "worker_errors_file_sha256": "8499762e9979e47fffe8e421251663482426276e7bbe2a698c0a329a7310fa95"
+  },
+  "v25_formal": {
+    "all_preregistered_gates_passed": true,
+    "controls": {
+      "source_permuted_abstentions": 30,
+      "target_written_equivalent_matches": 30
+    },
+    "development_and_reserve_grounder_identical": true,
+    "grounder_sha256": "2a84c1c9f170206bd216e171072c70d8faf73bd6d7c89d562fff808bf7141a3e",
+    "metrics": {
+      "decisive_accuracy": 0.75,
+      "decisive_correct": 12,
+      "decisive_executions": 16,
+      "direct_correct": 4,
+      "route_correct": 30,
+      "source_typed_overrides": 12,
+      "typed_fallback_correct": 14,
+      "typed_vs_direct_losses": 0,
+      "typed_vs_direct_wins": 10,
+      "unified_harness_correct": 14,
+      "unified_harness_executor_authorizations": 16,
+      "unified_harness_vs_direct_delta": 10,
+      "valid_runtime_rows": 30
+    },
+    "posthoc_target_only_controls": {
+      "interpretation": "FORMATTING_EXPLAINS_PART_BUT_NOT_ALL_OF_THE_GAIN;SOURCE_CONTROLLED_THIRD_VIEW_ADDS_TWO_CORRECT_ROWS_OVER_THE_TWO_ONTOLOGY_VIEW_TARGET_ONLY_CONTROL;CONTROL_IS_POSTHOC",
+      "lexical_ontology_normalized_direct_correct": 7,
+      "raw_direct_correct": 4,
+      "rows_with_different_correctness": [
+        {
+          "gold": "chair",
+          "relation": "leaning on",
+          "relation_group": "SPATIAL_SUPPORT",
+          "source_harness_correct": true,
+          "source_harness_prediction": "chair",
+          "target_only_correct": false,
+          "target_only_prediction": "a chair or couch armrest.",
+          "task_id": "7ZL8E-15871"
+        },
+        {
+          "gold": "closet",
+          "relation": "closing",
+          "relation_group": "MANIPULATION_CONTACT",
+          "source_harness_correct": true,
+          "source_harness_prediction": "closet",
+          "target_only_correct": false,
+          "target_only_prediction": "cabinet door",
+          "task_id": "QLAS7-4748"
+        }
+      ],
+      "source_harness_correct": 14,
+      "source_harness_vs_two_ontology_view_delta": 2,
+      "source_harness_vs_two_ontology_view_losses": 0,
+      "source_harness_vs_two_ontology_view_wins": 2,
+      "status": "POSTHOC_DIAGNOSTIC_NOT_A_PREREGISTERED_GATE",
+      "two_ontology_view_decisive": 11,
+      "two_ontology_view_fallback_correct": 12
+    },
+    "relation_group_metrics": {
+      "MANIPULATION_CONTACT": {
+        "direct_correct": 0,
+        "rows": 10,
+        "source_harness_correct": 5,
+        "target_only_ontology_correct": 4
+      },
+      "PERCEPTION": {
+        "direct_correct": 1,
+        "rows": 10,
+        "source_harness_correct": 4,
+        "target_only_ontology_correct": 4
+      },
+      "SPATIAL_SUPPORT": {
+        "direct_correct": 3,
+        "rows": 10,
+        "source_harness_correct": 5,
+        "target_only_ontology_correct": 4
+      }
+    }
+  }
+}

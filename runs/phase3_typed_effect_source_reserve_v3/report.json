@@ -1,0 +1,373 @@
+{
+  "claim_boundary": "PROSPECTIVE_CONFIRMATION_OF_CROSS_BATCH_CALIBRATED_SOURCE_SPECIFIC_TYPED_EFFECT_APPLICABILITY_AND_ABSTENTION;NO_TARGET_CLAIM",
+  "gates": {
+    "all_six_applicability_decisions_confirmed": true,
+    "exact_six_source_lineages": true,
+    "exact_three_qualified_and_three_abstaining": true,
+    "programs_frozen_before_third_reserve": true,
+    "qualified_authentic_aggregate_beats_shuffled": true,
+    "qualified_authentic_aggregate_beats_source_permuted": true,
+    "qualified_effect_types_are_source_specific": true
+  },
+  "lineages": [
+    {
+      "evaluations": {
+        "authentic": {
+          "accuracy": 0.8333333333333334,
+          "correct": 5,
+          "examples": 6,
+          "shuffled_effects": false,
+          "unique_argmax_fraction": 0.6666666666666666,
+          "unique_argmax_sets": 4,
+          "varying_effect_fraction": 0.8333333333333334,
+          "varying_effect_sets": 5
+        },
+        "shuffled_effect_binding": {
+          "accuracy": 0.0,
+          "correct": 0,
+          "examples": 6,
+          "shuffled_effects": true,
+          "unique_argmax_fraction": 0.6666666666666666,
+          "unique_argmax_sets": 4,
+          "varying_effect_fraction": 0.8333333333333334,
+          "varying_effect_sets": 5
+        },
+        "source_program_permuted": {
+          "accuracy": 0.5,
+          "correct": 3,
+          "examples": 6,
+          "shuffled_effects": false,
+          "unique_argmax_fraction": 0.5,
+          "unique_argmax_sets": 3,
+          "varying_effect_fraction": 0.6666666666666666,
+          "varying_effect_sets": 4
+        }
+      },
+      "gates": {
+        "authentic_beats_shuffled_effects": true,
+        "explicit_state_action_effect_next_state_receipts": true,
+        "minimum_fresh_eligible_fraction": true,
+        "minimum_fresh_eligible_ledgers": true,
+        "minimum_planned_heldout_seeds": true,
+        "program_not_updated_from_third_reserve": true,
+        "qualified_accuracy_replicates": true,
+        "qualified_effect_varies": true,
+        "zero_intervention_failed_rows": true
+      },
+      "heldout_eligible": 6,
+      "heldout_eligible_fraction": 0.75,
+      "heldout_planned": 8,
+      "intervention_failed_rows": 0,
+      "permuted_effect_type": "EFFECT_BY_TRANSITION_8",
+      "permuted_source_game": "gymv_thunder_force_iii",
+      "program_sha256": "84d404907c0235eff32250f99ab0dce952480e4c166d21577925fb5d821f3cae",
+      "qualification_status": "SOURCE_TYPED_EFFECT_PROGRAM_QUALIFIED",
+      "rows_file_sha256": "2fc9596a95953fd93a403e669d1bab22d872c084d04f60b132c152abf46a4c7a",
+      "selected_effect_type": "EXECUTABLE_TRANSITION_PERSISTENCE",
+      "source_game": "tetris",
+      "status": "V3_TYPED_EFFECT_APPLICABILITY_CONFIRMED"
+    },
+    {
+      "evaluations": {
+        "authentic": {
+          "accuracy": 0.625,
+          "correct": 5,
+          "examples": 8,
+          "shuffled_effects": false,
+          "unique_argmax_fraction": 0.875,
+          "unique_argmax_sets": 7,
+          "varying_effect_fraction": 1.0,
+          "varying_effect_sets": 8
+        },
+        "shuffled_effect_binding": {
+          "accuracy": 0.125,
+          "correct": 1,
+          "examples": 8,
+          "shuffled_effects": true,
+          "unique_argmax_fraction": 0.875,
+          "unique_argmax_sets": 7,
+          "varying_effect_fraction": 1.0,
+          "varying_effect_sets": 8
+        },
+        "source_program_permuted": {
+          "accuracy": 0.375,
+          "correct": 3,
+          "examples": 8,
+          "shuffled_effects": false,
+          "unique_argmax_fraction": 1.0,
+          "unique_argmax_sets": 8,
+          "varying_effect_fraction": 1.0,
+          "varying_effect_sets": 8
+        }
+      },
+      "gates": {
+        "cross_batch_unqualified_program_abstains": true,
+        "explicit_state_action_effect_next_state_receipts": true,
+        "minimum_fresh_eligible_fraction": true,
+        "minimum_fresh_eligible_ledgers": true,
+        "minimum_planned_heldout_seeds": true,
+        "program_not_updated_from_third_reserve": true,
+        "zero_intervention_failed_rows": true
+      },
+      "heldout_eligible": 8,
+      "heldout_eligible_fraction": 1.0,
+      "heldout_planned": 8,
+      "intervention_failed_rows": 0,
+      "permuted_effect_type": "EFFECT_BY_TRANSITION_1",
+      "permuted_source_game": "gymv_strider",
+      "program_sha256": "cbde0173fe52d50f3808c147b1b2bb3f43ac5b6a587da539a7a87dd1074679c9",
+      "qualification_status": "SOURCE_TYPED_EFFECT_ABSTENTION_INDUCED",
+      "rows_file_sha256": "b637579c1e9dbe8968e61a3282637f4889d4d64d56aa0ea225bb6b2b8a7c640c",
+      "selected_effect_type": "EFFECT_BY_TRANSITION_8",
+      "source_game": "candy_crush",
+      "status": "V3_TYPED_EFFECT_APPLICABILITY_CONFIRMED"
+    },
+    {
+      "evaluations": {
+        "authentic": {
+          "accuracy": 1.0,
+          "correct": 8,
+          "examples": 8,
+          "shuffled_effects": false,
+          "unique_argmax_fraction": 1.0,
+          "unique_argmax_sets": 8,
+          "varying_effect_fraction": 1.0,
+          "varying_effect_sets": 8
+        },
+        "shuffled_effect_binding": {
+          "accuracy": 0.0,
+          "correct": 0,
+          "examples": 8,
+          "shuffled_effects": true,
+          "unique_argmax_fraction": 1.0,
+          "unique_argmax_sets": 8,
+          "varying_effect_fraction": 1.0,
+          "varying_effect_sets": 8
+        },
+        "source_program_permuted": {
+          "accuracy": 0.0,
+          "correct": 0,
+          "examples": 8,
+          "shuffled_effects": false,
+          "unique_argmax_fraction": 0.0,
+          "unique_argmax_sets": 0,
+          "varying_effect_fraction": 1.0,
+          "varying_effect_sets": 8
+        }
+      },
+      "gates": {
+        "authentic_beats_shuffled_effects": true,
+        "explicit_state_action_effect_next_state_receipts": true,
+        "minimum_fresh_eligible_fraction": true,
+        "minimum_fresh_eligible_ledgers": true,
+        "minimum_planned_heldout_seeds": true,
+        "program_not_updated_from_third_reserve": true,
+        "qualified_accuracy_replicates": true,
+        "qualified_effect_varies": true,
+        "zero_intervention_failed_rows": true
+      },
+      "heldout_eligible": 8,
+      "heldout_eligible_fraction": 1.0,
+      "heldout_planned": 8,
+      "intervention_failed_rows": 0,
+      "permuted_effect_type": "EXECUTABLE_TRANSITION_PERSISTENCE",
+      "permuted_source_game": "tetris",
+      "program_sha256": "9bad7f02b24b113e5536e6a1c911c4dd10603c03ea6ce9cd119c1cd7d7ed654e",
+      "qualification_status": "SOURCE_TYPED_EFFECT_PROGRAM_QUALIFIED",
+      "rows_file_sha256": "e030c0d410f72a186ee4fe0ba82ab036dfafc7f3cf392856974fe0da2e4e61a2",
+      "selected_effect_type": "EFFECT_BY_TRANSITION_4",
+      "source_game": "gymv_columns",
+      "status": "V3_TYPED_EFFECT_APPLICABILITY_CONFIRMED"
+    },
+    {
+      "evaluations": {
+        "authentic": {
+          "accuracy": 0.14285714285714285,
+          "correct": 1,
+          "examples": 7,
+          "shuffled_effects": false,
+          "unique_argmax_fraction": 0.0,
+          "unique_argmax_sets": 0,
+          "varying_effect_fraction": 0.0,
+          "varying_effect_sets": 0
+        },
+        "shuffled_effect_binding": {
+          "accuracy": 0.14285714285714285,
+          "correct": 1,
+          "examples": 7,
+          "shuffled_effects": true,
+          "unique_argmax_fraction": 0.0,
+          "unique_argmax_sets": 0,
+          "varying_effect_fraction": 0.0,
+          "varying_effect_sets": 0
+        },
+        "source_program_permuted": {
+          "accuracy": 0.14285714285714285,
+          "correct": 1,
+          "examples": 7,
+          "shuffled_effects": false,
+          "unique_argmax_fraction": 0.0,
+          "unique_argmax_sets": 0,
+          "varying_effect_fraction": 0.14285714285714285,
+          "varying_effect_sets": 1
+        }
+      },
+      "gates": {
+        "cross_batch_unqualified_program_abstains": true,
+        "explicit_state_action_effect_next_state_receipts": true,
+        "minimum_fresh_eligible_fraction": true,
+        "minimum_fresh_eligible_ledgers": true,
+        "minimum_planned_heldout_seeds": true,
+        "program_not_updated_from_third_reserve": true,
+        "zero_intervention_failed_rows": true
+      },
+      "heldout_eligible": 7,
+      "heldout_eligible_fraction": 0.875,
+      "heldout_planned": 8,
+      "intervention_failed_rows": 0,
+      "permuted_effect_type": "EFFECT_BY_TRANSITION_8",
+      "permuted_source_game": "candy_crush",
+      "program_sha256": "9a587b8539efe7ff07cdf851c2cdebd1bc1950ab4f84cd3bbf3aaeaf830e1f7f",
+      "qualification_status": "SOURCE_TYPED_EFFECT_ABSTENTION_INDUCED",
+      "rows_file_sha256": "5b002e03e417cc1db5e6bde23098a0975c1b75a44581ddb3e262f65c22c13284",
+      "selected_effect_type": "EFFECT_BY_TRANSITION_4",
+      "source_game": "gymv_streets_of_rage_2",
+      "status": "V3_TYPED_EFFECT_APPLICABILITY_CONFIRMED"
+    },
+    {
+      "evaluations": {
+        "authentic": {
+          "accuracy": 0.625,
+          "correct": 5,
+          "examples": 8,
+          "shuffled_effects": false,
+          "unique_argmax_fraction": 0.5,
+          "unique_argmax_sets": 4,
+          "varying_effect_fraction": 0.5,
+          "varying_effect_sets": 4
+        },
+        "shuffled_effect_binding": {
+          "accuracy": 0.125,
+          "correct": 1,
+          "examples": 8,
+          "shuffled_effects": true,
+          "unique_argmax_fraction": 0.5,
+          "unique_argmax_sets": 4,
+          "varying_effect_fraction": 0.5,
+          "varying_effect_sets": 4
+        },
+        "source_program_permuted": {
+          "accuracy": 0.625,
+          "correct": 5,
+          "examples": 8,
+          "shuffled_effects": false,
+          "unique_argmax_fraction": 0.5,
+          "unique_argmax_sets": 4,
+          "varying_effect_fraction": 0.5,
+          "varying_effect_sets": 4
+        }
+      },
+      "gates": {
+        "authentic_beats_shuffled_effects": true,
+        "explicit_state_action_effect_next_state_receipts": true,
+        "minimum_fresh_eligible_fraction": true,
+        "minimum_fresh_eligible_ledgers": true,
+        "minimum_planned_heldout_seeds": true,
+        "program_not_updated_from_third_reserve": true,
+        "qualified_accuracy_replicates": true,
+        "qualified_effect_varies": true,
+        "zero_intervention_failed_rows": true
+      },
+      "heldout_eligible": 8,
+      "heldout_eligible_fraction": 1.0,
+      "heldout_planned": 8,
+      "intervention_failed_rows": 0,
+      "permuted_effect_type": "EFFECT_BY_TRANSITION_4",
+      "permuted_source_game": "gymv_columns",
+      "program_sha256": "2a784144e3b47bc513c7b145685cadc269310604a96591fda6f1bed0b1740112",
+      "qualification_status": "SOURCE_TYPED_EFFECT_PROGRAM_QUALIFIED",
+      "rows_file_sha256": "c20cf2d9186b6ef0560bd83ae62ecb39b9a00616572e5bf7330fda5f0d36b6f1",
+      "selected_effect_type": "EFFECT_BY_TRANSITION_8",
+      "source_game": "gymv_thunder_force_iii",
+      "status": "V3_TYPED_EFFECT_APPLICABILITY_CONFIRMED"
+    },
+    {
+      "evaluations": {
+        "authentic": {
+          "accuracy": 0.0,
+          "correct": 0,
+          "examples": 8,
+          "shuffled_effects": false,
+          "unique_argmax_fraction": 0.0,
+          "unique_argmax_sets": 0,
+          "varying_effect_fraction": 0.0,
+          "varying_effect_sets": 0
+        },
+        "shuffled_effect_binding": {
+          "accuracy": 0.0,
+          "correct": 0,
+          "examples": 8,
+          "shuffled_effects": true,
+          "unique_argmax_fraction": 0.0,
+          "unique_argmax_sets": 0,
+          "varying_effect_fraction": 0.0,
+          "varying_effect_sets": 0
+        },
+        "source_program_permuted": {
+          "accuracy": 0.0,
+          "correct": 0,
+          "examples": 8,
+          "shuffled_effects": false,
+          "unique_argmax_fraction": 0.0,
+          "unique_argmax_sets": 0,
+          "varying_effect_fraction": 0.0,
+          "varying_effect_sets": 0
+        }
+      },
+      "gates": {
+        "cross_batch_unqualified_program_abstains": true,
+        "explicit_state_action_effect_next_state_receipts": true,
+        "minimum_fresh_eligible_fraction": true,
+        "minimum_fresh_eligible_ledgers": true,
+        "minimum_planned_heldout_seeds": true,
+        "program_not_updated_from_third_reserve": true,
+        "zero_intervention_failed_rows": true
+      },
+      "heldout_eligible": 8,
+      "heldout_eligible_fraction": 1.0,
+      "heldout_planned": 8,
+      "intervention_failed_rows": 0,
+      "permuted_effect_type": "EFFECT_BY_TRANSITION_4",
+      "permuted_source_game": "gymv_streets_of_rage_2",
+      "program_sha256": "69d7dd7da743051b77d816fdcb633d57848aff2828f1eafe55c9dd84b1af9b6d",
+      "qualification_status": "SOURCE_TYPED_EFFECT_ABSTENTION_INDUCED",
+      "rows_file_sha256": "581dfb305cba369ec5356f71f4a43d4c40daf5a4017728d25230aebbf4d8c661",
+      "selected_effect_type": "EFFECT_BY_TRANSITION_1",
+      "source_game": "gymv_strider",
+      "status": "V3_TYPED_EFFECT_APPLICABILITY_CONFIRMED"
+    }
+  ],
+  "manifest_sha256": "f1db71ad75367a4e1e4f906a216973f5b4c99b912ace60040351be4b62d1c9f2",
+  "plan_receipt_sha256": "14c465051c1c9335c9a2d718892cd3d59b2c3b56b5c51addac1e3a9b10ebe5b9",
+  "qualified_aggregate": {
+    "authentic_accuracy": 0.8181818181818182,
+    "authentic_correct": 18,
+    "examples": 22,
+    "permuted_correct": 8,
+    "shuffled_accuracy": 0.045454545454545456,
+    "shuffled_correct": 1,
+    "source_permuted_accuracy": 0.36363636363636365
+  },
+  "report_sha256": "04af8f595ea99c4cbd13af948805d4a8d280a18eb7b3d4b7ecd94a5a7e5c9794",
+  "schema_version": "phase3-typed-effect-source-reserve-report-v3",
+  "source_permutation": {
+    "candy_crush": "gymv_strider",
+    "gymv_columns": "tetris",
+    "gymv_streets_of_rage_2": "candy_crush",
+    "gymv_strider": "gymv_streets_of_rage_2",
+    "gymv_thunder_force_iii": "gymv_columns",
+    "tetris": "gymv_thunder_force_iii"
+  },
+  "status": "SOURCE_SPECIFIC_TYPED_EFFECT_APPLICABILITY_VALIDATED",
+  "v2_calibration_report_sha256": "39d83d998f33887069b93e41918841ccf85c3874a1278ba21471c85d2c1d0f0c"
+}

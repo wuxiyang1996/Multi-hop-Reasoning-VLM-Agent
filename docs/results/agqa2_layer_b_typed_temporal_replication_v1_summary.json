@@ -1,0 +1,47 @@
+{
+  "schema_version": "agqa2-layer-b-typed-temporal-replication-v1-paper-summary",
+  "status": "SELECTIVE_TRANSFER_CONFIRMED_WITH_STRONGER_BEST_ARM_GATE_FAILED",
+  "claim_scope": "SELECTIVE_SOURCE_COMPATIBLE_ORDERED_EFFECT_TRANSFER_TO_RAW_VIDEO_DURATION_REASONING",
+  "cohort": {
+    "tasks": 256,
+    "videos": 256,
+    "duration_choice": 128,
+    "duration_extremum": 128,
+    "prior_task_overlap": 0,
+    "prior_video_overlap": 0,
+    "parser_supervision_overlap": 0
+  },
+  "accuracy": {
+    "neural_only": {"correct": 106, "total": 256},
+    "source_permuted": {"correct": 106, "total": 256},
+    "generic_scaffold": {"correct": 149, "total": 256},
+    "source_induced": {"correct": 135, "total": 256},
+    "target_written_isomorphic": {"correct": 135, "total": 256}
+  },
+  "source_vs_neural_and_permuted": {
+    "wins": 34,
+    "losses": 5,
+    "exact_two_sided_p": 0.0000024299079086631536,
+    "absolute_gain_percentage_points": 11.328125,
+    "negative_transfer_fraction": 0.01953125
+  },
+  "gates": {
+    "source_beats_neural": true,
+    "source_vs_neural_significant": true,
+    "source_negative_transfer_bounded": true,
+    "source_beats_matched_permuted": true,
+    "source_vs_matched_permuted_significant": true,
+    "target_written_isomorphic_action_equivalence": true,
+    "pre_outcome_coverage_gate_passed": true,
+    "source_is_best_feasible_symbolic_arm": false
+  },
+  "shared_runtime": {
+    "raw_video": true,
+    "official_stsg_used": false,
+    "official_functional_program_used": false,
+    "maximum_frame_presentations_per_task": 464,
+    "qwen_grounding_provider_calls": 512,
+    "qwen_grounding_cost_usd": 0.29133052
+  },
+  "canonical_report_sha256": "9b2e955a5daed242dc8077dfb60adf448de15ae92f8b50b939414dc83d02e6b3"
+}

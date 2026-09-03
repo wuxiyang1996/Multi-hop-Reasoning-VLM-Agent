@@ -1,0 +1,524 @@
+{
+  "schema_version": "discoveryworld-fork-freeze-v2",
+  "status": "FORMAL_RESERVE_FORKS_FROZEN",
+  "evaluation_stage": "FORMAL_RESERVE",
+  "protocol_file_sha256": "ae17a292d694e63240e2cbb8a3cd58517aa968b22818df829152a93f24e45994",
+  "generator_file_sha256": "14348733b8752388087aa64e97f3cd574c3819aaf82331d078078322956c7613",
+  "target_baseline_config_sha256": "1c7efa6e63ff178d105571478b740388bc5373e5ca33a4cd9035b49a41dc7fe6",
+  "outcome_fields_read_for_eligibility": false,
+  "receipts": [
+    {
+      "schema_version": "discoveryworld-qualification-fork-v1",
+      "task_id": "space_sick.easy.seed11",
+      "task": {
+        "difficulty": "Easy",
+        "scenario": "Space Sick",
+        "seed": 11
+      },
+      "reference_episode_sha256": "5c4d6149064a022503af55451d8fea9b71e65ed4a4e65c54104162ce6f3eeaea",
+      "allowed_commit_actions": [
+        "DROP",
+        "PUT"
+      ],
+      "eligible": false,
+      "reason": "NO_PREDECLARED_COMMIT_ACTION",
+      "fork_after_episode_step": null,
+      "selected_episode_step": null,
+      "selected_action": null,
+      "selected_action_sha256": null,
+      "outcome_fields_read_for_eligibility": false,
+      "fork_receipt_sha256": "27a21597423b5817e18723d4f3edd61582772dba85bc98f944a5fca28f5c009a"
+    },
+    {
+      "schema_version": "discoveryworld-qualification-fork-v1",
+      "task_id": "proteomics.easy.seed11",
+      "task": {
+        "difficulty": "Easy",
+        "scenario": "Proteomics",
+        "seed": 11
+      },
+      "reference_episode_sha256": "a0103aec9669f5f081152842c249a560e6676dbf75f427d6222e0a0246ecbc29",
+      "allowed_commit_actions": [
+        "DROP",
+        "PUT"
+      ],
+      "eligible": true,
+      "reason": "FIRST_PREDECLARED_COMMIT_ACTION",
+      "fork_after_episode_step": 69,
+      "selected_episode_step": 70,
+      "selected_action": {
+        "action": "DROP",
+        "arg1": 17557
+      },
+      "selected_action_sha256": "b416f6086b8c0bc2779d49eefaae0e71279596bd193e5fcffcf497bb279deeec",
+      "outcome_fields_read_for_eligibility": false,
+      "fork_receipt_sha256": "3f896bf5550bc980b7131515289be57c1a86a6febd88a629c2cda2d99ed90435"
+    },
+    {
+      "schema_version": "discoveryworld-qualification-fork-v1",
+      "task_id": "space_sick.easy.seed12",
+      "task": {
+        "difficulty": "Easy",
+        "scenario": "Space Sick",
+        "seed": 12
+      },
+      "reference_episode_sha256": "4db909fa437a0f9a0897d0db6271f1f2b7bb30cd0743adf6a374d8471d2c7aa2",
+      "allowed_commit_actions": [
+        "DROP",
+        "PUT"
+      ],
+      "eligible": false,
+      "reason": "NO_PREDECLARED_COMMIT_ACTION",
+      "fork_after_episode_step": null,
+      "selected_episode_step": null,
+      "selected_action": null,
+      "selected_action_sha256": null,
+      "outcome_fields_read_for_eligibility": false,
+      "fork_receipt_sha256": "31391b13931a3109b1b4b85b333b25fc2c29bb18cb1264852d58d5450cb1aaa4"
+    },
+    {
+      "schema_version": "discoveryworld-qualification-fork-v1",
+      "task_id": "proteomics.easy.seed12",
+      "task": {
+        "difficulty": "Easy",
+        "scenario": "Proteomics",
+        "seed": 12
+      },
+      "reference_episode_sha256": "66ac17dc853fd4d8b740fd3c6e966198400b25fe2d3fd9d3d584220ab6895817",
+      "allowed_commit_actions": [
+        "DROP",
+        "PUT"
+      ],
+      "eligible": true,
+      "reason": "FIRST_PREDECLARED_COMMIT_ACTION",
+      "fork_after_episode_step": 30,
+      "selected_episode_step": 31,
+      "selected_action": {
+        "action": "DROP",
+        "arg1": 17557
+      },
+      "selected_action_sha256": "b416f6086b8c0bc2779d49eefaae0e71279596bd193e5fcffcf497bb279deeec",
+      "outcome_fields_read_for_eligibility": false,
+      "fork_receipt_sha256": "2d8d9971b68028f2ff434d81b8bcd2ef1945bac66bfddc129e00cdb2448c6245"
+    },
+    {
+      "schema_version": "discoveryworld-qualification-fork-v1",
+      "task_id": "space_sick.easy.seed13",
+      "task": {
+        "difficulty": "Easy",
+        "scenario": "Space Sick",
+        "seed": 13
+      },
+      "reference_episode_sha256": "4e2baf42aa210cabf5d6948261ff5393a1a2eaa558ded51e1aad59bd0f6c8a30",
+      "allowed_commit_actions": [
+        "DROP",
+        "PUT"
+      ],
+      "eligible": true,
+      "reason": "FIRST_PREDECLARED_COMMIT_ACTION",
+      "fork_after_episode_step": 58,
+      "selected_episode_step": 59,
+      "selected_action": {
+        "action": "PUT",
+        "arg1": 57306,
+        "arg2": 1437
+      },
+      "selected_action_sha256": "2f928ca579d7cd7d52cd2f828c11752a13471dd5bafeec5884bb248e15ead746",
+      "outcome_fields_read_for_eligibility": false,
+      "fork_receipt_sha256": "ebd84c6f8b4f1c85ebafd12d6397eda8d42cb582ddf2de1b2f37a97feac85aa8"
+    },
+    {
+      "schema_version": "discoveryworld-qualification-fork-v1",
+      "task_id": "proteomics.easy.seed13",
+      "task": {
+        "difficulty": "Easy",
+        "scenario": "Proteomics",
+        "seed": 13
+      },
+      "reference_episode_sha256": "c73711a9fb85992ca9d17e7ec74239ff06ff1cce9ef312e83224ed201750a8b1",
+      "allowed_commit_actions": [
+        "DROP",
+        "PUT"
+      ],
+      "eligible": true,
+      "reason": "FIRST_PREDECLARED_COMMIT_ACTION",
+      "fork_after_episode_step": 22,
+      "selected_episode_step": 23,
+      "selected_action": {
+        "action": "DROP",
+        "arg1": 17557
+      },
+      "selected_action_sha256": "b416f6086b8c0bc2779d49eefaae0e71279596bd193e5fcffcf497bb279deeec",
+      "outcome_fields_read_for_eligibility": false,
+      "fork_receipt_sha256": "f42f8c4f43042595d2ceea9ec1bd50fccfdb672d8c638ec3226ff99a4f8d7082"
+    },
+    {
+      "schema_version": "discoveryworld-qualification-fork-v1",
+      "task_id": "space_sick.easy.seed14",
+      "task": {
+        "difficulty": "Easy",
+        "scenario": "Space Sick",
+        "seed": 14
+      },
+      "reference_episode_sha256": "4613999b805d27edb0a26bd03f0ce9c350dd1fea0cac9c5d761823c1d9cbf63d",
+      "allowed_commit_actions": [
+        "DROP",
+        "PUT"
+      ],
+      "eligible": true,
+      "reason": "FIRST_PREDECLARED_COMMIT_ACTION",
+      "fork_after_episode_step": 71,
+      "selected_episode_step": 72,
+      "selected_action": {
+        "action": "PUT",
+        "arg1": 57306,
+        "arg2": 1437
+      },
+      "selected_action_sha256": "2f928ca579d7cd7d52cd2f828c11752a13471dd5bafeec5884bb248e15ead746",
+      "outcome_fields_read_for_eligibility": false,
+      "fork_receipt_sha256": "84d10208bc984fc55b3f34900f6509cd1f9feddf31e6c380847352979b1795bf"
+    },
+    {
+      "schema_version": "discoveryworld-qualification-fork-v1",
+      "task_id": "proteomics.easy.seed14",
+      "task": {
+        "difficulty": "Easy",
+        "scenario": "Proteomics",
+        "seed": 14
+      },
+      "reference_episode_sha256": "f5517c99868b9e34fa198fc404e629623979012aa3de5735cea91cf05d9e1fa2",
+      "allowed_commit_actions": [
+        "DROP",
+        "PUT"
+      ],
+      "eligible": true,
+      "reason": "FIRST_PREDECLARED_COMMIT_ACTION",
+      "fork_after_episode_step": 17,
+      "selected_episode_step": 18,
+      "selected_action": {
+        "action": "DROP",
+        "arg1": 17557
+      },
+      "selected_action_sha256": "b416f6086b8c0bc2779d49eefaae0e71279596bd193e5fcffcf497bb279deeec",
+      "outcome_fields_read_for_eligibility": false,
+      "fork_receipt_sha256": "25e17be09da3065bf2b177566831ca75cac4d3a3ca6dda51c4b4454c7a680203"
+    },
+    {
+      "schema_version": "discoveryworld-qualification-fork-v1",
+      "task_id": "space_sick.easy.seed15",
+      "task": {
+        "difficulty": "Easy",
+        "scenario": "Space Sick",
+        "seed": 15
+      },
+      "reference_episode_sha256": "353e1751cfccef9a46da46df9909d5fb6551661354d4c191cd86fc172a5c2b0f",
+      "allowed_commit_actions": [
+        "DROP",
+        "PUT"
+      ],
+      "eligible": true,
+      "reason": "FIRST_PREDECLARED_COMMIT_ACTION",
+      "fork_after_episode_step": 79,
+      "selected_episode_step": 80,
+      "selected_action": {
+        "action": "PUT",
+        "arg1": 57306,
+        "arg2": 1437
+      },
+      "selected_action_sha256": "2f928ca579d7cd7d52cd2f828c11752a13471dd5bafeec5884bb248e15ead746",
+      "outcome_fields_read_for_eligibility": false,
+      "fork_receipt_sha256": "576a8da7ac9748e73902109e9ccd5fc13286efa60d4655ebf8516825ed3b103e"
+    },
+    {
+      "schema_version": "discoveryworld-qualification-fork-v1",
+      "task_id": "proteomics.easy.seed15",
+      "task": {
+        "difficulty": "Easy",
+        "scenario": "Proteomics",
+        "seed": 15
+      },
+      "reference_episode_sha256": "9ecc719dd3d74389f0432fcd9e34cb7e8a20613344ad060b75ed8d6861326e2d",
+      "allowed_commit_actions": [
+        "DROP",
+        "PUT"
+      ],
+      "eligible": true,
+      "reason": "FIRST_PREDECLARED_COMMIT_ACTION",
+      "fork_after_episode_step": 16,
+      "selected_episode_step": 17,
+      "selected_action": {
+        "action": "DROP",
+        "arg1": 17557
+      },
+      "selected_action_sha256": "b416f6086b8c0bc2779d49eefaae0e71279596bd193e5fcffcf497bb279deeec",
+      "outcome_fields_read_for_eligibility": false,
+      "fork_receipt_sha256": "9ddbeaff525e13ee82ead1cc66ed0a60899601486a9ececa80f567f04493466e"
+    },
+    {
+      "schema_version": "discoveryworld-qualification-fork-v1",
+      "task_id": "space_sick.easy.seed16",
+      "task": {
+        "difficulty": "Easy",
+        "scenario": "Space Sick",
+        "seed": 16
+      },
+      "reference_episode_sha256": "e93bd00e0ea68517ceb6f82cfd54d566c718aa61f9a2ba065c95f0592f371bcd",
+      "allowed_commit_actions": [
+        "DROP",
+        "PUT"
+      ],
+      "eligible": false,
+      "reason": "NO_PREDECLARED_COMMIT_ACTION",
+      "fork_after_episode_step": null,
+      "selected_episode_step": null,
+      "selected_action": null,
+      "selected_action_sha256": null,
+      "outcome_fields_read_for_eligibility": false,
+      "fork_receipt_sha256": "81bf95f871420f83e7507b2ddc74b4cf5f4600c4a99a2859e3b64b1ec5135276"
+    },
+    {
+      "schema_version": "discoveryworld-qualification-fork-v1",
+      "task_id": "proteomics.easy.seed16",
+      "task": {
+        "difficulty": "Easy",
+        "scenario": "Proteomics",
+        "seed": 16
+      },
+      "reference_episode_sha256": "b6da466175bc5962d5ee9221d02afdf6879398cac7afbea84d07b53ef76b0e0d",
+      "allowed_commit_actions": [
+        "DROP",
+        "PUT"
+      ],
+      "eligible": true,
+      "reason": "FIRST_PREDECLARED_COMMIT_ACTION",
+      "fork_after_episode_step": 38,
+      "selected_episode_step": 39,
+      "selected_action": {
+        "action": "DROP",
+        "arg1": 17557
+      },
+      "selected_action_sha256": "b416f6086b8c0bc2779d49eefaae0e71279596bd193e5fcffcf497bb279deeec",
+      "outcome_fields_read_for_eligibility": false,
+      "fork_receipt_sha256": "c72cd5e73df1b7fa5230cdc8c42c0e843ea9acb1091c740e9c2db0065c75db11"
+    },
+    {
+      "schema_version": "discoveryworld-qualification-fork-v1",
+      "task_id": "space_sick.easy.seed17",
+      "task": {
+        "difficulty": "Easy",
+        "scenario": "Space Sick",
+        "seed": 17
+      },
+      "reference_episode_sha256": "a4cd13f43f176d17de34d93a09e800b9e7bde17994e5a460728e8845a7c6bf61",
+      "allowed_commit_actions": [
+        "DROP",
+        "PUT"
+      ],
+      "eligible": true,
+      "reason": "FIRST_PREDECLARED_COMMIT_ACTION",
+      "fork_after_episode_step": 51,
+      "selected_episode_step": 52,
+      "selected_action": {
+        "action": "PUT",
+        "arg1": 57306,
+        "arg2": 1437
+      },
+      "selected_action_sha256": "2f928ca579d7cd7d52cd2f828c11752a13471dd5bafeec5884bb248e15ead746",
+      "outcome_fields_read_for_eligibility": false,
+      "fork_receipt_sha256": "1e20efee5a96a20d522d7387d85a9cf6db6d29028e20d368b524acb33f2fceb1"
+    },
+    {
+      "schema_version": "discoveryworld-qualification-fork-v1",
+      "task_id": "proteomics.easy.seed17",
+      "task": {
+        "difficulty": "Easy",
+        "scenario": "Proteomics",
+        "seed": 17
+      },
+      "reference_episode_sha256": "accaa2ae47b1330bb447974a31eea0f09ab071b0cb7c50976eec93334a9e47de",
+      "allowed_commit_actions": [
+        "DROP",
+        "PUT"
+      ],
+      "eligible": true,
+      "reason": "FIRST_PREDECLARED_COMMIT_ACTION",
+      "fork_after_episode_step": 68,
+      "selected_episode_step": 69,
+      "selected_action": {
+        "action": "DROP",
+        "arg1": 17557
+      },
+      "selected_action_sha256": "b416f6086b8c0bc2779d49eefaae0e71279596bd193e5fcffcf497bb279deeec",
+      "outcome_fields_read_for_eligibility": false,
+      "fork_receipt_sha256": "8cd18535b630e63b19bed8c16c6a8320b6481e1fcfcd855e744dba160dbf8332"
+    },
+    {
+      "schema_version": "discoveryworld-qualification-fork-v1",
+      "task_id": "space_sick.easy.seed18",
+      "task": {
+        "difficulty": "Easy",
+        "scenario": "Space Sick",
+        "seed": 18
+      },
+      "reference_episode_sha256": "d7859f6cbaf233a9e97f27005f9579d33a16eec1f6330f746063113b6a61e944",
+      "allowed_commit_actions": [
+        "DROP",
+        "PUT"
+      ],
+      "eligible": true,
+      "reason": "FIRST_PREDECLARED_COMMIT_ACTION",
+      "fork_after_episode_step": 38,
+      "selected_episode_step": 39,
+      "selected_action": {
+        "action": "PUT",
+        "arg1": 57306,
+        "arg2": 1437
+      },
+      "selected_action_sha256": "2f928ca579d7cd7d52cd2f828c11752a13471dd5bafeec5884bb248e15ead746",
+      "outcome_fields_read_for_eligibility": false,
+      "fork_receipt_sha256": "ff0c3da2aedac66c137723fc6272edf5e0e7d166e417faf7e70d538cb527e556"
+    },
+    {
+      "schema_version": "discoveryworld-qualification-fork-v1",
+      "task_id": "proteomics.easy.seed18",
+      "task": {
+        "difficulty": "Easy",
+        "scenario": "Proteomics",
+        "seed": 18
+      },
+      "reference_episode_sha256": "f49349a27a2f4fae6770b43d69d0f80191006a9153ff7917b30de1dfbf7abea8",
+      "allowed_commit_actions": [
+        "DROP",
+        "PUT"
+      ],
+      "eligible": true,
+      "reason": "FIRST_PREDECLARED_COMMIT_ACTION",
+      "fork_after_episode_step": 39,
+      "selected_episode_step": 40,
+      "selected_action": {
+        "action": "DROP",
+        "arg1": 17557
+      },
+      "selected_action_sha256": "b416f6086b8c0bc2779d49eefaae0e71279596bd193e5fcffcf497bb279deeec",
+      "outcome_fields_read_for_eligibility": false,
+      "fork_receipt_sha256": "7f130051a5376a864ed95c6315a0fefa6c013de56c92a2ae6ee5d90404b91dd5"
+    },
+    {
+      "schema_version": "discoveryworld-qualification-fork-v1",
+      "task_id": "space_sick.easy.seed19",
+      "task": {
+        "difficulty": "Easy",
+        "scenario": "Space Sick",
+        "seed": 19
+      },
+      "reference_episode_sha256": "660bedec9430ce8ecc235c5b70b02d174bb949e1aaf7495a66c5082e784ff71a",
+      "allowed_commit_actions": [
+        "DROP",
+        "PUT"
+      ],
+      "eligible": true,
+      "reason": "FIRST_PREDECLARED_COMMIT_ACTION",
+      "fork_after_episode_step": 63,
+      "selected_episode_step": 64,
+      "selected_action": {
+        "action": "PUT",
+        "arg1": 57306,
+        "arg2": 1437
+      },
+      "selected_action_sha256": "2f928ca579d7cd7d52cd2f828c11752a13471dd5bafeec5884bb248e15ead746",
+      "outcome_fields_read_for_eligibility": false,
+      "fork_receipt_sha256": "5cc8aa25721dfae5e045991dcb949f04f445d9a23624d89af88e181d3d8103d1"
+    },
+    {
+      "schema_version": "discoveryworld-qualification-fork-v1",
+      "task_id": "proteomics.easy.seed19",
+      "task": {
+        "difficulty": "Easy",
+        "scenario": "Proteomics",
+        "seed": 19
+      },
+      "reference_episode_sha256": "783705c5aff92742e5b234467dadc93cc34323a5330aa1a5513873b98bd2afce",
+      "allowed_commit_actions": [
+        "DROP",
+        "PUT"
+      ],
+      "eligible": true,
+      "reason": "FIRST_PREDECLARED_COMMIT_ACTION",
+      "fork_after_episode_step": 21,
+      "selected_episode_step": 22,
+      "selected_action": {
+        "action": "DROP",
+        "arg1": 17557
+      },
+      "selected_action_sha256": "b416f6086b8c0bc2779d49eefaae0e71279596bd193e5fcffcf497bb279deeec",
+      "outcome_fields_read_for_eligibility": false,
+      "fork_receipt_sha256": "a788e004bcaced961e74aa9d30956f0a4cfdf326efe8a1c6bde4941ff69f6479"
+    },
+    {
+      "schema_version": "discoveryworld-qualification-fork-v1",
+      "task_id": "space_sick.easy.seed20",
+      "task": {
+        "difficulty": "Easy",
+        "scenario": "Space Sick",
+        "seed": 20
+      },
+      "reference_episode_sha256": "6acf702cb8d8e79b32afd4269d9610e06bf70d0583e48fe024a1ddf465d476cb",
+      "allowed_commit_actions": [
+        "DROP",
+        "PUT"
+      ],
+      "eligible": false,
+      "reason": "NO_PREDECLARED_COMMIT_ACTION",
+      "fork_after_episode_step": null,
+      "selected_episode_step": null,
+      "selected_action": null,
+      "selected_action_sha256": null,
+      "outcome_fields_read_for_eligibility": false,
+      "fork_receipt_sha256": "1cf8088eda94d2be15f1fe9bca5bbd0b46d328bf03d7a7a5ee580978b1c99f7c"
+    },
+    {
+      "schema_version": "discoveryworld-qualification-fork-v1",
+      "task_id": "proteomics.easy.seed20",
+      "task": {
+        "difficulty": "Easy",
+        "scenario": "Proteomics",
+        "seed": 20
+      },
+      "reference_episode_sha256": "1b4f88dddaab1e424438b253e25f4c9779f080317445da0220455e212caa1806",
+      "allowed_commit_actions": [
+        "DROP",
+        "PUT"
+      ],
+      "eligible": true,
+      "reason": "FIRST_PREDECLARED_COMMIT_ACTION",
+      "fork_after_episode_step": 27,
+      "selected_episode_step": 28,
+      "selected_action": {
+        "action": "DROP",
+        "arg1": 17557
+      },
+      "selected_action_sha256": "b416f6086b8c0bc2779d49eefaae0e71279596bd193e5fcffcf497bb279deeec",
+      "outcome_fields_read_for_eligibility": false,
+      "fork_receipt_sha256": "7a445fac43f10d9205d61c174a94e937a8d848436ab456358f7cef9c2ca997e5"
+    }
+  ],
+  "generated_configs": [
+    "configs/generated/discoveryworld_replication_v1/proteomics.easy.seed11.json",
+    "configs/generated/discoveryworld_replication_v1/proteomics.easy.seed12.json",
+    "configs/generated/discoveryworld_replication_v1/space_sick.easy.seed13.json",
+    "configs/generated/discoveryworld_replication_v1/proteomics.easy.seed13.json",
+    "configs/generated/discoveryworld_replication_v1/space_sick.easy.seed14.json",
+    "configs/generated/discoveryworld_replication_v1/proteomics.easy.seed14.json",
+    "configs/generated/discoveryworld_replication_v1/space_sick.easy.seed15.json",
+    "configs/generated/discoveryworld_replication_v1/proteomics.easy.seed15.json",
+    "configs/generated/discoveryworld_replication_v1/proteomics.easy.seed16.json",
+    "configs/generated/discoveryworld_replication_v1/space_sick.easy.seed17.json",
+    "configs/generated/discoveryworld_replication_v1/proteomics.easy.seed17.json",
+    "configs/generated/discoveryworld_replication_v1/space_sick.easy.seed18.json",
+    "configs/generated/discoveryworld_replication_v1/proteomics.easy.seed18.json",
+    "configs/generated/discoveryworld_replication_v1/space_sick.easy.seed19.json",
+    "configs/generated/discoveryworld_replication_v1/proteomics.easy.seed19.json",
+    "configs/generated/discoveryworld_replication_v1/proteomics.easy.seed20.json"
+  ],
+  "summary_sha256": "6d0582dbacc9394397daa522931995dfb82e828bd0dd1a8adac9ccfd5dabeed3"
+}

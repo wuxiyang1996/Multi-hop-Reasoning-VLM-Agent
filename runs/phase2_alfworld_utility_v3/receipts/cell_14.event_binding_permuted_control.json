@@ -1,0 +1,109 @@
+{
+  "schema_version": "phase2-alfworld-selective-cell-v3",
+  "manifest_sha256": "0612c38d5195122e00303de56ec1cd02c6b71a00190f9c9026408712b5abf960",
+  "target_identity": "pick_and_place_simple-Pencil-None-Dresser-330/trial_T20190909_071128_012892/game.tw-pddl",
+  "task_family": "pick_and_place_simple",
+  "condition": "event_binding_permuted_control",
+  "effective_condition": "event_binding_permuted_control",
+  "transfer_applicable": true,
+  "source_game": "gymv_columns",
+  "source_artifact_sha256": "39c5194016c037072aaa4a82137a8d242ceda17ed7ccd72caf16b495784000d0",
+  "initial_state_hash": "991f53a6b529d21f7ad4763d3d221dc7cc7b3f033f36632f896fa70b78664b9a",
+  "strict_success": true,
+  "pass_success": true,
+  "official_reward": 1.0,
+  "step_count": 5,
+  "steps": [
+    {
+      "step": 0,
+      "selected_action": "look",
+      "fallback_action": "look",
+      "changed_from_target_fallback": false,
+      "target_option": "SEARCH",
+      "target_policy_probability": 0.998897346694702,
+      "target_applicability": 0.9999999425266368,
+      "target_outcome": "REFUTED",
+      "reward_diagnostic_only": 0.0,
+      "official_success_after": false,
+      "before_state_sha256": "991f53a6b529d21f7ad4763d3d221dc7cc7b3f033f36632f896fa70b78664b9a",
+      "after_state_sha256": "fab722331284cbfbc4f5fb3b60f231077501ba56500b98a462aa60be661296d4",
+      "source_decision_receipt_sha256": "13d07aa42d599475f2810b636a33a1b9871a853f123a0e1d9fc8e0fcd1cecddd"
+    },
+    {
+      "step": 1,
+      "selected_action": "go to sidetable 1",
+      "fallback_action": "go to sidetable 1",
+      "changed_from_target_fallback": false,
+      "target_option": "SEARCH",
+      "target_policy_probability": 0.9970245452943869,
+      "target_applicability": 0.9999999999999989,
+      "target_outcome": "NONTERMINAL_EFFECT",
+      "reward_diagnostic_only": 0.0,
+      "official_success_after": false,
+      "before_state_sha256": "fab722331284cbfbc4f5fb3b60f231077501ba56500b98a462aa60be661296d4",
+      "after_state_sha256": "e0bdf976953e73c575a6ed5dbf6845c2ff735e8ef5cd0e114e31db9ba0f6a89f",
+      "source_decision_receipt_sha256": "457868d957797183e6d06ac9e5b54ff55f2d424af11c71f03c846a6502be1adf"
+    },
+    {
+      "step": 2,
+      "selected_action": "take pencil 1 from sidetable 1",
+      "fallback_action": "take pencil 1 from sidetable 1",
+      "changed_from_target_fallback": false,
+      "target_option": "ACQUIRE",
+      "target_policy_probability": 0.9999324107022598,
+      "target_applicability": 0.9999999132670165,
+      "target_outcome": "NONTERMINAL_EFFECT",
+      "reward_diagnostic_only": 0.0,
+      "official_success_after": false,
+      "before_state_sha256": "e0bdf976953e73c575a6ed5dbf6845c2ff735e8ef5cd0e114e31db9ba0f6a89f",
+      "after_state_sha256": "1a58f46e5333167f5650e188e2da2de786759fe52922a4327cd3bcef10a2cccf",
+      "source_decision_receipt_sha256": "45b9f9a82acd5f30bbc03e815da982c099d735dc913a9281654bd6f4a80d56d5"
+    },
+    {
+      "step": 3,
+      "selected_action": "go to dresser 1",
+      "fallback_action": "go to dresser 1",
+      "changed_from_target_fallback": false,
+      "target_option": "SEARCH",
+      "target_policy_probability": 0.9999997119919167,
+      "target_applicability": 0.9999999999999998,
+      "target_outcome": "NONTERMINAL_EFFECT",
+      "reward_diagnostic_only": 0.0,
+      "official_success_after": false,
+      "before_state_sha256": "1a58f46e5333167f5650e188e2da2de786759fe52922a4327cd3bcef10a2cccf",
+      "after_state_sha256": "2f5459ba9839116f43782974d13bff6ed5ae30fbfd552b5e096467959bb7e7a6",
+      "source_decision_receipt_sha256": "e5c411a7f4f631f88214cf1553420c34fb8464025dff64d2adce29ab8d26f3d1"
+    },
+    {
+      "step": 4,
+      "selected_action": "move pencil 1 to dresser 1",
+      "fallback_action": "move pencil 1 to dresser 1",
+      "changed_from_target_fallback": false,
+      "target_option": "PLACE",
+      "target_policy_probability": 0.9999990680071535,
+      "target_applicability": 0.9999999586732772,
+      "target_outcome": "TERMINAL_VERIFIED",
+      "reward_diagnostic_only": 1.0,
+      "official_success_after": true,
+      "before_state_sha256": "2f5459ba9839116f43782974d13bff6ed5ae30fbfd552b5e096467959bb7e7a6",
+      "after_state_sha256": "f9040cd2e5e0bfc212287bd2a2affad3660e26c3757932e2f1e47847e5dee35e",
+      "source_decision_receipt_sha256": "74169589cb8eb193d0e6571aad559b0b1daefecc4df51ed1b0e525e89b009348"
+    }
+  ],
+  "v16_controller": {
+    "source_decisions": 5,
+    "source_action_counts": {
+      "BACKTRACK_REPLAN": 5
+    }
+  },
+  "target_outcomes": {
+    "REFUTED": 1,
+    "NONTERMINAL_EFFECT": 3,
+    "TERMINAL_VERIFIED": 1
+  },
+  "failure": null,
+  "unsafe_commits": [],
+  "target_reset_or_sample_open_count": 1,
+  "historical_target_outcome_reused": false,
+  "receipt_sha256": "333083ed18c43c301e99dd3d8ed9b08b5d58905c19fbc01d7731b3a505245e70"
+}

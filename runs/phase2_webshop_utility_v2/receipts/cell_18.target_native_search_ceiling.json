@@ -1,0 +1,3670 @@
+{
+  "schema_version": 1,
+  "task_id": "webshop.148",
+  "condition": "target_native_search_ceiling",
+  "goal": "Find me machine wash men's t-shirts & tanks with polyester heathers, heathers cotton, cotton heather, needle sleeve, classic fit with color: royal blue, and fit type: women, and size: large, and price lower than 40.00 dollars",
+  "initial_state_hash": "b83dbede9185d10a2c77ec992e79f0770946220913ce331fc9276148dd3792f6",
+  "maximum_steps": 12,
+  "steps": [
+    {
+      "step": 0,
+      "prompt_sha256": "cf0a8eccccd4daf42f6eab1b1208fbb7f4c9841303a62a2f0c3c5c48f25161d1",
+      "response_sha256": "a06ff71f46c50376be18dd28a40b105a2bee42e59fb6b53dca53618d50c570ea",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "a06ff71f46c50376be18dd28a40b105a2bee42e59fb6b53dca53618d50c570ea",
+          "completion_diagnostic": {
+            "character_count": 529,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": true,
+            "original_usage": {
+              "prompt_tokens": 496,
+              "completion_tokens": 118,
+              "total_tokens": 614,
+              "cost": 0.0003872,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0003872,
+                "upstream_inference_prompt_cost": 0.0001984,
+                "upstream_inference_completions_cost": 0.0001888
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 5
+        }
+      ],
+      "before_hash": "b0e5daa9e80796fc06c131630b23026720a4d2bbbba9777afa158cd0c2d8169a",
+      "candidates": [
+        "fill('18','machine wash men t-shirts tanks polyester heathers heathers cotton cotton heather needle sleeve classic fit royal blue women large under 40')",
+        "fill('18','men t-shirts tanks polyester heathers classic fit royal blue women large under 40')",
+        "fill('18','machine wash men t-shirts tanks classic fit royal blue women large under 40')",
+        "fill('18','machine wash men t-shirts tanks polyester heathers classic fit royal blue women large')",
+        "click('20')"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "fill",
+          "url_phase": "landing",
+          "element_role": "textbox",
+          "element_text": "[18] textbox 'Search...', required",
+          "action_bid": "18",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false
+        },
+        {
+          "verb": "fill",
+          "url_phase": "landing",
+          "element_role": "textbox",
+          "element_text": "[18] textbox 'Search...', required",
+          "action_bid": "18",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false
+        },
+        {
+          "verb": "fill",
+          "url_phase": "landing",
+          "element_role": "textbox",
+          "element_text": "[18] textbox 'Search...', required",
+          "action_bid": "18",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false
+        },
+        {
+          "verb": "fill",
+          "url_phase": "landing",
+          "element_role": "textbox",
+          "element_text": "[18] textbox 'Search...', required",
+          "action_bid": "18",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "landing",
+          "element_role": "button",
+          "element_text": "[20] button 'Search'",
+          "action_bid": "20",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        }
+      ],
+      "target_features": [
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.9809542664690936,
+          0.008910126680510508,
+          0.008915589732162521,
+          0.007047382472608437
+        ],
+        [
+          0.9809542664690936,
+          0.008910126680510508,
+          0.008915589732162521,
+          0.007047382472608437
+        ],
+        [
+          0.9809542664690936,
+          0.008910126680510508,
+          0.008915589732162521,
+          0.007047382472608437
+        ],
+        [
+          0.9809542664690936,
+          0.008910126680510508,
+          0.008915589732162521,
+          0.007047382472608437
+        ],
+        [
+          0.9846674961208645,
+          0.007583367206358838,
+          0.0075877340312340905,
+          0.007246160598430901
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": false,
+        "visible_goal_constraint_unsatisfied": false,
+        "prior_action_had_no_effect": false
+      },
+      "selected_index": 0,
+      "selected_action": "fill('18','machine wash men t-shirts tanks polyester heathers heathers cotton cotton heather needle sleeve classic fit royal blue women large under 40')",
+      "changed_from_target_rank_zero": false,
+      "abstract_kind": "TARGET",
+      "source_abstained": true,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "target_rank_zero",
+      "reward": 0.0,
+      "terminated": false,
+      "truncated": false,
+      "after_hash": "13138dbb6c8f0ad588abb5044e8b9d19885596b4d4a9f975add3cbc446e4b06c"
+    },
+    {
+      "step": 1,
+      "prompt_sha256": "9eb2d511b6c255def78f244cf81141a8a5a3f852d7e6aa63631851de743e9f0a",
+      "response_sha256": "4a7b7183c4cf732cc37dfd48337e555a384660ce39267673ae15d9aed644327d",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "4a7b7183c4cf732cc37dfd48337e555a384660ce39267673ae15d9aed644327d",
+          "completion_diagnostic": {
+            "character_count": 61,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": true,
+            "original_usage": {
+              "prompt_tokens": 674,
+              "completion_tokens": 19,
+              "total_tokens": 693,
+              "cost": 0.0003,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0003,
+                "upstream_inference_prompt_cost": 0.0002696,
+                "upstream_inference_completions_cost": 3.04e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 2
+        }
+      ],
+      "before_hash": "13138dbb6c8f0ad588abb5044e8b9d19885596b4d4a9f975add3cbc446e4b06c",
+      "candidates": [
+        "click('20')",
+        "noop()"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "click",
+          "url_phase": "landing",
+          "element_role": "button",
+          "element_text": "[20] button 'Search'",
+          "action_bid": "20",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "noop",
+          "url_phase": "landing",
+          "element_role": "other",
+          "element_text": "",
+          "action_bid": null,
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": true
+        }
+      ],
+      "target_features": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.09090909090909091
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.09090909090909091
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.9838093043631316,
+          0.007810760169351171,
+          0.007815314258614531,
+          0.007254276463657209
+        ],
+        [
+          0.9794556923764357,
+          0.009232307754060344,
+          0.009238037421806178,
+          0.007036402034354836
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": false,
+        "visible_goal_constraint_unsatisfied": false,
+        "prior_action_had_no_effect": false
+      },
+      "selected_index": 0,
+      "selected_action": "click('20')",
+      "changed_from_target_rank_zero": false,
+      "abstract_kind": "TARGET",
+      "source_abstained": true,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "target_rank_zero",
+      "reward": 0.0,
+      "terminated": false,
+      "truncated": false,
+      "after_hash": "41ae217c9b409b7405e60168b263b884661c0478c0f2ca22e68f5e9e3236fb82"
+    },
+    {
+      "step": 2,
+      "prompt_sha256": "8448febe2ee678bf55041f4bc0a69592235ef4ff0028e18afb0e724fc1036df1",
+      "response_sha256": "1ad3fbcdb9d5114db799cbf1a9beae59ade5dff94e893913841ccede01a18af9",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "1ad3fbcdb9d5114db799cbf1a9beae59ade5dff94e893913841ccede01a18af9",
+          "completion_diagnostic": {
+            "character_count": 143,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": true,
+            "original_usage": {
+              "prompt_tokens": 4192,
+              "completion_tokens": 42,
+              "total_tokens": 4234,
+              "cost": 0.001744,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.001744,
+                "upstream_inference_prompt_cost": 0.0016768,
+                "upstream_inference_completions_cost": 6.72e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 5
+        }
+      ],
+      "before_hash": "41ae217c9b409b7405e60168b263b884661c0478c0f2ca22e68f5e9e3236fb82",
+      "candidates": [
+        "click('59')",
+        "click('71')",
+        "click('47')",
+        "click('107')",
+        "click('119')"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[59] link 'B085WQKRRJ', url=\"http://127.0.0.1:3000/item_page/fixed_148/B085WQKRRJ/%5B'machine',%20'wash',%20'men',%20't-shirts',%20'tanks',%20'polyester',%20'heathers',%20'heathers',%20'cotton',%20'cotton',%20'heather',%20'needle',%20'sleeve',%20'classic',%20'fit',%20'royal',%20'blue',%20'women',%20'large',%20'under',%20'40'%5D/1/%7B%7D\"",
+          "action_bid": "59",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "blue",
+            "classic",
+            "cotton",
+            "fit",
+            "heather",
+            "heathers",
+            "large",
+            "machine",
+            "men",
+            "needle",
+            "polyester",
+            "royal",
+            "shirts",
+            "sleeve",
+            "tanks",
+            "wash",
+            "women"
+          ],
+          "goal_overlap": 0.4857142857142857,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[71] link 'B07DKGJR74', url=\"http://127.0.0.1:3000/item_page/fixed_148/B07DKGJR74/%5B'machine',%20'wash',%20'men',%20't-shirts',%20'tanks',%20'polyester',%20'heathers',%20'heathers',%20'cotton',%20'cotton',%20'heather',%20'needle',%20'sleeve',%20'classic',%20'fit',%20'royal',%20'blue',%20'women',%20'large',%20'under',%20'40'%5D/1/%7B%7D\"",
+          "action_bid": "71",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "blue",
+            "classic",
+            "cotton",
+            "fit",
+            "heather",
+            "heathers",
+            "large",
+            "machine",
+            "men",
+            "needle",
+            "polyester",
+            "royal",
+            "shirts",
+            "sleeve",
+            "tanks",
+            "wash",
+            "women"
+          ],
+          "goal_overlap": 0.4857142857142857,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[47] link 'B09NNMV9LN', url=\"http://127.0.0.1:3000/item_page/fixed_148/B09NNMV9LN/%5B'machine',%20'wash',%20'men',%20't-shirts',%20'tanks',%20'polyester',%20'heathers',%20'heathers',%20'cotton',%20'cotton',%20'heather',%20'needle',%20'sleeve',%20'classic',%20'fit',%20'royal',%20'blue',%20'women',%20'large',%20'under',%20'40'%5D/1/%7B%7D\"",
+          "action_bid": "47",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "blue",
+            "classic",
+            "cotton",
+            "fit",
+            "heather",
+            "heathers",
+            "large",
+            "machine",
+            "men",
+            "needle",
+            "polyester",
+            "royal",
+            "shirts",
+            "sleeve",
+            "tanks",
+            "wash",
+            "women"
+          ],
+          "goal_overlap": 0.4857142857142857,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[107] link 'B078WSND96', url=\"http://127.0.0.1:3000/item_page/fixed_148/B078WSND96/%5B'machine',%20'wash',%20'men',%20't-shirts',%20'tanks',%20'polyester',%20'heathers',%20'heathers',%20'cotton',%20'cotton',%20'heather',%20'needle',%20'sleeve',%20'classic',%20'fit',%20'royal',%20'blue',%20'women',%20'large',%20'under',%20'40'%5D/1/%7B%7D\"",
+          "action_bid": "107",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "blue",
+            "classic",
+            "cotton",
+            "fit",
+            "heather",
+            "heathers",
+            "large",
+            "machine",
+            "men",
+            "needle",
+            "polyester",
+            "royal",
+            "shirts",
+            "sleeve",
+            "tanks",
+            "wash",
+            "women"
+          ],
+          "goal_overlap": 0.4857142857142857,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[119] link 'B08N16XC83', url=\"http://127.0.0.1:3000/item_page/fixed_148/B08N16XC83/%5B'machine',%20'wash',%20'men',%20't-shirts',%20'tanks',%20'polyester',%20'heathers',%20'heathers',%20'cotton',%20'cotton',%20'heather',%20'needle',%20'sleeve',%20'classic',%20'fit',%20'royal',%20'blue',%20'women',%20'large',%20'under',%20'40'%5D/1/%7B%7D\"",
+          "action_bid": "119",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "blue",
+            "classic",
+            "cotton",
+            "fit",
+            "heather",
+            "heathers",
+            "large",
+            "machine",
+            "men",
+            "needle",
+            "polyester",
+            "royal",
+            "shirts",
+            "sleeve",
+            "tanks",
+            "wash",
+            "women"
+          ],
+          "goal_overlap": 0.4857142857142857,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        }
+      ],
+      "target_features": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.4857142857142857,
+          0.0,
+          0.0,
+          0.0,
+          0.18181818181818182
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.4857142857142857,
+          0.0,
+          0.0,
+          0.0,
+          0.18181818181818182
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.4857142857142857,
+          0.0,
+          0.0,
+          0.0,
+          0.18181818181818182
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.4857142857142857,
+          0.0,
+          0.0,
+          0.0,
+          0.18181818181818182
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.4857142857142857,
+          0.0,
+          0.0,
+          0.0,
+          0.18181818181818182
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.7540162108704085,
+          0.006102449037064904,
+          0.006108217956180643,
+          0.004060781125659698
+        ],
+        [
+          0.7540162108704085,
+          0.006102449037064904,
+          0.006108217956180643,
+          0.004060781125659698
+        ],
+        [
+          0.7540162108704085,
+          0.006102449037064904,
+          0.006108217956180643,
+          0.004060781125659698
+        ],
+        [
+          0.7540162108704085,
+          0.006102449037064904,
+          0.006108217956180643,
+          0.004060781125659698
+        ],
+        [
+          0.7540162108704085,
+          0.0061024490370649095,
+          0.006108217956180643,
+          0.004060781125659698
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": false,
+        "visible_goal_constraint_unsatisfied": false,
+        "prior_action_had_no_effect": false
+      },
+      "selected_index": 0,
+      "selected_action": "click('59')",
+      "changed_from_target_rank_zero": false,
+      "abstract_kind": "TARGET",
+      "source_abstained": true,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "target_rank_zero",
+      "reward": 0.0,
+      "terminated": false,
+      "truncated": false,
+      "after_hash": "e635a2268b6082438c8900dd50bb14e7ea16cfe10febace9f5356b0d01f3bc53"
+    },
+    {
+      "step": 3,
+      "prompt_sha256": "7bf01a9da37937858ff2cdabf0fe82cb51da71605760f0f82e7501bfebaba91a",
+      "response_sha256": "4b8c8f1001ed5ab1861ea89404cd1e97236ab7f3d48a85c6f65199296b354885",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "4b8c8f1001ed5ab1861ea89404cd1e97236ab7f3d48a85c6f65199296b354885",
+          "completion_diagnostic": {
+            "character_count": 141,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": true,
+            "original_usage": {
+              "prompt_tokens": 1534,
+              "completion_tokens": 42,
+              "total_tokens": 1576,
+              "cost": 0.0006808,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0006808,
+                "upstream_inference_prompt_cost": 0.0006136,
+                "upstream_inference_completions_cost": 6.72e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 5
+        }
+      ],
+      "before_hash": "e635a2268b6082438c8900dd50bb14e7ea16cfe10febace9f5356b0d01f3bc53",
+      "candidates": [
+        "click('32')",
+        "click('44')",
+        "click('70')",
+        "click('17')",
+        "click('20')",
+        "click('33')",
+        "go_back()"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "radio",
+          "element_text": "[32] radio 'large', checked='false'",
+          "action_bid": "32",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "large"
+          ],
+          "goal_overlap": 0.2,
+          "is_commit": false,
+          "is_constraint": true,
+          "is_goal_constraint": true,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false,
+          "goal_constraint_signature": "size:large"
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "other",
+          "element_text": "[44] LabelText ''",
+          "action_bid": "44",
+          "paired_constraint_bid": "43",
+          "paired_constraint_text": "[43] radio 'blue', checked='false'",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.14285714285714285,
+          "is_commit": false,
+          "is_constraint": true,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false,
+          "goal_constraint_signature": null
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[70] button 'Buy Now'",
+          "action_bid": "70",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": true,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[17] button 'Back to Search'",
+          "action_bid": "17",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[20] button '< Prev'",
+          "action_bid": "20",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "other",
+          "element_text": "[33] LabelText ''",
+          "action_bid": "33",
+          "paired_constraint_bid": "32",
+          "paired_constraint_text": "[32] radio 'large', checked='false'",
+          "goal_overlap_tokens": [
+            "large"
+          ],
+          "goal_overlap": 0.14285714285714285,
+          "is_commit": false,
+          "is_constraint": true,
+          "is_goal_constraint": true,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false,
+          "goal_constraint_signature": "size:large"
+        },
+        {
+          "verb": "go_back",
+          "url_phase": "item_page",
+          "element_role": "other",
+          "element_text": "",
+          "action_bid": null,
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        }
+      ],
+      "target_features": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.2,
+          0.0,
+          1.0,
+          0.0,
+          0.2727272727272727
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          1.0,
+          0.0,
+          0.0,
+          0.14285714285714285,
+          0.0,
+          1.0,
+          0.0,
+          0.2727272727272727
+        ],
+        [
+          1.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.2727272727272727
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.2727272727272727
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.2727272727272727
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          1.0,
+          0.0,
+          0.0,
+          0.14285714285714285,
+          0.0,
+          1.0,
+          0.0,
+          0.2727272727272727
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.2727272727272727
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.03149597889118872,
+          0.002909837242024155,
+          0.0029148384694254316,
+          0.004763806736018787
+        ],
+        [
+          0.9862985917527426,
+          0.011922797154128537,
+          0.011949582582204224,
+          0.8939422272327111
+        ],
+        [
+          0.980629672605278,
+          0.9119372278402715,
+          0.9120139048767353,
+          0.007194583298645433
+        ],
+        [
+          0.7722152617895656,
+          0.0046759951538680065,
+          0.004680470905932585,
+          0.005408759333001475
+        ],
+        [
+          0.7722152617895656,
+          0.0046759951538680065,
+          0.004680470905932585,
+          0.005408759333001475
+        ],
+        [
+          0.9862985917527426,
+          0.011922797154128537,
+          0.011949582582204224,
+          0.8939422272327111
+        ],
+        [
+          0.05519908888067169,
+          0.0024341956597918,
+          0.002437951136389592,
+          0.0030030471033145245
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": false,
+        "visible_goal_constraint_unsatisfied": true,
+        "prior_action_had_no_effect": false
+      },
+      "selected_index": 6,
+      "selected_action": "go_back()",
+      "changed_from_target_rank_zero": true,
+      "abstract_kind": "POSITION",
+      "source_abstained": true,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "target_coverage_reject_incomplete_product",
+      "reward": 0.0,
+      "terminated": false,
+      "truncated": false,
+      "after_hash": "41ae217c9b409b7405e60168b263b884661c0478c0f2ca22e68f5e9e3236fb82"
+    },
+    {
+      "step": 4,
+      "prompt_sha256": "73aebb026de7dc98fac8eb90f4d68e14d52c326f0008bfcf62eae5975df60b2c",
+      "response_sha256": "6c2f175cbc4292a96b631a3236c3643c0c14fe7088071158197cda77536938ce",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "6c2f175cbc4292a96b631a3236c3643c0c14fe7088071158197cda77536938ce",
+          "completion_diagnostic": {
+            "character_count": 142,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": true,
+            "original_usage": {
+              "prompt_tokens": 4222,
+              "completion_tokens": 42,
+              "total_tokens": 4264,
+              "cost": 0.0005656,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 3968,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0005656,
+                "upstream_inference_prompt_cost": 0.0004984,
+                "upstream_inference_completions_cost": 6.72e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 5
+        }
+      ],
+      "before_hash": "41ae217c9b409b7405e60168b263b884661c0478c0f2ca22e68f5e9e3236fb82",
+      "candidates": [
+        "click('59')",
+        "click('47')",
+        "click('71')",
+        "click('95')",
+        "click('107')"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[59] link 'B085WQKRRJ', url=\"http://127.0.0.1:3000/item_page/fixed_148/B085WQKRRJ/%5B'machine',%20'wash',%20'men',%20't-shirts',%20'tanks',%20'polyester',%20'heathers',%20'heathers',%20'cotton',%20'cotton',%20'heather',%20'needle',%20'sleeve',%20'classic',%20'fit',%20'royal',%20'blue',%20'women',%20'large',%20'under',%20'40'%5D/1/%7B%7D\"",
+          "action_bid": "59",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "blue",
+            "classic",
+            "cotton",
+            "fit",
+            "heather",
+            "heathers",
+            "large",
+            "machine",
+            "men",
+            "needle",
+            "polyester",
+            "royal",
+            "shirts",
+            "sleeve",
+            "tanks",
+            "wash",
+            "women"
+          ],
+          "goal_overlap": 0.4857142857142857,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[47] link 'B09NNMV9LN', url=\"http://127.0.0.1:3000/item_page/fixed_148/B09NNMV9LN/%5B'machine',%20'wash',%20'men',%20't-shirts',%20'tanks',%20'polyester',%20'heathers',%20'heathers',%20'cotton',%20'cotton',%20'heather',%20'needle',%20'sleeve',%20'classic',%20'fit',%20'royal',%20'blue',%20'women',%20'large',%20'under',%20'40'%5D/1/%7B%7D\"",
+          "action_bid": "47",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "blue",
+            "classic",
+            "cotton",
+            "fit",
+            "heather",
+            "heathers",
+            "large",
+            "machine",
+            "men",
+            "needle",
+            "polyester",
+            "royal",
+            "shirts",
+            "sleeve",
+            "tanks",
+            "wash",
+            "women"
+          ],
+          "goal_overlap": 0.4857142857142857,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[71] link 'B07DKGJR74', url=\"http://127.0.0.1:3000/item_page/fixed_148/B07DKGJR74/%5B'machine',%20'wash',%20'men',%20't-shirts',%20'tanks',%20'polyester',%20'heathers',%20'heathers',%20'cotton',%20'cotton',%20'heather',%20'needle',%20'sleeve',%20'classic',%20'fit',%20'royal',%20'blue',%20'women',%20'large',%20'under',%20'40'%5D/1/%7B%7D\"",
+          "action_bid": "71",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "blue",
+            "classic",
+            "cotton",
+            "fit",
+            "heather",
+            "heathers",
+            "large",
+            "machine",
+            "men",
+            "needle",
+            "polyester",
+            "royal",
+            "shirts",
+            "sleeve",
+            "tanks",
+            "wash",
+            "women"
+          ],
+          "goal_overlap": 0.4857142857142857,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[95] link 'B07QXZL1K5', url=\"http://127.0.0.1:3000/item_page/fixed_148/B07QXZL1K5/%5B'machine',%20'wash',%20'men',%20't-shirts',%20'tanks',%20'polyester',%20'heathers',%20'heathers',%20'cotton',%20'cotton',%20'heather',%20'needle',%20'sleeve',%20'classic',%20'fit',%20'royal',%20'blue',%20'women',%20'large',%20'under',%20'40'%5D/1/%7B%7D\"",
+          "action_bid": "95",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "blue",
+            "classic",
+            "cotton",
+            "fit",
+            "heather",
+            "heathers",
+            "large",
+            "machine",
+            "men",
+            "needle",
+            "polyester",
+            "royal",
+            "shirts",
+            "sleeve",
+            "tanks",
+            "wash",
+            "women"
+          ],
+          "goal_overlap": 0.4857142857142857,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[107] link 'B078WSND96', url=\"http://127.0.0.1:3000/item_page/fixed_148/B078WSND96/%5B'machine',%20'wash',%20'men',%20't-shirts',%20'tanks',%20'polyester',%20'heathers',%20'heathers',%20'cotton',%20'cotton',%20'heather',%20'needle',%20'sleeve',%20'classic',%20'fit',%20'royal',%20'blue',%20'women',%20'large',%20'under',%20'40'%5D/1/%7B%7D\"",
+          "action_bid": "107",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "blue",
+            "classic",
+            "cotton",
+            "fit",
+            "heather",
+            "heathers",
+            "large",
+            "machine",
+            "men",
+            "needle",
+            "polyester",
+            "royal",
+            "shirts",
+            "sleeve",
+            "tanks",
+            "wash",
+            "women"
+          ],
+          "goal_overlap": 0.4857142857142857,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        }
+      ],
+      "target_features": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.4857142857142857,
+          0.0,
+          0.0,
+          0.0,
+          0.36363636363636365
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.4857142857142857,
+          0.0,
+          0.0,
+          0.0,
+          0.36363636363636365
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.4857142857142857,
+          0.0,
+          0.0,
+          0.0,
+          0.36363636363636365
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.4857142857142857,
+          0.0,
+          0.0,
+          0.0,
+          0.36363636363636365
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.4857142857142857,
+          0.0,
+          0.0,
+          0.0,
+          0.36363636363636365
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.6690413879454058,
+          0.006411876392682501,
+          0.006418190460364526,
+          0.0039009431411313003
+        ],
+        [
+          0.6690413879454058,
+          0.006411876392682501,
+          0.006418190460364526,
+          0.0039009431411313003
+        ],
+        [
+          0.6690413879454058,
+          0.006411876392682501,
+          0.006418190460364526,
+          0.0039009431411313003
+        ],
+        [
+          0.6690413879454058,
+          0.006411876392682501,
+          0.006418190460364526,
+          0.0039009431411313003
+        ],
+        [
+          0.6690413879454059,
+          0.006411876392682501,
+          0.006418190460364526,
+          0.0039009431411313003
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": false,
+        "visible_goal_constraint_unsatisfied": false,
+        "prior_action_had_no_effect": false
+      },
+      "selected_index": 1,
+      "selected_action": "click('47')",
+      "changed_from_target_rank_zero": true,
+      "abstract_kind": "POSITION",
+      "source_abstained": true,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "target_coverage_explore_untried_product",
+      "reward": 0.0,
+      "terminated": false,
+      "truncated": false,
+      "after_hash": "7dd923e1e6b4373ba8aef6e13cb59958aa100eff8d30c53a1585cb8606948b79"
+    },
+    {
+      "step": 5,
+      "prompt_sha256": "2061dee3d03a1e610733fe2a90e2e9802f941753813e8dbabe300eaf6455387b",
+      "response_sha256": "1e8b02b19087a2f8a9a6ef9b9483bf198469b60444717c1a8ff8ba4491e6425f",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "1e8b02b19087a2f8a9a6ef9b9483bf198469b60444717c1a8ff8ba4491e6425f",
+          "completion_diagnostic": {
+            "character_count": 141,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": true,
+            "original_usage": {
+              "prompt_tokens": 1567,
+              "completion_tokens": 42,
+              "total_tokens": 1609,
+              "cost": 0.000694,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.000694,
+                "upstream_inference_prompt_cost": 0.0006268,
+                "upstream_inference_completions_cost": 6.72e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 5
+        }
+      ],
+      "before_hash": "7dd923e1e6b4373ba8aef6e13cb59958aa100eff8d30c53a1585cb8606948b79",
+      "candidates": [
+        "click('28')",
+        "click('43')",
+        "click('68')",
+        "click('20')",
+        "click('17')",
+        "click('44')",
+        "go_back()"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "radio",
+          "element_text": "[28] radio 'a-blue', checked='false'",
+          "action_bid": "28",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.2,
+          "is_commit": false,
+          "is_constraint": true,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false,
+          "goal_constraint_signature": null
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "radio",
+          "element_text": "[43] radio 'large', checked='false'",
+          "action_bid": "43",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "large"
+          ],
+          "goal_overlap": 0.2,
+          "is_commit": false,
+          "is_constraint": true,
+          "is_goal_constraint": true,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false,
+          "goal_constraint_signature": "size:large"
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[68] button 'Buy Now'",
+          "action_bid": "68",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": true,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[20] button '< Prev'",
+          "action_bid": "20",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[17] button 'Back to Search'",
+          "action_bid": "17",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "other",
+          "element_text": "[44] LabelText ''",
+          "action_bid": "44",
+          "paired_constraint_bid": "43",
+          "paired_constraint_text": "[43] radio 'large', checked='false'",
+          "goal_overlap_tokens": [
+            "large"
+          ],
+          "goal_overlap": 0.14285714285714285,
+          "is_commit": false,
+          "is_constraint": true,
+          "is_goal_constraint": true,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false,
+          "goal_constraint_signature": "size:large"
+        },
+        {
+          "verb": "go_back",
+          "url_phase": "item_page",
+          "element_role": "other",
+          "element_text": "",
+          "action_bid": null,
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        }
+      ],
+      "target_features": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.2,
+          0.0,
+          1.0,
+          0.0,
+          0.45454545454545453
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.2,
+          0.0,
+          1.0,
+          0.0,
+          0.45454545454545453
+        ],
+        [
+          1.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.45454545454545453
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.45454545454545453
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.45454545454545453
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          1.0,
+          0.0,
+          0.0,
+          0.14285714285714285,
+          0.0,
+          1.0,
+          0.0,
+          0.45454545454545453
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.45454545454545453
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.02612556487765603,
+          0.003036451458233791,
+          0.0030417479236145638,
+          0.004796288478857145
+        ],
+        [
+          0.02612556487765603,
+          0.003036451458233791,
+          0.0030417479236145638,
+          0.004796288478857145
+        ],
+        [
+          0.9772859517014632,
+          0.9148471980105212,
+          0.9149252613344849,
+          0.00745193140896747
+        ],
+        [
+          0.6897780436514334,
+          0.004860026205851086,
+          0.004864875002663511,
+          0.005270524543113795
+        ],
+        [
+          0.6897780436514334,
+          0.004860026205851086,
+          0.004864875002663511,
+          0.005270524543113795
+        ],
+        [
+          0.9854803814270393,
+          0.012176248931096015,
+          0.012203830859588616,
+          0.8982779953263738
+        ],
+        [
+          0.041432064932019834,
+          0.0024792011797717946,
+          0.0024830836983223406,
+          0.0029672821215512234
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": false,
+        "visible_goal_constraint_unsatisfied": true,
+        "prior_action_had_no_effect": false
+      },
+      "selected_index": 6,
+      "selected_action": "go_back()",
+      "changed_from_target_rank_zero": true,
+      "abstract_kind": "POSITION",
+      "source_abstained": true,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "target_coverage_reject_incomplete_product",
+      "reward": 0.0,
+      "terminated": false,
+      "truncated": false,
+      "after_hash": "41ae217c9b409b7405e60168b263b884661c0478c0f2ca22e68f5e9e3236fb82"
+    },
+    {
+      "step": 6,
+      "prompt_sha256": "ec2fba45154ea971756587a931b01ee57bb1cac574f935ba7447997bf98ffae5",
+      "response_sha256": "6c2f175cbc4292a96b631a3236c3643c0c14fe7088071158197cda77536938ce",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "6c2f175cbc4292a96b631a3236c3643c0c14fe7088071158197cda77536938ce",
+          "completion_diagnostic": {
+            "character_count": 142,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": true,
+            "original_usage": {
+              "prompt_tokens": 4254,
+              "completion_tokens": 42,
+              "total_tokens": 4296,
+              "cost": 0.00054,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 4096,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.00054,
+                "upstream_inference_prompt_cost": 0.0004728,
+                "upstream_inference_completions_cost": 6.72e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 5
+        }
+      ],
+      "before_hash": "41ae217c9b409b7405e60168b263b884661c0478c0f2ca22e68f5e9e3236fb82",
+      "candidates": [
+        "click('59')",
+        "click('47')",
+        "click('71')",
+        "click('95')",
+        "click('107')"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[59] link 'B085WQKRRJ', url=\"http://127.0.0.1:3000/item_page/fixed_148/B085WQKRRJ/%5B'machine',%20'wash',%20'men',%20't-shirts',%20'tanks',%20'polyester',%20'heathers',%20'heathers',%20'cotton',%20'cotton',%20'heather',%20'needle',%20'sleeve',%20'classic',%20'fit',%20'royal',%20'blue',%20'women',%20'large',%20'under',%20'40'%5D/1/%7B%7D\"",
+          "action_bid": "59",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "blue",
+            "classic",
+            "cotton",
+            "fit",
+            "heather",
+            "heathers",
+            "large",
+            "machine",
+            "men",
+            "needle",
+            "polyester",
+            "royal",
+            "shirts",
+            "sleeve",
+            "tanks",
+            "wash",
+            "women"
+          ],
+          "goal_overlap": 0.4857142857142857,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[47] link 'B09NNMV9LN', url=\"http://127.0.0.1:3000/item_page/fixed_148/B09NNMV9LN/%5B'machine',%20'wash',%20'men',%20't-shirts',%20'tanks',%20'polyester',%20'heathers',%20'heathers',%20'cotton',%20'cotton',%20'heather',%20'needle',%20'sleeve',%20'classic',%20'fit',%20'royal',%20'blue',%20'women',%20'large',%20'under',%20'40'%5D/1/%7B%7D\"",
+          "action_bid": "47",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "blue",
+            "classic",
+            "cotton",
+            "fit",
+            "heather",
+            "heathers",
+            "large",
+            "machine",
+            "men",
+            "needle",
+            "polyester",
+            "royal",
+            "shirts",
+            "sleeve",
+            "tanks",
+            "wash",
+            "women"
+          ],
+          "goal_overlap": 0.4857142857142857,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[71] link 'B07DKGJR74', url=\"http://127.0.0.1:3000/item_page/fixed_148/B07DKGJR74/%5B'machine',%20'wash',%20'men',%20't-shirts',%20'tanks',%20'polyester',%20'heathers',%20'heathers',%20'cotton',%20'cotton',%20'heather',%20'needle',%20'sleeve',%20'classic',%20'fit',%20'royal',%20'blue',%20'women',%20'large',%20'under',%20'40'%5D/1/%7B%7D\"",
+          "action_bid": "71",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "blue",
+            "classic",
+            "cotton",
+            "fit",
+            "heather",
+            "heathers",
+            "large",
+            "machine",
+            "men",
+            "needle",
+            "polyester",
+            "royal",
+            "shirts",
+            "sleeve",
+            "tanks",
+            "wash",
+            "women"
+          ],
+          "goal_overlap": 0.4857142857142857,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[95] link 'B07QXZL1K5', url=\"http://127.0.0.1:3000/item_page/fixed_148/B07QXZL1K5/%5B'machine',%20'wash',%20'men',%20't-shirts',%20'tanks',%20'polyester',%20'heathers',%20'heathers',%20'cotton',%20'cotton',%20'heather',%20'needle',%20'sleeve',%20'classic',%20'fit',%20'royal',%20'blue',%20'women',%20'large',%20'under',%20'40'%5D/1/%7B%7D\"",
+          "action_bid": "95",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "blue",
+            "classic",
+            "cotton",
+            "fit",
+            "heather",
+            "heathers",
+            "large",
+            "machine",
+            "men",
+            "needle",
+            "polyester",
+            "royal",
+            "shirts",
+            "sleeve",
+            "tanks",
+            "wash",
+            "women"
+          ],
+          "goal_overlap": 0.4857142857142857,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[107] link 'B078WSND96', url=\"http://127.0.0.1:3000/item_page/fixed_148/B078WSND96/%5B'machine',%20'wash',%20'men',%20't-shirts',%20'tanks',%20'polyester',%20'heathers',%20'heathers',%20'cotton',%20'cotton',%20'heather',%20'needle',%20'sleeve',%20'classic',%20'fit',%20'royal',%20'blue',%20'women',%20'large',%20'under',%20'40'%5D/1/%7B%7D\"",
+          "action_bid": "107",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "blue",
+            "classic",
+            "cotton",
+            "fit",
+            "heather",
+            "heathers",
+            "large",
+            "machine",
+            "men",
+            "needle",
+            "polyester",
+            "royal",
+            "shirts",
+            "sleeve",
+            "tanks",
+            "wash",
+            "women"
+          ],
+          "goal_overlap": 0.4857142857142857,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        }
+      ],
+      "target_features": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.4857142857142857,
+          0.0,
+          0.0,
+          0.0,
+          0.5454545454545454
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.4857142857142857,
+          0.0,
+          0.0,
+          0.0,
+          0.5454545454545454
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.4857142857142857,
+          0.0,
+          0.0,
+          0.0,
+          0.5454545454545454
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.4857142857142857,
+          0.0,
+          0.0,
+          0.0,
+          0.5454545454545454
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.4857142857142857,
+          0.0,
+          0.0,
+          0.0,
+          0.5454545454545454
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.5693414723945969,
+          0.006725790531799822,
+          0.006732699866480995,
+          0.0037727605401401383
+        ],
+        [
+          0.5693414723945969,
+          0.006725790531799822,
+          0.006732699866480995,
+          0.0037727605401401383
+        ],
+        [
+          0.5693414723945969,
+          0.006725790531799822,
+          0.006732699866480995,
+          0.0037727605401401383
+        ],
+        [
+          0.5693414723945969,
+          0.006725790531799822,
+          0.006732699866480995,
+          0.0037727605401401383
+        ],
+        [
+          0.569341472394597,
+          0.006725790531799822,
+          0.006732699866481001,
+          0.0037727605401401353
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": false,
+        "visible_goal_constraint_unsatisfied": false,
+        "prior_action_had_no_effect": false
+      },
+      "selected_index": 2,
+      "selected_action": "click('71')",
+      "changed_from_target_rank_zero": true,
+      "abstract_kind": "POSITION",
+      "source_abstained": true,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "target_coverage_explore_untried_product",
+      "reward": 0.0,
+      "terminated": false,
+      "truncated": false,
+      "after_hash": "6be4737e8fc8b04575dd549711b5d838e4c56c3ebaf2ca1db1b95be334242fa8"
+    },
+    {
+      "step": 7,
+      "prompt_sha256": "055b825ab18bd02b3e88ddbeb5c27d9aecd8bb46a9788fafe2e59f3378d8df78",
+      "response_sha256": "3c10013f620f2a6a05b1e8ac4dd5c57e069f7219669088154a72d31132dd91e4",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "3c10013f620f2a6a05b1e8ac4dd5c57e069f7219669088154a72d31132dd91e4",
+          "completion_diagnostic": {
+            "character_count": 136,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": true,
+            "original_usage": {
+              "prompt_tokens": 1754,
+              "completion_tokens": 40,
+              "total_tokens": 1794,
+              "cost": 0.0007656,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0007656,
+                "upstream_inference_prompt_cost": 0.0007016,
+                "upstream_inference_completions_cost": 6.4e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 5
+        }
+      ],
+      "before_hash": "6be4737e8fc8b04575dd549711b5d838e4c56c3ebaf2ca1db1b95be334242fa8",
+      "candidates": [
+        "click('34')",
+        "click('78')",
+        "click('17')",
+        "click('20')",
+        "noop()",
+        "click('35')",
+        "go_back()"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "radio",
+          "element_text": "[34] radio 'large', checked='false'",
+          "action_bid": "34",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "large"
+          ],
+          "goal_overlap": 0.2,
+          "is_commit": false,
+          "is_constraint": true,
+          "is_goal_constraint": true,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false,
+          "goal_constraint_signature": "size:large"
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[78] button 'Buy Now'",
+          "action_bid": "78",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": true,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[17] button 'Back to Search'",
+          "action_bid": "17",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[20] button '< Prev'",
+          "action_bid": "20",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "noop",
+          "url_phase": "item_page",
+          "element_role": "other",
+          "element_text": "",
+          "action_bid": null,
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": true
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "other",
+          "element_text": "[35] LabelText ''",
+          "action_bid": "35",
+          "paired_constraint_bid": "34",
+          "paired_constraint_text": "[34] radio 'large', checked='false'",
+          "goal_overlap_tokens": [
+            "large"
+          ],
+          "goal_overlap": 0.14285714285714285,
+          "is_commit": false,
+          "is_constraint": true,
+          "is_goal_constraint": true,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false,
+          "goal_constraint_signature": "size:large"
+        },
+        {
+          "verb": "go_back",
+          "url_phase": "item_page",
+          "element_role": "other",
+          "element_text": "",
+          "action_bid": null,
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        }
+      ],
+      "target_features": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.2,
+          0.0,
+          1.0,
+          0.0,
+          0.6363636363636364
+        ],
+        [
+          1.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.6363636363636364
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.6363636363636364
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.6363636363636364
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.6363636363636364
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          1.0,
+          0.0,
+          0.0,
+          0.14285714285714285,
+          0.0,
+          1.0,
+          0.0,
+          0.6363636363636364
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.6363636363636364
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.02233920942347036,
+          0.0031703021931310787,
+          0.003175913510679916,
+          0.004865623957897691
+        ],
+        [
+          0.9729077243694799,
+          0.916836402528745,
+          0.9169168929231603,
+          0.007739464308693895
+        ],
+        [
+          0.5901283285378258,
+          0.005060693242684081,
+          0.005065954387504318,
+          0.005146676784365121
+        ],
+        [
+          0.5901283285378258,
+          0.005060693242684081,
+          0.005065954387504318,
+          0.005146676784365121
+        ],
+        [
+          0.3944331733087336,
+          0.005649944098205789,
+          0.00565637617626761,
+          0.004726550734352014
+        ],
+        [
+          0.9845540810551775,
+          0.012455629874206713,
+          0.012484068548299603,
+          0.901619851049605
+        ],
+        [
+          0.03209751362612737,
+          0.002523418469219373,
+          0.0025274284420829874,
+          0.0029472327273931953
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": false,
+        "visible_goal_constraint_unsatisfied": true,
+        "prior_action_had_no_effect": false
+      },
+      "selected_index": 6,
+      "selected_action": "go_back()",
+      "changed_from_target_rank_zero": true,
+      "abstract_kind": "POSITION",
+      "source_abstained": true,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "target_coverage_reject_incomplete_product",
+      "reward": 0.0,
+      "terminated": false,
+      "truncated": false,
+      "after_hash": "41ae217c9b409b7405e60168b263b884661c0478c0f2ca22e68f5e9e3236fb82"
+    },
+    {
+      "step": 8,
+      "prompt_sha256": "a919db5a329175c621008c6e4f7fcf3d0caa5cce025724230ebf90802b4266b7",
+      "response_sha256": "5364850f7361918358f1e557725216711f44fedd91396fbf2e0b86ecc0fd6551",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "5364850f7361918358f1e557725216711f44fedd91396fbf2e0b86ecc0fd6551",
+          "completion_diagnostic": {
+            "character_count": 141,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": true,
+            "original_usage": {
+              "prompt_tokens": 4225,
+              "completion_tokens": 42,
+              "total_tokens": 4267,
+              "cost": 0.0005668,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 3968,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0005668,
+                "upstream_inference_prompt_cost": 0.0004996,
+                "upstream_inference_completions_cost": 6.72e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 5
+        }
+      ],
+      "before_hash": "41ae217c9b409b7405e60168b263b884661c0478c0f2ca22e68f5e9e3236fb82",
+      "candidates": [
+        "click('59')",
+        "click('47')",
+        "click('71')",
+        "click('83')",
+        "click('95')"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[59] link 'B085WQKRRJ', url=\"http://127.0.0.1:3000/item_page/fixed_148/B085WQKRRJ/%5B'machine',%20'wash',%20'men',%20't-shirts',%20'tanks',%20'polyester',%20'heathers',%20'heathers',%20'cotton',%20'cotton',%20'heather',%20'needle',%20'sleeve',%20'classic',%20'fit',%20'royal',%20'blue',%20'women',%20'large',%20'under',%20'40'%5D/1/%7B%7D\"",
+          "action_bid": "59",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "blue",
+            "classic",
+            "cotton",
+            "fit",
+            "heather",
+            "heathers",
+            "large",
+            "machine",
+            "men",
+            "needle",
+            "polyester",
+            "royal",
+            "shirts",
+            "sleeve",
+            "tanks",
+            "wash",
+            "women"
+          ],
+          "goal_overlap": 0.4857142857142857,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[47] link 'B09NNMV9LN', url=\"http://127.0.0.1:3000/item_page/fixed_148/B09NNMV9LN/%5B'machine',%20'wash',%20'men',%20't-shirts',%20'tanks',%20'polyester',%20'heathers',%20'heathers',%20'cotton',%20'cotton',%20'heather',%20'needle',%20'sleeve',%20'classic',%20'fit',%20'royal',%20'blue',%20'women',%20'large',%20'under',%20'40'%5D/1/%7B%7D\"",
+          "action_bid": "47",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "blue",
+            "classic",
+            "cotton",
+            "fit",
+            "heather",
+            "heathers",
+            "large",
+            "machine",
+            "men",
+            "needle",
+            "polyester",
+            "royal",
+            "shirts",
+            "sleeve",
+            "tanks",
+            "wash",
+            "women"
+          ],
+          "goal_overlap": 0.4857142857142857,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[71] link 'B07DKGJR74', url=\"http://127.0.0.1:3000/item_page/fixed_148/B07DKGJR74/%5B'machine',%20'wash',%20'men',%20't-shirts',%20'tanks',%20'polyester',%20'heathers',%20'heathers',%20'cotton',%20'cotton',%20'heather',%20'needle',%20'sleeve',%20'classic',%20'fit',%20'royal',%20'blue',%20'women',%20'large',%20'under',%20'40'%5D/1/%7B%7D\"",
+          "action_bid": "71",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "blue",
+            "classic",
+            "cotton",
+            "fit",
+            "heather",
+            "heathers",
+            "large",
+            "machine",
+            "men",
+            "needle",
+            "polyester",
+            "royal",
+            "shirts",
+            "sleeve",
+            "tanks",
+            "wash",
+            "women"
+          ],
+          "goal_overlap": 0.4857142857142857,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[83] link 'B08HVH2DZF', url=\"http://127.0.0.1:3000/item_page/fixed_148/B08HVH2DZF/%5B'machine',%20'wash',%20'men',%20't-shirts',%20'tanks',%20'polyester',%20'heathers',%20'heathers',%20'cotton',%20'cotton',%20'heather',%20'needle',%20'sleeve',%20'classic',%20'fit',%20'royal',%20'blue',%20'women',%20'large',%20'under',%20'40'%5D/1/%7B%7D\"",
+          "action_bid": "83",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "blue",
+            "classic",
+            "cotton",
+            "fit",
+            "heather",
+            "heathers",
+            "large",
+            "machine",
+            "men",
+            "needle",
+            "polyester",
+            "royal",
+            "shirts",
+            "sleeve",
+            "tanks",
+            "wash",
+            "women"
+          ],
+          "goal_overlap": 0.4857142857142857,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "search_results",
+          "element_role": "link",
+          "element_text": "[95] link 'B07QXZL1K5', url=\"http://127.0.0.1:3000/item_page/fixed_148/B07QXZL1K5/%5B'machine',%20'wash',%20'men',%20't-shirts',%20'tanks',%20'polyester',%20'heathers',%20'heathers',%20'cotton',%20'cotton',%20'heather',%20'needle',%20'sleeve',%20'classic',%20'fit',%20'royal',%20'blue',%20'women',%20'large',%20'under',%20'40'%5D/1/%7B%7D\"",
+          "action_bid": "95",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [
+            "blue",
+            "classic",
+            "cotton",
+            "fit",
+            "heather",
+            "heathers",
+            "large",
+            "machine",
+            "men",
+            "needle",
+            "polyester",
+            "royal",
+            "shirts",
+            "sleeve",
+            "tanks",
+            "wash",
+            "women"
+          ],
+          "goal_overlap": 0.4857142857142857,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        }
+      ],
+      "target_features": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.4857142857142857,
+          0.0,
+          0.0,
+          0.0,
+          0.7272727272727273
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.4857142857142857,
+          0.0,
+          0.0,
+          0.0,
+          0.7272727272727273
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.4857142857142857,
+          0.0,
+          0.0,
+          0.0,
+          0.7272727272727273
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.4857142857142857,
+          0.0,
+          0.0,
+          0.0,
+          0.7272727272727273
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.4857142857142857,
+          0.0,
+          0.0,
+          0.0,
+          0.7272727272727273
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.463794384760326,
+          0.007035038322521005,
+          0.007042590342661525,
+          0.003680475907865559
+        ],
+        [
+          0.463794384760326,
+          0.007035038322521005,
+          0.007042590342661525,
+          0.003680475907865559
+        ],
+        [
+          0.463794384760326,
+          0.007035038322521005,
+          0.007042590342661525,
+          0.003680475907865559
+        ],
+        [
+          0.463794384760326,
+          0.007035038322521005,
+          0.007042590342661525,
+          0.003680475907865559
+        ],
+        [
+          0.463794384760326,
+          0.007035038322521005,
+          0.007042590342661532,
+          0.0036804759078655556
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": false,
+        "visible_goal_constraint_unsatisfied": false,
+        "prior_action_had_no_effect": false
+      },
+      "selected_index": 3,
+      "selected_action": "click('83')",
+      "changed_from_target_rank_zero": true,
+      "abstract_kind": "POSITION",
+      "source_abstained": true,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "target_coverage_explore_untried_product",
+      "reward": 0.0,
+      "terminated": false,
+      "truncated": false,
+      "after_hash": "4b2f43d5b921ed779e01fc18c707b8119ceb268c78f1840c5f2727946b61347b"
+    },
+    {
+      "step": 9,
+      "prompt_sha256": "2cfdcc5a82e6518e04552df74487de54a2968cb26e44c33dc5e49266cc7cd8e4",
+      "response_sha256": "4fe37983bda7b3b76c2b1a4940451ce8e305586159036f54c267b44da2a908f6",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "4fe37983bda7b3b76c2b1a4940451ce8e305586159036f54c267b44da2a908f6",
+          "completion_diagnostic": {
+            "character_count": 141,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": true,
+            "original_usage": {
+              "prompt_tokens": 1053,
+              "completion_tokens": 42,
+              "total_tokens": 1095,
+              "cost": 0.0004884,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0004884,
+                "upstream_inference_prompt_cost": 0.0004212,
+                "upstream_inference_completions_cost": 6.72e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 5
+        }
+      ],
+      "before_hash": "4b2f43d5b921ed779e01fc18c707b8119ceb268c78f1840c5f2727946b61347b",
+      "candidates": [
+        "click('17')",
+        "click('20')",
+        "click('32')",
+        "click('35')",
+        "click('38')",
+        "go_back()"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[17] button 'Back to Search'",
+          "action_bid": "17",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[20] button '< Prev'",
+          "action_bid": "20",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[32] button 'Description'",
+          "action_bid": "32",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[35] button 'Features'",
+          "action_bid": "35",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "click",
+          "url_phase": "item_page",
+          "element_role": "button",
+          "element_text": "[38] button 'Reviews'",
+          "action_bid": "38",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "go_back",
+          "url_phase": "item_page",
+          "element_role": "other",
+          "element_text": "",
+          "action_bid": null,
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        }
+      ],
+      "target_features": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.8181818181818182
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.8181818181818182
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.8181818181818182
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.8181818181818182
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.8181818181818182
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.8181818181818182
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.9685810449826816,
+          0.010425556994781577,
+          0.01043221974407372,
+          0.007203302577101376
+        ],
+        [
+          0.9685810449826816,
+          0.010425556994781577,
+          0.01043221974407372,
+          0.007203302577101376
+        ],
+        [
+          0.9685810449826816,
+          0.010425556994781577,
+          0.01043221974407372,
+          0.007203302577101376
+        ],
+        [
+          0.9685810449826816,
+          0.010425556994781577,
+          0.01043221974407372,
+          0.007203302577101376
+        ],
+        [
+          0.9685810449826816,
+          0.010425556994781577,
+          0.01043221974407372,
+          0.007203302577101376
+        ],
+        [
+          0.40672927548526405,
+          0.004491709067239408,
+          0.004496703504769686,
+          0.0036601234336769706
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": false,
+        "visible_goal_constraint_unsatisfied": false,
+        "prior_action_had_no_effect": false
+      },
+      "selected_index": 0,
+      "selected_action": "click('17')",
+      "changed_from_target_rank_zero": false,
+      "abstract_kind": "TARGET",
+      "source_abstained": true,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "target_rank_zero",
+      "reward": 0.0,
+      "terminated": false,
+      "truncated": false,
+      "after_hash": "b0e5daa9e80796fc06c131630b23026720a4d2bbbba9777afa158cd0c2d8169a"
+    },
+    {
+      "step": 10,
+      "prompt_sha256": "db9b11b9d9591345abfd20dbcf8a0db03e8eb229224f0e1eea5d0f80b18c8f82",
+      "response_sha256": "76c07d27e47a42da130aafa2dfd926a4b306fa25932c4d02b7d551eb7784f9c4",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "76c07d27e47a42da130aafa2dfd926a4b306fa25932c4d02b7d551eb7784f9c4",
+          "completion_diagnostic": {
+            "character_count": 645,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": true,
+            "original_usage": {
+              "prompt_tokens": 598,
+              "completion_tokens": 138,
+              "total_tokens": 736,
+              "cost": 0.00046,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.00046,
+                "upstream_inference_prompt_cost": 0.0002392,
+                "upstream_inference_completions_cost": 0.0002208
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 5
+        }
+      ],
+      "before_hash": "b0e5daa9e80796fc06c131630b23026720a4d2bbbba9777afa158cd0c2d8169a",
+      "candidates": [
+        "fill('18','machine wash men t-shirts tanks polyester heathers heathers cotton cotton heather needle sleeve classic fit royal blue women large under 40')",
+        "fill('18','men t-shirts tanks polyester heathers cotton heather needle sleeve classic fit royal blue women large price <40')",
+        "fill('18','machine wash men t-shirts tanks polyester heathers cotton heather needle sleeve classic fit royal blue women large price less than 40')",
+        "fill('18','men t-shirts tanks polyester heathers cotton heather needle sleeve classic fit royal blue women large under 40 dollars')",
+        "noop()"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "fill",
+          "url_phase": "landing",
+          "element_role": "textbox",
+          "element_text": "[18] textbox 'Search...', required",
+          "action_bid": "18",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false
+        },
+        {
+          "verb": "fill",
+          "url_phase": "landing",
+          "element_role": "textbox",
+          "element_text": "[18] textbox 'Search...', required",
+          "action_bid": "18",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false
+        },
+        {
+          "verb": "fill",
+          "url_phase": "landing",
+          "element_role": "textbox",
+          "element_text": "[18] textbox 'Search...', required",
+          "action_bid": "18",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false
+        },
+        {
+          "verb": "fill",
+          "url_phase": "landing",
+          "element_role": "textbox",
+          "element_text": "[18] textbox 'Search...', required",
+          "action_bid": "18",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": false
+        },
+        {
+          "verb": "noop",
+          "url_phase": "landing",
+          "element_role": "other",
+          "element_text": "",
+          "action_bid": null,
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": true
+        }
+      ],
+      "target_features": [
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.9090909090909091
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.9090909090909091
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.9090909090909091
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.9090909090909091
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.9090909090909091
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.9440608321107817,
+          0.01359599055852837,
+          0.013605351531524696,
+          0.006806269379571931
+        ],
+        [
+          0.9440608321107817,
+          0.01359599055852837,
+          0.013605351531524696,
+          0.006806269379571931
+        ],
+        [
+          0.9440608321107817,
+          0.01359599055852837,
+          0.013605351531524696,
+          0.006806269379571931
+        ],
+        [
+          0.9440608321107817,
+          0.01359599055852837,
+          0.013605351531524696,
+          0.006806269379571931
+        ],
+        [
+          0.9440608321107815,
+          0.01359599055852837,
+          0.013605351531524685,
+          0.006806269379571931
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": false,
+        "visible_goal_constraint_unsatisfied": false,
+        "prior_action_had_no_effect": false
+      },
+      "selected_index": 0,
+      "selected_action": "fill('18','machine wash men t-shirts tanks polyester heathers heathers cotton cotton heather needle sleeve classic fit royal blue women large under 40')",
+      "changed_from_target_rank_zero": false,
+      "abstract_kind": "TARGET",
+      "source_abstained": true,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "target_rank_zero",
+      "reward": 0.0,
+      "terminated": false,
+      "truncated": false,
+      "after_hash": "13138dbb6c8f0ad588abb5044e8b9d19885596b4d4a9f975add3cbc446e4b06c"
+    },
+    {
+      "step": 11,
+      "prompt_sha256": "9e4af58abfa58afa62c6696d9c1db1f805dfc4bfd70bc81384a2bab4b700ef9f",
+      "response_sha256": "4a7b7183c4cf732cc37dfd48337e555a384660ce39267673ae15d9aed644327d",
+      "decision_attempts": [
+        {
+          "attempt": 0,
+          "response_sha256": "4a7b7183c4cf732cc37dfd48337e555a384660ce39267673ae15d9aed644327d",
+          "completion_diagnostic": {
+            "character_count": 61,
+            "json_type": "dict",
+            "empty_or_none": false
+          },
+          "cache_usage": {
+            "cache_hit": true,
+            "original_usage": {
+              "prompt_tokens": 755,
+              "completion_tokens": 19,
+              "total_tokens": 774,
+              "cost": 0.0003324,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0003324,
+                "upstream_inference_prompt_cost": 0.000302,
+                "upstream_inference_completions_cost": 3.04e-05
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "valid_candidates": 2
+        }
+      ],
+      "before_hash": "13138dbb6c8f0ad588abb5044e8b9d19885596b4d4a9f975add3cbc446e4b06c",
+      "candidates": [
+        "click('20')",
+        "noop()"
+      ],
+      "candidate_semantics": [
+        {
+          "verb": "click",
+          "url_phase": "landing",
+          "element_role": "button",
+          "element_text": "[20] button 'Search'",
+          "action_bid": "20",
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": true,
+          "is_noop": false
+        },
+        {
+          "verb": "noop",
+          "url_phase": "landing",
+          "element_role": "other",
+          "element_text": "",
+          "action_bid": null,
+          "paired_constraint_bid": null,
+          "paired_constraint_text": "",
+          "goal_overlap_tokens": [],
+          "goal_overlap": 0.0,
+          "is_commit": false,
+          "is_constraint": false,
+          "is_goal_constraint": false,
+          "is_selected": false,
+          "is_navigation": false,
+          "is_noop": true
+        }
+      ],
+      "target_features": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "target_predictions": [
+        [
+          0.9601699205290374,
+          0.011375207158595474,
+          0.011382635316118245,
+          0.007162019709078647
+        ],
+        [
+          0.9353541222564999,
+          0.014277692279685844,
+          0.01428764827202521,
+          0.006779699349011259
+        ]
+      ],
+      "state_context": {
+        "visible_goal_constraint_satisfied": false,
+        "visible_goal_constraint_unsatisfied": false,
+        "prior_action_had_no_effect": false
+      },
+      "selected_index": 0,
+      "selected_action": "click('20')",
+      "changed_from_target_rank_zero": false,
+      "abstract_kind": "TARGET",
+      "source_abstained": true,
+      "source_test_value": null,
+      "source_commit_value": null,
+      "selection_reason": "target_rank_zero",
+      "reward": 0.0,
+      "terminated": false,
+      "truncated": false,
+      "after_hash": "41ae217c9b409b7405e60168b263b884661c0478c0f2ca22e68f5e9e3236fb82"
+    }
+  ],
+  "step_count": 12,
+  "official_reward": 0.0,
+  "strict_success": false,
+  "pass_success": false,
+  "terminated": false,
+  "truncated": false,
+  "failure": null,
+  "failure_traceback": null,
+  "changed_from_target_rank_zero_count": 6,
+  "source_decision_count": 0,
+  "session_namespace": "phase2-ws-83be4ad55f-c18-target-native-search-ceiling",
+  "manifest_sha256": "83be4ad55fd78eacbdf7bae1bdee675676a566a3060f76034ea8d658fb6e19f8",
+  "target_identity": "webshop.synthetic.phase2v2.seed4145324235.index148.5b115a855a303000",
+  "goal_sha256": "5b115a855a303000b1a2ddeab6663b2de4e8660423ab3a9b1ce1400145340db7",
+  "source_game": "tetris",
+  "source_artifact_sha256": "585e5b29303fcbe23e8f8b5414ea389ea6257c96f55fa64897661fe2e2b306e7",
+  "v16_controller": {
+    "condition": "target_native_search_ceiling",
+    "source_artifact_sha256": "585e5b29303fcbe23e8f8b5414ea389ea6257c96f55fa64897661fe2e2b306e7",
+    "source_decisions": 0,
+    "source_action_counts": {},
+    "target_fallbacks": 0,
+    "coverage_controller": {
+      "condition": "target_native_coverage_only",
+      "coverage_enabled": true,
+      "coverage_ready": false,
+      "goal_option_signatures": [
+        "color:royal blue",
+        "fit type:women",
+        "size:large"
+      ],
+      "coverage_interventions": 6,
+      "source_calls_after_coverage": 0,
+      "rejected_product_ids": [
+        "B07DKGJR74",
+        "B085WQKRRJ",
+        "B09NNMV9LN"
+      ],
+      "last_selected_product_id": "B08HVH2DZF",
+      "anytime_reward_salvage": true,
+      "maximum_steps": 12,
+      "budget_abstentions": 0,
+      "product_ledger_resets": 3,
+      "ledger": {
+        "required": [
+          "color:royal blue",
+          "fit type:women",
+          "size:large"
+        ],
+        "verified": [],
+        "missing": [
+          "color:royal blue",
+          "fit type:women",
+          "size:large"
+        ],
+        "commit_authorized": false,
+        "pending_signature": null
+      }
+    },
+    "source_trace": []
+  },
+  "commit_audit": [],
+  "unsafe_commits": [],
+  "historical_target_outcome_reused": false,
+  "target_reset_or_sample_open_count": 1,
+  "runtime_hashes": {
+    "runner": "0cf4f0c993f7b13915df4c5acf3455e1a5fd6b4d8db561972b4f7575536ccd81",
+    "controller": "478994c5da56ee783e59823a79f026dfa2f7185d0f733a835bfe11e5cdd46c38",
+    "utility_contract": "7b30994bd6b293af713e4b6ab414e16adc94ae02fdc943f4106f514668bfda85",
+    "source_artifact": "7c40f5baab7926435b58d2992ae20ca4eb07e1c72a4b59d9e1e377cde3b8e576",
+    "target_grounder": "bbf8a22ebec8e7ab6d55e570f230ba4fcb2b8630d1dc81bd24ba103f68701782"
+  },
+  "receipt_sha256": "a2a73a279e5c58e4693ea56201b080a893710edd018fb9e3323ef3f6dc2b870a"
+}

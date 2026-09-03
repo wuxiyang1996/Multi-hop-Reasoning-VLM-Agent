@@ -1,0 +1,38 @@
+{
+  "schema_version": 36,
+  "status": "FROZEN_BEFORE_V36_GROUPED_OOF",
+  "claim_boundary": "Development qualification only on 505 consumed matched-model/matched-frame pairs. Fit a low-capacity target-native neural uplift selector over the independently confirmed Sokoban COMMIT/VERIFY/REFUTED/REPLAN topology. Every OOF prediction holds out the complete (benchmark,video_id) group. Passing authorizes a new prospective-video experiment; it does not validate transfer by itself.",
+  "source_receipt": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/docs/results/sokoban_effect_program_v2_compact_receipt.json",
+  "adaptation_receipts": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/natural_video_matched_cate_v36_adaptation/adaptation_receipts.json",
+  "frozen_lineage": {
+    "source_receipt_sha256": "8f175c0edda951eba2064e9c53a8db6a25cdfa9fb0de8049d371dbf5335c9e80",
+    "adaptation_receipts_sha256": "39b14dd3b58f634dbe957fe14fb962fe05bf6d9e88e63b28c88681cd276726c3"
+  },
+  "validation": {
+    "kind": "GROUP_K_FOLD_BY_BENCHMARK_VIDEO",
+    "group_folds": 10
+  },
+  "model": {
+    "kind": "FIVE_HEAD_ONE_HIDDEN_LAYER_TANH_MLP_ENSEMBLE",
+    "hidden_units": 8,
+    "alpha": 1.0,
+    "max_iter": 3000,
+    "seeds": [0, 1, 2, 13, 21]
+  },
+  "decision_threshold": 0.05,
+  "controls": {
+    "permutation_seed": 36031,
+    "cross_video_binding_cells": ["batch", "benchmark", "family"]
+  },
+  "gates": {
+    "minimum_selected": 30,
+    "minimum_net_wins": 7,
+    "maximum_exact_p": 0.2,
+    "minimum_net_wins_each_benchmark": 2,
+    "minimum_net_wins_each_batch": 0,
+    "require_source_above_raw_proof": true,
+    "require_source_above_base_only": true,
+    "require_source_above_permuted_uplift": true,
+    "require_source_above_cross_video_binding": true
+  }
+}

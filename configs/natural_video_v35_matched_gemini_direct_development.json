@@ -1,0 +1,48 @@
+{
+  "schema_version": 35,
+  "status": "POST_V35_MATCHED_MODEL_DIAGNOSTIC",
+  "claim_boundary": "Consumed V35 reserve diagnostic only. Compare the already-collected Gemini 3.1 Pro typed-proof answer against a new Gemini 3.1 Pro generic-direct answer using the exact same 24 proxy frames and panel encoding. The diagnostic is outcome-blind at inference but was designed after V35 outcomes, so it cannot rescue or relabel V35 formal transfer.",
+  "source_receipt": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/docs/results/sokoban_effect_program_v2_compact_receipt.json",
+  "input_v19_receipts": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/natural_video_proof_cate_v35_formal/formal_receipts.json",
+  "v19_config": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/configs/natural_video_proof_cate_v35_formal.json",
+  "expected_rows": 126,
+  "wrapper_root": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent",
+  "benchmarks": {
+    "star": {
+      "root": "/fs/gamma-projects/vlm-robot/datasets/STAR-official",
+      "annotation_split": "val"
+    },
+    "nextqa": {
+      "root": "/fs/gamma-projects/vlm-robot/datasets/NExT-QA-official",
+      "annotation_split": "val"
+    }
+  },
+  "model": {
+    "provider": "openrouter",
+    "api_key_name": "OPENROUTER_API_KEY",
+    "id": "google/gemini-3.1-pro-preview",
+    "base_url": "https://openrouter.ai/api/v1",
+    "timeout_seconds": 300,
+    "max_retries": 2,
+    "schema_retries": 3,
+    "max_tokens": 1600
+  },
+  "media": {
+    "primary_frame_count": 12,
+    "proof_frame_count": 24,
+    "proof_frames_per_panel": 12,
+    "proxy_frame_max_side": 720,
+    "primary_frame_width": 224,
+    "proof_frame_width": 192,
+    "jpeg_quality": 88
+  },
+  "frozen_lineage": {
+    "source_receipt_sha256": "8f175c0edda951eba2064e9c53a8db6a25cdfa9fb0de8049d371dbf5335c9e80",
+    "input_v19_receipts_sha256": "eefe1517facd3b635d5cd7ffb0c348019444472b3a3ea129016be82911938e69",
+    "v19_config_sha256": "b26be9840f7cfde80385a1b491c351ba899e1fd35f1e92076db94876be07c164",
+    "collector_sha256": "2566c89492c43e9dfe366aa49f6c1de63ed53a5c5f7b330f009ef77ab64acf46",
+    "v19_collector_sha256": "2675beb07d86fe31124c9588b4dde61ff86c1915b31dd829e57f90b8c058f335",
+    "paired_collector_sha256": "1a2cba5619aee6a767cf73bcbaa7044594911f5c5903ef65ae98e6e62921bee1",
+    "contract_module_sha256": "bdca859acc73384b66799d73e4b16845151bc195e65aa7ce9ae4178b22965f7c"
+  }
+}

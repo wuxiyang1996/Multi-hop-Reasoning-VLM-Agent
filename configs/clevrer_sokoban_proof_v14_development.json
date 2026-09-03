@@ -1,0 +1,42 @@
+{
+  "schema_version": 14,
+  "status": "FROZEN_BEFORE_V14_DEVELOPMENT_OUTCOMES",
+  "claim_boundary": "Collect target-native step-level proof/effect receipts for already consumed CLEVRER samples plus the frozen V14 development role. The receipt exposes executor module effects and paired neural event-graph disagreements, never official programs or answers at decision time. V14 formal and reserve roles remain unqueried.",
+  "source_receipt": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/docs/results/sokoban_effect_program_v2_compact_receipt.json",
+  "consumed_reports": [
+    {
+      "name": "v11_development",
+      "path": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/sokoban_clevrer_recovery_v11_development/development_report.json",
+      "sha256": "2473f0c98759fd96e4d4d2beec2749cecf5439c2eda388e9946db8cb12d2c6d6"
+    },
+    {
+      "name": "v12_consumed_formal",
+      "path": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/sokoban_clevrer_recovery_v12_formal/formal_report.json",
+      "sha256": "961366c34120be552055997d07eed74b0842d865c6df6f7396db468f0b50e6a0"
+    },
+    {
+      "name": "v13_consumed_formal",
+      "path": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/sokoban_clevrer_cate_v13_formal/formal_report.json",
+      "sha256": "1e11f813b2a42657545f31cc986e3d62607ca7cedee463a5707b973e703bc8f5"
+    }
+  ],
+  "development": {
+    "batch_name": "v14_frozen_development",
+    "split_manifest": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/configs/clevrer_sokoban_proof_v14_splits.json",
+    "split_manifest_sha256": "cde4d9b8f12fcf6cd6cb70d4635c3335123d91156e2eac5ab07bf1d591a616be",
+    "role": "development",
+    "expected_samples": 360
+  },
+  "target": {
+    "official_root": "/fs/gamma-projects/vlm-robot/datasets/CLEVRER-official",
+    "explicit_relation_prediction_directory": "with_edge_supervision_old",
+    "trajectory_prediction_directory": "without_edge_supervision"
+  },
+  "frozen_lineage": {
+    "source_receipt_sha256": "8f175c0edda951eba2064e9c53a8db6a25cdfa9fb0de8049d371dbf5335c9e80",
+    "collector_sha256": "61988413f540ef9724866039e453da1e2dd3910174206fc4e9665b55a0781879",
+    "proof_module_sha256": "def0e90c0c3f43d3a23717ff52ffc2ec67a476d5f1145f1633fa80e5c4fa8169",
+    "compiler_module_sha256": "49be363fac3603213ba5621855f7f6cdd6f5d17804961acb57ea6f3699b8ff5c",
+    "base_feature_module_sha256": "86b165ee347479c0a63d76b830895a18f35e7dc18c3c1db84aaa986291c9a3af"
+  }
+}

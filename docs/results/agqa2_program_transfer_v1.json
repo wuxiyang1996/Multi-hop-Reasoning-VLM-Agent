@@ -1,0 +1,161 @@
+{
+  "all_claim_gates_passed": false,
+  "all_mechanical_gates_passed": true,
+  "blind_interface": {
+    "forbidden_field_reads": {},
+    "forbidden_fields": [
+      "answer",
+      "sg_grounding",
+      "global",
+      "local",
+      "semantic",
+      "structural",
+      "source_game_identity",
+      "video_frames",
+      "target_action"
+    ],
+    "input_fields": [
+      "task_id",
+      "program"
+    ],
+    "source_identity_used_as_feature": false,
+    "target_actions_emitted": 0,
+    "target_outcomes_read": 0
+  },
+  "claim_boundary": "PROGRAM_FAMILY_AND_TYPED_APPLICABILITY_AUDIT_ONLY;NO_VIDEO_GROUNDING;NO_QA_SUCCESS;NOT_AN_UNTOUCHED_SPLIT",
+  "claim_gates": {
+    "agqa_answer_success_rate_measured": false,
+    "source_origin_identifiable_from_structural_contract": false,
+    "source_specific_arcade_portfolio_beats_permuted": false,
+    "target_native_neural_grounding_measured": false,
+    "untouched_evaluation_split_preserved": false
+  },
+  "config": {
+    "path": "configs/agqa2_program_transfer_v1_development.json",
+    "sha256": "83d6d64895516fc8d290ce3388053e8d960101b80abe8bdf3a3333ca92be2b7a",
+    "split_use": "CONSUMED_METADATA_DEVELOPMENT_ONLY"
+  },
+  "controls": {
+    "arcade_authentic_correct": 22,
+    "arcade_examples": 27,
+    "arcade_source_permuted_correct": 22,
+    "arcade_source_portfolio_status": "SOURCE_SPECIFIC_DOMAIN_FUNCTIONS_FAILED",
+    "target_written_equivalent_match_count": 3,
+    "target_written_equivalent_matches": {
+      "RELATION_RECURRENT": true,
+      "TEMPORAL_PAIR_RECURRENT": true,
+      "TEMPORAL_SINGLE_NONRECURRENT": true
+    },
+    "target_written_equivalent_tested": 3,
+    "wrong_source_type_rejected_total": 54733,
+    "wrong_source_type_rejections": {
+      "RELATION_RECURRENT": 25542,
+      "TEMPORAL_PAIR_RECURRENT": 15936,
+      "TEMPORAL_SINGLE_NONRECURRENT": 13255
+    },
+    "wrong_source_type_tested_total": 54733
+  },
+  "cost": {
+    "model_calls": 0,
+    "new_raw_video_bytes": 0,
+    "new_visual_feature_bytes": 0,
+    "provider_calls": 0
+  },
+  "dataset": {
+    "archive_bytes": 142198618,
+    "archive_sha256": "3cd4cc741864ac4bb875e3c1dc41d0ddea559259059b01d229527b08323bea0d",
+    "entry": "AGQA_balanced/test_balanced.txt",
+    "questions": 669207,
+    "raw_videos_downloaded": false,
+    "videos": 1814,
+    "visual_features_downloaded": false
+  },
+  "mechanical_gates": {
+    "compiler_reads_only_task_id_and_public_program": true,
+    "composite_programs_fail_closed": true,
+    "consumed_metadata_status_declared": true,
+    "no_answer_scene_graph_video_or_target_action_read": true,
+    "official_archive_hash_and_zip_integrity": true,
+    "routing_counts_reproduce_consumed_development_expectations": true,
+    "three_exact_anonymous_source_contracts_selected": true,
+    "wrong_source_type_permutation_abstains": true,
+    "zero_provider_or_model_calls": true
+  },
+  "raw_video_advancement_authorized": false,
+  "report_sha256": "9121d08c48ec4adb8b0860a3958479341d3ea25d11ce56f63b5f1d39a095dee9",
+  "routing": {
+    "abstained_examples": 614474,
+    "abstained_fraction": 0.9182121525925461,
+    "counts": {
+      "COMPOSITE_ABSTAIN": 595013,
+      "NO_EXACT_SOURCE_TYPE": 19461,
+      "RELATION_RECURRENT": 25542,
+      "TEMPORAL_PAIR_RECURRENT": 15936,
+      "TEMPORAL_SINGLE_NONRECURRENT": 13255
+    },
+    "selected_examples": 54733,
+    "selected_fraction": 0.0817878474074539,
+    "selected_program_counts": {
+      "85e37d2459fb684e63e83be591573bf78539b32721d70aa579639b585e822465": 13255,
+      "cc5f177fd54a2f17ccaa688ea1ecf6d0ae2395554a97a921563e70c32721601d": 15936,
+      "ed31de8757a12b57ea6d9a711a9b646646be5ebd0f1176b07320ef601f5fcb35": 25542
+    }
+  },
+  "schema_version": "agqa2-program-transfer-audit-v1",
+  "source_contracts": [
+    {
+      "contract_sha256": "dfff2e39f894a71deab9c8bfeffbbc2b03c859f7ad4c12b4fc90c89f21f07c46",
+      "ir_kind": "RECURRENT_GOAL_RELATION_PROGRAM",
+      "operator_sequence": [
+        {
+          "arity": 2,
+          "operation": "UPDATE",
+          "predicate_family": "ENTITY_GOAL_RELATION",
+          "value_kind": "RELATION_COVERAGE"
+        }
+      ],
+      "program_sha256": "ed31de8757a12b57ea6d9a711a9b646646be5ebd0f1176b07320ef601f5fcb35",
+      "recurrent": true,
+      "source_confirmation_sha256": "0b9151dfe8c10d77c099d178cc7b7efe781e82b543aad048dfe4d703b9e0da81",
+      "source_intervention_qualified": true,
+      "terminal_predicate_families": [
+        "ENTITY_GOAL_RELATION"
+      ]
+    },
+    {
+      "contract_sha256": "457ba198ed42abca031281496bd9f70b33e2984286b362070130e9846054a30f",
+      "ir_kind": "SPARSE_TEMPORAL_EFFECT_FUNCTION",
+      "operator_sequence": [
+        {
+          "arity": 2,
+          "operation": "SCORE",
+          "predicate_family": "TEMPORAL_EFFECT_VECTOR",
+          "value_kind": "NORMALIZED_PROBABILITY"
+        }
+      ],
+      "program_sha256": "cc5f177fd54a2f17ccaa688ea1ecf6d0ae2395554a97a921563e70c32721601d",
+      "recurrent": true,
+      "source_confirmation_sha256": "963f2cf8f5bd078547f0ba3aff5bebdbc7713829139ce17f1c693bdff8104803",
+      "source_intervention_qualified": true,
+      "terminal_predicate_families": []
+    },
+    {
+      "contract_sha256": "dbde979852bdac8042eb70fb6a659da0fb2c9339d5fd4f4605dced5fb5f2b383",
+      "ir_kind": "SPARSE_TEMPORAL_EFFECT_FUNCTION",
+      "operator_sequence": [
+        {
+          "arity": 1,
+          "operation": "SCORE",
+          "predicate_family": "TEMPORAL_EFFECT_VECTOR",
+          "value_kind": "NORMALIZED_PROBABILITY"
+        }
+      ],
+      "program_sha256": "85e37d2459fb684e63e83be591573bf78539b32721d70aa579639b585e822465",
+      "recurrent": false,
+      "source_confirmation_sha256": "963f2cf8f5bd078547f0ba3aff5bebdbc7713829139ce17f1c693bdff8104803",
+      "source_intervention_qualified": true,
+      "terminal_predicate_families": []
+    }
+  ],
+  "status": "AGQA2_PROGRAM_TRANSFER_MECHANISM_FEASIBLE_NOT_SUCCESS_VALIDATED"
+}

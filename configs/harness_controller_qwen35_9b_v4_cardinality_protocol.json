@@ -1,0 +1,85 @@
+{
+  "schema_version": "harness-controller-qwen35-9b-v4-cardinality-protocol-v1",
+  "status": "FROZEN_BEFORE_V4_CARDINALITY_TRAINING",
+  "diagnostic_motivation": {
+    "consumed_target_report": {
+      "path": "runs/harness_controller_scientific_v4_zero_shot/qwen35_9b_v3_report_retry1.json",
+      "sha256": "4102c040d43924b3d8cd8ea506f1f9395e8b3b38910a23198733e4353a005f89"
+    },
+    "observed_failure": "V3 had no two-candidate positive source supervision; count-two target decision accuracy was 0.5068 while every count at least three was at least 0.9744.",
+    "consumed_target_rows_allowed_for_weight_updates": 0
+  },
+  "source_only_dataset": {
+    "manifest": {
+      "path": "runs/harness_controller_sft_v4_cardinality/manifest.json",
+      "sha256": "8a5931098683b0fc5119bdd7e53f179a5a8a6cd7c954685b37dc71c13db0f591"
+    },
+    "train": {
+      "path": "runs/harness_controller_sft_v4_cardinality/train.jsonl",
+      "sha256": "7030fd76c2846e667c86f6efbc622cb5af65f35038b9c2d9c1908c0b31071cc9"
+    },
+    "validation": {
+      "path": "runs/harness_controller_sft_v4_cardinality/validation.jsonl",
+      "sha256": "5d754e42cd5bbb8bd2cafdc63dda1c9ae87baa343ffddb1248de2f17aee757e4"
+    },
+    "source_held_out": {
+      "path": "runs/harness_controller_sft_v4_cardinality/source_held_out.jsonl",
+      "sha256": "0d834228095210219085987b1c90bbcf40500e644fe473e1df5d6f28bf77b765"
+    },
+    "train_examples": 2746,
+    "validation_examples": 168,
+    "source_held_out_examples": 127,
+    "arity_grid": [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+    "target_examples": 0
+  },
+  "initial_adapter": {
+    "path": "runs/harness_controller_qwen35_9b_v3/continued_sft_v1/adapter",
+    "adapter_model_sha256": "7e66bfec63787141898642fe85134857c53682742cdd10a536f5eed61635b6a1",
+    "adapter_config_sha256": "137313a167fadfd1e18926fe364ce2b0cb972d92d80064cd8751337af7d347a2"
+  },
+  "training": {
+    "model": "Qwen/Qwen3.5-9B",
+    "maximum_sequence_length": 2048,
+    "maximum_steps": 400,
+    "gradient_accumulation": 8,
+    "learning_rate": 0.00002,
+    "lora_rank": 16,
+    "lora_alpha": 32,
+    "seed": 20260830
+  },
+  "source_cardinality_qualification": {
+    "dataset_role": "WHOLE_SOURCE_FAMILY_HELD_OUT_FROM_V4_WEIGHT_UPDATES",
+    "selection": "ALL_127_ROWS",
+    "required_arities": [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+    "strict_json_accuracy_minimum": 0.98,
+    "overall_decision_accuracy_minimum": 0.95,
+    "overall_exact_accuracy_minimum": 0.90,
+    "every_arity_decision_accuracy_minimum": 0.95,
+    "every_arity_exact_accuracy_minimum": 0.90,
+    "exact_minus_base_minimum": 0.20
+  },
+  "fresh_target_reserve": {
+    "preregistration": {
+      "path": "runs/harness_controller_v4_fresh_target_reserve/preregistration.json",
+      "sha256": "cfc4361d9c85a3a14977477e93b3aa611f9fdfeff749b375ab0006191b567a65"
+    },
+    "dataset": {
+      "path": "runs/harness_controller_v4_fresh_target_reserve/reserve.jsonl",
+      "sha256": "15facd3edc42b4ded01c650bfd3dcef9e3a0a3bd45588ab97dfebf3235cbaa15"
+    },
+    "rows": 1000,
+    "activation_requires_source_cardinality_gate": true,
+    "model_output_read_before_activation": false,
+    "formal_or_official_reserve": false
+  },
+  "fresh_target_gates": {
+    "strict_json_accuracy_minimum": 0.98,
+    "overall_decision_accuracy_minimum": 0.95,
+    "overall_exact_accuracy_minimum": 0.90,
+    "every_target_group_decision_accuracy_minimum": 0.90,
+    "every_target_group_exact_accuracy_minimum": 0.80,
+    "every_control_variant_decision_accuracy_minimum": 0.90,
+    "exact_minus_base_minimum": 0.20
+  },
+  "claim_boundary": "V4_WEIGHTS_USE_SOURCE_GAME_INTERVENTION_PROGRAM_EXECUTION_ONLY;FRESH_TARGET_IR_RESERVE_OPENS_ONLY_AFTER_SOURCE_ARITY_GATE;TARGET_RESERVE_IS_PROSPECTIVE_TO_V4_BUT_USES_PREEXISTING_DEVELOPMENT_GROUNDING_NOT_OFFICIAL_FORMAL_TASKS"
+}

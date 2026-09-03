@@ -1,0 +1,59 @@
+{
+  "schema_version": "sokoban-search-automaton-artifact-v16",
+  "status": "SOURCE_SEARCH_AUTOMATON_FROZEN",
+  "target_authorized": true,
+  "claim_boundary": "ONE_FORMALLY_QUALIFIED_PHASE1_SOURCE_GAME_LINEAGE;COMMON_SYMBOLIC_EVENT_ROUTING_ONLY;TARGET_NATIVE_NEURAL_GROUNDING_REQUIRED;NO_SOURCE_NATIVE_ACTION_OR_CANDIDATE_ID",
+  "canonical_policy_sha256": "02d3adc83616688ae0b51b152bae3ce8ab468f0fc3a99ac0f27b7d399e696fdf",
+  "learned_policy": {
+    "ACTIVE_CANDIDATE_REFUTED": "BACKTRACK_REPLAN",
+    "ACTIVE_CANDIDATE_VERIFIED": "COMMIT_VERIFY",
+    "NO_ACTIVE_CANDIDATE_AND_UNTRIED_REMAIN": "EXPLORE_UNTRIED"
+  },
+  "source_lineage": {
+    "kind": "ONE_INDEPENDENT_PHASE1_GAME_FORMAL_LINEAGE",
+    "game": "gymv_streets_of_rage_2",
+    "parent_consensus_artifact_sha256": "36bec02285d4b2aca98f0a938447085545b24aff8edd23e2bc7485260da27f58",
+    "parent_consensus_artifact_file_sha256": "998e5d3a4ebdec6c66bbdad2775aa958e9565842619b15e44f027d51809b9054",
+    "formal_evidence": {
+      "collection_audit_file_sha256": "a06cdc293c4e13c2fee6ee74af4f8e19fa02a01f6647674da55500eb2c5068d7",
+      "config_file_sha256": "8887e2615994e3f7b4fd92d6bdc9288a7eea3577a2aa4a56008f9602d6a24777",
+      "eligible_ledgers": 27,
+      "fresh_eligible_states": 11,
+      "game": "gymv_streets_of_rage_2",
+      "plan_file_sha256": "d9c84aa3cca1668abf903f14ede0ea1801a88f9ff7b403f103462df6c76eb200",
+      "plan_sha256": "1b1e03e5e8235c4403b831923a1027b1398e94a6efa70f76136016465a932e5c",
+      "report_file_sha256": "3b2b2a7bf6c6f62e0cf8aef2e0a5ce508fe5bca41294bfbcec276f1b85c9276b",
+      "rows_file_sha256": "86b8803d45d93c3322701ab1ee7be3324ce346f0338b6a14bab9b896f43e0742",
+      "template_receipt": {
+        "artifact_sha256": "dc060412c78bc1206f41280046c49e00bbbf4538453752401017327f03ce2000",
+        "file_sha256": "697e307c73b60612cb1f85863934d895b893a16ca6f1c8a17ca96968e250f461",
+        "path": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/phase1_common_search_ir_streets_formal_v2/gymv_streets_of_rage_2/templates.json"
+      }
+    }
+  },
+  "source_lineages": [
+    {
+      "collection_audit_file_sha256": "a06cdc293c4e13c2fee6ee74af4f8e19fa02a01f6647674da55500eb2c5068d7",
+      "config_file_sha256": "8887e2615994e3f7b4fd92d6bdc9288a7eea3577a2aa4a56008f9602d6a24777",
+      "eligible_ledgers": 27,
+      "fresh_eligible_states": 11,
+      "game": "gymv_streets_of_rage_2",
+      "plan_file_sha256": "d9c84aa3cca1668abf903f14ede0ea1801a88f9ff7b403f103462df6c76eb200",
+      "plan_sha256": "1b1e03e5e8235c4403b831923a1027b1398e94a6efa70f76136016465a932e5c",
+      "report_file_sha256": "3b2b2a7bf6c6f62e0cf8aef2e0a5ce508fe5bca41294bfbcec276f1b85c9276b",
+      "rows_file_sha256": "86b8803d45d93c3322701ab1ee7be3324ce346f0338b6a14bab9b896f43e0742",
+      "template_receipt": {
+        "artifact_sha256": "dc060412c78bc1206f41280046c49e00bbbf4538453752401017327f03ce2000",
+        "file_sha256": "697e307c73b60612cb1f85863934d895b893a16ca6f1c8a17ca96968e250f461",
+        "path": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/phase1_common_search_ir_streets_formal_v2/gymv_streets_of_rage_2/templates.json"
+      }
+    }
+  ],
+  "transfer_contract": {
+    "advance_only_after_observed_effect": true,
+    "state": "ABSTRACT_EVENT_PLUS_ATTEMPT_LEDGER",
+    "target_permission": "TARGET_BINDS_EVENTS_CANDIDATES_AND_NATIVE_ACTIONS_FROM_ITS_OWN_NEURAL_GROUNDING;SOURCE_NATIVE_ACTIONS_AND_CANDIDATE_IDENTITIES_FORBIDDEN",
+    "unknown_event": "ABSTAIN"
+  },
+  "artifact_sha256": "0811312fd98f697b572a72e5c1d2da4417ec6ec35c9db00e51d8f1bb4d1123d6"
+}

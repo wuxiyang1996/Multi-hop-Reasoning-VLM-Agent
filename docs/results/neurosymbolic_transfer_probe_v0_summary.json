@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "experiment": "NEUROSYMBOLIC_OPERATIONAL_PROBE_TRANSFER_V0",
+  "status": "COMPLETED_NEGATIVE_PRIMARY_GATE",
+  "run_report": "runs/neurosymbolic_transfer_probe_v0/report.json",
+  "run_report_sha256": "8c14e74be724a7a5c8682ee987bea96e2cb06934e37f742a779e0f3e98cf40a9",
+  "config": "configs/neurosymbolic_transfer_probe_v0.json",
+  "config_sha256": "55e7dac32e0d7841c28234e8bacfbc3ed15c714c90af5771cb177886e9d0183b",
+  "source": {
+    "domains": 6,
+    "train_examples": 592,
+    "validation_examples": 589,
+    "held_out_examples": 588,
+    "held_out_macro_brier": {
+      "authentic_neural": 0.02908696960889039,
+      "shuffled_source": 0.04676361102682407
+    },
+    "interpretation": "The frozen operational MLP learned reproducible source-side structure beyond a within-episode shuffled-label control."
+  },
+  "target": {
+    "domain": "alfworld_valid_unseen",
+    "data_authority": "ADAPTATION_DEVELOPMENT_ONLY",
+    "support_task_offsets": [0, 1, 2, 3],
+    "internal_evaluation_task_offsets": [4, 5, 6, 7],
+    "evaluation_examples": 70,
+    "qualification_or_held_out_used": false,
+    "evaluation_label_rates": {
+      "admissible_set_changed": 0.9142857142857143,
+      "positive_native_reward": 0.02857142857142857,
+      "terminal": 0.05714285714285714
+    }
+  },
+  "primary_macro_brier": {
+    "k1": {
+      "target_only": 0.19375932549354385,
+      "authentic_source_plus_target": 0.19937360134223742,
+      "shuffled_source_plus_target": 0.1593612977376204,
+      "source_marginal_plus_target": 0.09890648079218903
+    },
+    "k2": {
+      "target_only": 0.15598439420468985,
+      "authentic_source_plus_target": 0.13625825058012767,
+      "shuffled_source_plus_target": 0.17889595543899867,
+      "source_marginal_plus_target": 0.12652707448421133
+    },
+    "k4": {
+      "target_only": 0.1211005200386758,
+      "authentic_source_plus_target": 0.14287417568349653,
+      "shuffled_source_plus_target": 0.148779033145457,
+      "source_marginal_plus_target": 0.10955015479313338
+    }
+  },
+  "positive_gate": {
+    "passed": false,
+    "comparisons_passed": 3,
+    "comparisons_total": 9,
+    "reason": "Authentic source structure did not consistently beat target-only, shuffled-source, and source-marginal controls at k=1/2/4."
+  },
+  "post_hoc_diagnostic": {
+    "observation": "At k=4 the authentic condition improved terminal balanced Brier over target-only in all five optimization seeds, but terminal had only four positive transitions and this was not the registered primary metric.",
+    "authority": "REPLICATION_CANDIDATE_ONLY"
+  },
+  "decision": "DO_NOT_CLAIM_TRANSFER_AND_DO_NOT_RELEASE_FULL_LORA_FROM_THIS_RESULT",
+  "next_gate": "Pre-register a termination/evidence-boundary probe on untouched ALFWorld qualification tasks, retain target-only, shuffled-source, and marginal controls, and require official task-level value before any skill-transfer claim.",
+  "claim_boundary": "This adaptation-development experiment can reject the current operational-probe mechanism. It cannot establish held-out game-to-domain skill transfer."
+}

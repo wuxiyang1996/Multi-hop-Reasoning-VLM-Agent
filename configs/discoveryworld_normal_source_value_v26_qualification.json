@@ -1,0 +1,19 @@
+{
+  "schema_version": "discoveryworld-normal-source-value-v26-qualification",
+  "status": "FROZEN_BEFORE_NORMAL_QUALIFICATION",
+  "claim_boundary": "Fresh source-blind qualification only; no V26 formal reserve seed and no formal outcome is visible.",
+  "official_environment_commit": "fd591323920be0d3786ef350955de1945aa571e5",
+  "tasks": [
+    {"scenario": "Proteomics", "difficulty": "Normal", "seed": 309},
+    {"scenario": "Proteomics", "difficulty": "Normal", "seed": 310},
+    {"scenario": "Proteomics", "difficulty": "Normal", "seed": 311},
+    {"scenario": "Proteomics", "difficulty": "Normal", "seed": 312},
+    {"scenario": "Proteomics", "difficulty": "Normal", "seed": 313},
+    {"scenario": "Proteomics", "difficulty": "Normal", "seed": 314},
+    {"scenario": "Proteomics", "difficulty": "Normal", "seed": 315},
+    {"scenario": "Proteomics", "difficulty": "Normal", "seed": 316}
+  ],
+  "runtime": {"maximum_steps": 48, "include_vision": false},
+  "model": {"provider": "target-native-symbolic-survey", "base_url": "https://openrouter.ai/api/v1", "api_key_name": "OPENROUTER_API_KEY", "model": "deterministic-proteomics-survey-v1", "temperature": 0, "maximum_output_tokens": 800, "schema_attempts": 3},
+  "acquisition_gate": {"minimum_commit_coverage": 8, "scorecard_visible_to_policy": false, "source_program_visible_to_policy": false}
+}

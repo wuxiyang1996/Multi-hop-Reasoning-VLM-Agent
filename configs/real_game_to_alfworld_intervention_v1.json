@@ -1,0 +1,15 @@
+{
+  "actions_per_snapshot": 8,
+  "evidence": {
+    "skill_disabled": "runs/phase1_tetris_candy_long_v1/skill_disabled/candy_crush/evidence/events.jsonl",
+    "skill_loaded": "runs/phase1_tetris_candy_long_v1/authentic_skill_loaded/candy_crush/evidence/events.jsonl"
+  },
+  "game": "candy_crush",
+  "gate_report_path": "runs/real_game_to_alfworld_intervention_v1/source_gate.json",
+  "minimum_step": 2,
+  "namespace": "real-game-to-alfworld-intervention-v1-frozen-2026-08-10",
+  "plan_path": "runs/real_game_to_alfworld_intervention_v1/source_plan.json",
+  "receipts_path": "runs/real_game_to_alfworld_intervention_v1/source_receipts.jsonl",
+  "snapshots_per_episode": 2,
+  "source_runtime_script": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-source-fresh-v1/scripts/run_instrumented_source_smoke.py"
+}

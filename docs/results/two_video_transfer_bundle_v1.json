@@ -1,0 +1,60 @@
+{
+  "anonymous_controller_artifact_sha256": "cd48690e64392f8702e1a239afa1739c25863ce4bd6ae2efea355ac70467bfe6",
+  "artifact_file_sha256s": {
+    "agqa_broad": "0d27cc211a36a41aa77c974e30076079f8184fc998bf7ba49d8b3dd9c6bf9b00",
+    "agqa_inventory": "1b0ec6693198f09691e315af0a85cf87a11f281e96b29870fdd4d65c24b8ca13",
+    "agqa_substitution": "439df97537d204cb57fb20dbf9f84f9433597df1a46fd6cb43199428bdbc35ab",
+    "agqa_temporal": "3455bbd917d49690c043e397cb22725951b029f29db479e6868b5ac6c373af0c",
+    "anonymous_controller": "698d3f377366d5cd8ae278461c2a29466d3a6f1af8885aa8fd6373139309a82e",
+    "clevrer_formal": "9f3f017be07724d3f66db2cd0b4b662e318816914f79382943c65aef66dc7fe3",
+    "clevrer_predictions": "5a60a96637bfc620ee5067509a6c113a99cdf193ac019d112c9bb525218f982e",
+    "clevrer_substitution": "80360826a3b7b1ccd7e73f387b419d2cc53b062818416336d12d9a23900cd250",
+    "clevrer_taxonomy": "a1d06097aede31d16cdcaa77e12df8125c0e4bb8e37aa93e21f7e9cef83c755a"
+  },
+  "bundle_sha256": "f86998c288a487af83454ee4f551f91fbe24e76d12313ef8dd56ba51294ffc38",
+  "gates": {
+    "agqa_broad_significant_existing_signal": true,
+    "agqa_existing_anonymous_substitution_verified": true,
+    "agqa_new_fresh_formal_not_claimed": true,
+    "agqa_substitution_hash_valid": true,
+    "agqa_temporal_significant_existing_signal": true,
+    "anonymous_controller_hash_valid": true,
+    "clevrer_anonymous_substitution_verified": true,
+    "clevrer_formal_hash_valid": true,
+    "clevrer_fresh_formal_validated": true,
+    "clevrer_prediction_hash_valid": true,
+    "clevrer_substitution_hash_valid": true,
+    "clevrer_taxonomy_hash_valid": true,
+    "controller_lineage_shared_across_benchmarks": true
+  },
+  "headline_results": {
+    "agqa2_broad": {
+      "losses": 24,
+      "neural_accuracy": 0.46484375,
+      "source_accuracy": 0.50390625,
+      "tasks": 512,
+      "wins": 44
+    },
+    "agqa2_temporal": {
+      "losses": 5,
+      "neural_accuracy": 0.4140625,
+      "source_accuracy": 0.52734375,
+      "tasks": 256,
+      "wins": 34
+    },
+    "clevrer": {
+      "losses": 23,
+      "neural_accuracy": 0.3475,
+      "source_accuracy": 0.623125,
+      "tasks": 1600,
+      "wins": 464
+    }
+  },
+  "remaining_blocker": "AGQA official test has no untouched local video reserve; this prevents a new fresh official-test formal, not validation of the two existing independent replication artifacts.",
+  "schema_version": "two-video-transfer-paper-bundle-v1",
+  "status": "TWO_VIDEO_TRANSFER_EVIDENCE_BUNDLE_VALIDATED",
+  "validation_scope": {
+    "agqa2": "TWO_INDEPENDENT_EXISTING_RAW_VIDEO_SELECTIVE_REPLICATIONS;NO_NEW_UNTOUCHED_OFFICIAL_TEST_FORMAL",
+    "clevrer": "FRESH_FULL_BENCHMARK_SELECTIVE_LAYER_B_FORMAL"
+  }
+}

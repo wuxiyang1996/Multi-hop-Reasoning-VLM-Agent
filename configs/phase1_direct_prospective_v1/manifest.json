@@ -1,0 +1,883 @@
+{
+  "schema_version": "phase1-direct-prospective-matrix-v1",
+  "status": "FROZEN_BEFORE_ANY_SELECTED_TARGET_RESET_PROVIDER_CALL_OR_OUTCOME",
+  "claim_boundary": "Direct prospective operational validation of one independently qualified Phase-1 game lineage in each of 24 source×target cells. This does not claim 24 independently powered efficacy estimates; domain-level efficacy remains supported by the prior frozen matched evaluations.",
+  "selection_read_target_outcome": false,
+  "historical_target_outcome_reuse_allowed": false,
+  "cell_execution_definition": "One unique fresh target identity, full domain matched-condition execution, and online admitted route receipts containing the cell's lineage-specific source artifact hash.",
+  "sources": {
+    "tetris": {
+      "artifact": "runs/phase1_direct_prospective_v1/source_artifacts/tetris.json",
+      "artifact_sha256": "585e5b29303fcbe23e8f8b5414ea389ea6257c96f55fa64897661fe2e2b306e7",
+      "artifact_file_sha256": "7c40f5baab7926435b58d2992ae20ca4eb07e1c72a4b59d9e1e377cde3b8e576",
+      "parent_consensus_artifact_sha256": "36bec02285d4b2aca98f0a938447085545b24aff8edd23e2bc7485260da27f58",
+      "formal_lineage_report_file_sha256": "3808b19045f413ee991601cecead2a41f6657e5c9c31ca193f094c51a5f083bf"
+    },
+    "candy_crush": {
+      "artifact": "runs/phase1_direct_prospective_v1/source_artifacts/candy_crush.json",
+      "artifact_sha256": "6f80cf4d4a8f4f5d9964680949bd55938d584165aab939b2f028c22649e2ea4d",
+      "artifact_file_sha256": "ebab70c63ade7ab5c888630cddb4c395f9f14eed5b460bf958de5095946369f2",
+      "parent_consensus_artifact_sha256": "36bec02285d4b2aca98f0a938447085545b24aff8edd23e2bc7485260da27f58",
+      "formal_lineage_report_file_sha256": "9304325273e65530a2271e8bb4becbb6b660aed1e6425141d1176c964dc26d78"
+    },
+    "gymv_columns": {
+      "artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_columns.json",
+      "artifact_sha256": "39c5194016c037072aaa4a82137a8d242ceda17ed7ccd72caf16b495784000d0",
+      "artifact_file_sha256": "0a47aa22c60266226132e667dbfaf16c03382ca03fd730d95afc751be878255e",
+      "parent_consensus_artifact_sha256": "36bec02285d4b2aca98f0a938447085545b24aff8edd23e2bc7485260da27f58",
+      "formal_lineage_report_file_sha256": "4c8f9edcf13444643ef6c68350325c2d6a99ea95f1bce6971efab1f1a7c3194e"
+    },
+    "gymv_streets_of_rage_2": {
+      "artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_streets_of_rage_2.json",
+      "artifact_sha256": "0811312fd98f697b572a72e5c1d2da4417ec6ec35c9db00e51d8f1bb4d1123d6",
+      "artifact_file_sha256": "a66acf806e6188a22782054520f00a1a8142e79874fef5b7f8cc42b9f82dbc54",
+      "parent_consensus_artifact_sha256": "36bec02285d4b2aca98f0a938447085545b24aff8edd23e2bc7485260da27f58",
+      "formal_lineage_report_file_sha256": "3b2b2a7bf6c6f62e0cf8aef2e0a5ce508fe5bca41294bfbcec276f1b85c9276b"
+    },
+    "gymv_thunder_force_iii": {
+      "artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_thunder_force_iii.json",
+      "artifact_sha256": "78ccd564e5453fa33a2b34eb2edf46263f025ec45eae2c1bbdf3017cc7d695d8",
+      "artifact_file_sha256": "0b52167b9259d6304950766e94d7e1a3d764ad241af1dfbff658fccc7cebb070",
+      "parent_consensus_artifact_sha256": "36bec02285d4b2aca98f0a938447085545b24aff8edd23e2bc7485260da27f58",
+      "formal_lineage_report_file_sha256": "56b95da51f3ca8f360b619ba6908531862405063b0f7a55d7af2916140015330"
+    },
+    "gymv_strider": {
+      "artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_strider.json",
+      "artifact_sha256": "9993c7b0d04d2e090f1b20f89b6c4b90f697a8b36f598869e45141a9b5b00ccf",
+      "artifact_file_sha256": "4d6aa2ce61c70c3023c41435d337925289cc9c0e179381e6285492f33a095c5e",
+      "parent_consensus_artifact_sha256": "36bec02285d4b2aca98f0a938447085545b24aff8edd23e2bc7485260da27f58",
+      "formal_lineage_report_file_sha256": "c2a79eca9b620cb67be1a1e5e29370bd786a31b743b5c7b2c01813430b5e032c"
+    }
+  },
+  "targets": {
+    "webshop": {
+      "selection": [
+        {
+          "task_id": "webshop.0",
+          "server_goal_index": 0,
+          "asin": "B08P8LRFZ4",
+          "instruction_text": "Find me height adjustable, high density, easy install, easy assemble home office chairs for living room with color: type 3-pink, and price lower than 130.00 dollars",
+          "goal": {
+            "asin": "B08P8LRFZ4",
+            "category": "garden",
+            "query": "home office chairs",
+            "name": "MTFY Cute Faux Fur Desk Chair for Girls Women, Comfy Fluffy Modern Home Office Chair with Wheels, Elegant Swivel Fuzzy Vanity Chair Makeup Arm Chair for Living Room, Bedroom",
+            "product_category": "Home & Kitchen › Furniture › Home Office Furniture › Home Office Chairs › Home Office Desk Chairs",
+            "instruction_text": "Find me height adjustable, high density, easy install, easy assemble home office chairs for living room with color: type 3-pink, and price lower than 130.00 dollars",
+            "attributes": [
+              "height adjustable",
+              "high density",
+              "easy install",
+              "easy assemble",
+              "living room"
+            ],
+            "price_upper": 130.0,
+            "goal_options": {
+              "color": "type 3-pink"
+            },
+            "weight": 0.015088473514919903
+          },
+          "goal_sha256": "04267754cebb9774015340cd13097fa35f61415dde6ad4de8b0cec0f697fa23a"
+        },
+        {
+          "task_id": "webshop.2",
+          "server_goal_index": 2,
+          "asin": "B09KXCHWGD",
+          "instruction_text": "Find me men's polos with short sleeve, button closure with color: orange, and price lower than 20.00 dollars",
+          "goal": {
+            "asin": "B09KXCHWGD",
+            "category": "fashion",
+            "query": "men's polos",
+            "name": "Custom Polo Shirts for Men Design Your Own Personalized Logo Text Photo Polo Shirt Customize Classic Polo Shirt",
+            "product_category": "Clothing, Shoes & Jewelry › Novelty & More › Clothing › Novelty › Men › Shirts › Polos",
+            "instruction_text": "Find me men's polos with short sleeve, button closure with color: orange, and price lower than 20.00 dollars",
+            "attributes": [
+              "short sleeve",
+              "button closure"
+            ],
+            "price_upper": 20.0,
+            "goal_options": {
+              "color": "orange"
+            },
+            "weight": 0.0016657827079001029
+          },
+          "goal_sha256": "a53c93bbfff8caa3414f1c5f88b65168b08eaae997bd420675b2a728a3460749"
+        },
+        {
+          "task_id": "webshop.8",
+          "server_goal_index": 8,
+          "asin": "B09T756KQ5",
+          "instruction_text": "Find me slim fit, loose fit men's tuxedo shirts with long sleeve, short sleeve, contrast color, classic fit for teen girls with color: a-bk1, and size: medium, and price lower than 30.00 dollars",
+          "goal": {
+            "asin": "B09T756KQ5",
+            "category": "fashion",
+            "query": "men's tuxedo shirts",
+            "name": "WENKOMG1 Men's Crewneck Goth Tee Shirts Skull Print Tops Spring/Summer Long Sleeve Sports T-Shirt Baggy Y2K Soft Streetwear",
+            "product_category": "Clothing, Shoes & Jewelry › Men › Clothing › Shirts › T-Shirts",
+            "instruction_text": "Find me slim fit, loose fit men's tuxedo shirts with long sleeve, short sleeve, contrast color, classic fit for teen girls with color: a-bk1, and size: medium, and price lower than 30.00 dollars",
+            "attributes": [
+              "slim fit",
+              "loose fit",
+              "long sleeve",
+              "short sleeve",
+              "contrast color",
+              "classic fit",
+              "teen girls"
+            ],
+            "price_upper": 30.0,
+            "goal_options": {
+              "color": "a-bk1",
+              "size": "medium"
+            },
+            "weight": 0.002027250552457214
+          },
+          "goal_sha256": "33154169d075758f0d94de1f196121057622ec071345e07120791daad1364b5f"
+        },
+        {
+          "task_id": "webshop.9",
+          "server_goal_index": 9,
+          "asin": "B09PVNLVRW",
+          "instruction_text": "Find me slim fit women's jumpsuits, rompers & overalls with long sleeve for daily wear with color: red, and size: medium, and price lower than 60.00 dollars",
+          "goal": {
+            "asin": "B09PVNLVRW",
+            "category": "fashion",
+            "query": "women's jumpsuits, rompers & overalls",
+            "name": "Women's V-Neck Rompers Printed Jumpsuit Long Sleeve Homewear Butt Flap Pajamas One-Piece Onesies Nightwear Sexy Bodysuit",
+            "product_category": "Clothing, Shoes & Jewelry › Women › Clothing › Jumpsuits, Rompers & Overalls › Jumpsuits",
+            "instruction_text": "Find me slim fit women's jumpsuits, rompers & overalls with long sleeve for daily wear with color: red, and size: medium, and price lower than 60.00 dollars",
+            "attributes": [
+              "slim fit",
+              "long sleeve",
+              "daily wear"
+            ],
+            "price_upper": 60.0,
+            "goal_options": {
+              "color": "red",
+              "size": "medium"
+            },
+            "weight": 0.0015991571007478158
+          },
+          "goal_sha256": "d1891903a8f557ad657daaf2dee184d5bbbc161eaa9915d32358d08d365ec419"
+        },
+        {
+          "task_id": "webshop.10",
+          "server_goal_index": 10,
+          "asin": "B079PH6955",
+          "instruction_text": "Find me men's t-shirts & tanks with needle sleeve, classic fit with color: navy, and fit type: men, and size: large, and price lower than 30.00 dollars",
+          "goal": {
+            "asin": "B079PH6955",
+            "category": "fashion",
+            "query": "men's t-shirts & tanks",
+            "name": "Need Some Hank & A Drank Country Music T Shirt for Rednecks",
+            "product_category": "Clothing, Shoes & Jewelry › Novelty & More › Clothing › Novelty › Men › Shirts › T-Shirts",
+            "instruction_text": "Find me men's t-shirts & tanks with needle sleeve, classic fit with color: navy, and fit type: men, and size: large, and price lower than 30.00 dollars",
+            "attributes": [
+              "needle sleeve",
+              "classic fit"
+            ],
+            "price_upper": 30.0,
+            "goal_options": {
+              "color": "navy",
+              "fit type": "men",
+              "size": "large"
+            },
+            "weight": 0.0006702055583641998
+          },
+          "goal_sha256": "cefe582ebb1f39f66971b37e463f85b11e195905e6053f9bf66be3b3bb0d1861"
+        },
+        {
+          "task_id": "webshop.12",
+          "server_goal_index": 12,
+          "asin": "B07SXLVPF3",
+          "instruction_text": "Find me high density, assembly required, ready use, long lasting mattresses with box spring, king size, memory foam with color: 59x79, and price lower than 900.00 dollars",
+          "goal": {
+            "asin": "B07SXLVPF3",
+            "category": "garden",
+            "query": "mattresses",
+            "name": "Mayton 12-Inch King Size Mattress, Box Spring And Bed Frame - Foam Encased Soft Pillow Top Hybrid Contouring Comfort, No Assembly Required 78x79",
+            "product_category": "Home & Kitchen › Furniture › Bedroom Furniture › Mattresses & Box Springs › Mattresses",
+            "instruction_text": "Find me high density, assembly required, ready use, long lasting mattresses with box spring, king size, memory foam with color: 59x79, and price lower than 900.00 dollars",
+            "attributes": [
+              "high density",
+              "assembly required",
+              "ready use",
+              "long lasting",
+              "box spring",
+              "king size",
+              "memory foam"
+            ],
+            "price_upper": 900.0,
+            "goal_options": {
+              "color": "59x79"
+            },
+            "weight": 0.06790224462638256
+          },
+          "goal_sha256": "2540f5f92f5b5c826b5b4ee51f743ad53c98412d9a58bfdc7c62e776e6ed0c6f"
+        }
+      ],
+      "goal_seed": 20260815,
+      "goal_manifest": "configs/phase1_direct_prospective_v1/webshop_goal_manifest.json",
+      "goal_manifest_file_sha256": "07efe9b822c5ad1b5420fc2ce3ba67f51eb049b3fbd4c5c37320ee904ad4f411"
+    },
+    "alfworld": {
+      "selection": [
+        {
+          "task_id": "look_at_obj_in_light-Book-None-DeskLamp-308/trial_T20190908_020048_814402/game.tw-pddl",
+          "family": "look_at_obj_in_light",
+          "trial_id": "trial_T20190908_020048_814402",
+          "game_file_sha256": "759a76c80ca1f9c239aafe0d03a37b41cbc79e965c8e5b91445ad0e74d938a3e"
+        },
+        {
+          "task_id": "pick_and_place_simple-Vase-None-Safe-219/trial_T20190908_205221_748352/game.tw-pddl",
+          "family": "pick_and_place_simple",
+          "trial_id": "trial_T20190908_205221_748352",
+          "game_file_sha256": "51f538595f3baba55390aed8293bc56e0cb1a19d9a24765cd0a4cbc1a13caf79"
+        },
+        {
+          "task_id": "pick_clean_then_place_in_recep-Egg-None-Microwave-10/trial_T20190909_120554_888709/game.tw-pddl",
+          "family": "pick_clean_then_place_in_recep",
+          "trial_id": "trial_T20190909_120554_888709",
+          "game_file_sha256": "44befe8cad7615f98e1d75b0a3ef3d7e2f55f831ae49455f819c50c95f18ddd9"
+        },
+        {
+          "task_id": "pick_cool_then_place_in_recep-Mug-None-CoffeeMachine-10/trial_T20190907_183807_477267/game.tw-pddl",
+          "family": "pick_cool_then_place_in_recep",
+          "trial_id": "trial_T20190907_183807_477267",
+          "game_file_sha256": "8e3013549529f8bb8b1f95a346c7260a2bd221a7fe67ef392f982ae9cf7056e9"
+        },
+        {
+          "task_id": "pick_heat_then_place_in_recep-Apple-None-GarbageCan-10/trial_T20190908_145356_918528/game.tw-pddl",
+          "family": "pick_heat_then_place_in_recep",
+          "trial_id": "trial_T20190908_145356_918528",
+          "game_file_sha256": "5d5f615248cae750fac8693fe71004c11b9e86735342350f54cc585446511ebe"
+        },
+        {
+          "task_id": "pick_heat_then_place_in_recep-Egg-None-GarbageCan-10/trial_T20190908_113610_425142/game.tw-pddl",
+          "family": "pick_heat_then_place_in_recep",
+          "trial_id": "trial_T20190908_113610_425142",
+          "game_file_sha256": "25a45edb5798f8f94fd34fe518b45d3b4c809843eb5e2456b48431f611188b71"
+        }
+      ],
+      "split": "eval_out_of_distribution",
+      "valid_unseen_root": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-github-main/.cache/alfworld_data/json_2.1.1/valid_unseen",
+      "target_grounder": "runs/procedural_game_alfworld_v1_development/frozen_candidate_artifact.json"
+    },
+    "discoveryworld": {
+      "selection": [
+        {
+          "task_id": "proteomics.easy.seed21",
+          "scenario": "Proteomics",
+          "difficulty": "Easy",
+          "seed": 21
+        },
+        {
+          "task_id": "proteomics.easy.seed22",
+          "scenario": "Proteomics",
+          "difficulty": "Easy",
+          "seed": 22
+        },
+        {
+          "task_id": "proteomics.easy.seed23",
+          "scenario": "Proteomics",
+          "difficulty": "Easy",
+          "seed": 23
+        },
+        {
+          "task_id": "proteomics.easy.seed24",
+          "scenario": "Proteomics",
+          "difficulty": "Easy",
+          "seed": 24
+        },
+        {
+          "task_id": "proteomics.easy.seed25",
+          "scenario": "Proteomics",
+          "difficulty": "Easy",
+          "seed": 25
+        },
+        {
+          "task_id": "proteomics.easy.seed26",
+          "scenario": "Proteomics",
+          "difficulty": "Easy",
+          "seed": 26
+        }
+      ],
+      "target_manifest": "configs/phase1_direct_prospective_v1/discoveryworld_manifest.json",
+      "target_config": "configs/phase1_direct_prospective_v1/discoveryworld_target_only.json",
+      "protocol": "configs/phase1_direct_prospective_v1/discoveryworld_protocol.json"
+    },
+    "tirbench": {
+      "selection": [
+        {
+          "task_id": "382"
+        },
+        {
+          "task_id": "674"
+        },
+        {
+          "task_id": "497"
+        },
+        {
+          "task_id": "979"
+        },
+        {
+          "task_id": "488"
+        },
+        {
+          "task_id": "625"
+        }
+      ],
+      "dataset": "/fs/gamma-projects/vlm-robot/datasets/TIR-Bench/TIR-Bench.json",
+      "dataset_file_sha256": "e764c780c53fdce2e0bb64846a8119b48b731c90c7168c6c202f270062684bc8",
+      "model": {
+        "provider": "openrouter",
+        "id": "openai/gpt-4.1-mini",
+        "base_url": "https://openrouter.ai/api/v1",
+        "maximum_output_tokens": 1200,
+        "max_side": 768,
+        "jpeg_quality": 90
+      }
+    }
+  },
+  "cells": [
+    {
+      "cell_id": "tetris__to__webshop",
+      "source_game": "tetris",
+      "target_domain": "webshop",
+      "target_task_id": "webshop.0",
+      "target_task": {
+        "task_id": "webshop.0",
+        "server_goal_index": 0,
+        "asin": "B08P8LRFZ4",
+        "instruction_text": "Find me height adjustable, high density, easy install, easy assemble home office chairs for living room with color: type 3-pink, and price lower than 130.00 dollars",
+        "goal": {
+          "asin": "B08P8LRFZ4",
+          "category": "garden",
+          "query": "home office chairs",
+          "name": "MTFY Cute Faux Fur Desk Chair for Girls Women, Comfy Fluffy Modern Home Office Chair with Wheels, Elegant Swivel Fuzzy Vanity Chair Makeup Arm Chair for Living Room, Bedroom",
+          "product_category": "Home & Kitchen › Furniture › Home Office Furniture › Home Office Chairs › Home Office Desk Chairs",
+          "instruction_text": "Find me height adjustable, high density, easy install, easy assemble home office chairs for living room with color: type 3-pink, and price lower than 130.00 dollars",
+          "attributes": [
+            "height adjustable",
+            "high density",
+            "easy install",
+            "easy assemble",
+            "living room"
+          ],
+          "price_upper": 130.0,
+          "goal_options": {
+            "color": "type 3-pink"
+          },
+          "weight": 0.015088473514919903
+        },
+        "goal_sha256": "04267754cebb9774015340cd13097fa35f61415dde6ad4de8b0cec0f697fa23a"
+      },
+      "target_task_multiplicity": 1,
+      "selected_target_previously_executed": false,
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/tetris.json",
+      "source_artifact_sha256": "585e5b29303fcbe23e8f8b5414ea389ea6257c96f55fa64897661fe2e2b306e7",
+      "domain_protocol": "configs/phase1_direct_prospective_v1/webshop_protocols/tetris.json"
+    },
+    {
+      "cell_id": "candy_crush__to__webshop",
+      "source_game": "candy_crush",
+      "target_domain": "webshop",
+      "target_task_id": "webshop.2",
+      "target_task": {
+        "task_id": "webshop.2",
+        "server_goal_index": 2,
+        "asin": "B09KXCHWGD",
+        "instruction_text": "Find me men's polos with short sleeve, button closure with color: orange, and price lower than 20.00 dollars",
+        "goal": {
+          "asin": "B09KXCHWGD",
+          "category": "fashion",
+          "query": "men's polos",
+          "name": "Custom Polo Shirts for Men Design Your Own Personalized Logo Text Photo Polo Shirt Customize Classic Polo Shirt",
+          "product_category": "Clothing, Shoes & Jewelry › Novelty & More › Clothing › Novelty › Men › Shirts › Polos",
+          "instruction_text": "Find me men's polos with short sleeve, button closure with color: orange, and price lower than 20.00 dollars",
+          "attributes": [
+            "short sleeve",
+            "button closure"
+          ],
+          "price_upper": 20.0,
+          "goal_options": {
+            "color": "orange"
+          },
+          "weight": 0.0016657827079001029
+        },
+        "goal_sha256": "a53c93bbfff8caa3414f1c5f88b65168b08eaae997bd420675b2a728a3460749"
+      },
+      "target_task_multiplicity": 1,
+      "selected_target_previously_executed": false,
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/candy_crush.json",
+      "source_artifact_sha256": "6f80cf4d4a8f4f5d9964680949bd55938d584165aab939b2f028c22649e2ea4d",
+      "domain_protocol": "configs/phase1_direct_prospective_v1/webshop_protocols/candy_crush.json"
+    },
+    {
+      "cell_id": "gymv_columns__to__webshop",
+      "source_game": "gymv_columns",
+      "target_domain": "webshop",
+      "target_task_id": "webshop.8",
+      "target_task": {
+        "task_id": "webshop.8",
+        "server_goal_index": 8,
+        "asin": "B09T756KQ5",
+        "instruction_text": "Find me slim fit, loose fit men's tuxedo shirts with long sleeve, short sleeve, contrast color, classic fit for teen girls with color: a-bk1, and size: medium, and price lower than 30.00 dollars",
+        "goal": {
+          "asin": "B09T756KQ5",
+          "category": "fashion",
+          "query": "men's tuxedo shirts",
+          "name": "WENKOMG1 Men's Crewneck Goth Tee Shirts Skull Print Tops Spring/Summer Long Sleeve Sports T-Shirt Baggy Y2K Soft Streetwear",
+          "product_category": "Clothing, Shoes & Jewelry › Men › Clothing › Shirts › T-Shirts",
+          "instruction_text": "Find me slim fit, loose fit men's tuxedo shirts with long sleeve, short sleeve, contrast color, classic fit for teen girls with color: a-bk1, and size: medium, and price lower than 30.00 dollars",
+          "attributes": [
+            "slim fit",
+            "loose fit",
+            "long sleeve",
+            "short sleeve",
+            "contrast color",
+            "classic fit",
+            "teen girls"
+          ],
+          "price_upper": 30.0,
+          "goal_options": {
+            "color": "a-bk1",
+            "size": "medium"
+          },
+          "weight": 0.002027250552457214
+        },
+        "goal_sha256": "33154169d075758f0d94de1f196121057622ec071345e07120791daad1364b5f"
+      },
+      "target_task_multiplicity": 1,
+      "selected_target_previously_executed": false,
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_columns.json",
+      "source_artifact_sha256": "39c5194016c037072aaa4a82137a8d242ceda17ed7ccd72caf16b495784000d0",
+      "domain_protocol": "configs/phase1_direct_prospective_v1/webshop_protocols/gymv_columns.json"
+    },
+    {
+      "cell_id": "gymv_streets_of_rage_2__to__webshop",
+      "source_game": "gymv_streets_of_rage_2",
+      "target_domain": "webshop",
+      "target_task_id": "webshop.9",
+      "target_task": {
+        "task_id": "webshop.9",
+        "server_goal_index": 9,
+        "asin": "B09PVNLVRW",
+        "instruction_text": "Find me slim fit women's jumpsuits, rompers & overalls with long sleeve for daily wear with color: red, and size: medium, and price lower than 60.00 dollars",
+        "goal": {
+          "asin": "B09PVNLVRW",
+          "category": "fashion",
+          "query": "women's jumpsuits, rompers & overalls",
+          "name": "Women's V-Neck Rompers Printed Jumpsuit Long Sleeve Homewear Butt Flap Pajamas One-Piece Onesies Nightwear Sexy Bodysuit",
+          "product_category": "Clothing, Shoes & Jewelry › Women › Clothing › Jumpsuits, Rompers & Overalls › Jumpsuits",
+          "instruction_text": "Find me slim fit women's jumpsuits, rompers & overalls with long sleeve for daily wear with color: red, and size: medium, and price lower than 60.00 dollars",
+          "attributes": [
+            "slim fit",
+            "long sleeve",
+            "daily wear"
+          ],
+          "price_upper": 60.0,
+          "goal_options": {
+            "color": "red",
+            "size": "medium"
+          },
+          "weight": 0.0015991571007478158
+        },
+        "goal_sha256": "d1891903a8f557ad657daaf2dee184d5bbbc161eaa9915d32358d08d365ec419"
+      },
+      "target_task_multiplicity": 1,
+      "selected_target_previously_executed": false,
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_streets_of_rage_2.json",
+      "source_artifact_sha256": "0811312fd98f697b572a72e5c1d2da4417ec6ec35c9db00e51d8f1bb4d1123d6",
+      "domain_protocol": "configs/phase1_direct_prospective_v1/webshop_protocols/gymv_streets_of_rage_2.json"
+    },
+    {
+      "cell_id": "gymv_thunder_force_iii__to__webshop",
+      "source_game": "gymv_thunder_force_iii",
+      "target_domain": "webshop",
+      "target_task_id": "webshop.10",
+      "target_task": {
+        "task_id": "webshop.10",
+        "server_goal_index": 10,
+        "asin": "B079PH6955",
+        "instruction_text": "Find me men's t-shirts & tanks with needle sleeve, classic fit with color: navy, and fit type: men, and size: large, and price lower than 30.00 dollars",
+        "goal": {
+          "asin": "B079PH6955",
+          "category": "fashion",
+          "query": "men's t-shirts & tanks",
+          "name": "Need Some Hank & A Drank Country Music T Shirt for Rednecks",
+          "product_category": "Clothing, Shoes & Jewelry › Novelty & More › Clothing › Novelty › Men › Shirts › T-Shirts",
+          "instruction_text": "Find me men's t-shirts & tanks with needle sleeve, classic fit with color: navy, and fit type: men, and size: large, and price lower than 30.00 dollars",
+          "attributes": [
+            "needle sleeve",
+            "classic fit"
+          ],
+          "price_upper": 30.0,
+          "goal_options": {
+            "color": "navy",
+            "fit type": "men",
+            "size": "large"
+          },
+          "weight": 0.0006702055583641998
+        },
+        "goal_sha256": "cefe582ebb1f39f66971b37e463f85b11e195905e6053f9bf66be3b3bb0d1861"
+      },
+      "target_task_multiplicity": 1,
+      "selected_target_previously_executed": false,
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_thunder_force_iii.json",
+      "source_artifact_sha256": "78ccd564e5453fa33a2b34eb2edf46263f025ec45eae2c1bbdf3017cc7d695d8",
+      "domain_protocol": "configs/phase1_direct_prospective_v1/webshop_protocols/gymv_thunder_force_iii.json"
+    },
+    {
+      "cell_id": "gymv_strider__to__webshop",
+      "source_game": "gymv_strider",
+      "target_domain": "webshop",
+      "target_task_id": "webshop.12",
+      "target_task": {
+        "task_id": "webshop.12",
+        "server_goal_index": 12,
+        "asin": "B07SXLVPF3",
+        "instruction_text": "Find me high density, assembly required, ready use, long lasting mattresses with box spring, king size, memory foam with color: 59x79, and price lower than 900.00 dollars",
+        "goal": {
+          "asin": "B07SXLVPF3",
+          "category": "garden",
+          "query": "mattresses",
+          "name": "Mayton 12-Inch King Size Mattress, Box Spring And Bed Frame - Foam Encased Soft Pillow Top Hybrid Contouring Comfort, No Assembly Required 78x79",
+          "product_category": "Home & Kitchen › Furniture › Bedroom Furniture › Mattresses & Box Springs › Mattresses",
+          "instruction_text": "Find me high density, assembly required, ready use, long lasting mattresses with box spring, king size, memory foam with color: 59x79, and price lower than 900.00 dollars",
+          "attributes": [
+            "high density",
+            "assembly required",
+            "ready use",
+            "long lasting",
+            "box spring",
+            "king size",
+            "memory foam"
+          ],
+          "price_upper": 900.0,
+          "goal_options": {
+            "color": "59x79"
+          },
+          "weight": 0.06790224462638256
+        },
+        "goal_sha256": "2540f5f92f5b5c826b5b4ee51f743ad53c98412d9a58bfdc7c62e776e6ed0c6f"
+      },
+      "target_task_multiplicity": 1,
+      "selected_target_previously_executed": false,
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_strider.json",
+      "source_artifact_sha256": "9993c7b0d04d2e090f1b20f89b6c4b90f697a8b36f598869e45141a9b5b00ccf",
+      "domain_protocol": "configs/phase1_direct_prospective_v1/webshop_protocols/gymv_strider.json"
+    },
+    {
+      "cell_id": "tetris__to__alfworld",
+      "source_game": "tetris",
+      "target_domain": "alfworld",
+      "target_task_id": "look_at_obj_in_light-Book-None-DeskLamp-308/trial_T20190908_020048_814402/game.tw-pddl",
+      "target_task": {
+        "task_id": "look_at_obj_in_light-Book-None-DeskLamp-308/trial_T20190908_020048_814402/game.tw-pddl",
+        "family": "look_at_obj_in_light",
+        "trial_id": "trial_T20190908_020048_814402",
+        "game_file_sha256": "759a76c80ca1f9c239aafe0d03a37b41cbc79e965c8e5b91445ad0e74d938a3e"
+      },
+      "target_task_multiplicity": 1,
+      "selected_target_previously_executed": false,
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/tetris.json",
+      "source_artifact_sha256": "585e5b29303fcbe23e8f8b5414ea389ea6257c96f55fa64897661fe2e2b306e7"
+    },
+    {
+      "cell_id": "candy_crush__to__alfworld",
+      "source_game": "candy_crush",
+      "target_domain": "alfworld",
+      "target_task_id": "pick_and_place_simple-Vase-None-Safe-219/trial_T20190908_205221_748352/game.tw-pddl",
+      "target_task": {
+        "task_id": "pick_and_place_simple-Vase-None-Safe-219/trial_T20190908_205221_748352/game.tw-pddl",
+        "family": "pick_and_place_simple",
+        "trial_id": "trial_T20190908_205221_748352",
+        "game_file_sha256": "51f538595f3baba55390aed8293bc56e0cb1a19d9a24765cd0a4cbc1a13caf79"
+      },
+      "target_task_multiplicity": 1,
+      "selected_target_previously_executed": false,
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/candy_crush.json",
+      "source_artifact_sha256": "6f80cf4d4a8f4f5d9964680949bd55938d584165aab939b2f028c22649e2ea4d"
+    },
+    {
+      "cell_id": "gymv_columns__to__alfworld",
+      "source_game": "gymv_columns",
+      "target_domain": "alfworld",
+      "target_task_id": "pick_clean_then_place_in_recep-Egg-None-Microwave-10/trial_T20190909_120554_888709/game.tw-pddl",
+      "target_task": {
+        "task_id": "pick_clean_then_place_in_recep-Egg-None-Microwave-10/trial_T20190909_120554_888709/game.tw-pddl",
+        "family": "pick_clean_then_place_in_recep",
+        "trial_id": "trial_T20190909_120554_888709",
+        "game_file_sha256": "44befe8cad7615f98e1d75b0a3ef3d7e2f55f831ae49455f819c50c95f18ddd9"
+      },
+      "target_task_multiplicity": 1,
+      "selected_target_previously_executed": false,
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_columns.json",
+      "source_artifact_sha256": "39c5194016c037072aaa4a82137a8d242ceda17ed7ccd72caf16b495784000d0"
+    },
+    {
+      "cell_id": "gymv_streets_of_rage_2__to__alfworld",
+      "source_game": "gymv_streets_of_rage_2",
+      "target_domain": "alfworld",
+      "target_task_id": "pick_cool_then_place_in_recep-Mug-None-CoffeeMachine-10/trial_T20190907_183807_477267/game.tw-pddl",
+      "target_task": {
+        "task_id": "pick_cool_then_place_in_recep-Mug-None-CoffeeMachine-10/trial_T20190907_183807_477267/game.tw-pddl",
+        "family": "pick_cool_then_place_in_recep",
+        "trial_id": "trial_T20190907_183807_477267",
+        "game_file_sha256": "8e3013549529f8bb8b1f95a346c7260a2bd221a7fe67ef392f982ae9cf7056e9"
+      },
+      "target_task_multiplicity": 1,
+      "selected_target_previously_executed": false,
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_streets_of_rage_2.json",
+      "source_artifact_sha256": "0811312fd98f697b572a72e5c1d2da4417ec6ec35c9db00e51d8f1bb4d1123d6"
+    },
+    {
+      "cell_id": "gymv_thunder_force_iii__to__alfworld",
+      "source_game": "gymv_thunder_force_iii",
+      "target_domain": "alfworld",
+      "target_task_id": "pick_heat_then_place_in_recep-Apple-None-GarbageCan-10/trial_T20190908_145356_918528/game.tw-pddl",
+      "target_task": {
+        "task_id": "pick_heat_then_place_in_recep-Apple-None-GarbageCan-10/trial_T20190908_145356_918528/game.tw-pddl",
+        "family": "pick_heat_then_place_in_recep",
+        "trial_id": "trial_T20190908_145356_918528",
+        "game_file_sha256": "5d5f615248cae750fac8693fe71004c11b9e86735342350f54cc585446511ebe"
+      },
+      "target_task_multiplicity": 1,
+      "selected_target_previously_executed": false,
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_thunder_force_iii.json",
+      "source_artifact_sha256": "78ccd564e5453fa33a2b34eb2edf46263f025ec45eae2c1bbdf3017cc7d695d8"
+    },
+    {
+      "cell_id": "gymv_strider__to__alfworld",
+      "source_game": "gymv_strider",
+      "target_domain": "alfworld",
+      "target_task_id": "pick_heat_then_place_in_recep-Egg-None-GarbageCan-10/trial_T20190908_113610_425142/game.tw-pddl",
+      "target_task": {
+        "task_id": "pick_heat_then_place_in_recep-Egg-None-GarbageCan-10/trial_T20190908_113610_425142/game.tw-pddl",
+        "family": "pick_heat_then_place_in_recep",
+        "trial_id": "trial_T20190908_113610_425142",
+        "game_file_sha256": "25a45edb5798f8f94fd34fe518b45d3b4c809843eb5e2456b48431f611188b71"
+      },
+      "target_task_multiplicity": 1,
+      "selected_target_previously_executed": false,
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_strider.json",
+      "source_artifact_sha256": "9993c7b0d04d2e090f1b20f89b6c4b90f697a8b36f598869e45141a9b5b00ccf"
+    },
+    {
+      "cell_id": "tetris__to__discoveryworld",
+      "source_game": "tetris",
+      "target_domain": "discoveryworld",
+      "target_task_id": "proteomics.easy.seed21",
+      "target_task": {
+        "task_id": "proteomics.easy.seed21",
+        "scenario": "Proteomics",
+        "difficulty": "Easy",
+        "seed": 21
+      },
+      "target_task_multiplicity": 1,
+      "selected_target_previously_executed": false,
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/tetris.json",
+      "source_artifact_sha256": "585e5b29303fcbe23e8f8b5414ea389ea6257c96f55fa64897661fe2e2b306e7"
+    },
+    {
+      "cell_id": "candy_crush__to__discoveryworld",
+      "source_game": "candy_crush",
+      "target_domain": "discoveryworld",
+      "target_task_id": "proteomics.easy.seed22",
+      "target_task": {
+        "task_id": "proteomics.easy.seed22",
+        "scenario": "Proteomics",
+        "difficulty": "Easy",
+        "seed": 22
+      },
+      "target_task_multiplicity": 1,
+      "selected_target_previously_executed": false,
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/candy_crush.json",
+      "source_artifact_sha256": "6f80cf4d4a8f4f5d9964680949bd55938d584165aab939b2f028c22649e2ea4d"
+    },
+    {
+      "cell_id": "gymv_columns__to__discoveryworld",
+      "source_game": "gymv_columns",
+      "target_domain": "discoveryworld",
+      "target_task_id": "proteomics.easy.seed23",
+      "target_task": {
+        "task_id": "proteomics.easy.seed23",
+        "scenario": "Proteomics",
+        "difficulty": "Easy",
+        "seed": 23
+      },
+      "target_task_multiplicity": 1,
+      "selected_target_previously_executed": false,
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_columns.json",
+      "source_artifact_sha256": "39c5194016c037072aaa4a82137a8d242ceda17ed7ccd72caf16b495784000d0"
+    },
+    {
+      "cell_id": "gymv_streets_of_rage_2__to__discoveryworld",
+      "source_game": "gymv_streets_of_rage_2",
+      "target_domain": "discoveryworld",
+      "target_task_id": "proteomics.easy.seed24",
+      "target_task": {
+        "task_id": "proteomics.easy.seed24",
+        "scenario": "Proteomics",
+        "difficulty": "Easy",
+        "seed": 24
+      },
+      "target_task_multiplicity": 1,
+      "selected_target_previously_executed": false,
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_streets_of_rage_2.json",
+      "source_artifact_sha256": "0811312fd98f697b572a72e5c1d2da4417ec6ec35c9db00e51d8f1bb4d1123d6"
+    },
+    {
+      "cell_id": "gymv_thunder_force_iii__to__discoveryworld",
+      "source_game": "gymv_thunder_force_iii",
+      "target_domain": "discoveryworld",
+      "target_task_id": "proteomics.easy.seed25",
+      "target_task": {
+        "task_id": "proteomics.easy.seed25",
+        "scenario": "Proteomics",
+        "difficulty": "Easy",
+        "seed": 25
+      },
+      "target_task_multiplicity": 1,
+      "selected_target_previously_executed": false,
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_thunder_force_iii.json",
+      "source_artifact_sha256": "78ccd564e5453fa33a2b34eb2edf46263f025ec45eae2c1bbdf3017cc7d695d8"
+    },
+    {
+      "cell_id": "gymv_strider__to__discoveryworld",
+      "source_game": "gymv_strider",
+      "target_domain": "discoveryworld",
+      "target_task_id": "proteomics.easy.seed26",
+      "target_task": {
+        "task_id": "proteomics.easy.seed26",
+        "scenario": "Proteomics",
+        "difficulty": "Easy",
+        "seed": 26
+      },
+      "target_task_multiplicity": 1,
+      "selected_target_previously_executed": false,
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_strider.json",
+      "source_artifact_sha256": "9993c7b0d04d2e090f1b20f89b6c4b90f697a8b36f598869e45141a9b5b00ccf"
+    },
+    {
+      "cell_id": "tetris__to__tirbench",
+      "source_game": "tetris",
+      "target_domain": "tirbench",
+      "target_task_id": "382",
+      "target_task": {
+        "task_id": "382"
+      },
+      "target_task_multiplicity": 1,
+      "selected_target_previously_executed": false,
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/tetris.json",
+      "source_artifact_sha256": "585e5b29303fcbe23e8f8b5414ea389ea6257c96f55fa64897661fe2e2b306e7"
+    },
+    {
+      "cell_id": "candy_crush__to__tirbench",
+      "source_game": "candy_crush",
+      "target_domain": "tirbench",
+      "target_task_id": "674",
+      "target_task": {
+        "task_id": "674"
+      },
+      "target_task_multiplicity": 1,
+      "selected_target_previously_executed": false,
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/candy_crush.json",
+      "source_artifact_sha256": "6f80cf4d4a8f4f5d9964680949bd55938d584165aab939b2f028c22649e2ea4d"
+    },
+    {
+      "cell_id": "gymv_columns__to__tirbench",
+      "source_game": "gymv_columns",
+      "target_domain": "tirbench",
+      "target_task_id": "497",
+      "target_task": {
+        "task_id": "497"
+      },
+      "target_task_multiplicity": 1,
+      "selected_target_previously_executed": false,
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_columns.json",
+      "source_artifact_sha256": "39c5194016c037072aaa4a82137a8d242ceda17ed7ccd72caf16b495784000d0"
+    },
+    {
+      "cell_id": "gymv_streets_of_rage_2__to__tirbench",
+      "source_game": "gymv_streets_of_rage_2",
+      "target_domain": "tirbench",
+      "target_task_id": "979",
+      "target_task": {
+        "task_id": "979"
+      },
+      "target_task_multiplicity": 1,
+      "selected_target_previously_executed": false,
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_streets_of_rage_2.json",
+      "source_artifact_sha256": "0811312fd98f697b572a72e5c1d2da4417ec6ec35c9db00e51d8f1bb4d1123d6"
+    },
+    {
+      "cell_id": "gymv_thunder_force_iii__to__tirbench",
+      "source_game": "gymv_thunder_force_iii",
+      "target_domain": "tirbench",
+      "target_task_id": "488",
+      "target_task": {
+        "task_id": "488"
+      },
+      "target_task_multiplicity": 1,
+      "selected_target_previously_executed": false,
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_thunder_force_iii.json",
+      "source_artifact_sha256": "78ccd564e5453fa33a2b34eb2edf46263f025ec45eae2c1bbdf3017cc7d695d8"
+    },
+    {
+      "cell_id": "gymv_strider__to__tirbench",
+      "source_game": "gymv_strider",
+      "target_domain": "tirbench",
+      "target_task_id": "625",
+      "target_task": {
+        "task_id": "625"
+      },
+      "target_task_multiplicity": 1,
+      "selected_target_previously_executed": false,
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_strider.json",
+      "source_artifact_sha256": "9993c7b0d04d2e090f1b20f89b6c4b90f697a8b36f598869e45141a9b5b00ccf"
+    }
+  ],
+  "conditions": {
+    "webshop": [
+      "raw_target_only",
+      "authentic_search_automaton_plus_target",
+      "event_binding_permuted_control",
+      "ledger_blind_control",
+      "target_native_search_ceiling"
+    ],
+    "alfworld": [
+      "raw_target_only",
+      "authentic_search_automaton_plus_target",
+      "event_binding_permuted_control",
+      "ledger_blind_control",
+      "target_native_search_ceiling"
+    ],
+    "discoveryworld": [
+      "target_native_myopic",
+      "authentic_sokoban_effect_plus_target",
+      "commit_availability_control_plus_target",
+      "inverted_effect_control_plus_target",
+      "position_prior_control_plus_target"
+    ],
+    "tirbench": [
+      "raw_target_only",
+      "authentic_search_automaton_plus_target",
+      "event_binding_permuted_control",
+      "ledger_blind_repeat_first_control",
+      "commit_availability_only_control",
+      "target_native_exhaustive_ceiling"
+    ]
+  },
+  "runtime_file_sha256": {
+    "src/motif_transfer/direct_prospective_matrix_v1.py": "c9aa946fbecf0b86d4aca8455220618a25a3c55d2eea9f937c5b5ff1c8ed2bb7",
+    "scripts/freeze_phase1_direct_prospective_v1.py": "8684c8e5ede56984227352ffdf24c1e506fde8e52c31097641fcba694a539246",
+    "scripts/run_phase1_direct_webshop_v1.py": "9ec17c6772c14de6d4ce67f5aae2631da0086d270bfe3eb53941dc9ede491e1f",
+    "scripts/run_webshop_direct_server_v1.py": "4c6cc5787fcfd32448073ce06de5db4daa9a7feaad995afdd7a775370e18279b",
+    "scripts/run_phase1_direct_alfworld_v1.py": "a48abd33da0ac9d8242b9c97e0cc2f2da0108fd5357b81822e512b21b7928674",
+    "scripts/run_phase1_direct_tirbench_v1.py": "8802ba7f05a098f345c474e4ded0f1f05e7f375432852a280a1e44cd1fe9af43",
+    "scripts/run_phase1_direct_discoveryworld_v1.py": "495d5be6980520b23bb6342b2290730d076ce74a78ba2a1ff045cd26ec31848a",
+    "scripts/audit_phase1_direct_prospective_v1.py": "62bafaf0d96ce66caac1ae508d01c59b603da534e9e523b15c77a3e55ec8915d"
+  },
+  "manifest_sha256": "7a0d600bc3c9c3ec5ff4c7bb2384e5740cbbb5b6aba8918962faa57b5468f5a1"
+}

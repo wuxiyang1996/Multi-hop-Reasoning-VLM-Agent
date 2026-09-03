@@ -1,0 +1,51 @@
+{
+  "accepted_provider_receipts_replayed_from_v15": 111,
+  "controls": {
+    "source_permuted_abstentions": 30,
+    "target_written_equivalent_matches": 30
+  },
+  "development_report_file_sha256": "a1901348188ea7db01b9d9d0e4c2ed30bd652f621e89d9f9cca124bdc2ed445a",
+  "evaluation_protocol_sha256": "0b3f7f3d74496c24818e36a1abcbc0c18965820708a0d8d4851faf58711e4ba4",
+  "grounder_qualified": true,
+  "grounder_sha256": "65df2157fb77997317b68fbdbd7407bf0e1ce028468295c7cdb824d9d9d19906",
+  "metrics": {
+    "consensus_tiebreaks_triggered": 11,
+    "decisive_accuracy": 0.8571428571428571,
+    "decisive_correct": 18,
+    "decisive_coverage": 0.7,
+    "decisive_executions": 21,
+    "direct_correct": 21,
+    "raw_typed_decisive_executions": 26,
+    "rescans_triggered": 30,
+    "route_accuracy": 1.0,
+    "route_correct": 30,
+    "source_typed_overrides": 5,
+    "typed_fallback_correct": 26,
+    "typed_vs_direct_losses": 0,
+    "typed_vs_direct_wins": 5,
+    "unified_harness_correct": 26,
+    "unified_harness_executor_authorizations": 21,
+    "unified_harness_vs_direct_delta": 5,
+    "valid_runtime_rows": 30
+  },
+  "new_provider_calls_during_v16_requalification": 0,
+  "qualification_gates": {
+    "minimum_decisive_accuracy": true,
+    "minimum_decisive_executions": true,
+    "minimum_route_correct": true,
+    "minimum_typed_vs_direct_wins": true,
+    "no_typed_vs_direct_losses": true,
+    "prequalification_harness_abstained": true,
+    "provider_cost_within_cap": true,
+    "required_valid_runtime_rows": true,
+    "runtime_no_answer_program_scene_graph_or_source_identity": true,
+    "source_permuted_wrong_type_abstains": true,
+    "target_written_equivalent_matches": true
+  },
+  "report_sha256": "d110427a14e49a65fcab91d5776ff979974f88460bbbf44a6075420d4ceba50e",
+  "reported_provider_cost_usd": 0.252615428,
+  "runtime_receipt_count": 36,
+  "schema_version": "agqa2-active-grounding-v16-development-summary",
+  "status": "AGQA2_ACTIVE_GROUNDER_V16_DEVELOPMENT_QUALIFIED",
+  "summary_sha256": "4010fa8d322fea566bac6e5ef6ece929c14749e8dcf029d0e5bdb699a8d0f7cf"
+}

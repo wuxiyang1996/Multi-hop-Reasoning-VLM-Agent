@@ -28,7 +28,7 @@ class ToyEnvironment:
 
 
 class ToyPolicy:
-    def choose_action(self, state, *, treatment, decision_index):
+    def choose_action(self, state, *, treatment, decision_index, history):
         return "RIGHT" if treatment == "G_PLUS_S" else "LEFT"
 
 

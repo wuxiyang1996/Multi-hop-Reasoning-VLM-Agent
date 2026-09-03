@@ -1,0 +1,99 @@
+{
+  "schema_version": "alfworld-goal-relation-macro-qualification-config-v8",
+  "status": "FROZEN_CONSUMED_DEVELOPMENT_BEFORE_OUTCOMES",
+  "claim_boundary": "TWO EXECUTION-UNTOUCHED VALID_UNSEEN MULTIPLICITY TASKS PER ROLE; IDENTITIES FROZEN BEFORE COMPILATION; PLANNER COMPILER USED ONLY FOR TEXTWORLD SOLVABILITY AND NEVER EXPOSED TO THE TRANSFER POLICY; MECHANISM REPLICATION, NOT POWERED OOD CLAIM",
+  "source_artifact": "runs/sokoban_goal_relation_macro_v3/artifact.json",
+  "source_artifact_file_sha256": "a0edf3b2f4e095c3e31e1eec45c284aed58d83c8a9b49d0d880cd93027148b1c",
+  "source_confirmation": "runs/sokoban_goal_relation_macro_v3/fresh_confirmation_report.json",
+  "source_confirmation_file_sha256": "c7e8cd6969eea897513e11e4ac20db27ada1f9d06d69b85e2844020d931e9af7",
+  "target_grounder": "runs/procedural_game_alfworld_v1_development/frozen_candidate_artifact.json",
+  "target_grounder_file_sha256": "5f54973b8f46b977a5339bfb608215703a72ecf7a38e626ed36598256f47e81f",
+  "target_causal_effect_artifact": "configs/real_source_relation_causal_candidate_v20.json",
+  "target_causal_effect_file_sha256": "3394f30b07fae7e33f91ae5b656d69aecad2bb1728f7db5dac752e52d8019be7",
+  "runner_file_sha256": "6b8b14b9d6b3009aa5bbd0dc9ea8140af812aa6eb85cc4c5c9f953799b401c0b",
+  "target_runtime_file_sha256": "649b0ac2c904b9f2ad095825dbb667c35ec78a37eacc48e6aec2067db94dbe9b",
+  "parent_consumed_plan": {
+    "path": "configs/strict_subgoal_option_audit_plan_v15.json",
+    "file_sha256": "bcfceec8b5c2407e8ac485ec3db48d6aa3b33c6b8a2d37803a35baa5e6465150",
+    "plan_sha256": "b68a31a6ef5c17b2bcc9720558e40ef9134c3a8873162ca633368a5f953a8838"
+  },
+  "selection": {
+    "authority": "FIRST_THREE_ALREADY_CONSUMED_IDENTITIES_PER_SORTED_STRATUM",
+    "target_outcome_used": false,
+    "strata": {
+      "ArmChair": 3,
+      "Cabinet": 3,
+      "CoffeeTable": 3,
+      "Desk": 3,
+      "Drawer": 3,
+      "Shelf": 3,
+      "Sofa": 3,
+      "Toilet": 3
+    }
+  },
+  "task_ids": [
+    "pick_two_obj_and_place-SoapBar-None-Cabinet-424/trial_T20190909_081814_796540/game.tw-pddl",
+    "pick_two_obj_and_place-ToiletPaper-None-Cabinet-424/trial_T20190906_202903_584090/game.tw-pddl"
+  ],
+  "conditions": [
+    "raw_target_only",
+    "authentic_source_goal_relation_macro",
+    "source_cardinality_exactly_one_control",
+    "source_effect_binding_permuted_control",
+    "generic_single_relation_scaffold",
+    "target_native_recurrent_relation_ceiling"
+  ],
+  "alfworld_config": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-source-fresh-v1/configs/alfworld_base_config.yaml",
+  "alfworld_data": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/alfworld_goal_relation_macro_v8_planner_compiler_crosscheck/alfworld_data",
+  "seed": 618907,
+  "max_steps": 60,
+  "thresholds": {
+    "minimum_binding": 0.5,
+    "minimum_realization": 0.1,
+    "minimum_binding_margin": 0.0,
+    "minimum_causal_effect": 0.5,
+    "authority": "BINDING_AND_REALIZATION_INHERITED_FROM_FROZEN_V8; CAUSAL_EFFECT_0P5_FROM_DISJOINT_V20_TARGET_CALIBRATION_GATE"
+  },
+  "gates": {
+    "minimum_second_cycle_action_changes": 1,
+    "require_success_gain_over_raw": true,
+    "require_strict_source_control_superiority": true,
+    "require_zero_negative_transfer": true,
+    "require_zero_reopened_completed_slots": true
+  },
+  "output": "runs/alfworld_goal_relation_macro_v8_qualification/report.json",
+  "untouched_reserve_read_or_run": false,
+  "valid_unseen_read_or_run": false,
+  "experiment_version": "PLANNER_COMPILED_VALID_UNSEEN_FAIL_CLOSED_V8",
+  "v3_failed_report": "runs/alfworld_goal_relation_macro_v3_development/report.json",
+  "v3_failed_report_file_sha256": "fbb386dfcf220b591470f1a0e71daf31b9ad534f7cf1f88be0108fd9ebe69ef8",
+  "v4_runner_file_sha256": "ce7b7e9edf7e26e09f92bb199fe1bf8bad4384f582224c9c761276c74d7ed46b",
+  "v4_target_runtime_file_sha256": "ea3169904898c38f68ad4a1ca9c97154c7e2ee3280c58fee58c6114bc56c81e4",
+  "v4_failed_report": "runs/alfworld_goal_relation_macro_v4_development/report.json",
+  "v4_failed_report_file_sha256": "2d4ea46b38e6889eed5cf4778c40ef0498b634020318bca2f717e83611f86707",
+  "v5_runner_file_sha256": "4e9f5fd4ac6c1c41c8e9253b262263fff480fbd3bf2c37384d394c18bf30e16a",
+  "v5_target_runtime_file_sha256": "b83471230573bd52a5d8857b9d5df35c18089233648250a9f6cf9f6e36d4ce83",
+  "v8_protocol_status": "FROZEN_BEFORE_ANY_V8_POLICY_RESET",
+  "role": "qualification",
+  "historical_identity_audit_sha256": "9197d62c8a2aed812549603aeac43dfa9225aa6177f2609f13a385154a694d69",
+  "v7_selection_sha256": "1c5a3bbdd0b50fa64a4a9ac4d1bb7c62a9481ac6e4d1681dee49ec1c194337d8",
+  "alfworld_split": "eval_out_of_distribution",
+  "v6_runner_file_sha256": "934910e33afbd7a8c88200a4413237fbbaefa71ab7970b0c6e5382d59829a89d",
+  "generated_game_file_sha256": {
+    "pick_two_obj_and_place-SoapBar-None-Cabinet-424/trial_T20190909_081814_796540/game.tw-pddl": "3f5aee6085d375ab60e5f9575541e5a2bcca5cd8d9b58938a1d5faf7db52c9a5",
+    "pick_two_obj_and_place-ToiletPaper-None-Cabinet-424/trial_T20190906_202903_584090/game.tw-pddl": "9dac0f3437a9f8d532eb542ca9f5e8b5c365289daad597c10dc4daf7cebc3570"
+  },
+  "planner_compiler_audit": {
+    "pick_two_obj_and_place-SoapBar-None-Cabinet-424/trial_T20190909_081814_796540/game.tw-pddl": {
+      "solvable": true,
+      "walkthrough_length": 9
+    },
+    "pick_two_obj_and_place-ToiletPaper-None-Cabinet-424/trial_T20190906_202903_584090/game.tw-pddl": {
+      "solvable": true,
+      "walkthrough_length": 0
+    }
+  },
+  "compiler_solvability_used_for_selection": false,
+  "compiler_walkthrough_exposed_to_policy": false,
+  "config_sha256": "2a022a183806434877a81a1c1c480ef9bea965385885fde756966aa05cf2790b"
+}

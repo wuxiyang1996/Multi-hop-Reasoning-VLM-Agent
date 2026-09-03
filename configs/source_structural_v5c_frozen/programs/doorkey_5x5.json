@@ -1,0 +1,128 @@
+{
+  "abstention_rule": {
+    "missing_target_delta_prediction": "ABSTAIN",
+    "nonunique_target_operator_binding": "ABSTAIN",
+    "observed_delta_mismatch": "ABSTAIN",
+    "source_not_qualified": "ABSTAIN"
+  },
+  "forbidden_named_policy_tokens": [
+    "EXPLORE_UNTRIED",
+    "BACKTRACK_REPLAN",
+    "COMMIT_VERIFY"
+  ],
+  "induced_sequence": [
+    "ATYPE_3c9d9c20ed4abeb6",
+    "ATYPE_18eeebf1cd0ef26f"
+  ],
+  "induction_authority": "SOURCE_STATE_ACTION_NEXT_STATE_DELTAS_ONLY;NO_TASK_OR_ACTION_IDENTITY_FEATURE;NO_TARGET_DATA",
+  "operators": [
+    {
+      "learned_guards": [
+        {
+          "feature": "carrier_cardinality",
+          "operator": "EQ",
+          "value": 0
+        },
+        {
+          "feature": "entity_cardinality",
+          "operator": "EQ",
+          "value": 2
+        },
+        {
+          "feature": "mutable_false_cardinality",
+          "operator": "EQ",
+          "value": 1
+        },
+        {
+          "feature": "mutable_true_cardinality",
+          "operator": "EQ",
+          "value": 1
+        }
+      ],
+      "operator_id": "OP_9324b44ac919e018",
+      "operator_type_descriptor": {
+        "arity": 1,
+        "operation": "ADD",
+        "operator_type_id": "ATYPE_3c9d9c20ed4abeb6",
+        "predicate_family": "ENTITY_SLOT",
+        "schema_version": "anonymous-structural-operator-type-v1",
+        "value_kind": "ENTITY_REFERENCE"
+      },
+      "operator_type_id": "ATYPE_3c9d9c20ed4abeb6",
+      "position": 0,
+      "target_binding": "TARGET_NATIVE_NEURAL_DELTA_GROUNDER"
+    },
+    {
+      "learned_guards": [
+        {
+          "feature": "carrier_cardinality",
+          "operator": "EQ",
+          "value": 1
+        },
+        {
+          "feature": "entity_cardinality",
+          "operator": "EQ",
+          "value": 1
+        },
+        {
+          "feature": "mutable_false_cardinality",
+          "operator": "EQ",
+          "value": 1
+        },
+        {
+          "feature": "mutable_true_cardinality",
+          "operator": "EQ",
+          "value": 1
+        },
+        {
+          "feature": "relation_cardinality",
+          "operator": "EQ",
+          "value": 0
+        }
+      ],
+      "operator_id": "OP_082dfa21a755a4b3",
+      "operator_type_descriptor": {
+        "arity": 1,
+        "operation": "UPDATE",
+        "operator_type_id": "ATYPE_18eeebf1cd0ef26f",
+        "predicate_family": "ENTITY_ATTRIBUTE",
+        "schema_version": "anonymous-structural-operator-type-v1",
+        "value_kind": "BOOLEAN_VECTOR"
+      },
+      "operator_type_id": "ATYPE_18eeebf1cd0ef26f",
+      "position": 1,
+      "target_binding": "TARGET_NATIVE_NEURAL_DELTA_GROUNDER"
+    }
+  ],
+  "program_sha256": "1bb9972d1d55d18f53d336b5a021c73033a92e42d557f33b5eeb9e78a446a288",
+  "qualification_gates": {
+    "minimum_discovery_success_paths": true,
+    "nonempty_induced_operator_sequence": true,
+    "qualification_success_support": true
+  },
+  "qualification_metrics": {
+    "control_paths": 4,
+    "control_support": 1.0,
+    "control_support_authority": "DIAGNOSTIC_ONLY;A_NECESSARY_SUBGOAL_PROGRAM_MAY_APPEAR_IN_AN_UNFINISHED_CONTROL_PATH",
+    "success_paths": 2,
+    "success_support": 1.0
+  },
+  "schema_version": "source-induced-structural-program-v1",
+  "source_action_identity_exported": false,
+  "source_receipts_sha256": "5db3c43124e6879900f5c3970153d366d63cec882156f3b6a5507b116abd09ba",
+  "source_task_identity_used_as_feature": false,
+  "status": "SOURCE_STRUCTURAL_PROGRAM_QUALIFIED",
+  "target_data_read": false,
+  "transition_graph": [
+    {
+      "from": "OP_9324b44ac919e018",
+      "guard": "OBSERVED_MATCHING_STRUCTURAL_DELTA",
+      "to": "OP_082dfa21a755a4b3"
+    },
+    {
+      "from": "OP_082dfa21a755a4b3",
+      "guard": "OBSERVED_MATCHING_STRUCTURAL_DELTA",
+      "to": "TERMINAL_OUTCOME_CHECK"
+    }
+  ]
+}

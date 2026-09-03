@@ -1,0 +1,63 @@
+{
+  "base_evaluation_protocol_sha256": "df07fea6146a0d5add868771a03b5c33337ea5d04299d4d37e93139764bbadc7",
+  "base_mechanism_gates": {
+    "maximum_reported_provider_cost_usd": 1.2,
+    "maximum_typed_vs_direct_losses": 2,
+    "minimum_decisive_accuracy": 0.75,
+    "minimum_decisive_executions": 60,
+    "minimum_route_correct": 120,
+    "minimum_typed_vs_direct_wins": 10,
+    "required_source_permuted_abstentions": 120,
+    "required_target_written_equivalent_matches": 120,
+    "required_valid_runtime_rows": 120
+  },
+  "claim_boundary": "QUALIFIED_BOUNDED_V28_QUERY_OBJECT_GROUNDER;PREREGISTERED_TARGET_ONLY_TWO_ONTOLOGY_COMPARATOR;120_NEW_VIDEO_DISJOINT_TEST_ROWS_EXCLUDING_V26_V27;ONE_POWERED_OUTCOME_BLIND_CONFIRMATION",
+  "development_qualification_summary": "docs/results/agqa2_query_object_v28_development_summary.json",
+  "development_qualification_summary_file_sha256": "27f7a38af60bf36da025e304f899b0465b3c73a055308532c1b6fe8423e354e3",
+  "download_receipt_file_sha256": "98efe8a13a4dfac588265065f490510ae577e937de9e5f27c2a11d299402ca83",
+  "failure_policy": "RUN_FIXED_120_ROWS_ONCE;REPORT_FAILURE_IF_ANY_PRIMARY_GATE_FAILS;NO_POST_RESERVE_TUNING_OR_ADDITIONAL_FRESH_SEED",
+  "grounder_changed_after_v28_development": false,
+  "multiplicity_policy": "ONE_PRIMARY_PAIRED_ENDPOINT;NO_GATE_SELECTION",
+  "qualified_grounder_sha256": "19ff586a6f28da233b89401775a266f27174f06fe753f3ebdb7fa267fbf8eb42",
+  "sample_size_rationale": {
+    "fixed_total_rows": 120,
+    "pilot_source_win_rate": 0.06666666666666667,
+    "pilot_v25_rows": 30,
+    "pilot_v25_source_only_wins": 2,
+    "probability_of_at_least_five_wins_under_pilot_rate": 0.9080955832861938,
+    "rows_per_relation_group": 40
+  },
+  "schema_version": "agqa2-query-object-reserve-preregistration-v28",
+  "sealed_manifest_sha256": "4c3eda3847e11f33aeda9a547b761ba7314e5341e778bbae5657346ef84a2c7f",
+  "selection_manifest_sha256": "84869a2cd79a189449e2674bab02771ed0035607397d1a3ad5e408f5625af505",
+  "source_specific_evaluation": {
+    "collector": "scripts/collect_agqa2_query_object_v26.py",
+    "collector_sha256": "f50fcc1c59140f79d3a86e5a54686e62f9c50e4b03f4c133351ee14b77e4c9ff",
+    "direct_response_is_fallback_not_vote": true,
+    "gold_answer_read_during_prediction": false,
+    "minimum_ontology_confidences": [
+      0.8,
+      0.8
+    ],
+    "module": "src/motif_transfer/agqa_query_object_source_specific.py",
+    "module_sha256": "9d8fc19496138d4dc8c0843726f453759f4929c8f518cf16b4888fd61b17f6ed",
+    "policy": "TARGET_ONLY_TWO_ONTOLOGY_AGREEMENT_ELSE_MATCHED_DIRECT_V1",
+    "primary_endpoint": "ONE_SIDED_EXACT_PAIRED_SIGN_TEST_ON_SOURCE_VS_TARGET_ONLY_DISCORDANT_CORRECTNESS",
+    "qualification_gates": {
+      "maximum_exact_one_sided_pvalue": 0.05,
+      "maximum_source_vs_target_only_losses": 2,
+      "minimum_source_minus_target_only_correct": 5,
+      "minimum_source_vs_target_only_wins": 5,
+      "minimum_target_only_decisive": 36,
+      "required_valid_paired_rows": 120
+    },
+    "source_view_read": false
+  },
+  "source_specific_evaluation_protocol_sha256": "390c6410e1c67ab671ddd52d4391dea3c15266c136af20170620ebce67262c50",
+  "source_specific_gates_changed_after_v26_freeze": false,
+  "status": "FROZEN_BEFORE_ANY_V28_RESERVE_CALL",
+  "v26_abort_sha256": "bf9467234dfda7824dd4449ed4ce99b2e95162d1e969439d4ba4bedcda1e5992",
+  "v26_v27_formal_outcomes_inspected": false,
+  "v26_v27_video_ids_excluded": true,
+  "v27_abort_sha256": "2b6ba5c8e34ea16adaeacf37b96a641fccd4766c738c68d1aa48d266c40b248b"
+}

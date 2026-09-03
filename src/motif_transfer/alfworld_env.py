@@ -129,3 +129,88 @@ class ALFWorldTextEnvironment:
         close = getattr(self.env, "close", None)
         if callable(close):
             close()
+
+
+class ALFWorldTextBatchEnvironment(ALFWorldTextEnvironment):
+    """One factory scan with a frozen, ordered subset of game IDs."""
+
+    def __init__(
+        self,
+        *,
+        config_path: str,
+        data_path: str,
+        game_ids: list[str] | tuple[str, ...],
+        split: str = "train",
+        seed: int = 47,
+        max_steps: int = 30,
+        expose_expert_plan: bool = False,
+    ) -> None:
+        import yaml
+        from alfworld.agents.environment import get_environment
+
+        if not game_ids:
+            raise ValueError("game_ids must not be empty")
+        os.environ["ALFWORLD_DATA"] = str(Path(data_path).resolve())
+        with Path(config_path).open(encoding="utf-8") as handle:
+            config = yaml.safe_load(handle) or {}
+        config.setdefault("env", {})["type"] = "AlfredTWEnv"
+        config.setdefault("general", {})["random_seed"] = int(seed)
+        config.setdefault("dagger", {}).setdefault("training", {})[
+            "max_nb_steps_per_episode"
+        ] = int(max_steps)
+        if split == "train":
+            dataset_root = os.path.expandvars(config["dataset"]["data_path"])
+        elif split == "eval_in_distribution":
+            dataset_root = os.path.expandvars(config["dataset"]["eval_id_data_path"])
+        elif split == "eval_out_of_distribution":
+            dataset_root = os.path.expandvars(config["dataset"]["eval_ood_data_path"])
+        else:
+            raise ValueError(f"unsupported ALFWorld split: {split}")
+        selected = [
+            str((Path(dataset_root) / str(game_id)).resolve()) for game_id in game_ids
+        ]
+        missing = [path for path in selected if not Path(path).is_file()]
+        if missing:
+            raise FileNotFoundError(f"frozen ALFWorld game files missing: {missing}")
+        factory_class = get_environment("AlfredTWEnv")
+        factory = factory_class.__new__(factory_class)
+        factory.config = config
+        # The official ALFWorld wrapper only requests the hand-coded plan when
+        # train_eval == "train".  A target-native ceiling may request that
+        # evaluator-only field while still executing the exact frozen eval
+        # game files selected above.  This flag does not alter those files.
+        factory.train_eval = "train" if expose_expert_plan else split
+        factory.game_files = selected
+        factory.num_games = len(selected)
+        self.resolved_game_files = tuple(map(str, selected))
+        self.resolved_game_indices = tuple([-1] * len(selected))
+        self.resolved_game_index = -1
+        self.resolved_game_file = str(selected[0])
+        self.env = factory.init_env(batch_size=1)
+        if not callable(getattr(self.env, "seed", None)):
+            raise RuntimeError("ALFWorld environment does not expose deterministic seeding")
+        self.env.seed(int(seed))
+        self.max_steps = int(max_steps)
+        self.step_count = 0
+        self.goal = ""
+        self.last_info = {}
+        self._episode_index = -1
+
+    def reset(self) -> Observation:
+        self._episode_index += 1
+        if self._episode_index >= len(self.resolved_game_files):
+            raise RuntimeError("frozen ALFWorld batch is exhausted")
+        self.resolved_game_index = -1
+        self.step_count = 0
+        self.goal = ""
+        raw, info = self.env.reset()
+        actual_game_file = str(_first((info or {}).get("extra.gamefile")) or "")
+        if not actual_game_file:
+            raise RuntimeError("ALFWorld batch reset did not expose extra.gamefile")
+        actual_path = str(Path(actual_game_file).resolve())
+        if actual_path not in self.resolved_game_files:
+            raise RuntimeError(
+                f"ALFWorld reset escaped frozen game set: {actual_path}"
+            )
+        self.resolved_game_file = actual_path
+        return self._observation(raw, info or {}, terminal=False, score=0.0)

@@ -1,0 +1,88 @@
+{
+  "schema_version": "discoveryworld-sokoban-spatial-realization-adaptation-protocol-v21",
+  "status": "CONSUMED_ADAPTATION_PROTOCOL",
+  "evaluation_stage": "ADAPTATION",
+  "claim_boundary": "Post-V20 matched diagnostic on the same consumed Easy seeds2-4 and frozen first-commit forks. It changes only the shared target-native realization of neural POSITION choices after a successful target-bound teleport: exact public UI relations compile to a cardinal move only when worst-case relation error strictly decreases. It tests whether V20's Proteomics seed4 failure was a target realization defect. It is not formal transfer evidence and cannot authorize opening Normal-difficulty reserves.",
+  "target_baseline_config": "configs/discoveryworld_target_only_v19_extended_consumed_adaptation.json",
+  "task_ids": [
+    "space_sick.easy.seed2",
+    "proteomics.easy.seed2",
+    "space_sick.easy.seed3",
+    "proteomics.easy.seed3",
+    "space_sick.easy.seed4",
+    "proteomics.easy.seed4"
+  ],
+  "fork_rule": {
+    "name": "FIRST_PREDECLARED_NATIVE_COMMIT_PROPOSAL",
+    "allowed_commit_actions": ["DROP", "PUT"],
+    "reads_action_success": false,
+    "reads_terminal_outcome": false,
+    "reads_evaluation_or_scorecard": false,
+    "minimum_fork_after_episode_step": 1
+  },
+  "recovery_horizon": 8,
+  "conditions": [
+    "target_native_myopic",
+    "authentic_sokoban_effect_plus_target",
+    "commit_availability_control_plus_target",
+    "inverted_effect_control_plus_target",
+    "position_prior_control_plus_target"
+  ],
+  "source_contract": {
+    "compact_receipt": "docs/results/sokoban_effect_program_v2_compact_receipt.json",
+    "source_program_sha256": "6b02dc1d7271bbd435e90539cedd7d56d04fcc1ad03798dd6dd06146d67f1fcd",
+    "source_confirmation_sha256": "d64606c916ce6e812ae1b920771d5175cb48983a2f141b2dab6f43d491a6c1ed",
+    "require_source_gate_passed": true,
+    "transferred_structure": "DIRECT_PROGRESS_AVAILABLE_OR_ASSIGNMENT_IMPROVEMENT_AVAILABLE_THEN_COMMIT_AND_VERIFY_ELSE_POSITION_AND_RECOMPUTE"
+  },
+  "target_native_spatial_realizer": {
+    "enabled": true,
+    "schema_version": "discoveryworld-local-spatial-realization-v1",
+    "activation": "AFTER_SUCCESSFUL_TARGET_BOUND_TELEPORT",
+    "objective": "STRICT_WORST_CASE_RELATION_ERROR_REDUCTION_OVER_UI_COMPATIBLE_VECTORS",
+    "may_select_commit": false,
+    "shared_across_all_conditions": true
+  },
+  "neural_cache_seed_by_task": {
+    "space_sick.easy.seed2": {
+      "path": "runs/discoveryworld_v20_extended_adaptation/space_sick.easy.seed2/grounder_cache_2429f157faff.json",
+      "sha256": "4080697ba76a592cfaf5db40bbf15f52b3a4ab305ffd29b57f2f1f073ec93331"
+    },
+    "proteomics.easy.seed2": {
+      "path": "runs/discoveryworld_v20_extended_adaptation/proteomics.easy.seed2/grounder_cache_dbe74f907c2b.json",
+      "sha256": "48d3d26050163ac611302d79b1b3981f403340167628b55c4328e886e710a214"
+    },
+    "proteomics.easy.seed3": {
+      "path": "runs/discoveryworld_v20_extended_adaptation/proteomics.easy.seed3/grounder_cache_a0f24c02fc4f.json",
+      "sha256": "a8b1d9865dfbe30cace47898c9232643366df27f27985374837899e4fb789546"
+    },
+    "proteomics.easy.seed4": {
+      "path": "runs/discoveryworld_v20_extended_adaptation/proteomics.easy.seed4/grounder_cache_3c18a3700040.json",
+      "sha256": "2e3d886862656bf37c5495b28b1e538c9a74329d6985196dae40d28c9600bfae"
+    }
+  },
+  "selector": {
+    "prerequisite_threshold": 0.9,
+    "positive_effect_threshold": 0.65
+  },
+  "model": {
+    "provider": "openrouter",
+    "base_url": "https://openrouter.ai/api/v1",
+    "model": "qwen/qwen3.5-35b-a3b",
+    "api_key_name": "OPENROUTER_API_KEY",
+    "temperature": 0,
+    "maximum_output_tokens": 1600,
+    "hidden_reasoning_effort": "none",
+    "schema_attempts": 4
+  },
+  "diagnostic_gates": {
+    "minimum_eligible_forks": 4,
+    "zero_runtime_or_receipt_failures": true,
+    "zero_authentic_negative_transfer_vs_target_native": true,
+    "authentic_successes_strictly_greater_than_target_native": true,
+    "authentic_successes_strictly_greater_than_commit_availability_control": true,
+    "authentic_successes_strictly_greater_than_position_prior_control": true,
+    "all_policy_and_audit_forks_matched": true
+  },
+  "normal_seed_reserve_remains_unopened": true
+}

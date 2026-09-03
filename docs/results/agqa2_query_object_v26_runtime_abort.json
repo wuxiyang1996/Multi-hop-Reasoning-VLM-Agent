@@ -1,0 +1,50 @@
+{
+  "abort_sha256": "bf9467234dfda7824dd4449ed4ce99b2e95162d1e969439d4ba4bedcda1e5992",
+  "accepted_provider_calls": 673,
+  "accepted_reported_provider_cost_usd": 1.03613542,
+  "completed_runtime_receipts": 119,
+  "config_file_sha256": "76f749ca0dee2c3408639664dea3b126d90006629a6eb161f15f8fb61a190356",
+  "formal_gold_evaluation_started": false,
+  "formal_report_created": false,
+  "grounder_sha256": "2a84c1c9f170206bd216e171072c70d8faf73bd6d7c89d562fff808bf7141a3e",
+  "official_answers_inspected_for_repair": false,
+  "post_abort_gold_blind_diagnostic": {
+    "completion_tokens": 300,
+    "configured_max_ontology_tokens": 300,
+    "diagnostic_not_used_as_formal_receipt": true,
+    "finish_reason": "length",
+    "model": "google/gemini-2.5-flash-lite",
+    "prompt_tokens": 2348,
+    "reasoning_tokens_observed": false,
+    "refusal": false,
+    "relation": "above",
+    "reported_cost_usd": 0.00020027,
+    "task_id": "QMIKJ-29239"
+  },
+  "repair_policy": "INCREASE_PRIMARY_ONTOLOGY_MAX_TOKENS_300_TO_500;REQUALIFY_ON_DEVELOPMENT;REPLAY_THE_EXACT_OUTCOME_BLIND_V26_POOL_WITH_IDENTICAL_SOURCE_SPECIFIC_GATES;DO_NOT_SELECT_A_NEW_SEED",
+  "required_runtime_receipts": 120,
+  "retry_history": {
+    "GL2JW-1948": {
+      "eventually_completed": true,
+      "initial_error": "JSONDecodeError: truncated JSON object",
+      "same_protocol_resume_attempts": 1
+    },
+    "HLB3J-14232": {
+      "eventually_completed": true,
+      "initial_error": "ValueError: provider response omitted a JSON object",
+      "same_protocol_resume_attempts": 1
+    },
+    "QMIKJ-29239": {
+      "eventually_completed": false,
+      "initial_error": "ValueError: provider response omitted a JSON object",
+      "same_protocol_resume_attempts": 2
+    }
+  },
+  "schema_version": "agqa2-query-object-v26-runtime-abort-v1",
+  "selection_manifest_sha256": "606302a1bb72e4b3495c37f41060d20e667723de5fb5e4c830441563e2a294d1",
+  "stage": "TARGET_NATIVE_ONTOLOGY_PROVIDER_JSON_DECODE",
+  "status": "V26_RUNTIME_INCOMPLETE_BEFORE_FORMAL_EVALUATION",
+  "terminal_worker_errors": {
+    "QMIKJ-29239": "ValueError: provider response omitted a JSON object"
+  }
+}

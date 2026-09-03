@@ -1,0 +1,56 @@
+{
+  "schema_version": 30,
+  "status": "POST_V29_CANDIDATE_ISOLATED_DEVELOPMENT_ONLY",
+  "claim_boundary": "Source-free repair on the same already-consumed 12-sample V29 development set. Every neural call sees the public question, exactly one candidate claim without its slot, and full chronological proxy frames. Candidate-slot binding and gold access occur only after inference. A conservative symbolic guard changes an MCQ baseline only for exactly one fully supported candidate with every competitor refuted; UNKNOWN falls back. This may qualify a mechanism for fresh confirmation but is not confirmation evidence.",
+  "manifest": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/configs/three_video_grounding_qualification_v28_manifest.json",
+  "baseline_v29_receipts": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/three_video_grounding_qualification_v29_candidate_blind_development/receipts.json",
+  "baseline_v29_receipts_sha256": "63c4dbb3eff12ded5b0907a86b794d477f03d9d1978d0acfdfd2c23dbe84d8a4",
+  "wrapper_root": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent",
+  "benchmarks": {
+    "clevrer": {
+      "root": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent/data/CLEVRER",
+      "annotation_split": "validation"
+    },
+    "star": {
+      "root": "/fs/gamma-projects/vlm-robot/datasets/STAR-official",
+      "annotation_split": "val"
+    },
+    "nextqa": {
+      "root": "/fs/gamma-projects/vlm-robot/datasets/NExT-QA-official",
+      "annotation_split": "val"
+    }
+  },
+  "model": {
+    "provider": "openrouter",
+    "api_key_name": "OPENROUTER_API_KEY",
+    "id": "google/gemini-3.1-pro-preview",
+    "base_url": "https://openrouter.ai/api/v1",
+    "timeout_seconds": 180,
+    "max_retries": 2,
+    "schema_retries": 3,
+    "max_claim_tokens": 1800,
+    "temperature": 0
+  },
+  "media": {
+    "proxy_frame_count": 48,
+    "proxy_frame_max_side": 512,
+    "scout_frames_per_panel": 8,
+    "scout_frame_width": 224,
+    "jpeg_quality": 86
+  },
+  "grounding": {
+    "kind": "CANDIDATE_ISOLATED_TYPED_CLAIM_V1",
+    "checks": [
+      "ENTITY_BINDING",
+      "PRECONDITION",
+      "POSTCONDITION",
+      "DIRECTIONAL_OR_CAUSAL_LINK",
+      "CLAIM_ENTAILMENT"
+    ],
+    "maximum_evidence_frames_per_check": 3,
+    "candidate_slot_visible_to_model": false,
+    "competing_candidates_visible_to_model": false,
+    "mcq_recovery_rule": "UNIQUE_FULLY_SUPPORTED_AND_ALL_COMPETITORS_REFUTED",
+    "binary_vector_unknown_rule": "FALLBACK_TO_BASELINE_BIT"
+  }
+}

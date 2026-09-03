@@ -1,0 +1,28 @@
+{
+  "schema_version": "discoveryworld-proteomics-normal-v24-development",
+  "status": "CONSUMED_DEVELOPMENT_TARGET_ACQUISITION",
+  "claim_boundary": "Source-blind target-native acquisition development for Proteomics Normal. It tests whether an exhaustive symbolic survey over public UI facts reaches the native flag DROP interface; it is not target-transfer evidence and cannot authorize a formal claim without a separate fresh qualification.",
+  "official_environment_commit": "fd591323920be0d3786ef350955de1945aa571e5",
+  "tasks": [
+    {"scenario": "Proteomics", "difficulty": "Normal", "seed": 2},
+    {"scenario": "Proteomics", "difficulty": "Normal", "seed": 0}
+  ],
+  "runtime": {
+    "maximum_steps": 48,
+    "include_vision": false
+  },
+  "model": {
+    "provider": "target-native-symbolic-survey",
+    "base_url": "https://openrouter.ai/api/v1",
+    "api_key_name": "OPENROUTER_API_KEY",
+    "model": "deterministic-proteomics-survey-v1",
+    "temperature": 0,
+    "maximum_output_tokens": 800,
+    "schema_attempts": 3
+  },
+  "acquisition_gate": {
+    "minimum_commit_coverage": 2,
+    "scorecard_visible_to_policy": false,
+    "source_program_visible_to_policy": false
+  }
+}

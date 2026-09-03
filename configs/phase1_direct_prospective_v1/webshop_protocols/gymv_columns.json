@@ -1,0 +1,26 @@
+{
+  "status": "FROZEN_BEFORE_FORMAL_EXECUTION",
+  "tasks": [
+    "webshop.8"
+  ],
+  "conditions": [
+    "raw_target_only",
+    "authentic_search_automaton_plus_target",
+    "event_binding_permuted_control",
+    "ledger_blind_control",
+    "target_native_search_ceiling"
+  ],
+  "qualification_report_file_sha256": "457d97082c88bf81b9629540ed95c38062422586260946b0c067a308f610fef6",
+  "source_artifact_file_sha256": "0a47aa22c60266226132e667dbfaf16c03382ca03fd730d95afc751be878255e",
+  "target_grounder_file_sha256": "bbf8a22ebec8e7ab6d55e570f230ba4fcb2b8630d1dc81bd24ba103f68701782",
+  "goal_manifest_file_sha256": "07efe9b822c5ad1b5420fc2ce3ba67f51eb049b3fbd4c5c37320ee904ad4f411",
+  "controller_file_sha256": "478994c5da56ee783e59823a79f026dfa2f7185d0f733a835bfe11e5cdd46c38",
+  "coverage_controller_file_sha256": "56d28e46d073a0563d3e13884c7ad1dc70491259af61bdea24329b41d97580fe",
+  "runner_file_sha256": "b21567e4b02937d84283eb3b0d821443507f048ff945aa29fd9f3294541768ed",
+  "model": "qwen/qwen3.5-35b-a3b",
+  "maximum_output_tokens": 3200,
+  "maximum_steps": 12,
+  "source_game": "gymv_columns",
+  "target_goal_sha256": "33154169d075758f0d94de1f196121057622ec071345e07120791daad1364b5f",
+  "selected_target_previously_executed": false
+}

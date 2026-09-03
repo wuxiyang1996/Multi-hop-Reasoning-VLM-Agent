@@ -1,0 +1,62 @@
+{
+  "schema_version": "oracle-free-target-policy-plan-v17",
+  "status": "FROZEN_BEFORE_ORACLE_FREE_POLICY_TRAINING",
+  "claim_boundary": "REUSES_ONLY_CONSUMED_TARGET_ADAPTATION_EXPERT_RECEIPTS; TARGET_POLICY_INPUTS_ARE_NATIVE_ACTION_OPTION, GOAL_ACTION_AND_OBSERVATION_ACTION_LEXICAL_INTERACTIONS, EXACT_ACTION_HISTORY, AND STEP; REQUIRED_OPTION, WORKFLOW_PHASE, HELD_OR_TRANSFORMED_STATUS, COMPLETION, REWARD, AND OFFICIAL_SUCCESS ARE FORBIDDEN; NO QUALIFICATION, CONFIRMATION, OR VALID_UNSEEN DATA MAY BE READ; THIS GATE ALONE DOES_NOT_ESTABLISH_TRANSFER",
+  "target_adaptation": {
+    "receipts": {
+      "path": "runs/multisource_alfworld_neurosymbolic_v2/adaptation_expert_receipts.json",
+      "file_sha256": "af62e7fb0754a084372b7834707528b9e91ab31f304a8d37d93e3935e8a936c1"
+    },
+    "partitions": {
+      "train": "adaptation_train",
+      "validation": "adaptation_validation"
+    },
+    "task_identity_overlap_allowed": false,
+    "qualification_or_heldout_read_allowed": false
+  },
+  "model": {
+    "kind": "target-native-oracle-free-policy-mlp-v17",
+    "feature_bins": 192,
+    "hidden_units": 48,
+    "maximum_iterations": 800,
+    "maximum_transitions_per_episode": 48,
+    "negative_candidates_per_positive": 5,
+    "seed": 971701,
+    "training_label": "expert_action_identity_only",
+    "within_state_permuted_expert_control": true
+  },
+  "bootstrap": {
+    "unit": "adaptation_validation_task",
+    "samples": 5000,
+    "lower_tail_alpha": 0.05,
+    "seed": 971702
+  },
+  "gates": {
+    "minimum_validation_episodes": 8,
+    "minimum_authentic_pairwise_auc": 0.7,
+    "top1_minus_random_cluster_bootstrap_lower_bound_must_exceed": 0.0,
+    "authentic_minus_permuted_control_cluster_bootstrap_lower_bound_must_exceed": 0.0
+  },
+  "forbidden_semantic_inputs": [
+    "required_option",
+    "workflow_progress",
+    "held_object",
+    "transformed_object",
+    "completion_label",
+    "reward",
+    "official_success"
+  ],
+  "implementation": {
+    "feature_module": {
+      "path": "src/motif_transfer/oracle_free_target_grounder.py",
+      "file_sha256": "faaa812091347e007f5ae487d526538984404139b37195fdd23ee35d72b3cf18"
+    },
+    "trainer": {
+      "path": "scripts/train_oracle_free_target_policy_v17.py",
+      "file_sha256": "698754c9ce419f4804dc1291743403aec182d67043540c0b560de4dd32f8a08f"
+    }
+  },
+  "target_shadow_or_outcome_authorized_by_this_config": false,
+  "confirmation_read": false,
+  "existing_valid_unseen_heldout_read": false
+}

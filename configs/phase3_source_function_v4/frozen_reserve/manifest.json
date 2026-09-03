@@ -1,0 +1,176 @@
+{
+  "claim_boundary": "PROSPECTIVE_SOURCE_ONLY_VALIDATION_OF_DOMAIN_SPECIFIC_FUNCTION_BODY_HORIZON_RETRY_GRAPH_AND_ABSTENTION;NO_TARGET_CLAIM",
+  "fresh_seed_count": 144,
+  "manifest_sha256": "723f25be198631db7edd329bd7970d7c3152e3d52728970e448b3c45b1ba5690",
+  "prefreeze_gates": {
+    "all_fourth_reserve_seeds_new": true,
+    "at_least_three_qualified_source_functions": true,
+    "exact_six_source_lineages": true,
+    "legacy_canonical_attempt_program_disabled": true,
+    "no_target_data_read_for_freeze": true,
+    "qualified_and_abstaining_functions_present": true,
+    "qualified_program_bodies_are_content_distinct": true,
+    "qualified_retry_and_no_retry_graphs_present": true
+  },
+  "reserve_protocol": {
+    "controls": [
+      "FULL_TYPED_EFFECT_VECTOR_BINDING_SHUFFLE_V1",
+      "QUALIFICATION_STATUS_MATCHED_SOURCE_FUNCTION_DERANGEMENT_V1"
+    ],
+    "failure_policy": "FAIL_CLOSED_NO_REPLACEMENT_SEED",
+    "heldout_split_only_for_confirmation": true,
+    "matched_repeats": 2,
+    "reward_blind_plan": true
+  },
+  "runtime_file_sha256": {
+    "scripts/freeze_phase3_source_functions_v4.py": "6c27853dddbfd7b6e4258098709bafcabd8ed93b09faa947d38c8810a5de618a",
+    "scripts/run_phase1_common_search_ir.py": "b9c734f93ccfc75eb693b2af37990422fd0d5442d2a9565aaf79712c594db2e7",
+    "src/motif_transfer/phase1_common_search_ir.py": "3fb95fd1a2c07f8674e733832b3ec72597abb768d5c1d8f1d1a62723da97f291",
+    "src/motif_transfer/phase3_source_function_induction.py": "5bd04fa4b0d9b3a90b61d9108e19b8366080b167a63e5ac2556d351356fdcd6d",
+    "src/motif_transfer/phase3_typed_effect_induction.py": "9bf1f653f2e03a978afbcfeaa40eadaf87f3989fa6cf9e4d68c0e85e57f4aa52"
+  },
+  "schema_version": "phase3-source-domain-function-reserve-manifest-v4",
+  "source_receipts": [
+    {
+      "config_file_sha256": "6ce670a7a41eb351030864507ac78585fe63f3588e5e0c48faf8d5b87ad37a2d",
+      "config_path": "configs/phase3_source_function_v4/frozen_reserve/source_configs/tetris.json",
+      "function_terms": [
+        {
+          "effect_type": "EFFECT_BY_TRANSITION_8",
+          "weight": 0.75
+        },
+        {
+          "effect_type": "EXECUTABLE_TRANSITION_PERSISTENCE",
+          "weight": 0.25
+        }
+      ],
+      "primary_horizon": 16,
+      "program_artifact_sha256": "11c1c015f384d81baa71a1a39ee4cc5029e86e72d61e30d91d78b937cf771689",
+      "program_file_sha256": "8d5df39e844c2d84ce25da85919f969170904fc2e1c62a75ec802e34df5f7968",
+      "program_path": "configs/phase3_source_function_v4/frozen_reserve/programs/tetris.json",
+      "qualification_status": "SOURCE_DOMAIN_FUNCTION_QUALIFIED",
+      "required_observation_horizon": 8,
+      "retry_after_low": false,
+      "seed_count": 24,
+      "seed_max": 401024,
+      "seed_min": 401001,
+      "source_function_program_sha256": "098ba5686a2de8ea14b5da118b8bbfb6bb0d3509a6d9cffb89dda3e90aceea17",
+      "source_game": "tetris"
+    },
+    {
+      "config_file_sha256": "3bbd680e95c39ebdf33d0ee2cc2c282c022be5f015e6fbc384f92357ec1e3b03",
+      "config_path": "configs/phase3_source_function_v4/frozen_reserve/source_configs/candy_crush.json",
+      "function_terms": [
+        {
+          "effect_type": "EFFECT_BY_TRANSITION_1",
+          "weight": 0.25
+        },
+        {
+          "effect_type": "EFFECT_BY_TRANSITION_8",
+          "weight": 0.75
+        }
+      ],
+      "primary_horizon": 16,
+      "program_artifact_sha256": "b9d7eb4f46ed3a09e9ed7b8b9c7f4a4a93bba125cb9b73a3f0f3399db2441599",
+      "program_file_sha256": "762beb66b1738b5b9deff3b47ddc0e82d708ca33e1125a4b63f0ce1ddbb97741",
+      "program_path": "configs/phase3_source_function_v4/frozen_reserve/programs/candy_crush.json",
+      "qualification_status": "SOURCE_DOMAIN_FUNCTION_QUALIFIED",
+      "required_observation_horizon": 8,
+      "retry_after_low": true,
+      "seed_count": 24,
+      "seed_max": 402024,
+      "seed_min": 402001,
+      "source_function_program_sha256": "cc5f177fd54a2f17ccaa688ea1ecf6d0ae2395554a97a921563e70c32721601d",
+      "source_game": "candy_crush"
+    },
+    {
+      "config_file_sha256": "2129d7c3190a23265920f500ea0cec5f370b651099849a2501dcfb640a2c6ae8",
+      "config_path": "configs/phase3_source_function_v4/frozen_reserve/source_configs/gymv_columns.json",
+      "function_terms": [
+        {
+          "effect_type": "EFFECT_BY_TRANSITION_4",
+          "weight": 1.0
+        }
+      ],
+      "primary_horizon": 50,
+      "program_artifact_sha256": "6836436d7ffb2c145d7d3837b49225b9ae6de2bc84e9d9254f27f58078e05379",
+      "program_file_sha256": "c81902a54dcc0fe31b4f50a6b4ca8e79d776ecb82da7d3223e40e014fec04034",
+      "program_path": "configs/phase3_source_function_v4/frozen_reserve/programs/gymv_columns.json",
+      "qualification_status": "SOURCE_DOMAIN_FUNCTION_QUALIFIED",
+      "required_observation_horizon": 4,
+      "retry_after_low": false,
+      "seed_count": 24,
+      "seed_max": 403024,
+      "seed_min": 403001,
+      "source_function_program_sha256": "85e37d2459fb684e63e83be591573bf78539b32721d70aa579639b585e822465",
+      "source_game": "gymv_columns"
+    },
+    {
+      "config_file_sha256": "c95d316b8f15f3b8ad1baed9c05e8ed536ad0b4b8c715fc6bed37f96cab16c8b",
+      "config_path": "configs/phase3_source_function_v4/frozen_reserve/source_configs/gymv_streets_of_rage_2.json",
+      "function_terms": [
+        {
+          "effect_type": "EFFECT_BY_TRANSITION_4",
+          "weight": 1.0
+        }
+      ],
+      "primary_horizon": 50,
+      "program_artifact_sha256": "8787941ea5801803c81710c193f0bc1cb8d706a8d4531c639141abb24bb6a019",
+      "program_file_sha256": "180c9202aa31c7b3a1093548e34caebe579a20800c3bffd02a10a8b51ac21f98",
+      "program_path": "configs/phase3_source_function_v4/frozen_reserve/programs/gymv_streets_of_rage_2.json",
+      "qualification_status": "SOURCE_DOMAIN_FUNCTION_ABSTENTION_INDUCED",
+      "required_observation_horizon": 4,
+      "retry_after_low": true,
+      "seed_count": 24,
+      "seed_max": 404024,
+      "seed_min": 404001,
+      "source_function_program_sha256": "0c07633bee316940db0bfeb1825d30d928a652659f1e18e71c7917d7b020e439",
+      "source_game": "gymv_streets_of_rage_2"
+    },
+    {
+      "config_file_sha256": "cbb15f1c498f2eb1684ade473d9024f4c9d3399a33dda232f7faad1384659159",
+      "config_path": "configs/phase3_source_function_v4/frozen_reserve/source_configs/gymv_thunder_force_iii.json",
+      "function_terms": [
+        {
+          "effect_type": "EFFECT_BY_TRANSITION_8",
+          "weight": 1.0
+        }
+      ],
+      "primary_horizon": 23,
+      "program_artifact_sha256": "85676b53387287c5eebbbadad4f051e33e59a3336ff71b520f29e219023bdd33",
+      "program_file_sha256": "4644584624e761a0bfa983fc8671a77f9d7641bebdfafea48818f8b1dbdf74c1",
+      "program_path": "configs/phase3_source_function_v4/frozen_reserve/programs/gymv_thunder_force_iii.json",
+      "qualification_status": "SOURCE_DOMAIN_FUNCTION_QUALIFIED",
+      "required_observation_horizon": 8,
+      "retry_after_low": true,
+      "seed_count": 24,
+      "seed_max": 405024,
+      "seed_min": 405001,
+      "source_function_program_sha256": "a60daf1d3c38928156d72201750739b00c46d9f1e931156efbc147da89642c3a",
+      "source_game": "gymv_thunder_force_iii"
+    },
+    {
+      "config_file_sha256": "e6c2c62a53af9be0b33aac8eaf5e3bef0a5f940c1ff5cb84f3f5e9d29dfef9ad",
+      "config_path": "configs/phase3_source_function_v4/frozen_reserve/source_configs/gymv_strider.json",
+      "function_terms": [
+        {
+          "effect_type": "EFFECT_BY_TRANSITION_1",
+          "weight": 1.0
+        }
+      ],
+      "primary_horizon": 22,
+      "program_artifact_sha256": "68fc609fa500584a057bde952f1979b2907f3352ebc79453271ff811a2f4dfef",
+      "program_file_sha256": "ea1740a2e77810288742c37975b7690a1a0cb01ce4414bfefc9df187fdd1360c",
+      "program_path": "configs/phase3_source_function_v4/frozen_reserve/programs/gymv_strider.json",
+      "qualification_status": "SOURCE_DOMAIN_FUNCTION_ABSTENTION_INDUCED",
+      "required_observation_horizon": 1,
+      "retry_after_low": true,
+      "seed_count": 24,
+      "seed_max": 406024,
+      "seed_min": 406001,
+      "source_function_program_sha256": "01f6def57262e80f82e0ab1fd47a4c4c13285ad14d229ce9b7a7ce615fb759a8",
+      "source_game": "gymv_strider"
+    }
+  ],
+  "status": "FROZEN_BEFORE_ANY_RESERVE_PLAN_OR_INTERVENTION_OUTCOME"
+}

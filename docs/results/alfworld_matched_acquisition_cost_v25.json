@@ -1,0 +1,1577 @@
+{
+  "schema_version": "alfworld-matched-acquisition-cost-v25-report",
+  "status": "ALFWORLD_MATCHED_ACQUISITION_MECHANISM_VALIDATED",
+  "role": "retrospective_source_vs_target_acquisition_audit",
+  "claim_boundary": "Uses already-consumed source discovery/held-out receipts and already-consumed V13/V14 target trajectories. It resets no environment, reads no new target outcome, and adds no prospective success claim. Source episode counts, retained successful-path primitive transitions, and target complete-trajectory transitions are reported separately; they are not asserted to be a common sample-cost unit.",
+  "config_sha256": "298a378653be174f480ee6e435cfe703822b6f92a0dc26b13061f8c5b858e886",
+  "answer": "An isomorphic target controller is sufficient once its content is supplied. Source interventions add acquisition value: they recover the same structural content without a complete target trajectory. This audit does not claim that source episodes and target trajectories have equal cost or that source is more sample-efficient under a common unit.",
+  "source": {
+    "shared_discovery_episodes": 67,
+    "reference_full_source_normal_form": {
+      "recurrent_acquisition_control": true,
+      "binding_then_relation": true,
+      "recurrent_relation_update": true,
+      "terminal_relation_coverage": true,
+      "positive_effect_cardinality": 1,
+      "fail_closed_on_ambiguity": true
+    },
+    "primary_curve": [
+      {
+        "complete_source_intervention_episodes": 0,
+        "status": "ABSTAIN_NO_SOURCE_INTERVENTION_TRAJECTORY",
+        "matches_full_source_normal_form": false
+      },
+      {
+        "complete_source_intervention_episodes": 1,
+        "status": "SOURCE_PROGRAM_NOT_YET_QUALIFIED",
+        "matches_full_source_normal_form": false,
+        "normal_form": {
+          "recurrent_acquisition_control": true,
+          "binding_then_relation": true,
+          "recurrent_relation_update": false,
+          "terminal_relation_coverage": true,
+          "positive_effect_cardinality": 1,
+          "fail_closed_on_ambiguity": true
+        },
+        "cost": {
+          "complete_source_intervention_episodes": 1,
+          "observed_success_path_primitive_transitions": 4,
+          "observed_success_path_relation_macro_transitions": 1
+        },
+        "relation_artifact_sha256": "2f663c84abf5ccbb8aec29c53fa2f1def75407b220eb99658b0172f728143c1d",
+        "acquisition_artifact_sha256": "1b9732b8cf860d94b78a856b61a6909c4c2380ea645ef70e356328db69432a31",
+        "source_target_data_read": false,
+        "terminal_candidate_authority": {
+          "version": "SOURCE_INTERVENTION_LINKED_TERMINAL_CANDIDATES_V1",
+          "authority": "SOURCE_SUCCESSFUL_STATE_ACTION_EFFECT_NEXT_STATE_ONLY",
+          "selected_features": [
+            "entity_goal_relation_coverage"
+          ],
+          "selection_rule": "FEATURE_CHANGED_WITH_POSITIVE_SIGN_IN_EVERY_SUCCESSFUL_MACRO_PATH",
+          "unprojected_dataset_sha256": "f4f85dcee8a50ef34ef3f1c75991b9d4891d6f57d600668f93de3f181503921b",
+          "target_data_read": false,
+          "named_terminal_feature_provided": false
+        },
+        "heldout": {
+          "relation_episodes": 63,
+          "relation_gate_passed": false,
+          "relation_shuffled_effect_bindings": 0,
+          "acquisition_trajectories": 69,
+          "acquisition_gate_passed": false,
+          "acquisition_shuffled_effect_bindings": 0
+        }
+      },
+      {
+        "complete_source_intervention_episodes": 2,
+        "status": "SOURCE_PROGRAM_NOT_YET_QUALIFIED",
+        "matches_full_source_normal_form": false,
+        "normal_form": {
+          "recurrent_acquisition_control": true,
+          "binding_then_relation": true,
+          "recurrent_relation_update": false,
+          "terminal_relation_coverage": true,
+          "positive_effect_cardinality": 1,
+          "fail_closed_on_ambiguity": true
+        },
+        "cost": {
+          "complete_source_intervention_episodes": 2,
+          "observed_success_path_primitive_transitions": 8,
+          "observed_success_path_relation_macro_transitions": 2
+        },
+        "relation_artifact_sha256": "3afbdaa2e69fb9e4971e593d74302e6aa38c3c937905306a0b02ab38e50e9c5b",
+        "acquisition_artifact_sha256": "909ece2e9ad548e3c8241c70a219d6bf206f872067e8913b317e4533eeb6e11b",
+        "source_target_data_read": false,
+        "terminal_candidate_authority": {
+          "version": "SOURCE_INTERVENTION_LINKED_TERMINAL_CANDIDATES_V1",
+          "authority": "SOURCE_SUCCESSFUL_STATE_ACTION_EFFECT_NEXT_STATE_ONLY",
+          "selected_features": [
+            "entity_goal_relation_coverage"
+          ],
+          "selection_rule": "FEATURE_CHANGED_WITH_POSITIVE_SIGN_IN_EVERY_SUCCESSFUL_MACRO_PATH",
+          "unprojected_dataset_sha256": "f571908a17b0859ae694bd046525a84cb6ab99b0f3a8b58b68d03f89ceac8217",
+          "target_data_read": false,
+          "named_terminal_feature_provided": false
+        },
+        "heldout": {
+          "relation_episodes": 63,
+          "relation_gate_passed": false,
+          "relation_shuffled_effect_bindings": 0,
+          "acquisition_trajectories": 69,
+          "acquisition_gate_passed": false,
+          "acquisition_shuffled_effect_bindings": 0
+        }
+      },
+      {
+        "complete_source_intervention_episodes": 3,
+        "status": "SOURCE_PROGRAM_NOT_YET_QUALIFIED",
+        "matches_full_source_normal_form": false,
+        "normal_form": {
+          "recurrent_acquisition_control": true,
+          "binding_then_relation": true,
+          "recurrent_relation_update": false,
+          "terminal_relation_coverage": true,
+          "positive_effect_cardinality": 1,
+          "fail_closed_on_ambiguity": true
+        },
+        "cost": {
+          "complete_source_intervention_episodes": 3,
+          "observed_success_path_primitive_transitions": 16,
+          "observed_success_path_relation_macro_transitions": 3
+        },
+        "relation_artifact_sha256": "1f0965b53817ca763acc17098326ec3edd6d66fc3ddd98adaa2d2ee6e1a4e1ef",
+        "acquisition_artifact_sha256": "21b0d6781e11ae06b4601bec74e04d7ab870316cad132aefc354d5923843d5fe",
+        "source_target_data_read": false,
+        "terminal_candidate_authority": {
+          "version": "SOURCE_INTERVENTION_LINKED_TERMINAL_CANDIDATES_V1",
+          "authority": "SOURCE_SUCCESSFUL_STATE_ACTION_EFFECT_NEXT_STATE_ONLY",
+          "selected_features": [
+            "entity_goal_relation_coverage"
+          ],
+          "selection_rule": "FEATURE_CHANGED_WITH_POSITIVE_SIGN_IN_EVERY_SUCCESSFUL_MACRO_PATH",
+          "unprojected_dataset_sha256": "ce66b3606762d6c7c121fde6a47788d0b1f82bb1211d9ee25ebb4a07d79687e2",
+          "target_data_read": false,
+          "named_terminal_feature_provided": false
+        },
+        "heldout": {
+          "relation_episodes": 63,
+          "relation_gate_passed": false,
+          "relation_shuffled_effect_bindings": 0,
+          "acquisition_trajectories": 69,
+          "acquisition_gate_passed": false,
+          "acquisition_shuffled_effect_bindings": 0
+        }
+      },
+      {
+        "complete_source_intervention_episodes": 4,
+        "status": "SOURCE_PROGRAM_HELDOUT_QUALIFIED",
+        "matches_full_source_normal_form": true,
+        "normal_form": {
+          "recurrent_acquisition_control": true,
+          "binding_then_relation": true,
+          "recurrent_relation_update": true,
+          "terminal_relation_coverage": true,
+          "positive_effect_cardinality": 1,
+          "fail_closed_on_ambiguity": true
+        },
+        "cost": {
+          "complete_source_intervention_episodes": 4,
+          "observed_success_path_primitive_transitions": 27,
+          "observed_success_path_relation_macro_transitions": 5
+        },
+        "relation_artifact_sha256": "95b5665314832e1c48648b08cc7be81a7d39fa96b7d2e672ed765651127c1640",
+        "acquisition_artifact_sha256": "0464ccb453d0f3f170188965873fb05ac3c2c47483a37b3aa425f35c6d0d1bd8",
+        "source_target_data_read": false,
+        "terminal_candidate_authority": {
+          "version": "SOURCE_INTERVENTION_LINKED_TERMINAL_CANDIDATES_V1",
+          "authority": "SOURCE_SUCCESSFUL_STATE_ACTION_EFFECT_NEXT_STATE_ONLY",
+          "selected_features": [
+            "entity_goal_relation_coverage"
+          ],
+          "selection_rule": "FEATURE_CHANGED_WITH_POSITIVE_SIGN_IN_EVERY_SUCCESSFUL_MACRO_PATH",
+          "unprojected_dataset_sha256": "28776a0ca9ce1489f505da5118207843130f066b8280edebab0a369e6e2769d6",
+          "target_data_read": false,
+          "named_terminal_feature_provided": false
+        },
+        "heldout": {
+          "relation_episodes": 63,
+          "relation_gate_passed": true,
+          "relation_shuffled_effect_bindings": 0,
+          "acquisition_trajectories": 69,
+          "acquisition_gate_passed": true,
+          "acquisition_shuffled_effect_bindings": 0
+        }
+      },
+      {
+        "complete_source_intervention_episodes": 5,
+        "status": "SOURCE_PROGRAM_HELDOUT_QUALIFIED",
+        "matches_full_source_normal_form": true,
+        "normal_form": {
+          "recurrent_acquisition_control": true,
+          "binding_then_relation": true,
+          "recurrent_relation_update": true,
+          "terminal_relation_coverage": true,
+          "positive_effect_cardinality": 1,
+          "fail_closed_on_ambiguity": true
+        },
+        "cost": {
+          "complete_source_intervention_episodes": 5,
+          "observed_success_path_primitive_transitions": 34,
+          "observed_success_path_relation_macro_transitions": 7
+        },
+        "relation_artifact_sha256": "c84610614888d4daae649b945e098db8c725c8092051507078c139cea39656e6",
+        "acquisition_artifact_sha256": "2ef293c0a8963a94f7563b7f4cf417b34538cb78a75130c4870737c8fe51353d",
+        "source_target_data_read": false,
+        "terminal_candidate_authority": {
+          "version": "SOURCE_INTERVENTION_LINKED_TERMINAL_CANDIDATES_V1",
+          "authority": "SOURCE_SUCCESSFUL_STATE_ACTION_EFFECT_NEXT_STATE_ONLY",
+          "selected_features": [
+            "entity_goal_relation_coverage"
+          ],
+          "selection_rule": "FEATURE_CHANGED_WITH_POSITIVE_SIGN_IN_EVERY_SUCCESSFUL_MACRO_PATH",
+          "unprojected_dataset_sha256": "1f4680d8e1158fe8e408606271ec3a621b5189e598356f7b362b8cdc41cf89a3",
+          "target_data_read": false,
+          "named_terminal_feature_provided": false
+        },
+        "heldout": {
+          "relation_episodes": 63,
+          "relation_gate_passed": true,
+          "relation_shuffled_effect_bindings": 0,
+          "acquisition_trajectories": 69,
+          "acquisition_gate_passed": true,
+          "acquisition_shuffled_effect_bindings": 0
+        }
+      },
+      {
+        "complete_source_intervention_episodes": 6,
+        "status": "SOURCE_PROGRAM_HELDOUT_QUALIFIED",
+        "matches_full_source_normal_form": true,
+        "normal_form": {
+          "recurrent_acquisition_control": true,
+          "binding_then_relation": true,
+          "recurrent_relation_update": true,
+          "terminal_relation_coverage": true,
+          "positive_effect_cardinality": 1,
+          "fail_closed_on_ambiguity": true
+        },
+        "cost": {
+          "complete_source_intervention_episodes": 6,
+          "observed_success_path_primitive_transitions": 42,
+          "observed_success_path_relation_macro_transitions": 8
+        },
+        "relation_artifact_sha256": "0705231f1df97cf477c093ad496b3df43efd27e7837550a28b817c8ff42b58f3",
+        "acquisition_artifact_sha256": "994a46f6d018ae5491265890ddda48697d3cf76ee3ea6be6e8515297d3420235",
+        "source_target_data_read": false,
+        "terminal_candidate_authority": {
+          "version": "SOURCE_INTERVENTION_LINKED_TERMINAL_CANDIDATES_V1",
+          "authority": "SOURCE_SUCCESSFUL_STATE_ACTION_EFFECT_NEXT_STATE_ONLY",
+          "selected_features": [
+            "entity_goal_relation_coverage"
+          ],
+          "selection_rule": "FEATURE_CHANGED_WITH_POSITIVE_SIGN_IN_EVERY_SUCCESSFUL_MACRO_PATH",
+          "unprojected_dataset_sha256": "467744a7079041f322c1c17889f3b84361dd302210cdcb962c13c167b1cb51e3",
+          "target_data_read": false,
+          "named_terminal_feature_provided": false
+        },
+        "heldout": {
+          "relation_episodes": 63,
+          "relation_gate_passed": true,
+          "relation_shuffled_effect_bindings": 0,
+          "acquisition_trajectories": 69,
+          "acquisition_gate_passed": true,
+          "acquisition_shuffled_effect_bindings": 0
+        }
+      },
+      {
+        "complete_source_intervention_episodes": 7,
+        "status": "SOURCE_PROGRAM_HELDOUT_QUALIFIED",
+        "matches_full_source_normal_form": true,
+        "normal_form": {
+          "recurrent_acquisition_control": true,
+          "binding_then_relation": true,
+          "recurrent_relation_update": true,
+          "terminal_relation_coverage": true,
+          "positive_effect_cardinality": 1,
+          "fail_closed_on_ambiguity": true
+        },
+        "cost": {
+          "complete_source_intervention_episodes": 7,
+          "observed_success_path_primitive_transitions": 50,
+          "observed_success_path_relation_macro_transitions": 10
+        },
+        "relation_artifact_sha256": "2d23543e9c5033a1ad9cb72a0ff762a2ca6205b4c571ae2cd0f1d597b6c84ccd",
+        "acquisition_artifact_sha256": "2a8bce100d64eead4baea9ca01de65f03cfcf1a7e303e62425e448bdad255536",
+        "source_target_data_read": false,
+        "terminal_candidate_authority": {
+          "version": "SOURCE_INTERVENTION_LINKED_TERMINAL_CANDIDATES_V1",
+          "authority": "SOURCE_SUCCESSFUL_STATE_ACTION_EFFECT_NEXT_STATE_ONLY",
+          "selected_features": [
+            "entity_goal_relation_coverage"
+          ],
+          "selection_rule": "FEATURE_CHANGED_WITH_POSITIVE_SIGN_IN_EVERY_SUCCESSFUL_MACRO_PATH",
+          "unprojected_dataset_sha256": "cf0d7d38bb9ef0ecdd957c5b8bec79de4fe8c642b0a614e0e732b91004b98b69",
+          "target_data_read": false,
+          "named_terminal_feature_provided": false
+        },
+        "heldout": {
+          "relation_episodes": 63,
+          "relation_gate_passed": true,
+          "relation_shuffled_effect_bindings": 0,
+          "acquisition_trajectories": 69,
+          "acquisition_gate_passed": true,
+          "acquisition_shuffled_effect_bindings": 0
+        }
+      },
+      {
+        "complete_source_intervention_episodes": 8,
+        "status": "SOURCE_PROGRAM_HELDOUT_QUALIFIED",
+        "matches_full_source_normal_form": true,
+        "normal_form": {
+          "recurrent_acquisition_control": true,
+          "binding_then_relation": true,
+          "recurrent_relation_update": true,
+          "terminal_relation_coverage": true,
+          "positive_effect_cardinality": 1,
+          "fail_closed_on_ambiguity": true
+        },
+        "cost": {
+          "complete_source_intervention_episodes": 8,
+          "observed_success_path_primitive_transitions": 57,
+          "observed_success_path_relation_macro_transitions": 12
+        },
+        "relation_artifact_sha256": "60489c383b906f3c60c08fe31f86d0ccd1cdf9a7e839ca06966bbaa112774480",
+        "acquisition_artifact_sha256": "6a170b818857fcbc319624e0bf6ea62c56357ae1db049498e804049a45345c30",
+        "source_target_data_read": false,
+        "terminal_candidate_authority": {
+          "version": "SOURCE_INTERVENTION_LINKED_TERMINAL_CANDIDATES_V1",
+          "authority": "SOURCE_SUCCESSFUL_STATE_ACTION_EFFECT_NEXT_STATE_ONLY",
+          "selected_features": [
+            "entity_goal_relation_coverage"
+          ],
+          "selection_rule": "FEATURE_CHANGED_WITH_POSITIVE_SIGN_IN_EVERY_SUCCESSFUL_MACRO_PATH",
+          "unprojected_dataset_sha256": "0c5b727fae91e7bedcc0ae87597b90dd20fdb96366658e609f987ba9b08b45fd",
+          "target_data_read": false,
+          "named_terminal_feature_provided": false
+        },
+        "heldout": {
+          "relation_episodes": 63,
+          "relation_gate_passed": true,
+          "relation_shuffled_effect_bindings": 0,
+          "acquisition_trajectories": 69,
+          "acquisition_gate_passed": true,
+          "acquisition_shuffled_effect_bindings": 0
+        }
+      },
+      {
+        "complete_source_intervention_episodes": 9,
+        "status": "SOURCE_PROGRAM_HELDOUT_QUALIFIED",
+        "matches_full_source_normal_form": true,
+        "normal_form": {
+          "recurrent_acquisition_control": true,
+          "binding_then_relation": true,
+          "recurrent_relation_update": true,
+          "terminal_relation_coverage": true,
+          "positive_effect_cardinality": 1,
+          "fail_closed_on_ambiguity": true
+        },
+        "cost": {
+          "complete_source_intervention_episodes": 9,
+          "observed_success_path_primitive_transitions": 65,
+          "observed_success_path_relation_macro_transitions": 13
+        },
+        "relation_artifact_sha256": "659a95a29c470f88f3b448fbd63955e3930aacb85b4a6431cbe21871b50b58ec",
+        "acquisition_artifact_sha256": "3b9829a10b45227802f1ae41584af98aa71e5b718136ab67aa3cc2c8a9a78dcc",
+        "source_target_data_read": false,
+        "terminal_candidate_authority": {
+          "version": "SOURCE_INTERVENTION_LINKED_TERMINAL_CANDIDATES_V1",
+          "authority": "SOURCE_SUCCESSFUL_STATE_ACTION_EFFECT_NEXT_STATE_ONLY",
+          "selected_features": [
+            "entity_goal_relation_coverage"
+          ],
+          "selection_rule": "FEATURE_CHANGED_WITH_POSITIVE_SIGN_IN_EVERY_SUCCESSFUL_MACRO_PATH",
+          "unprojected_dataset_sha256": "9c57a69f4077f5e951fe267e29fa4170c6411dc11069f01934be34d30d73508b",
+          "target_data_read": false,
+          "named_terminal_feature_provided": false
+        },
+        "heldout": {
+          "relation_episodes": 63,
+          "relation_gate_passed": true,
+          "relation_shuffled_effect_bindings": 0,
+          "acquisition_trajectories": 69,
+          "acquisition_gate_passed": true,
+          "acquisition_shuffled_effect_bindings": 0
+        }
+      },
+      {
+        "complete_source_intervention_episodes": 10,
+        "status": "SOURCE_PROGRAM_HELDOUT_QUALIFIED",
+        "matches_full_source_normal_form": true,
+        "normal_form": {
+          "recurrent_acquisition_control": true,
+          "binding_then_relation": true,
+          "recurrent_relation_update": true,
+          "terminal_relation_coverage": true,
+          "positive_effect_cardinality": 1,
+          "fail_closed_on_ambiguity": true
+        },
+        "cost": {
+          "complete_source_intervention_episodes": 10,
+          "observed_success_path_primitive_transitions": 69,
+          "observed_success_path_relation_macro_transitions": 14
+        },
+        "relation_artifact_sha256": "85c8544c88dbe39dfda499b1ae8d7eb22ba50f9c28a384750affe3f6efac1ec5",
+        "acquisition_artifact_sha256": "0c5aad7ed7d6b9e0931fc58e7fb490d6e55f37cbae75749749c9d693014aa3ae",
+        "source_target_data_read": false,
+        "terminal_candidate_authority": {
+          "version": "SOURCE_INTERVENTION_LINKED_TERMINAL_CANDIDATES_V1",
+          "authority": "SOURCE_SUCCESSFUL_STATE_ACTION_EFFECT_NEXT_STATE_ONLY",
+          "selected_features": [
+            "entity_goal_relation_coverage"
+          ],
+          "selection_rule": "FEATURE_CHANGED_WITH_POSITIVE_SIGN_IN_EVERY_SUCCESSFUL_MACRO_PATH",
+          "unprojected_dataset_sha256": "b47a51b9eafa79d43c336a685c26eed612620345d3399a28e038fb3361704779",
+          "target_data_read": false,
+          "named_terminal_feature_provided": false
+        },
+        "heldout": {
+          "relation_episodes": 63,
+          "relation_gate_passed": true,
+          "relation_shuffled_effect_bindings": 0,
+          "acquisition_trajectories": 69,
+          "acquisition_gate_passed": true,
+          "acquisition_shuffled_effect_bindings": 0
+        }
+      },
+      {
+        "complete_source_intervention_episodes": 11,
+        "status": "SOURCE_PROGRAM_HELDOUT_QUALIFIED",
+        "matches_full_source_normal_form": true,
+        "normal_form": {
+          "recurrent_acquisition_control": true,
+          "binding_then_relation": true,
+          "recurrent_relation_update": true,
+          "terminal_relation_coverage": true,
+          "positive_effect_cardinality": 1,
+          "fail_closed_on_ambiguity": true
+        },
+        "cost": {
+          "complete_source_intervention_episodes": 11,
+          "observed_success_path_primitive_transitions": 75,
+          "observed_success_path_relation_macro_transitions": 15
+        },
+        "relation_artifact_sha256": "be78b1a9a77efd892ed63c4cb20418d64dc63d928aea1702d12bf569f1d11a70",
+        "acquisition_artifact_sha256": "f8ff9e20e43a15e8554882c26286e1a2bd99bc710314d07cc6e7f6539b568834",
+        "source_target_data_read": false,
+        "terminal_candidate_authority": {
+          "version": "SOURCE_INTERVENTION_LINKED_TERMINAL_CANDIDATES_V1",
+          "authority": "SOURCE_SUCCESSFUL_STATE_ACTION_EFFECT_NEXT_STATE_ONLY",
+          "selected_features": [
+            "entity_goal_relation_coverage"
+          ],
+          "selection_rule": "FEATURE_CHANGED_WITH_POSITIVE_SIGN_IN_EVERY_SUCCESSFUL_MACRO_PATH",
+          "unprojected_dataset_sha256": "6d9571cce029469f1d437b45a44270a9658db68b176be8d002d82eb744ad5eb7",
+          "target_data_read": false,
+          "named_terminal_feature_provided": false
+        },
+        "heldout": {
+          "relation_episodes": 63,
+          "relation_gate_passed": true,
+          "relation_shuffled_effect_bindings": 0,
+          "acquisition_trajectories": 69,
+          "acquisition_gate_passed": true,
+          "acquisition_shuffled_effect_bindings": 0
+        }
+      },
+      {
+        "complete_source_intervention_episodes": 12,
+        "status": "SOURCE_PROGRAM_HELDOUT_QUALIFIED",
+        "matches_full_source_normal_form": true,
+        "normal_form": {
+          "recurrent_acquisition_control": true,
+          "binding_then_relation": true,
+          "recurrent_relation_update": true,
+          "terminal_relation_coverage": true,
+          "positive_effect_cardinality": 1,
+          "fail_closed_on_ambiguity": true
+        },
+        "cost": {
+          "complete_source_intervention_episodes": 12,
+          "observed_success_path_primitive_transitions": 82,
+          "observed_success_path_relation_macro_transitions": 17
+        },
+        "relation_artifact_sha256": "996e8c4d2b2e253eae0d24ed9228d318522340869a496ccacd88c037c73d92c6",
+        "acquisition_artifact_sha256": "c48aa043e68fdd57209686c5e255753c98e8c363abf2a1d1d70c1b4df97f4030",
+        "source_target_data_read": false,
+        "terminal_candidate_authority": {
+          "version": "SOURCE_INTERVENTION_LINKED_TERMINAL_CANDIDATES_V1",
+          "authority": "SOURCE_SUCCESSFUL_STATE_ACTION_EFFECT_NEXT_STATE_ONLY",
+          "selected_features": [
+            "entity_goal_relation_coverage"
+          ],
+          "selection_rule": "FEATURE_CHANGED_WITH_POSITIVE_SIGN_IN_EVERY_SUCCESSFUL_MACRO_PATH",
+          "unprojected_dataset_sha256": "ba27a8b0af2900db64569ca440961aa58cba7f375959a493e74797c9d4491a61",
+          "target_data_read": false,
+          "named_terminal_feature_provided": false
+        },
+        "heldout": {
+          "relation_episodes": 63,
+          "relation_gate_passed": true,
+          "relation_shuffled_effect_bindings": 0,
+          "acquisition_trajectories": 69,
+          "acquisition_gate_passed": true,
+          "acquisition_shuffled_effect_bindings": 0
+        }
+      },
+      {
+        "complete_source_intervention_episodes": 13,
+        "status": "SOURCE_PROGRAM_HELDOUT_QUALIFIED",
+        "matches_full_source_normal_form": true,
+        "normal_form": {
+          "recurrent_acquisition_control": true,
+          "binding_then_relation": true,
+          "recurrent_relation_update": true,
+          "terminal_relation_coverage": true,
+          "positive_effect_cardinality": 1,
+          "fail_closed_on_ambiguity": true
+        },
+        "cost": {
+          "complete_source_intervention_episodes": 13,
+          "observed_success_path_primitive_transitions": 93,
+          "observed_success_path_relation_macro_transitions": 19
+        },
+        "relation_artifact_sha256": "cf0496784dc3011eef7d847996bd5a60108950fefe83470faa1da983f5bdb727",
+        "acquisition_artifact_sha256": "dba2476b562bd3582a9c01c6618d55b7abf7298b2fec4870042bdf32b782a282",
+        "source_target_data_read": false,
+        "terminal_candidate_authority": {
+          "version": "SOURCE_INTERVENTION_LINKED_TERMINAL_CANDIDATES_V1",
+          "authority": "SOURCE_SUCCESSFUL_STATE_ACTION_EFFECT_NEXT_STATE_ONLY",
+          "selected_features": [
+            "entity_goal_relation_coverage"
+          ],
+          "selection_rule": "FEATURE_CHANGED_WITH_POSITIVE_SIGN_IN_EVERY_SUCCESSFUL_MACRO_PATH",
+          "unprojected_dataset_sha256": "93f48354d562a93b3d7283378f9c89f75983cb3c6e22cd921443a7ca71f96424",
+          "target_data_read": false,
+          "named_terminal_feature_provided": false
+        },
+        "heldout": {
+          "relation_episodes": 63,
+          "relation_gate_passed": true,
+          "relation_shuffled_effect_bindings": 0,
+          "acquisition_trajectories": 69,
+          "acquisition_gate_passed": true,
+          "acquisition_shuffled_effect_bindings": 0
+        }
+      },
+      {
+        "complete_source_intervention_episodes": 14,
+        "status": "SOURCE_PROGRAM_HELDOUT_QUALIFIED",
+        "matches_full_source_normal_form": true,
+        "normal_form": {
+          "recurrent_acquisition_control": true,
+          "binding_then_relation": true,
+          "recurrent_relation_update": true,
+          "terminal_relation_coverage": true,
+          "positive_effect_cardinality": 1,
+          "fail_closed_on_ambiguity": true
+        },
+        "cost": {
+          "complete_source_intervention_episodes": 14,
+          "observed_success_path_primitive_transitions": 102,
+          "observed_success_path_relation_macro_transitions": 21
+        },
+        "relation_artifact_sha256": "bda65d2351ab93df91872cf252264cfeff2cff6f2b7adc5451ff4ebf7a7fc5b3",
+        "acquisition_artifact_sha256": "241dac426eab5ce96b09974c79a7c2e496446b3c233fdb26e691ddb8babab98a",
+        "source_target_data_read": false,
+        "terminal_candidate_authority": {
+          "version": "SOURCE_INTERVENTION_LINKED_TERMINAL_CANDIDATES_V1",
+          "authority": "SOURCE_SUCCESSFUL_STATE_ACTION_EFFECT_NEXT_STATE_ONLY",
+          "selected_features": [
+            "entity_goal_relation_coverage"
+          ],
+          "selection_rule": "FEATURE_CHANGED_WITH_POSITIVE_SIGN_IN_EVERY_SUCCESSFUL_MACRO_PATH",
+          "unprojected_dataset_sha256": "f8b91d2120ecdab41b6987adc560f9d74d17eca13908b2273fe8fc099f88aa77",
+          "target_data_read": false,
+          "named_terminal_feature_provided": false
+        },
+        "heldout": {
+          "relation_episodes": 63,
+          "relation_gate_passed": true,
+          "relation_shuffled_effect_bindings": 0,
+          "acquisition_trajectories": 69,
+          "acquisition_gate_passed": true,
+          "acquisition_shuffled_effect_bindings": 0
+        }
+      },
+      {
+        "complete_source_intervention_episodes": 15,
+        "status": "SOURCE_PROGRAM_HELDOUT_QUALIFIED",
+        "matches_full_source_normal_form": true,
+        "normal_form": {
+          "recurrent_acquisition_control": true,
+          "binding_then_relation": true,
+          "recurrent_relation_update": true,
+          "terminal_relation_coverage": true,
+          "positive_effect_cardinality": 1,
+          "fail_closed_on_ambiguity": true
+        },
+        "cost": {
+          "complete_source_intervention_episodes": 15,
+          "observed_success_path_primitive_transitions": 107,
+          "observed_success_path_relation_macro_transitions": 22
+        },
+        "relation_artifact_sha256": "fba8791c30e3917dc3391ef8590bd3d33d2665c250554ca6ccb2741833e06105",
+        "acquisition_artifact_sha256": "826e0444cd74413acac64c8f426c6d4d45e331740a292b9047de9331e34493cd",
+        "source_target_data_read": false,
+        "terminal_candidate_authority": {
+          "version": "SOURCE_INTERVENTION_LINKED_TERMINAL_CANDIDATES_V1",
+          "authority": "SOURCE_SUCCESSFUL_STATE_ACTION_EFFECT_NEXT_STATE_ONLY",
+          "selected_features": [
+            "entity_goal_relation_coverage"
+          ],
+          "selection_rule": "FEATURE_CHANGED_WITH_POSITIVE_SIGN_IN_EVERY_SUCCESSFUL_MACRO_PATH",
+          "unprojected_dataset_sha256": "c71f9c1e4545a58bd7216be3ddda77746382061e40ed99f6067bb6cc185d3b12",
+          "target_data_read": false,
+          "named_terminal_feature_provided": false
+        },
+        "heldout": {
+          "relation_episodes": 63,
+          "relation_gate_passed": true,
+          "relation_shuffled_effect_bindings": 0,
+          "acquisition_trajectories": 69,
+          "acquisition_gate_passed": true,
+          "acquisition_shuffled_effect_bindings": 0
+        }
+      },
+      {
+        "complete_source_intervention_episodes": 16,
+        "status": "SOURCE_PROGRAM_HELDOUT_QUALIFIED",
+        "matches_full_source_normal_form": true,
+        "normal_form": {
+          "recurrent_acquisition_control": true,
+          "binding_then_relation": true,
+          "recurrent_relation_update": true,
+          "terminal_relation_coverage": true,
+          "positive_effect_cardinality": 1,
+          "fail_closed_on_ambiguity": true
+        },
+        "cost": {
+          "complete_source_intervention_episodes": 16,
+          "observed_success_path_primitive_transitions": 116,
+          "observed_success_path_relation_macro_transitions": 24
+        },
+        "relation_artifact_sha256": "b8c82272d44620e91b64e6f05ff1b36e640e32f67732b9c0f9fc83927d550948",
+        "acquisition_artifact_sha256": "29f4669092a3b0a3a32a1029c8ab3933a2ec18b43b2f08a6c8f7a261779f3341",
+        "source_target_data_read": false,
+        "terminal_candidate_authority": {
+          "version": "SOURCE_INTERVENTION_LINKED_TERMINAL_CANDIDATES_V1",
+          "authority": "SOURCE_SUCCESSFUL_STATE_ACTION_EFFECT_NEXT_STATE_ONLY",
+          "selected_features": [
+            "entity_goal_relation_coverage"
+          ],
+          "selection_rule": "FEATURE_CHANGED_WITH_POSITIVE_SIGN_IN_EVERY_SUCCESSFUL_MACRO_PATH",
+          "unprojected_dataset_sha256": "35f107677b25137e673181e581ad96f7d7fca520281d97e4d68efdcfff73df79",
+          "target_data_read": false,
+          "named_terminal_feature_provided": false
+        },
+        "heldout": {
+          "relation_episodes": 63,
+          "relation_gate_passed": true,
+          "relation_shuffled_effect_bindings": 0,
+          "acquisition_trajectories": 69,
+          "acquisition_gate_passed": true,
+          "acquisition_shuffled_effect_bindings": 0
+        }
+      }
+    ],
+    "primary_first_qualified": {
+      "complete_source_intervention_episodes": 4,
+      "status": "SOURCE_PROGRAM_HELDOUT_QUALIFIED",
+      "matches_full_source_normal_form": true,
+      "normal_form": {
+        "recurrent_acquisition_control": true,
+        "binding_then_relation": true,
+        "recurrent_relation_update": true,
+        "terminal_relation_coverage": true,
+        "positive_effect_cardinality": 1,
+        "fail_closed_on_ambiguity": true
+      },
+      "cost": {
+        "complete_source_intervention_episodes": 4,
+        "observed_success_path_primitive_transitions": 27,
+        "observed_success_path_relation_macro_transitions": 5
+      },
+      "relation_artifact_sha256": "95b5665314832e1c48648b08cc7be81a7d39fa96b7d2e672ed765651127c1640",
+      "acquisition_artifact_sha256": "0464ccb453d0f3f170188965873fb05ac3c2c47483a37b3aa425f35c6d0d1bd8",
+      "source_target_data_read": false,
+      "terminal_candidate_authority": {
+        "version": "SOURCE_INTERVENTION_LINKED_TERMINAL_CANDIDATES_V1",
+        "authority": "SOURCE_SUCCESSFUL_STATE_ACTION_EFFECT_NEXT_STATE_ONLY",
+        "selected_features": [
+          "entity_goal_relation_coverage"
+        ],
+        "selection_rule": "FEATURE_CHANGED_WITH_POSITIVE_SIGN_IN_EVERY_SUCCESSFUL_MACRO_PATH",
+        "unprojected_dataset_sha256": "28776a0ca9ce1489f505da5118207843130f066b8280edebab0a369e6e2769d6",
+        "target_data_read": false,
+        "named_terminal_feature_provided": false
+      },
+      "heldout": {
+        "relation_episodes": 63,
+        "relation_gate_passed": true,
+        "relation_shuffled_effect_bindings": 0,
+        "acquisition_trajectories": 69,
+        "acquisition_gate_passed": true,
+        "acquisition_shuffled_effect_bindings": 0
+      }
+    },
+    "robustness": {
+      "repetitions": 64,
+      "recovered_within_maximum": 64,
+      "first_budget_min": 1,
+      "first_budget_median": 3.0,
+      "first_budget_max": 9,
+      "receipts": [
+        {
+          "repeat": 0,
+          "order_namespace": "phase14-matched-acquisition-order-v1/repeat/0",
+          "first_structurally_complete_budget": 2,
+          "cost": {
+            "complete_source_intervention_episodes": 2,
+            "observed_success_path_primitive_transitions": 14,
+            "observed_success_path_relation_macro_transitions": 3
+          },
+          "source_target_data_read": false
+        },
+        {
+          "repeat": 1,
+          "order_namespace": "phase14-matched-acquisition-order-v1/repeat/1",
+          "first_structurally_complete_budget": 6,
+          "cost": {
+            "complete_source_intervention_episodes": 6,
+            "observed_success_path_primitive_transitions": 32,
+            "observed_success_path_relation_macro_transitions": 7
+          },
+          "source_target_data_read": false
+        },
+        {
+          "repeat": 2,
+          "order_namespace": "phase14-matched-acquisition-order-v1/repeat/2",
+          "first_structurally_complete_budget": 1,
+          "cost": {
+            "complete_source_intervention_episodes": 1,
+            "observed_success_path_primitive_transitions": 9,
+            "observed_success_path_relation_macro_transitions": 2
+          },
+          "source_target_data_read": false
+        },
+        {
+          "repeat": 3,
+          "order_namespace": "phase14-matched-acquisition-order-v1/repeat/3",
+          "first_structurally_complete_budget": 5,
+          "cost": {
+            "complete_source_intervention_episodes": 5,
+            "observed_success_path_primitive_transitions": 36,
+            "observed_success_path_relation_macro_transitions": 6
+          },
+          "source_target_data_read": false
+        },
+        {
+          "repeat": 4,
+          "order_namespace": "phase14-matched-acquisition-order-v1/repeat/4",
+          "first_structurally_complete_budget": 2,
+          "cost": {
+            "complete_source_intervention_episodes": 2,
+            "observed_success_path_primitive_transitions": 12,
+            "observed_success_path_relation_macro_transitions": 3
+          },
+          "source_target_data_read": false
+        },
+        {
+          "repeat": 5,
+          "order_namespace": "phase14-matched-acquisition-order-v1/repeat/5",
+          "first_structurally_complete_budget": 3,
+          "cost": {
+            "complete_source_intervention_episodes": 3,
+            "observed_success_path_primitive_transitions": 26,
+            "observed_success_path_relation_macro_transitions": 4
+          },
+          "source_target_data_read": false
+        },
+        {
+          "repeat": 6,
+          "order_namespace": "phase14-matched-acquisition-order-v1/repeat/6",
+          "first_structurally_complete_budget": 3,
+          "cost": {
+            "complete_source_intervention_episodes": 3,
+            "observed_success_path_primitive_transitions": 19,
+            "observed_success_path_relation_macro_transitions": 4
+          },
+          "source_target_data_read": false
+        },
+        {
+          "repeat": 7,
+          "order_namespace": "phase14-matched-acquisition-order-v1/repeat/7",
+          "first_structurally_complete_budget": 3,
+          "cost": {
+            "complete_source_intervention_episodes": 3,
+            "observed_success_path_primitive_transitions": 21,
+            "observed_success_path_relation_macro_transitions": 4
+          },
+          "source_target_data_read": false
+        },
+        {
+          "repeat": 8,
+          "order_namespace": "phase14-matched-acquisition-order-v1/repeat/8",
+          "first_structurally_complete_budget": 5,
+          "cost": {
+            "complete_source_intervention_episodes": 5,
+            "observed_success_path_primitive_transitions": 24,
+            "observed_success_path_relation_macro_transitions": 6
+          },
+          "source_target_data_read": false
+        },
+        {
+          "repeat": 9,
+          "order_namespace": "phase14-matched-acquisition-order-v1/repeat/9",
+          "first_structurally_complete_budget": 2,
+          "cost": {
+            "complete_source_intervention_episodes": 2,
+            "observed_success_path_primitive_transitions": 17,
+            "observed_success_path_relation_macro_transitions": 3
+          },
+          "source_target_data_read": false
+        },
+        {
+          "repeat": 10,
+          "order_namespace": "phase14-matched-acquisition-order-v1/repeat/10",
+          "first_structurally_complete_budget": 4,
+          "cost": {
+            "complete_source_intervention_episodes": 4,
+            "observed_success_path_primitive_transitions": 24,
+            "observed_success_path_relation_macro_transitions": 5
+          },
+          "source_target_data_read": false
+        },
+        {
+          "repeat": 11,
+          "order_namespace": "phase14-matched-acquisition-order-v1/repeat/11",
+          "first_structurally_complete_budget": 2,
+          "cost": {
+            "complete_source_intervention_episodes": 2,
+            "observed_success_path_primitive_transitions": 11,
+            "observed_success_path_relation_macro_transitions": 3
+          },
+          "source_target_data_read": false
+        },
+        {
+          "repeat": 12,
+          "order_namespace": "phase14-matched-acquisition-order-v1/repeat/12",
+          "first_structurally_complete_budget": 9,
+          "cost": {
+            "complete_source_intervention_episodes": 9,
+            "observed_success_path_primitive_transitions": 52,
+            "observed_success_path_relation_macro_transitions": 10
+          },
+          "source_target_data_read": false
+        },
+        {
+          "repeat": 13,
+          "order_namespace": "phase14-matched-acquisition-order-v1/repeat/13",
+          "first_structurally_complete_budget": 3,
+          "cost": {
+            "complete_source_intervention_episodes": 3,
+            "observed_success_path_primitive_transitions": 23,
+            "observed_success_path_relation_macro_transitions": 4
+          },
+          "source_target_data_read": false
+        },
+        {
+          "repeat": 14,
+          "order_namespace": "phase14-matched-acquisition-order-v1/repeat/14",
+          "first_structurally_complete_budget": 2,
+          "cost": {
+            "complete_source_intervention_episodes": 2,
+            "observed_success_path_primitive_transitions": 15,
+            "observed_success_path_relation_macro_transitions": 3
+          },
+          "source_target_data_read": false
+        },
+        {
+          "repeat": 15,
+          "order_namespace": "phase14-matched-acquisition-order-v1/repeat/15",
+          "first_structurally_complete_budget": 2,
+          "cost": {
+            "complete_source_intervention_episodes": 2,
+            "observed_success_path_primitive_transitions": 15,
+            "observed_success_path_relation_macro_transitions": 4
+          },
+          "source_target_data_read": false
+        },
+        {
+          "repeat": 16,
+          "order_namespace": "phase14-matched-acquisition-order-v1/repeat/16",
+          "first_structurally_complete_budget": 1,
+          "cost": {
+            "complete_source_intervention_episodes": 1,
+            "observed_success_path_primitive_transitions": 9,
+            "observed_success_path_relation_macro_transitions": 2
+          },
+          "source_target_data_read": false
+        },
+        {
+          "repeat": 17,
+          "order_namespace": "phase14-matched-acquisition-order-v1/repeat/17",
+          "first_structurally_complete_budget": 2,
+          "cost": {
+            "complete_source_intervention_episodes": 2,
+            "observed_success_path_primitive_transitions": 9,
+            "observed_success_path_relation_macro_transitions": 3
+          },
+          "source_target_data_read": false
+        },
+        {
+          "repeat": 18,
+          "order_namespace": "phase14-matched-acquisition-order-v1/repeat/18",
+          "first_structurally_complete_budget": 3,
+          "cost": {
+            "complete_source_intervention_episodes": 3,
+            "observed_success_path_primitive_transitions": 16,
+            "observed_success_path_relation_macro_transitions": 4
+          },
+          "source_target_data_read": false
+        },
+        {
+          "repeat": 19,
+          "order_namespace": "phase14-matched-acquisition-order-v1/repeat/19",
+          "first_structurally_complete_budget": 1,
+          "cost": {
+            "complete_source_intervention_episodes": 1,
+            "observed_success_path_primitive_transitions": 7,
+            "observed_success_path_relation_macro_transitions": 2
+          },
+          "source_target_data_read": false
+        },
+        {
+          "repeat": 20,
+          "order_namespace": "phase14-matched-acquisition-order-v1/repeat/20",
+          "first_structurally_complete_budget": 1,
+          "cost": {
+            "complete_source_intervention_episodes": 1,
+            "observed_success_path_primitive_transitions": 8,
+            "observed_success_path_relation_macro_transitions": 2
+          },
+          "source_target_data_read": false
+        },
+        {
+          "repeat": 21,
+          "order_namespace": "phase14-matched-acquisition-order-v1/repeat/21",
+          "first_structurally_complete_budget": 2,
+          "cost": {
+            "complete_source_intervention_episodes": 2,
+            "observed_success_path_primitive_transitions": 16,
+            "observed_success_path_relation_macro_transitions": 3
+          },
+          "source_target_data_read": false
+        },
+        {
+          "repeat": 22,
+          "order_namespace": "phase14-matched-acquisition-order-v1/repeat/22",
+          "first_structurally_complete_budget": 7,
+          "cost": {
+            "complete_source_intervention_episodes": 7,
+            "observed_success_path_primitive_transitions": 42,
+            "observed_success_path_relation_macro_transitions": 8
+          },
+          "source_target_data_read": false
+        },
+        {
+          "repeat": 23,
+          "order_namespace": "phase14-matched-acquisition-order-v1/repeat/23",
+          "first_structurally_complete_budget": 2,
+          "cost": {
+            "complete_source_intervention_episodes": 2,
+            "observed_success_path_primitive_transitions": 12,
+            "observed_success_path_relation_macro_transitions": 3
+          },
+          "source_target_data_read": false
+        },
+        {
+          "repeat": 24,
+          "order_namespace": "phase14-matched-acquisition-order-v1/repeat/24",
+          "first_structurally_complete_budget": 3,
+          "cost": {
+            "complete_source_intervention_episodes": 3,
+            "observed_success_path_primitive_transitions": 23,
+            "observed_success_path_relation_macro_transitions": 4
+          },
+          "source_target_data_read": false
+        },
+        {
+          "repeat": 25,
+          "order_namespace": "phase14-matched-acquisition-order-v1/repeat/25",
+          "first_structurally_complete_budget": 3,
+          "cost": {
+            "complete_source_intervention_episodes": 3,
+            "observed_success_path_primitive_transitions": 15,
+            "observed_success_path_relation_macro_transitions": 4
+          },
+          "source_target_data_read": false
+        },
+        {
+          "repeat": 26,
+          "order_namespace": "phase14-matched-acquisition-order-v1/repeat/26",
+          "first_structurally_complete_budget": 6,
+          "cost": {
+            "complete_source_intervention_episodes": 6,
+            "observed_success_path_primitive_transitions": 36,
+            "observed_success_path_relation_macro_transitions": 7
+          },
+          "source_target_data_read": false
+        },
+        {
+          "repeat": 27,
+          "order_namespace": "phase14-matched-acquisition-order-v1/repeat/27",
+          "first_structurally_complete_budget": 2,
+          "cost": {
+            "complete_source_intervention_episodes": 2,
+            "observed_success_path_primitive_transitions": 11,
+            "observed_success_path_relation_macro_transitions": 3
+          },
+          "source_target_data_read": false
+        },
+        {
+          "repeat": 28,
+          "order_namespace": "phase14-matched-acquisition-order-v1/repeat/28",
+          "first_structurally_complete_budget": 2,
+          "cost": {
+            "complete_source_intervention_episodes": 2,
+            "observed_success_path_primitive_transitions": 14,
+            "observed_success_path_relation_macro_transitions": 3
+          },
+          "source_target_data_read": false
+        },
+        {
+          "repeat": 29,
+          "order_namespace": "phase14-matched-acquisition-order-v1/repeat/29",
+          "first_structurally_complete_budget": 2,
+          "cost": {
+            "complete_source_intervention_episodes": 2,
+            "observed_success_path_primitive_transitions": 10,
+            "observed_success_path_relation_macro_transitions": 3
+          },
+          "source_target_data_read": false
+        },
+        {
+          "repeat": 30,
+          "order_namespace": "phase14-matched-acquisition-order-v1/repeat/30",
+          "first_structurally_complete_budget": 1,
+          "cost": {
+            "complete_source_intervention_episodes": 1,
+            "observed_success_path_primitive_transitions": 6,
+            "observed_success_path_relation_macro_transitions": 2
+          },
+          "source_target_data_read": false
+        },
+        {
+          "repeat": 31,
+          "order_namespace": "phase14-matched-acquisition-order-v1/repeat/31",
+          "first_structurally_complete_budget": 2,
+          "cost": {
+            "complete_source_intervention_episodes": 2,
+            "observed_success_path_primitive_transitions": 15,
+            "observed_success_path_relation_macro_transitions": 3
+          },
+          "source_target_data_read": false
+        },
+        {
+          "repeat": 32,
+          "order_namespace": "phase14-matched-acquisition-order-v1/repeat/32",
+          "first_structurally_complete_budget": 4,
+          "cost": {
+            "complete_source_intervention_episodes": 4,
+            "observed_success_path_primitive_transitions": 20,
+            "observed_success_path_relation_macro_transitions": 6
+          },
+          "source_target_data_read": false
+        },
+        {
+          "repeat": 33,
+          "order_namespace": "phase14-matched-acquisition-order-v1/repeat/33",
+          "first_structurally_complete_budget": 3,
+          "cost": {
+            "complete_source_intervention_episodes": 3,
+            "observed_success_path_primitive_transitions": 16,
+            "observed_success_path_relation_macro_transitions": 4
+          },
+          "source_target_data_read": false
+        },
+        {
+          "repeat": 34,
+          "order_namespace": "phase14-matched-acquisition-order-v1/repeat/34",
+          "first_structurally_complete_budget": 4,
+          "cost": {
+            "complete_source_intervention_episodes": 4,
+            "observed_success_path_primitive_transitions": 21,
+            "observed_success_path_relation_macro_transitions": 5
+          },
+          "source_target_data_read": false
+        },
+        {
+          "repeat": 35,
+          "order_namespace": "phase14-matched-acquisition-order-v1/repeat/35",
+          "first_structurally_complete_budget": 6,
+          "cost": {
+            "complete_source_intervention_episodes": 6,
+            "observed_success_path_primitive_transitions": 40,
+            "observed_success_path_relation_macro_transitions": 7
+          },
+          "source_target_data_read": false
+        },
+        {
+          "repeat": 36,
+          "order_namespace": "phase14-matched-acquisition-order-v1/repeat/36",
+          "first_structurally_complete_budget": 4,
+          "cost": {
+            "complete_source_intervention_episodes": 4,
+            "observed_success_path_primitive_transitions": 21,
+            "observed_success_path_relation_macro_transitions": 5
+          },
+          "source_target_data_read": false
+        },
+        {
+          "repeat": 37,
+          "order_namespace": "phase14-matched-acquisition-order-v1/repeat/37",
+          "first_structurally_complete_budget": 5,
+          "cost": {
+            "complete_source_intervention_episodes": 5,
+            "observed_success_path_primitive_transitions": 31,
+            "observed_success_path_relation_macro_transitions": 6
+          },
+          "source_target_data_read": false
+        },
+        {
+          "repeat": 38,
+          "order_namespace": "phase14-matched-acquisition-order-v1/repeat/38",
+          "first_structurally_complete_budget": 5,
+          "cost": {
+            "complete_source_intervention_episodes": 5,
+            "observed_success_path_primitive_transitions": 33,
+            "observed_success_path_relation_macro_transitions": 6
+          },
+          "source_target_data_read": false
+        },
+        {
+          "repeat": 39,
+          "order_namespace": "phase14-matched-acquisition-order-v1/repeat/39",
+          "first_structurally_complete_budget": 4,
+          "cost": {
+            "complete_source_intervention_episodes": 4,
+            "observed_success_path_primitive_transitions": 30,
+            "observed_success_path_relation_macro_transitions": 5
+          },
+          "source_target_data_read": false
+        },
+        {
+          "repeat": 40,
+          "order_namespace": "phase14-matched-acquisition-order-v1/repeat/40",
+          "first_structurally_complete_budget": 4,
+          "cost": {
+            "complete_source_intervention_episodes": 4,
+            "observed_success_path_primitive_transitions": 23,
+            "observed_success_path_relation_macro_transitions": 5
+          },
+          "source_target_data_read": false
+        },
+        {
+          "repeat": 41,
+          "order_namespace": "phase14-matched-acquisition-order-v1/repeat/41",
+          "first_structurally_complete_budget": 2,
+          "cost": {
+            "complete_source_intervention_episodes": 2,
+            "observed_success_path_primitive_transitions": 19,
+            "observed_success_path_relation_macro_transitions": 3
+          },
+          "source_target_data_read": false
+        },
+        {
+          "repeat": 42,
+          "order_namespace": "phase14-matched-acquisition-order-v1/repeat/42",
+          "first_structurally_complete_budget": 3,
+          "cost": {
+            "complete_source_intervention_episodes": 3,
+            "observed_success_path_primitive_transitions": 14,
+            "observed_success_path_relation_macro_transitions": 5
+          },
+          "source_target_data_read": false
+        },
+        {
+          "repeat": 43,
+          "order_namespace": "phase14-matched-acquisition-order-v1/repeat/43",
+          "first_structurally_complete_budget": 7,
+          "cost": {
+            "complete_source_intervention_episodes": 7,
+            "observed_success_path_primitive_transitions": 40,
+            "observed_success_path_relation_macro_transitions": 8
+          },
+          "source_target_data_read": false
+        },
+        {
+          "repeat": 44,
+          "order_namespace": "phase14-matched-acquisition-order-v1/repeat/44",
+          "first_structurally_complete_budget": 4,
+          "cost": {
+            "complete_source_intervention_episodes": 4,
+            "observed_success_path_primitive_transitions": 23,
+            "observed_success_path_relation_macro_transitions": 5
+          },
+          "source_target_data_read": false
+        },
+        {
+          "repeat": 45,
+          "order_namespace": "phase14-matched-acquisition-order-v1/repeat/45",
+          "first_structurally_complete_budget": 2,
+          "cost": {
+            "complete_source_intervention_episodes": 2,
+            "observed_success_path_primitive_transitions": 11,
+            "observed_success_path_relation_macro_transitions": 3
+          },
+          "source_target_data_read": false
+        },
+        {
+          "repeat": 46,
+          "order_namespace": "phase14-matched-acquisition-order-v1/repeat/46",
+          "first_structurally_complete_budget": 3,
+          "cost": {
+            "complete_source_intervention_episodes": 3,
+            "observed_success_path_primitive_transitions": 21,
+            "observed_success_path_relation_macro_transitions": 4
+          },
+          "source_target_data_read": false
+        },
+        {
+          "repeat": 47,
+          "order_namespace": "phase14-matched-acquisition-order-v1/repeat/47",
+          "first_structurally_complete_budget": 1,
+          "cost": {
+            "complete_source_intervention_episodes": 1,
+            "observed_success_path_primitive_transitions": 7,
+            "observed_success_path_relation_macro_transitions": 2
+          },
+          "source_target_data_read": false
+        },
+        {
+          "repeat": 48,
+          "order_namespace": "phase14-matched-acquisition-order-v1/repeat/48",
+          "first_structurally_complete_budget": 5,
+          "cost": {
+            "complete_source_intervention_episodes": 5,
+            "observed_success_path_primitive_transitions": 32,
+            "observed_success_path_relation_macro_transitions": 6
+          },
+          "source_target_data_read": false
+        },
+        {
+          "repeat": 49,
+          "order_namespace": "phase14-matched-acquisition-order-v1/repeat/49",
+          "first_structurally_complete_budget": 3,
+          "cost": {
+            "complete_source_intervention_episodes": 3,
+            "observed_success_path_primitive_transitions": 25,
+            "observed_success_path_relation_macro_transitions": 4
+          },
+          "source_target_data_read": false
+        },
+        {
+          "repeat": 50,
+          "order_namespace": "phase14-matched-acquisition-order-v1/repeat/50",
+          "first_structurally_complete_budget": 3,
+          "cost": {
+            "complete_source_intervention_episodes": 3,
+            "observed_success_path_primitive_transitions": 18,
+            "observed_success_path_relation_macro_transitions": 4
+          },
+          "source_target_data_read": false
+        },
+        {
+          "repeat": 51,
+          "order_namespace": "phase14-matched-acquisition-order-v1/repeat/51",
+          "first_structurally_complete_budget": 3,
+          "cost": {
+            "complete_source_intervention_episodes": 3,
+            "observed_success_path_primitive_transitions": 20,
+            "observed_success_path_relation_macro_transitions": 4
+          },
+          "source_target_data_read": false
+        },
+        {
+          "repeat": 52,
+          "order_namespace": "phase14-matched-acquisition-order-v1/repeat/52",
+          "first_structurally_complete_budget": 4,
+          "cost": {
+            "complete_source_intervention_episodes": 4,
+            "observed_success_path_primitive_transitions": 25,
+            "observed_success_path_relation_macro_transitions": 5
+          },
+          "source_target_data_read": false
+        },
+        {
+          "repeat": 53,
+          "order_namespace": "phase14-matched-acquisition-order-v1/repeat/53",
+          "first_structurally_complete_budget": 4,
+          "cost": {
+            "complete_source_intervention_episodes": 4,
+            "observed_success_path_primitive_transitions": 23,
+            "observed_success_path_relation_macro_transitions": 5
+          },
+          "source_target_data_read": false
+        },
+        {
+          "repeat": 54,
+          "order_namespace": "phase14-matched-acquisition-order-v1/repeat/54",
+          "first_structurally_complete_budget": 4,
+          "cost": {
+            "complete_source_intervention_episodes": 4,
+            "observed_success_path_primitive_transitions": 23,
+            "observed_success_path_relation_macro_transitions": 5
+          },
+          "source_target_data_read": false
+        },
+        {
+          "repeat": 55,
+          "order_namespace": "phase14-matched-acquisition-order-v1/repeat/55",
+          "first_structurally_complete_budget": 1,
+          "cost": {
+            "complete_source_intervention_episodes": 1,
+            "observed_success_path_primitive_transitions": 7,
+            "observed_success_path_relation_macro_transitions": 2
+          },
+          "source_target_data_read": false
+        },
+        {
+          "repeat": 56,
+          "order_namespace": "phase14-matched-acquisition-order-v1/repeat/56",
+          "first_structurally_complete_budget": 1,
+          "cost": {
+            "complete_source_intervention_episodes": 1,
+            "observed_success_path_primitive_transitions": 7,
+            "observed_success_path_relation_macro_transitions": 2
+          },
+          "source_target_data_read": false
+        },
+        {
+          "repeat": 57,
+          "order_namespace": "phase14-matched-acquisition-order-v1/repeat/57",
+          "first_structurally_complete_budget": 1,
+          "cost": {
+            "complete_source_intervention_episodes": 1,
+            "observed_success_path_primitive_transitions": 11,
+            "observed_success_path_relation_macro_transitions": 2
+          },
+          "source_target_data_read": false
+        },
+        {
+          "repeat": 58,
+          "order_namespace": "phase14-matched-acquisition-order-v1/repeat/58",
+          "first_structurally_complete_budget": 2,
+          "cost": {
+            "complete_source_intervention_episodes": 2,
+            "observed_success_path_primitive_transitions": 16,
+            "observed_success_path_relation_macro_transitions": 3
+          },
+          "source_target_data_read": false
+        },
+        {
+          "repeat": 59,
+          "order_namespace": "phase14-matched-acquisition-order-v1/repeat/59",
+          "first_structurally_complete_budget": 3,
+          "cost": {
+            "complete_source_intervention_episodes": 3,
+            "observed_success_path_primitive_transitions": 17,
+            "observed_success_path_relation_macro_transitions": 4
+          },
+          "source_target_data_read": false
+        },
+        {
+          "repeat": 60,
+          "order_namespace": "phase14-matched-acquisition-order-v1/repeat/60",
+          "first_structurally_complete_budget": 1,
+          "cost": {
+            "complete_source_intervention_episodes": 1,
+            "observed_success_path_primitive_transitions": 9,
+            "observed_success_path_relation_macro_transitions": 2
+          },
+          "source_target_data_read": false
+        },
+        {
+          "repeat": 61,
+          "order_namespace": "phase14-matched-acquisition-order-v1/repeat/61",
+          "first_structurally_complete_budget": 2,
+          "cost": {
+            "complete_source_intervention_episodes": 2,
+            "observed_success_path_primitive_transitions": 13,
+            "observed_success_path_relation_macro_transitions": 3
+          },
+          "source_target_data_read": false
+        },
+        {
+          "repeat": 62,
+          "order_namespace": "phase14-matched-acquisition-order-v1/repeat/62",
+          "first_structurally_complete_budget": 2,
+          "cost": {
+            "complete_source_intervention_episodes": 2,
+            "observed_success_path_primitive_transitions": 14,
+            "observed_success_path_relation_macro_transitions": 4
+          },
+          "source_target_data_read": false
+        },
+        {
+          "repeat": 63,
+          "order_namespace": "phase14-matched-acquisition-order-v1/repeat/63",
+          "first_structurally_complete_budget": 3,
+          "cost": {
+            "complete_source_intervention_episodes": 3,
+            "observed_success_path_primitive_transitions": 18,
+            "observed_success_path_relation_macro_transitions": 4
+          },
+          "source_target_data_read": false
+        }
+      ],
+      "qualification_note": "Robustness orders recover the same semantic normal form. Held-out confirmation is executed on every primary budget; confirmation depends on this semantic form, not support counts or the order namespace."
+    }
+  },
+  "target": {
+    "development_eligible_complete_trajectories": 9,
+    "heldout_eligible_complete_trajectories": 11,
+    "target_k0": {
+      "status": "ABSTAIN_NO_COMPLETE_TARGET_TRAJECTORY",
+      "heldout_support": 0
+    },
+    "single_demo_robustness": {
+      "independent_single_demo_programs": 9,
+      "all_match_source_execution_normal_form": true,
+      "all_support_every_heldout_trajectory": true,
+      "all_shuffled_effect_support_zero": true,
+      "all_binding_relation_permuted_support_zero": true,
+      "full_episode_transition_min": 15,
+      "full_episode_transition_median": 25,
+      "full_episode_transition_max": 39,
+      "post_intervention_transition_min": 10,
+      "post_intervention_transition_median": 16,
+      "post_intervention_transition_max": 34,
+      "receipts": [
+        {
+          "task_id_sha256": "15113c301c5ef5407c007af6f868847ac5beb235b2a88c63dd81c145eea44c4c",
+          "full_episode_primitive_transitions": 31,
+          "post_intervention_induction_transitions": 26,
+          "program_sha256": "6bb21d4da3ac2fe20db1cffbeeaf4a606431fe9bb4ba8197b8c8dd5a23ad7a8e",
+          "matches_source_execution_normal_form": true,
+          "heldout_support": 11,
+          "heldout_shuffled_effect_support": 0,
+          "heldout_binding_relation_permuted_support": 0
+        },
+        {
+          "task_id_sha256": "167de627ff8987bca7feae586c6e13a358a15d9a7b967151cac70e7e8c630b65",
+          "full_episode_primitive_transitions": 25,
+          "post_intervention_induction_transitions": 18,
+          "program_sha256": "0cfdb9865e2bd6ab0b4c08b759eedc9e83bba7d8e0833c0db12673777bbdcd8b",
+          "matches_source_execution_normal_form": true,
+          "heldout_support": 11,
+          "heldout_shuffled_effect_support": 0,
+          "heldout_binding_relation_permuted_support": 0
+        },
+        {
+          "task_id_sha256": "4020ea94dbf84857e3a6bf24605053586ecedc9539d1cfcd25b0cbe59543e6e9",
+          "full_episode_primitive_transitions": 38,
+          "post_intervention_induction_transitions": 32,
+          "program_sha256": "801f3cd69ba8a200efd86b61b7930a38b85472330e76d10f8b013a564ad61552",
+          "matches_source_execution_normal_form": true,
+          "heldout_support": 11,
+          "heldout_shuffled_effect_support": 0,
+          "heldout_binding_relation_permuted_support": 0
+        },
+        {
+          "task_id_sha256": "5892c7bd9eae8cc036bdfb6001100fbf30bac0f0e71f58b40af839496b78aad3",
+          "full_episode_primitive_transitions": 21,
+          "post_intervention_induction_transitions": 16,
+          "program_sha256": "a5d782a70b81659469e4da2cb6b314514aa70c63c200bd0cefa6887d8d02f8d0",
+          "matches_source_execution_normal_form": true,
+          "heldout_support": 11,
+          "heldout_shuffled_effect_support": 0,
+          "heldout_binding_relation_permuted_support": 0
+        },
+        {
+          "task_id_sha256": "6a5df8353eb3f24cfad161bd70cf46ed4dc40b78214a4dd5ff0d1af72a6177c9",
+          "full_episode_primitive_transitions": 35,
+          "post_intervention_induction_transitions": 13,
+          "program_sha256": "e40bbe0142523a9e964a27f19619bd875006446329a3433276281d85a6a3a351",
+          "matches_source_execution_normal_form": true,
+          "heldout_support": 11,
+          "heldout_shuffled_effect_support": 0,
+          "heldout_binding_relation_permuted_support": 0
+        },
+        {
+          "task_id_sha256": "8b9c4c403b06b69b606dc4e3c0f25a3c8a7982f7d1cf5c3807cb55e7125c3e60",
+          "full_episode_primitive_transitions": 19,
+          "post_intervention_induction_transitions": 10,
+          "program_sha256": "693f5a7ec697a621afd6f3456ef90953ad01c5395f8a438d8f5d864eff0d51ec",
+          "matches_source_execution_normal_form": true,
+          "heldout_support": 11,
+          "heldout_shuffled_effect_support": 0,
+          "heldout_binding_relation_permuted_support": 0
+        },
+        {
+          "task_id_sha256": "b07491accb296965ef57cfad5e607af3f2f9298def3726ba9e1f7f650673b5a3",
+          "full_episode_primitive_transitions": 39,
+          "post_intervention_induction_transitions": 34,
+          "program_sha256": "9e2987123fe8c4d9f34fde5f9ac366764df3ea41fee876feb7279765fc492c05",
+          "matches_source_execution_normal_form": true,
+          "heldout_support": 11,
+          "heldout_shuffled_effect_support": 0,
+          "heldout_binding_relation_permuted_support": 0
+        },
+        {
+          "task_id_sha256": "c7d4e307b0a8c24b5888b9e861d2532cd6db2303e109e9560fe4a3acfdf1318d",
+          "full_episode_primitive_transitions": 24,
+          "post_intervention_induction_transitions": 10,
+          "program_sha256": "038eb89477729829864eff59e17c310b095509df3a9c9dcd79fb5946ba794736",
+          "matches_source_execution_normal_form": true,
+          "heldout_support": 11,
+          "heldout_shuffled_effect_support": 0,
+          "heldout_binding_relation_permuted_support": 0
+        },
+        {
+          "task_id_sha256": "e0bd14dd823a0680740dd426a806a324009db765e060ee692ccea63c1db1d504",
+          "full_episode_primitive_transitions": 15,
+          "post_intervention_induction_transitions": 10,
+          "program_sha256": "5b6cfc8fe51e06eeb20e5e7ba175bbda652e2f76a107fbad9378eaed11558051",
+          "matches_source_execution_normal_form": true,
+          "heldout_support": 11,
+          "heldout_shuffled_effect_support": 0,
+          "heldout_binding_relation_permuted_support": 0
+        }
+      ]
+    },
+    "source_execution_normal_form": {
+      "activation_after_positive_relations": 1,
+      "recurrent_acquisition_control": true,
+      "binding_then_relation": true,
+      "recurrent_relation_grounding": true,
+      "relation_argument_rule": "PRESERVE_FIRST_POSITIVE_RELATION_HANDLE",
+      "terminal_remaining_relations": 0,
+      "positive_effect_cardinality": 1,
+      "fail_closed_on_ambiguity": true
+    }
+  },
+  "cost_comparison": {
+    "source_primary": {
+      "complete_source_intervention_episodes": 4,
+      "observed_success_path_primitive_transitions": 27,
+      "observed_success_path_relation_macro_transitions": 5
+    },
+    "target_complete_trajectory_budget": 1,
+    "target_full_episode_transition_range": [
+      15,
+      39
+    ],
+    "target_post_intervention_transition_range": [
+      10,
+      34
+    ],
+    "common_cost_unit_available": false,
+    "reason": "Source receipts retain successful intervention paths but do not retain all simulator candidate-fork primitive steps; source simulator and target environment interactions also have different costs."
+  },
+  "gates": {
+    "source_k0_abstains": true,
+    "source_primary_qualifies_within_frozen_maximum": true,
+    "source_primary_uses_no_target_data": true,
+    "source_terminal_feature_not_provided_by_name": true,
+    "source_primary_passes_both_heldout_gates": true,
+    "source_primary_rejects_shuffled_effects": true,
+    "all_source_orders_recover_within_frozen_maximum": true,
+    "target_k0_abstains": true,
+    "every_eligible_target_k1_matches_source": true,
+    "every_target_k1_supports_all_heldout": true,
+    "all_target_controls_have_zero_support": true,
+    "no_new_target_execution_or_success_claim": true,
+    "cost_units_reported_without_false_equivalence": true
+  },
+  "report_sha256": "fa7ba65102684cc8d290be79c049f57ccc5e3a9ba27a0bbe4059b8b2c0189e36"
+}

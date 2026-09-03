@@ -1,0 +1,84 @@
+{
+  "audit_sha256": "ff4e094ea9c43183903fc97fc912d6845d23fbc6ffa5edcbc3a74277852bef5b",
+  "claim": "POSITIVE_POINT_ESTIMATE_53_VS_45_AND_CONTROLS_VALID;PREREGISTERED_SUCCESS_AND_NEGATIVE_TRANSFER_GATES_FAILED;NO_POSITIVE_CONFIRMATORY_AGQA_CLAIM",
+  "formal_result": {
+    "arm_correct": {
+      "neural_only": 45,
+      "source_induced": 53,
+      "source_permuted": 45,
+      "target_written_equivalent": 53
+    },
+    "failure_decomposition": {
+      "all_losses_are_visual_grounding_decisions": true,
+      "grounder_false_negative_losses": 4,
+      "grounder_false_positive_losses": 2,
+      "paired_losses": 6,
+      "paired_wins": 14
+    },
+    "reported_provider_cost_usd": 0.12977558,
+    "sample_count": 80,
+    "source_authorizations": 74,
+    "source_vs_neural_only": {
+      "losses": 6,
+      "net_gain": 8,
+      "one_sided_exact_binomial_pvalue": 0.057659149169921875,
+      "ties": 60,
+      "wins": 14
+    },
+    "unique_video_count": 80
+  },
+  "gates": {
+    "cost_gate_passed": true,
+    "fresh_80_video_cohort": true,
+    "negative_transfer_gate_passed": false,
+    "protocol_was_frozen": true,
+    "router_and_controls_passed": true,
+    "second_untouched_compatible_cohort_available": false,
+    "success_gain_gate_passed": false,
+    "transport_fixes_outcome_neutral": true,
+    "v65_runtime_pinned": true
+  },
+  "lineage": {
+    "collector_report_file_sha256": "62c7f4fbeb8591fd5ad6339f7c2acb31af01b1a36ea853f6d7b84a423c92518d",
+    "formal_evaluation_file_sha256": "1a259d7c82f174201e7ab967940fc9eb6bad7451326d9ec9d98127543f5e7e29",
+    "manifest_file_sha256": "f6b02f4543d5d10c8da6383663e577576e0d563a216b5a32c40cd6134b945935",
+    "protocol_file_sha256": "c15af35ee9f38ca36837142c30a412a1bca0733922789118d8a4c36d49151e44",
+    "router_model_file_sha256": "6fcc9495610f97075f7c207e4c8311c7909198c5edd21a324a44f51bdc9e2a0d",
+    "selection_file_sha256": "b14932550111858726a5b9c0fb7451aab73b5a065980bdc4e7d4e1b53f965f8c"
+  },
+  "remaining_inventory": {
+    "currently_runtime_exposed_formal_videos": 684,
+    "currently_unseen_formal_videos": 93,
+    "currently_unseen_router_qualified_exists_tasks": 0,
+    "formal_exposure_by_run": {
+      "agqa2_asymmetric_support_v55_qualification": 40,
+      "agqa2_directional_support_v52_qualification": 26,
+      "agqa2_full_distribution_v62": 28,
+      "agqa2_interval_reliability_v46_qualification": 19,
+      "agqa2_query_object_v20_development": 2,
+      "agqa2_query_object_v21_development": 2,
+      "agqa2_query_object_v22_development": 2,
+      "agqa2_query_object_v24_development": 2,
+      "agqa2_query_object_v27_development": 2,
+      "agqa2_query_object_v28_development": 2,
+      "agqa2_router_v65_grounder_formal_v1": 80,
+      "agqa2_source_binding_formal_v15": 266,
+      "agqa2_source_executor_formal_v14": 240,
+      "agqa2_temporal_localized_query_v59_development": 8,
+      "agqa2_temporal_localized_query_v60_qualification": 27,
+      "agqa2_temporal_support_v49_qualification": 21,
+      "agqa2_view_reliability_v43_qualification": 12
+    },
+    "formal_partition_videos": 777,
+    "untouched_program_or_answer_access_during_inventory_scan": false
+  },
+  "schema_version": "agqa2-router-v65-formal-v1-audit-v1",
+  "status": "V1_CONFIRMATORY_FAILED_AND_NO_SECOND_UNTOUCHED_COMPATIBLE_COHORT",
+  "transport": {
+    "accepted_call_reported_cost_usd": 0.12977558,
+    "invalid_cache_quarantined": 2,
+    "invalid_cache_receipt_sha256": "eb6a150b3ab9fced87039d1708128ee5d631c16bff3fa993b5034ee345b4e1f4",
+    "malformed_provider_attempt_cost_caveat": "NOT_PRESENT_IN_ACCEPTED_CALL_CACHE;PRIMARY_GATE_WAS_PREREGISTERED_ON_REPORTED_PROVIDER_COST",
+    "postruntime_finalizer_receipt_sha256": "88d44052510ea4114b852d576fd96b8b726967d347ef855ce143faa80672490b"
+  }
+}

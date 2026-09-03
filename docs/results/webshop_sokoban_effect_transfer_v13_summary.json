@@ -1,0 +1,120 @@
+{
+  "schema_version": 1,
+  "experiment": "webshop_sokoban_effect_transfer_v13",
+  "scientific_status": "REAL_SOKOBAN_TO_WEBSHOP_NEURAL_SYMBOLIC_TRANSFER_VALIDATED",
+  "tasks": 32,
+  "receipt_count": 192,
+  "receipt_matrix_sha256": "c45d7421b6f13c32925e8552b4ec09f478e188c25cd3cddfccd83805c8e94a15",
+  "conditions": {
+    "target_only": {
+      "strict_successes": 11,
+      "mean_reward": 0.5598958333333334,
+      "mean_steps": 8.15625,
+      "source_decisions": 0
+    },
+    "target_native_myopic": {
+      "strict_successes": 2,
+      "mean_reward": 0.5859375,
+      "mean_steps": 4.5,
+      "source_decisions": 30
+    },
+    "authentic_sokoban_effect_plus_target": {
+      "strict_successes": 18,
+      "mean_reward": 0.71875,
+      "mean_steps": 7.53125,
+      "source_decisions": 33
+    },
+    "commit_availability_control_plus_target": {
+      "strict_successes": 2,
+      "mean_reward": 0.5546875,
+      "mean_steps": 6.3125,
+      "source_decisions": 18
+    },
+    "inverted_effect_control_plus_target": {
+      "strict_successes": 2,
+      "mean_reward": 0.5546875,
+      "mean_steps": 6.3125,
+      "source_decisions": 18
+    },
+    "position_prior_control_plus_target": {
+      "strict_successes": 9,
+      "mean_reward": 0.4583333333333333,
+      "mean_steps": 8.59375,
+      "source_decisions": 33
+    }
+  },
+  "paired_comparisons": {
+    "target_only": {
+      "strict_wins": 7,
+      "strict_losses": 0,
+      "strict_ties": 25,
+      "strict_success_delta": 0.21875,
+      "mean_reward_delta": 0.15885416666666666,
+      "mean_step_delta": -0.625,
+      "paired_exact_p_two_sided": 0.015625,
+      "action_contrast_tasks": 10
+    },
+    "target_native_myopic": {
+      "strict_wins": 16,
+      "strict_losses": 0,
+      "strict_ties": 16,
+      "strict_success_delta": 0.5,
+      "mean_reward_delta": 0.1328125,
+      "mean_step_delta": 3.03125,
+      "paired_exact_p_two_sided": 0.000030517578125,
+      "action_contrast_tasks": 23
+    },
+    "commit_availability_control_plus_target": {
+      "strict_wins": 16,
+      "strict_losses": 0,
+      "strict_ties": 16,
+      "strict_success_delta": 0.5,
+      "mean_reward_delta": 0.1640625,
+      "mean_step_delta": 1.21875,
+      "paired_exact_p_two_sided": 0.000030517578125,
+      "action_contrast_tasks": 18
+    },
+    "inverted_effect_control_plus_target": {
+      "strict_wins": 16,
+      "strict_losses": 0,
+      "strict_ties": 16,
+      "strict_success_delta": 0.5,
+      "mean_reward_delta": 0.1640625,
+      "mean_step_delta": 1.21875,
+      "paired_exact_p_two_sided": 0.000030517578125,
+      "action_contrast_tasks": 18
+    },
+    "position_prior_control_plus_target": {
+      "strict_wins": 9,
+      "strict_losses": 0,
+      "strict_ties": 23,
+      "strict_success_delta": 0.28125,
+      "mean_reward_delta": 0.2604166666666667,
+      "mean_step_delta": -1.0625,
+      "paired_exact_p_two_sided": 0.00390625,
+      "action_contrast_tasks": 9
+    }
+  },
+  "primary_gates": {
+    "receipt_matrix_complete": true,
+    "receipt_hashes_valid": true,
+    "zero_final_failures": true,
+    "matched_initial_state_hashes": true,
+    "authentic_source_decisions": true,
+    "all_comparator_gates": true
+  },
+  "operational_retries": [],
+  "source_artifact_sha256": "6b02dc1d7271bbd435e90539cedd7d56d04fcc1ad03798dd6dd06146d67f1fcd",
+  "source_confirmation_report_sha256": "d64606c916ce6e812ae1b920771d5175cb48983a2f141b2dab6f43d491a6c1ed",
+  "target_grounder_file_sha256": "bbf8a22ebec8e7ab6d55e570f230ba4fcb2b8630d1dc81bd24ba103f68701782",
+  "frozen_config_file_sha256": "90c25a60ba265537002671efc8cf67a7b01ae2191f6f409e72e18edf499f7671",
+  "runner_file_sha256": "af997b2b2e604f1b7020d518d105b715b2e1a9e80530c7960e49448e3f63765e",
+  "core_file_sha256": "68c2e2daba3d764a9286130a07a4e274b5f976c010f2bd4d6b362c0a94836126",
+  "run_summary_file_sha256": "812ce4adf2fc451808719409843b3a87b8e6143fc46aa0a2c9155af8e741573f",
+  "final_report_file_sha256": "da10d0c70690bcd8cd5df8cb249b61348bec483230866dba95324d8c3040f73f",
+  "final_report_content_sha256": "2b029bc303e113facb371e71e4395f7ba701a80e3ec4350c15b1db205bf98d12",
+  "v12_reserved_data_used": false,
+  "availability_and_inverted_controls_same_action_sequences": "32/32 in this target run; retain both as a disclosed redundant control, not two independent effects",
+  "claim_boundary": "Validated on deterministic local WebShop goals 114-145 with qwen/qwen3.5-35b-a3b. The cross-domain correspondence is typed by design; source coordinates/actions never transfer. This does not establish arbitrary-game, arbitrary-target, or end-to-end automatic abstraction discovery.",
+  "summary_sha256": "2bde00ae5b1bd8c99f416a55551ade0e78c39023ffb0db0d1fbd3eae0c6ab86a"
+}

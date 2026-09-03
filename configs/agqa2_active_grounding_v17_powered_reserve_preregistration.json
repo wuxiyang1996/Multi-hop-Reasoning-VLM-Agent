@@ -1,0 +1,90 @@
+{
+  "claim_boundary": "UNCHANGED_V16_SELECTIVE_OVERRIDE_GROUNDER;54_NEW_CROSS_EXPERIMENT_VIDEO_DISJOINT_CANDIDATES;45_ROW_OUTCOME_BLIND_POWERED_REPLICATION;NOT_UNTOUCHED_METADATA",
+  "cost_projection": {
+    "frozen_cap_usd": 0.45,
+    "linear_projection_usd": 0.37979493,
+    "v16_candidate_count": 36,
+    "v16_cost_usd": 0.25319662,
+    "v17_candidate_count": 54
+  },
+  "development_qualification_summary": "docs/results/agqa2_active_grounding_v16_development_summary.json",
+  "development_qualification_summary_file_sha256": "db5154c16a596d2f7c918e0f05b056671b61473d0de07d57d38ab2a05ff735a6",
+  "download_receipt_file_sha256": "d002ea03f57e7a24e4d146736f1554bd35916a421404d7f1b42fc9a1051dd420",
+  "execution_calibration": {
+    "agreement_authorizes_without_claiming_gain": true,
+    "direct_corroboration_cannot_change_direct_prediction": true,
+    "forbidden_fields": [
+      "official_answer",
+      "functional_program",
+      "scene_graph_grounding",
+      "source_identity"
+    ],
+    "minimum_duration_margin_frames": 3,
+    "minimum_exists_override_confidence": 0.8,
+    "minimum_repeated_interval_dominance_margin_frames": 2,
+    "minimum_single_interval_nesting_margin_frames": 6,
+    "mode": "INDEPENDENT_TARGET_EVIDENCE_V1",
+    "new_v10_topologies": [
+      "BOUNDARY_ALIGNED_SINGLE_INTERVAL_NESTING",
+      "ALIGNED_REPEATED_INTERVAL_DOMINANCE"
+    ],
+    "new_v16_soundness_conditions": [
+      "EXISTS_OVERRIDE_MINIMUM_SUPPORTED_EVENT_CONFIDENCE",
+      "ORDER_OVERRIDE_GLOBAL_INTERVAL_SEPARATION"
+    ],
+    "require_globally_separated_order_override": true,
+    "typed_override_requires_independent_symbolic_topology": true
+  },
+  "failure_policy": {
+    "qualification": "FAIL_CLOSED_TO_MATCHED_DIRECT_BASELINE",
+    "reserve": "RUN_ONCE_ON_FROZEN_V17_POOL;NO_POST_RESERVE_TUNING"
+  },
+  "power_planning": {
+    "grounder_or_selector_semantics_changed": false,
+    "pooled_decisive": 40,
+    "pooled_losses": 0,
+    "pooled_rows": 60,
+    "pooled_wins": 6,
+    "v16_development_decisive": 21,
+    "v16_development_rows": 30,
+    "v16_development_wins": 5,
+    "v16_reserve_decisive": 19,
+    "v16_reserve_rows": 30,
+    "v16_reserve_wins": 1,
+    "v17_candidate_rows": 54,
+    "v17_evaluated_rows": 45
+  },
+  "powered_evaluation_protocol_sha256": "33481d709fa6b41c6549a2b0a25f330e70e1583927576081a20b68bd61c5e8fd",
+  "qualified_unchanged_v16_grounder_sha256": "65df2157fb77997317b68fbdbd7407bf0e1ce028468295c7cdb824d9d9d19906",
+  "reserve_gates": {
+    "maximum_reported_provider_cost_usd": 0.45,
+    "maximum_typed_vs_direct_losses": 0,
+    "minimum_decisive_accuracy": 0.6666666666666666,
+    "minimum_decisive_executions": 30,
+    "minimum_route_correct": 45,
+    "minimum_typed_vs_direct_wins": 3,
+    "required_source_permuted_abstentions": 45,
+    "required_target_written_equivalent_matches": 45,
+    "required_valid_runtime_rows": 45
+  },
+  "reserve_manifest": "configs/agqa2_active_grounding_v17_powered_reserve_manifest.json",
+  "reserve_manifest_sha256": "3329b13fc51e9da3308bb1adc132d86fab7a2e0497b72c32fa5d00096a91f2b2",
+  "reserve_selection": "configs/agqa2_active_grounding_v17_powered_reserve_selection.json",
+  "reserve_selection_sha256": "d10c6f2bb3592f53fee61ff11e0121cc1ec8d7b99eaf7e9ba94ff2f998c6b98e",
+  "runtime_selection": {
+    "candidate_count": 54,
+    "forbidden": [
+      "answer",
+      "program",
+      "scene_graph",
+      "source_identity"
+    ],
+    "mode": "OUTCOME_BLIND_CALIBRATED_EVIDENCE_RANK_V1",
+    "per_predicted_route": 15,
+    "reads_direct_response_only_inside_frozen_calibration": true
+  },
+  "schema_version": "agqa2-active-grounding-preregistration-v17-powered-reserve",
+  "status": "FROZEN_BEFORE_ANY_V17_POWERED_RESERVE_CALL",
+  "v16_reserve_result": "docs/results/agqa2_active_grounding_v16_reserve_result.json",
+  "v16_reserve_result_file_sha256": "176b2db9e0358e0e5ee79da14d65deab21d514f10c91cb2325a6100f3f278274"
+}

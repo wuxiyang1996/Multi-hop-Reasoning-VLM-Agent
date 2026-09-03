@@ -1,0 +1,18 @@
+{
+  "schema_version": 21,
+  "status": "FROZEN_BEFORE_MATCHED_GENERIC_CONTROL_OUTCOMES_WERE_INSPECTED",
+  "generic_control_config": "configs/natural_video_generic_control_v21_development.json",
+  "generic_control_config_sha256": "734a92d6b54f2e926375246c1ea21de4a9fdc7e389849e61ed7955c47c06aa84",
+  "input_v19_receipts": "runs/natural_video_v19_expanded_formal/formal_receipts.json",
+  "input_v19_receipts_sha256": "50011ed4a8ec645b5652220bfcc61f18ddb816b6bb3c49f20a7f445be5d8090d",
+  "authentic_policy": "COMMIT_PRIMARY -> VERIFY_TYPED_TARGET_PROOF; PRIMARY_ANSWER_ENTAILMENT_REFUTED AND DISTINCT_PROOF_ANSWER_ENTAILMENT_SUPPORTED -> REPLAN_TO_PROOF; ELSE RETAIN_PRIMARY",
+  "authentic_v19_field": "unrestricted_correct",
+  "reason_raw_proof_is_not_sufficient": "The raw proof argmax may differ from the primary even when the symbolic REFUTED/SUPPORTED transition guard did not fire. Raw proof tests prompt structure; unrestricted_correct tests the transferred source state machine without the rejected family whitelist.",
+  "additional_source_authentic_qualification_gates": {
+    "source_guard_strictly_above_generic_direct_pooled": true,
+    "source_guard_not_below_generic_direct_each_benchmark": true,
+    "source_guard_vs_generic_exact_two_sided_p_maximum": 0.05,
+    "source_guard_minus_generic_stratified_video_cluster_bootstrap_lower_bound_must_exceed": 0.0
+  },
+  "interpretation": "Reserve evaluation is authorized only if both the original matched typed-prompt gates and all source-authentic state-machine gates pass."
+}

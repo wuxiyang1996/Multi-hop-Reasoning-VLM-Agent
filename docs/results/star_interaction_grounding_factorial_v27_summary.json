@@ -1,0 +1,61 @@
+{
+  "schema_version": 27,
+  "status": "NOT_QUALIFIED",
+  "claim_boundary": "Consumed-development-only 2x2 target-native grounding view by source-symbolic execution factorial on 128 STAR Interaction questions from 64 already-consumed video clusters. No fresh confirmation video was read or executed.",
+  "model": "openai/gpt-4.1-mini",
+  "conditions": {
+    "uniform_direct": {"correct": 60, "n": 128, "accuracy": 0.46875},
+    "uniform_typed_proof": {"correct": 62, "n": 128, "accuracy": 0.484375},
+    "uniform_source": {"correct": 62, "n": 128, "accuracy": 0.484375},
+    "active_direct": {"correct": 60, "n": 128, "accuracy": 0.46875},
+    "active_typed_proof": {"correct": 51, "n": 128, "accuracy": 0.3984375},
+    "active_source": {"correct": 48, "n": 128, "accuracy": 0.375},
+    "active_binding_control": {"correct": 60, "n": 128, "accuracy": 0.46875},
+    "active_topology_control": {"correct": 58, "n": 128, "accuracy": 0.453125}
+  },
+  "active_source_vs_active_direct": {
+    "wins": 7,
+    "losses": 19,
+    "ties": 102,
+    "net_wins": -12,
+    "accuracy_delta": -0.09375,
+    "exact_two_sided_p": 0.028959274291992188,
+    "video_cluster_bootstrap_lower_95": -0.1796875,
+    "video_cluster_bootstrap_upper_95": -0.0078125
+  },
+  "factorial": {
+    "uniform_source_minus_uniform_direct_accuracy": 0.015625,
+    "active_source_minus_active_direct_accuracy": -0.09375,
+    "accuracy_difference_in_differences": -0.109375
+  },
+  "mechanism_diagnostics": {
+    "uniform_direct_proof_disagreements": 29,
+    "active_direct_proof_disagreements": 44,
+    "uniform_source_replans": 24,
+    "active_source_replans": 35,
+    "active_replan_corrections": 7,
+    "active_replan_destructions": 19,
+    "active_replan_wrong_to_wrong": 9,
+    "active_binding_control_replans": 0,
+    "active_topology_control_replans": 2,
+    "mean_unique_active_frames": 16.890625,
+    "minimum_unique_active_frames": 15,
+    "maximum_unique_active_frames": 20,
+    "transport_errors": 0,
+    "estimated_total_cost_usd": 0.856376
+  },
+  "interpretation": [
+    "The real wrapper navigation tools executed successfully but did not improve direct accuracy over the uniform 24-frame view.",
+    "The adjacent-pair view increased high-confidence candidate-proof disagreements and destructive source replans.",
+    "A confidence threshold is not justified: corrective and destructive replans had similar alternative entailment confidence.",
+    "The next mechanism needs candidate-conditional semantic event grounding with bind-or-abstain receipts, preferably on long videos where navigation acquires new frames."
+  ],
+  "artifacts": {
+    "config": "configs/star_interaction_grounding_factorial_v27_development.json",
+    "config_sha256": "7d2550dba454076ee65ed09d6c8b90ec4bfde25715fbe425fe89c274f85dbc95",
+    "receipts": "runs/star_interaction_grounding_factorial_v27_development/receipts.json",
+    "receipts_sha256": "4439e45fea0cb40da21f94b2f7ac809991621e757a9f0f7b11b036d0f3098d1a",
+    "formal_report": "runs/star_interaction_grounding_factorial_v27_development/formal_report.json",
+    "formal_report_sha256": "530c89890af477e236360189354aa40abe6841fc9b1976ca19ff3cc1d20192e2"
+  }
+}

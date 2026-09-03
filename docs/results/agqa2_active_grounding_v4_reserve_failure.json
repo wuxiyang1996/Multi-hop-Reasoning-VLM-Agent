@@ -1,0 +1,19 @@
+{
+  "schema_version": "agqa2-active-grounding-reserve-failure-v4",
+  "status": "V4_RESERVE_NOT_QUALIFIED_RUNTIME_INCOMPLETE",
+  "split": "reserve",
+  "config_file_sha256": "a9aa3a79817015e832ec7b0c6aacfa9bc4cc0e1681ee9040360d6ba88db720a8",
+  "grounder_sha256": "50ed9aadfd176c41d2b8b188f599d052080d0b716a47c159cf1c896ad847a713",
+  "complete_runtime_rows": 8,
+  "required_runtime_rows": 9,
+  "accepted_provider_calls": 40,
+  "reported_provider_cost_usd": 0.05549066,
+  "official_answers_read": false,
+  "official_scene_graphs_read": false,
+  "failure": {
+    "task_id": "EF7Q9-4537",
+    "reason": "The public question asks for the globally longest action without naming comparison operands; a two-operand source IR cannot be instantiated without privileged program or scene-graph data."
+  },
+  "failure_policy": "PRESERVE_V4_AS_FAILED;NARROW_V5_TO_A_PREDECLARED_EXPLICIT_OPERAND PUBLIC_QUESTION_GRAMMAR;EXCLUDE_ALL_V3_AND_V4_RESERVE_VIDEOS;DO_NOT_READ_V4_OUTCOMES",
+  "worker_errors_file_sha256": "08b225bd61199b0e48a30320e95434e94ec2ae4d03ffdccc87f527a7e76e9d89"
+}

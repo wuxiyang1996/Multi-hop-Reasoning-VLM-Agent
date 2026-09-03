@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "slurm_job_id": 7230057,
+  "status": "COMPLETE_GATE_FAILED",
+  "claim_boundary": "MECHANISM_SMOKE_NOT_CONFIRMATORY",
+  "source_game": "gymv_thunder_force_iii",
+  "source_skill_id": "COMMIT/CLEAR",
+  "frozen_plan": {
+    "selected_snapshots": 2,
+    "qualification_snapshots": 1,
+    "held_out_snapshots": 1,
+    "plan_content_sha256": "d2f8bbe72ce8f8352daed1fcd76bfea2d3884cf7d2c473957f216643dce49949",
+    "plan_file_sha256": "2785a4b322cfa9d9d5f1b99e2da1143b975324612acef7c7dcd4e0616afe5f8c"
+  },
+  "execution": {
+    "complete_cells": 16,
+    "invalid_cells": 0,
+    "live_continuation_policy_calls": 112,
+    "rows_sha256": "5593453ded4e454f12dd2cfc337af21145968e1c382fb3bb70a2e28b67bb84b5",
+    "report_sha256": "d5b1ad04ab19f19ed47932515745f9a7c58aa1cb1f1b01415856a1b682730310"
+  },
+  "h8_native_returns": {
+    "qualification": {
+      "COMMON_G_MINUS_S_CONTINUATION": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0
+      },
+      "FULL_TREATMENT_REGIME": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_S": 100.0,
+        "G_PLUS_RANDOM": 0.0
+      }
+    },
+    "held_out": {
+      "COMMON_G_MINUS_S_CONTINUATION": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0
+      },
+      "FULL_TREATMENT_REGIME": {
+        "B": 0.0,
+        "G_MINUS_S": 0.0,
+        "G_PLUS_S": 0.0,
+        "G_PLUS_RANDOM": 0.0
+      }
+    }
+  },
+  "gates": {
+    "BLIND_CELLS_COMPLETE": true,
+    "QUALIFICATION_COMMON_H8_VALUE": false,
+    "QUALIFICATION_FULL_H8_VALUE": true,
+    "HELDOUT_COMMON_H8_VALUE": false,
+    "HELDOUT_FULL_H8_VALUE": false,
+    "SOURCE_H8_VALUE_SUPPORTED": false
+  },
+  "interpretation": {
+    "supported": "The real matched multi-horizon mechanism is executable. At one qualification snapshot, retaining authentic context for the complete regime changed later actions and produced reward at decision 3.",
+    "not_supported": "The effect did not survive the common-continuation estimand or the held-out snapshot. Current COMMIT/CLEAR context is not a value-qualified transferable symbolic structure.",
+    "next_action": "Do not authorize target transfer or expand the unchanged COMMIT/CLEAR treatment. Use discovery-only relative multi-horizon effects to induce a new receipt-grounded control candidate, then freeze and test recurrence on more blind source snapshots."
+  }
+}

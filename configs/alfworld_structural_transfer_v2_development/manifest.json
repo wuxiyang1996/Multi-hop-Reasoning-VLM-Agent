@@ -1,0 +1,53 @@
+{
+  "conditions": [
+    "neural_only",
+    "source_induced",
+    "source_permuted",
+    "generic_scaffold",
+    "target_native_ceiling"
+  ],
+  "config_sha256": "5bceeeb35434212736b1b2b28366fa1915c253731df2f78c620cf80428f2a211",
+  "evaluation_mode": "DEVELOPMENT",
+  "grounder": {
+    "grounder_sha256": "c76d4a0be29777cd74429be5d5ac91816265b4e870922a3ceed5592fe151c5ae",
+    "path": "artifacts/alfworld_structural_grounder_v1/artifact.json.gz"
+  },
+  "integrity": {
+    "file_sha256": {
+      "artifacts/alfworld_structural_grounder_v1/artifact.json.gz": "6d39aae79046ae861a5c676840098c96544c053b7ab8da63237e765fa504e3af",
+      "configs/source_structural_v5c_frozen/programs/put_near.json": "dfd3c98d6ca41c7940e86819b60aa0e711bfdddffcb7fee6efa181acffed8bf9",
+      "configs/source_structural_v5c_frozen/programs/unlock_pickup.json": "355aa4822b4d25a5df2912e247f33d0b16e44d2fec42522c1772ba94a22c46f4",
+      "scripts/run_alfworld_structural_transfer_v1.py": "9229913d9e587f2b7a783a9b6d6edbc1915e7b3edd2a39116f202bdac7d998ca",
+      "src/motif_transfer/alfworld_env.py": "628132a058715544246960f782322f1b7d455f647115c9c85e042c4d6f1cf40e",
+      "src/motif_transfer/alfworld_structural_induction.py": "a3c7ec420f9f944cd671fc818d33f47d7d01d2433cd22bfc17790be4adeedb9f",
+      "src/motif_transfer/alfworld_structural_runtime_v1.py": "87d60965272021d5ac67516b877a30888e80d4dbce2473e4827d5c7139410da3",
+      "src/motif_transfer/structural_delta_induction.py": "bfa3e2da017f664612b0c7a5e3869ce1081514a18eaa569ec3434aeafce16a52"
+    }
+  },
+  "role": "CONSUMED_TARGET_DEVELOPMENT_CLOSED_LOOP_QUALIFICATION",
+  "schema_version": "alfworld-structural-closed-loop-development-v2",
+  "source_induced": {
+    "path": "configs/source_structural_v5c_frozen/programs/put_near.json",
+    "program_sha256": "b0d3b7cd706f8c18f35217a30d72e2f5d88b60f437f8c9980d9dbbf7478ee2c0",
+    "source_name_evaluator_label_only": "put_near"
+  },
+  "source_permuted": {
+    "path": "configs/source_structural_v5c_frozen/programs/unlock_pickup.json",
+    "program_sha256": "6635161e8a514a2f2a72a3391f46ef0d6d30a461c696bf748e3942b25e9a543a"
+  },
+  "target": {
+    "alfworld_config": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-source-fresh-v1/configs/alfworld_base_config.yaml",
+    "alfworld_data": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-github-main/.cache/alfworld_data",
+    "max_steps": 180,
+    "seed": 2026081621,
+    "split": "train",
+    "task_ids": [
+      "pick_two_obj_and_place-CreditCard-None-ArmChair-214/trial_T20190909_033000_959343/game.tw-pddl",
+      "pick_two_obj_and_place-ToiletPaper-None-Cabinet-417/trial_T20190909_115038_213553/game.tw-pddl",
+      "pick_two_obj_and_place-Candle-None-Cabinet-412/trial_T20190908_222933_552183/game.tw-pddl",
+      "pick_two_obj_and_place-ToiletPaper-None-Toilet-429/trial_T20190909_031718_783966/game.tw-pddl",
+      "pick_two_obj_and_place-Mug-None-Cabinet-318/trial_T20190907_222852_159147/game.tw-pddl",
+      "pick_two_obj_and_place-SprayBottle-None-GarbageCan-420/trial_T20190909_141746_420846/game.tw-pddl"
+    ]
+  }
+}

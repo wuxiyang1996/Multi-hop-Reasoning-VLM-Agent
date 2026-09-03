@@ -1,0 +1,80 @@
+{
+  "schema_version": "discoveryworld-v16-qualification-summary-v1",
+  "status": "QUALIFICATION_PROTOCOL_FAILED_WITH_POSITIVE_PRIMARY_SIGNAL",
+  "claim_boundary": "Two-theme seed1 pilot only. The paired efficacy signal passed, but the pre-registered zero-runtime gate failed; cross-domain transfer benefit is therefore not validated and the formal reserve remains unopened.",
+  "source_program_sha256": "6b02dc1d7271bbd435e90539cedd7d56d04fcc1ad03798dd6dd06146d67f1fcd",
+  "source_confirmation_sha256": "d64606c916ce6e812ae1b920771d5175cb48983a2f141b2dab6f43d491a6c1ed",
+  "qualification_protocol_sha256": "7edefeb87f116eb17f9dbf45ff211d27dd151c48999dd115e6686bf50e38ec6d",
+  "prequalification_freeze": "docs/results/discoveryworld_v16_prequalification_freeze.json",
+  "fork_freeze_summary_sha256": "efa26ac74fa7215fc00cc0d9be49034a1f7c0992f86260dcaa4ce07402e18704",
+  "baseline_summary_sha256": "7d006fa313c984d30bda20359636cc71ad2de7edfcd555ef6c0c8a0c872f7b63",
+  "task_results": [
+    {
+      "task_id": "space_sick.easy.seed1",
+      "fork_after_episode_step": 16,
+      "reference_episode_sha256": "5f8c7f8191f353d3eba1bd68e6666bed4fecf761e1cda42dedfd1e517332e7e1",
+      "matched_result_sha256": "b27d0b092b35cc5e4356f70c4d89f5c3453248b9fed15d049b252d04c730ba37",
+      "binding": "PUT contaminated mushroom 57306 inside jar 1437",
+      "witness_kind": "ASSIGNMENT_IMPROVEMENT_AVAILABLE",
+      "success": {
+        "target_only_recorded": true,
+        "target_native_myopic": true,
+        "authentic_sokoban_effect_plus_target": true,
+        "commit_availability_control_plus_target": true,
+        "inverted_effect_control_plus_target": null,
+        "position_prior_control_plus_target": null
+      },
+      "runtime_error_conditions": [
+        "inverted_effect_control_plus_target",
+        "position_prior_control_plus_target"
+      ],
+      "all_matched_forks": true,
+      "all_selection_receipts_valid": true
+    },
+    {
+      "task_id": "proteomics.easy.seed1",
+      "fork_after_episode_step": 25,
+      "reference_episode_sha256": "30d844a4447ecb708b3031d2400506ec7cdb8ccfd481e542539d4aa64c392037",
+      "matched_result_sha256": "6c87e0c61cdcaf32b111f847285578f07a115d5b028719dd45e52fd5f7572695",
+      "binding": "DROP flag 17557 west of animaplant statue 43006",
+      "witness_kind": "DIRECT_PROGRESS_AVAILABLE",
+      "success": {
+        "target_only_recorded": false,
+        "target_native_myopic": false,
+        "authentic_sokoban_effect_plus_target": true,
+        "commit_availability_control_plus_target": false,
+        "inverted_effect_control_plus_target": false,
+        "position_prior_control_plus_target": false
+      },
+      "runtime_error_conditions": [],
+      "all_matched_forks": true,
+      "all_selection_receipts_valid": true
+    }
+  ],
+  "aggregate": {
+    "eligible_forks": 2,
+    "target_only_recorded_successes": 1,
+    "target_native_myopic_successes": 1,
+    "authentic_sokoban_effect_plus_target_successes": 2,
+    "commit_availability_control_plus_target_successes": 1,
+    "authentic_minus_target_native_successes": 1,
+    "authentic_negative_transfer_count": 0,
+    "runtime_error_arms": 2
+  },
+  "pre_registered_gates": {
+    "minimum_eligible_forks": {"passed": true, "observed": 2, "required": 2},
+    "all_policy_and_audit_forks_matched": {"passed": true},
+    "all_selection_receipts_valid": {"passed": true},
+    "zero_authentic_negative_transfer_vs_target_native": {"passed": true, "observed": 0},
+    "authentic_successes_strictly_greater_than_target_native": {"passed": true, "observed": "2 > 1"},
+    "zero_runtime_or_receipt_failures": {"passed": false, "observed_runtime_error_arms": 2},
+    "authentic_successes_strictly_greater_than_each_source_control": {
+      "passed": false,
+      "evaluable": false,
+      "reason": "Two Space Sick source-control arms ended in runtime errors."
+    }
+  },
+  "overall_gate_passed": false,
+  "formal_reserve_opened": false,
+  "next_protocol": "Treat seed1 as adaptation data, repair degenerate one-valid-candidate handling under a new version, freeze again, and evaluate six untouched Easy instances from Space Sick and Proteomics seeds2-4."
+}

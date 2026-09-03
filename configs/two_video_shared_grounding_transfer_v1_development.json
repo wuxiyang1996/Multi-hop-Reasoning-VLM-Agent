@@ -1,0 +1,60 @@
+{
+  "schema_version": "two-video-shared-grounding-transfer-protocol-v1",
+  "status": "IMPLEMENTED_DEVELOPMENT_PROTOCOL_NOT_FROZEN_FOR_FRESH_EVALUATION",
+  "benchmarks": [
+    "clevrer",
+    "agqa2"
+  ],
+  "claim_boundary": "Measure game-induced controller transfer after holding target-native video grounding fixed. Oracle event graphs are answer/program-blind conditional diagnostics. Model/tool event graphs are the separately reported end-to-end track. No result from this development protocol is a fresh formal claim.",
+  "primary_transfer_isolation_track": {
+    "grounding_mode": "ORACLE_EVENT_GRAPH",
+    "claim": "CONDITIONAL_SKILL_TRANSFER",
+    "official_scene_graph_read": true,
+    "functional_program_read": false,
+    "gold_answer_read": false,
+    "target_outcome_read": false,
+    "all_controller_arms_receive_exact_same_grounding_receipt": true,
+    "real_official_graph_audit": "docs/results/official_video_event_graph_v1_audit.json",
+    "oracle_success_claim_currently_available": false,
+    "reason": "Old predictions used model grounding and cannot be rebound into an oracle success table. Fresh target-native question execution plus prospective source/generic divergence is required."
+  },
+  "secondary_end_to_end_track": {
+    "grounding_mode": "MODEL_TOOL_EVENT_GRAPH",
+    "claim": "END_TO_END_VIDEO_TRANSFER",
+    "official_scene_graph_read": false,
+    "tool_plan_runs_once_before_controller_arms": true,
+    "all_controller_arms_receive_exact_same_grounding_receipt": true,
+    "wrapper_tools": [
+      "sample_frames",
+      "detect_transitions"
+    ]
+  },
+  "matched_controller_arms": [
+    "neural_only",
+    "source_induced",
+    "source_permuted",
+    "generic_scaffold",
+    "target_native_ceiling"
+  ],
+  "required_gates_for_a_future_fresh_claim": {
+    "all_runtime_receipts_answer_program_outcome_blind": true,
+    "all_arms_share_exact_grounding_receipt": true,
+    "source_induced_beats_neural_only": true,
+    "source_induced_beats_source_permuted": true,
+    "source_induced_beats_generic_scaffold": true,
+    "source_vs_generic_requires_positive_net_wins": true,
+    "oracle_and_model_grounded_results_reported_separately": true,
+    "negative_transfer_reported": true,
+    "tool_and_frame_budgets_identical_across_arms": true
+  },
+  "consumed_compatibility_audit": {
+    "report": "docs/results/video_shared_grounding_v1_compatibility.json",
+    "fresh_evidence": false
+  },
+  "official_oracle_grounding_audit": {
+    "report": "docs/results/official_video_event_graph_v1_audit.json",
+    "tasks": 1260,
+    "passed": true,
+    "fresh_success_evidence": false
+  }
+}

@@ -1,0 +1,90 @@
+{
+  "schema_version": 19,
+  "status": "FROZEN_BEFORE_V19_EXPANDED_FORMAL_OUTCOMES",
+  "claim_boundary": "Prospective STAR/NExT-QA evaluation of the fresh-confirmed real-Sokoban COMMIT -> VERIFY_EXPECTED_EFFECT; EXPECTED_EFFECT_REFUTED -> REPLAN_OR_ABSTAIN structure. GPT-5.4 supplies a target-native primary belief and blind Gemini 3.1 Pro supplies candidate-factorized typed visual proofs. Source applicability allows recovery only for effects already realized and observable in the fixed clip: STAR Interaction/Sequence and NExT-QA Causal/Temporal; it abstains on unexecuted Prediction/Feasibility and static Descriptive questions. Source actions, game tokens, coordinates, video tokens, answers, and official annotations do not cross the boundary. The 28 formal video clusters were frozen before V15 development; all 251 previously unconsumed questions on those clusters were frozen before V19 formal outcomes. Raw videos overlap older experiments because local media are exhausted. This can test prospective success-rate transfer of the recovery structure, but cannot prove Sokoban provenance is necessary versus an extensionally identical target-only controller.",
+  "source_receipt": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/docs/results/sokoban_effect_program_v2_compact_receipt.json",
+  "formal_manifest": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/configs/natural_video_v19_expanded_formal_manifest.json",
+  "wrapper_root": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent",
+  "benchmarks": {
+    "star": {
+      "root": "/fs/gamma-projects/vlm-robot/datasets/STAR-official",
+      "annotation_split": "val"
+    },
+    "nextqa": {
+      "root": "/fs/gamma-projects/vlm-robot/datasets/NExT-QA-official",
+      "annotation_split": "val"
+    }
+  },
+  "primary_model": {
+    "provider": "openai",
+    "api_key_name": "OPENAI_API_KEY",
+    "id": "gpt-5.4",
+    "base_url": "https://us.api.openai.com/v1",
+    "timeout_seconds": 300,
+    "max_retries": 2,
+    "schema_retries": 3,
+    "max_primary_tokens": 1200
+  },
+  "proof_model": {
+    "provider": "openrouter",
+    "api_key_name": "OPENROUTER_API_KEY",
+    "id": "google/gemini-3.1-pro-preview",
+    "base_url": "https://openrouter.ai/api/v1",
+    "timeout_seconds": 300,
+    "max_retries": 2,
+    "schema_retries": 3,
+    "max_proof_tokens": 5200,
+    "transport_fallback_max_tokens": 16000,
+    "transport_fallback_hidden_reasoning_effort": "low"
+  },
+  "media": {
+    "primary_frame_count": 12,
+    "proof_frame_count": 24,
+    "proof_frames_per_panel": 12,
+    "proxy_frame_max_side": 720,
+    "primary_frame_width": 224,
+    "proof_frame_width": 192,
+    "jpeg_quality": 88
+  },
+  "policy": {
+    "transferred_contract": "COMMIT_PRIMARY -> VERIFY_WITH_TYPED_TARGET_PROOF; IF SOURCE_COMPATIBLE AND PRIMARY_ANSWER_ENTAILMENT_REFUTED AND DISTINCT_PROOF_ANSWER_ENTAILMENT_SUPPORTED -> REPLAN_TO_PROOF_ANSWER; ELSE ABSTAIN_TO_PRIMARY",
+    "source_compatible_families": {
+      "star": ["Interaction", "Sequence"],
+      "nextqa": ["Causal", "Temporal"]
+    },
+    "primary_independence_unit": "video_cluster",
+    "controls": [
+      "primary",
+      "always_cross_model_proof",
+      "unrestricted_typed_proof_guard",
+      "inverted_source_applicability",
+      "within_benchmark_family_shuffled_recovery_mask",
+      "same_rate_marginal_recovery_mask"
+    ]
+  },
+  "formal_gates": {
+    "minimum_authentic_net_wins_pooled": 1,
+    "minimum_authentic_net_wins_each_benchmark": 1,
+    "maximum_question_level_exact_two_sided_p": 0.05,
+    "minimum_positive_video_clusters": 1,
+    "authentic_strictly_above_primary": true,
+    "authentic_strictly_above_always_proof": true,
+    "authentic_strictly_above_unrestricted_guard": true,
+    "authentic_strictly_above_inverted_applicability": true,
+    "authentic_strictly_above_fixed_shuffled_and_marginal_controls": true
+  },
+  "control_seeds": {
+    "shuffled_recovery_mask": 19017,
+    "marginal_recovery_mask": 19031,
+    "cluster_bootstrap": 19043
+  },
+  "frozen_lineage": {
+    "source_receipt_sha256": "8f175c0edda951eba2064e9c53a8db6a25cdfa9fb0de8049d371dbf5335c9e80",
+    "formal_manifest_sha256": "8da331cabc8e8af45b5dfb5916d0a81dcfec96a569a8763f917edc5f1edd1e8f",
+    "collector_sha256": "2675beb07d86fe31124c9588b4dde61ff86c1915b31dd829e57f90b8c058f335",
+    "v15_collector_sha256": "1a2cba5619aee6a767cf73bcbaa7044594911f5c5903ef65ae98e6e62921bee1",
+    "transport_module_sha256": "db737df608164f8cc3b14df823b55a0a5697abb1c02fcfeb1df8da6c7e68c8bf",
+    "contract_module_sha256": "bdca859acc73384b66799d73e4b16845151bc195e65aa7ce9ae4178b22965f7c",
+    "applicability_module_sha256": "4abd7fca97ae235ec57753c45753bbb5199503e0682aab87321524f88e913961"
+  }
+}

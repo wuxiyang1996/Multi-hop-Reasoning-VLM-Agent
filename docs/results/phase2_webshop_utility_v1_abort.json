@@ -1,0 +1,36 @@
+{
+  "schema_version": "phase2-webshop-utility-abort-v1",
+  "status": "PHASE2_V1_PRE_ACTION_RUNTIME_ABORT_CONSUMED",
+  "manifest": "configs/phase2_webshop_utility_v1/manifest.json",
+  "manifest_sha256": "8a229d879dcc1bacb3a98f7418c59c7e3f7f7ae8e835dc6ab54e3a4e18b0ae35",
+  "manifest_file_sha256": "f80e94e0e4600917aab90743638d39fa6d10c4db3923ea9b99038e25f025b107",
+  "started_marker": "runs/phase2_webshop_utility_v1/started/cell_00.raw_target_only.json",
+  "started_marker_file_sha256": "87963b400db94251366357588a3b4cfb5f27550e59588ebdfc749748c1d67149",
+  "formal_log": "runs/phase2_webshop_utility_v1/formal.log",
+  "formal_log_file_sha256": "9eb6a9b62101450ac70a6ee61931e94f8c58c966064644cd939b38fc4938cced",
+  "server_log": "runs/phase2_webshop_utility_v1/server.log",
+  "server_log_file_sha256": "ff948f53006dd926a43278c0fe6c26f9456f8b0f61421a4a75f4c3316464daf4",
+  "started_cell": {
+    "target_identity": "webshop.synthetic.phase2.seed3398991865.index1.c8d323462b94cd14",
+    "condition": "raw_target_only"
+  },
+  "failure_stage": "webshop_wrapper_import_before_task_registration_or_env_construction",
+  "exception": "ModuleNotFoundError: No module named 'gymnasium'",
+  "failed_interpreter": "/fs/gamma-projects/vlm-robot/conda/bin/python",
+  "root_cause": "The formal runner was launched with Python 3.13, which lacks the benchmark gymnasium dependency.",
+  "evidence": {
+    "start_markers": 1,
+    "receipts": 0,
+    "decision_cache_exists": false,
+    "report_exists": false,
+    "target_task_registered": false,
+    "environment_constructed": false,
+    "target_resets": 0,
+    "target_actions": 0,
+    "provider_calls": 0,
+    "target_outcomes_read": 0
+  },
+  "one_shot_disposition": "The marker is retained. V1 is consumed-incomplete and will never be rerun or counted.",
+  "recovery_rule": "Use a dependency-complete interpreter and freeze a product- and semantic-disjoint V2 cohort before any formal target reset or provider call.",
+  "abort_sha256": "c777f14ec764d95407b724a63f31a2fb8517c34b145a073b8e996366ed2c2481"
+}

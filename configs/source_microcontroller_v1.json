@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "stall_window": 2,
+  "min_branch_support": 3,
+  "min_games_per_branch": 2,
+  "maximum_per_game_event_split": 1,
+  "included_events": [
+    "PROGRESS",
+    "STALL"
+  ],
+  "replayable_games": [
+    "gymv_streets_of_rage_2",
+    "gymv_strider",
+    "gymv_columns",
+    "gymv_thunder_force_iii"
+  ],
+  "evidence": [
+    {
+      "game": "tetris",
+      "path": "runs/phase1_tetris_candy_long_v1/authentic_skill_loaded/tetris/evidence"
+    },
+    {
+      "game": "candy_crush",
+      "path": "runs/phase1_tetris_candy_long_v1/authentic_skill_loaded/candy_crush/evidence"
+    },
+    {
+      "game": "gymv_streets_of_rage_2",
+      "path": "runs/phase1_streets_strider_long_v1/authentic_skill_loaded/gymv_streets_of_rage_2/evidence"
+    },
+    {
+      "game": "gymv_strider",
+      "path": "runs/phase1_streets_strider_long_v1/authentic_skill_loaded/gymv_strider/evidence"
+    },
+    {
+      "game": "gymv_columns",
+      "path": "runs/phase1_columns_thunder_long_v1/authentic_skill_loaded/gymv_columns/evidence"
+    },
+    {
+      "game": "gymv_thunder_force_iii",
+      "path": "runs/phase1_columns_thunder_long_v1/authentic_skill_loaded/gymv_thunder_force_iii/evidence"
+    }
+  ]
+}

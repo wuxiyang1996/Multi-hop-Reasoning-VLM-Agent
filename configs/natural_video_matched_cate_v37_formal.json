@@ -1,0 +1,88 @@
+{
+  "schema_version": 37,
+  "status": "FROZEN_BEFORE_V37_MATCHED_FORMAL_OUTCOMES",
+  "claim_boundary": "Prospective matched-model/matched-frame evaluation on every locally eligible question: 201 question IDs never present in historical run receipts, across 28 videos with zero overlap against all 106 V36 adaptation video groups. Gemini 3.1 Pro supplies both ordinary direct QA and candidate-factorized typed target proofs from the exact same 24 frames. The real Sokoban source supplies only COMMIT -> VERIFY_EXPECTED_EFFECT; EXPECTED_EFFECT_REFUTED -> REPLAN_OR_ABSTAIN. The frozen V36 target-native CATE chooses whether to retain direct or replan to proof. Gold and official target graphs are excluded from runtime. Passing every gate supports adaptation-based game-to-natural-video neural-symbolic transfer, not zero-shot transfer or unique Sokoban provenance versus an extensionally identical controller. Historical raw-video reuse outside V36 is disclosed.",
+  "source_receipt": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/docs/results/sokoban_effect_program_v2_compact_receipt.json",
+  "formal_manifest": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/configs/natural_video_matched_v37_formal_manifest.json",
+  "cate_artifact": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/natural_video_matched_cate_v36_training/frozen_artifact.json",
+  "adaptation_receipts": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/natural_video_matched_cate_v36_adaptation/adaptation_receipts.json",
+  "wrapper_root": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent",
+  "benchmarks": {
+    "star": {
+      "root": "/fs/gamma-projects/vlm-robot/datasets/STAR-official",
+      "annotation_split": "val"
+    },
+    "nextqa": {
+      "root": "/fs/gamma-projects/vlm-robot/datasets/NExT-QA-official",
+      "annotation_split": "val"
+    }
+  },
+  "model": {
+    "provider": "openrouter",
+    "api_key_name": "OPENROUTER_API_KEY",
+    "id": "google/gemini-3.1-pro-preview",
+    "base_url": "https://openrouter.ai/api/v1",
+    "timeout_seconds": 300,
+    "max_retries": 2,
+    "schema_retries": 3,
+    "max_tokens": 1600,
+    "max_proof_tokens": 5200
+  },
+  "media": {
+    "primary_frame_count": 12,
+    "proof_frame_count": 24,
+    "proof_frames_per_panel": 12,
+    "proxy_frame_max_side": 720,
+    "primary_frame_width": 224,
+    "proof_frame_width": 192,
+    "jpeg_quality": 88
+  },
+  "controls": {
+    "marginal_salt": "natural-video-matched-v37-marginal-20260813",
+    "runtime_binding_cells": ["benchmark"],
+    "conditions": [
+      "matched_direct",
+      "raw_typed_proof",
+      "source_proof_cate",
+      "base_only_cate",
+      "permuted_uplift_cate",
+      "binding_training_cate",
+      "runtime_cross_video_binding",
+      "inverted_source_contract",
+      "same_rate_marginal"
+    ]
+  },
+  "formal_gates": {
+    "minimum_source_net_wins_pooled": 3,
+    "minimum_source_net_wins_each_benchmark": 1,
+    "maximum_question_exact_p": 0.05,
+    "cluster_bootstrap_lower_bound_must_exceed": 0.0,
+    "minimum_positive_minus_negative_clusters_pooled": 2,
+    "minimum_positive_minus_negative_clusters_each_benchmark": 0,
+    "source_strictly_above_matched_direct": true,
+    "source_strictly_above_raw_typed_proof": true,
+    "source_strictly_above_base_only": true,
+    "source_strictly_above_permuted_uplift": true,
+    "source_strictly_above_binding_training": true,
+    "source_strictly_above_runtime_binding": true,
+    "source_strictly_above_inverted_contract": true,
+    "source_strictly_above_same_rate_marginal": true
+  },
+  "cluster_inference": {
+    "bootstrap_resamples": 20000,
+    "bootstrap_seed": 37043
+  },
+  "frozen_lineage": {
+    "source_receipt_sha256": "8f175c0edda951eba2064e9c53a8db6a25cdfa9fb0de8049d371dbf5335c9e80",
+    "formal_manifest_sha256": "2ef5fc5fbd87473973d2c8704ee2748b81d4c4900b9841d55319829aa7126fbf",
+    "cate_artifact_sha256": "88ff233b629b4a40205542d7538bde74cd57534950628ca718e79382fff25ad7",
+    "adaptation_receipts_sha256": "39b14dd3b58f634dbe957fe14fb962fe05bf6d9e88e63b28c88681cd276726c3",
+    "collector_sha256": "8c98047532a4612dec5f3d0b2387e663332580c3cc514b04f0ed9ab4654398ca",
+    "analyzer_sha256": "5b908b1aedf4bf37ce1f64276b6692ed724d53307a1bd135dc83f7480c99d44d",
+    "generic_collector_sha256": "2566c89492c43e9dfe366aa49f6c1de63ed53a5c5f7b330f009ef77ab64acf46",
+    "paired_collector_sha256": "1a2cba5619aee6a767cf73bcbaa7044594911f5c5903ef65ae98e6e62921bee1",
+    "transport_sha256": "2675beb07d86fe31124c9588b4dde61ff86c1915b31dd829e57f90b8c058f335",
+    "feature_module_sha256": "bdca859acc73384b66799d73e4b16845151bc195e65aa7ce9ae4178b22965f7c",
+    "cate_module_sha256": "d281f0dfd51f62b029d8fdf63ff8bf660f9a3f0a3cb3c6c2c86adc34491e702f"
+  }
+}

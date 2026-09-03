@@ -1,0 +1,18 @@
+{
+  "schema_version": "discoveryworld-target-only-config-v2",
+  "manifest": "configs/discoveryworld_v1_manifest.json",
+  "claim_boundary": "Target-only development feasibility after target-native relation grounding and UUID protocol normalization. No source transfer and no confirmatory evidence.",
+  "model": {
+    "provider": "openrouter",
+    "base_url": "https://openrouter.ai/api/v1",
+    "model": "qwen/qwen3.5-35b-a3b",
+    "api_key_name": "OPENROUTER_API_KEY",
+    "temperature": 0,
+    "maximum_output_tokens": 1200,
+    "schema_attempts": 3
+  },
+  "runtime": {
+    "maximum_steps": 32,
+    "include_vision": false
+  }
+}

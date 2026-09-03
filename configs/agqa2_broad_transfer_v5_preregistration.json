@@ -1,0 +1,27 @@
+{
+  "schema_version": "agqa2-broad-transfer-v5-preregistration",
+  "status": "FROZEN_BEFORE_V5_SELECTION_OR_OUTCOMES",
+  "selection": {
+    "source_split": "official AGQA2 balanced train",
+    "exclude_v62_v2_v3_videos": true,
+    "selection_nonce": "AGQA2_BROAD_TRANSFER_V5_20260831",
+    "unique_videos": 300,
+    "questions_per_video": 3,
+    "tasks": 900,
+    "forbidden_selection_fields": ["answer", "program", "sg_grounding"]
+  },
+  "frozen_dependencies": {
+    "broad_authorization_artifact_sha256": "0f964662dab77b65f392fa857df6b2a0370ea11cad4f2a5c1b7507f7ca94389a",
+    "authorized_broad_comparisons": ["QUERY_OBJECT"],
+    "maximum_tool_calls_per_arm": 5
+  },
+  "frozen_gates": {
+    "all_videos_unseen_in_v62_v2_v3": true,
+    "zero_runtime_answer_program_grounding_read": true,
+    "source_correct_strictly_above_generic": true,
+    "source_correct_strictly_above_temporal_permutation": true,
+    "source_losses_vs_generic": 0,
+    "isomorphic_target_equivalence_disclosed": true
+  },
+  "claim_boundary": "Fresh train-reserve qualification of the frozen broad target-native stack plus source-induced temporal specialization; not official-test SOTA and not raw-video evaluation."
+}

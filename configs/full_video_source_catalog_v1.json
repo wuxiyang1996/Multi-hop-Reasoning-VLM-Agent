@@ -1,0 +1,67 @@
+{
+  "schema_version": "full-video-source-catalog-v1",
+  "status": "FROZEN_SOURCE_SELECTION_RULE_BEFORE_NEW_TARGET_RESERVE",
+  "claim_boundary": "SOURCE_ONLY_HELDOUT_INTERVENTION_EVIDENCE;NO_NEW_AGQA_OR_CLEVRER_OUTCOME",
+  "selection_disclosure": {
+    "frozen_after_consumed_target_diagnostics": true,
+    "new_target_reserves_read": false,
+    "selection_rule": "Include every locally available, structurally distinct source family with state-action-effect-next-state or matched counterfactual receipts and a held-out source control at the 2026-09-01 cutoff; retain failed lineages as abstentions.",
+    "forbidden_selection_features": [
+      "AGQA correctness",
+      "CLEVRER correctness",
+      "target question ID",
+      "target video ID",
+      "target answer",
+      "target grounding confidence"
+    ]
+  },
+  "families": [
+    {
+      "family_id": "typed_spatial_preconditions",
+      "source_domains": ["MiniGrid DoorKey", "MiniGrid UnlockPickup", "MiniGrid PutNear"],
+      "evidence_kind": "typed_spatial_report",
+      "report": "runs/source_structural_v5c_fresh/report.json"
+    },
+    {
+      "family_id": "relational_goal_binding",
+      "source_domains": ["Sokoban"],
+      "evidence_kind": "goal_acquisition",
+      "artifact": "runs/sokoban_goal_acquisition_v1/artifact.json",
+      "report": "runs/sokoban_goal_acquisition_v1/fresh_confirmation_report.json"
+    },
+    {
+      "family_id": "ordered_topology",
+      "source_domains": ["Sokoban"],
+      "evidence_kind": "topology",
+      "artifact": "runs/sokoban_topology_skill_v1/discovery_artifact.json",
+      "report": "runs/sokoban_topology_skill_v1/fresh_confirmation_report.json"
+    },
+    {
+      "family_id": "counterfactual_search",
+      "source_domains": ["Sokoban"],
+      "evidence_kind": "search_automaton",
+      "artifact": "runs/sokoban_search_automaton_v16/artifact.json",
+      "report": "runs/sokoban_search_automaton_v16/fresh_confirmation_report.json"
+    },
+    {
+      "family_id": "cyclic_identity",
+      "source_domains": ["Tetris"],
+      "evidence_kind": "cyclic_identity",
+      "report": "docs/results/tetris_cyclic_source_induction_v28.json"
+    },
+    {
+      "family_id": "multihorizon_effects",
+      "source_domains": [
+        "Tetris",
+        "Candy Crush",
+        "GymV Columns",
+        "GymV Streets of Rage 2",
+        "GymV Thunder Force III",
+        "GymV Strider"
+      ],
+      "evidence_kind": "temporal_manifest",
+      "manifest": "configs/phase3_source_function_v4/frozen_reserve/manifest.json",
+      "heldout_rows_root": "runs/phase3_source_function_v4_reserve"
+    }
+  ]
+}

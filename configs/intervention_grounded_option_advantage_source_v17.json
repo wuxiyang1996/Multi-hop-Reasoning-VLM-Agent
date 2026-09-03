@@ -1,0 +1,68 @@
+{
+  "schema_version": "intervention-grounded-option-advantage-source-config-v17",
+  "status": "FROZEN_BEFORE_V17_SOURCE_CALIBRATION_OR_HELDOUT_READ",
+  "claim_boundary": "CONTROLLED_SOURCE_MATCHED_OPTION_INTERVENTION_EFFECTS; NO_REQUIRED_OPTION_OR_MATCH_OR_WORKFLOW_STAGE_FEATURE; SOURCE_GATE_BEFORE_TARGET; NO_REAL_GAME_TRANSFER_CLAIM",
+  "source": {
+    "surfaces": [
+      "game",
+      "software",
+      "science",
+      "forensics",
+      "network",
+      "logistics",
+      "medicine",
+      "maintenance"
+    ],
+    "train_domains_per_surface": 32,
+    "calibration_domains_per_surface": 8,
+    "heldout_domains_per_surface": 8,
+    "states_per_domain": 32,
+    "train_seed": 178501,
+    "calibration_seed": 278501,
+    "heldout_seed": 378501,
+    "ensemble_seed": 178502,
+    "control_seed": 178503,
+    "probe_seed": 178504,
+    "matched_probe_trials_per_state_option": 16,
+    "ensemble_size": 11,
+    "ridge_alpha": 0.35,
+    "workflow": {
+      "minimum_budget": 7,
+      "maximum_budget": 16,
+      "completion_probability_range": [0.35, 0.95],
+      "failure_cost_range": [0.01, 0.18],
+      "progress_reward": 0.15,
+      "invalid_option_cost": 0.18
+    }
+  },
+  "forbidden_source_features": [
+    "required_search",
+    "required_acquire",
+    "required_transform",
+    "required_place",
+    "required_verify",
+    "matches_required_option",
+    "workflow_progress_fraction",
+    "stage_urgency",
+    "match_x_completion",
+    "match_x_binding",
+    "match_x_precondition"
+  ],
+  "calibration": {
+    "split_conformal_alpha": 0.05
+  },
+  "inference": {
+    "fallback": "EFFECT_BLIND_SOURCE_MODEL",
+    "admission": "MAX_PAIRWISE_CONFORMAL_LOWER_BOUND_STRICTLY_POSITIVE"
+  },
+  "source_gate": {
+    "bootstrap_resamples": 4000,
+    "bootstrap_seed": 178505,
+    "confidence_alpha": 0.05,
+    "require_stratified_bootstrap_lower_bound_authentic_utility_gt_zero": true,
+    "require_stratified_bootstrap_lower_bound_authentic_minus_each_destructive_control_gt_zero": true,
+    "require_zero_forbidden_feature_values": true,
+    "require_zero_invalid_or_cross_split_state_ids": true
+  },
+  "target_authorized_by_this_config": false
+}

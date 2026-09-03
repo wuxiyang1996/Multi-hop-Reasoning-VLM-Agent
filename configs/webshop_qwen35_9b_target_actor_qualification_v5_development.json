@@ -1,0 +1,128 @@
+{
+  "schema_version": "webshop-qwen35-9b-target-actor-qualification-v5",
+  "status": "FROZEN_AFTER_EXCLUDED_CONTEXT_PREFLIGHT_BEFORE_ANY_VALID_V5_TARGET_EPISODE",
+  "claim_boundary": "Consumed WebShop development qualification only. V5 reduces only the non-thinking structured-action output cap from the obsolete 3200-token thinking-era value to 512 tokens. It does not change model weights, prompts, tasks, source IR, target grounder, controller, executor, conditions, or the sealed formal reserve.",
+  "excluded_parent_preflight": {
+    "job_id": "7381953",
+    "config_file_sha256": "f06d7b8f867936f7b5ea14c081100ce6ef5c0b82885822895b0826550712d810",
+    "output_path": "runs/webshop_qwen35_9b_target_actor_qualification_v4/qualification",
+    "failed_receipt": "runs/webshop_qwen35_9b_target_actor_qualification_v4/qualification/webshop.8.raw_target_only.json",
+    "failed_receipt_file_sha256": "b2819a4be172d4d8f87344f56fa96ab4f0e5fd5ae280bb1d37221c782909e5f1",
+    "observed_valid_completion_count": 161,
+    "observed_max_completion_tokens": 264,
+    "observed_completions_above_v5_cap": 0,
+    "reason": "At WebShop.8 raw step 9, a 4993-token prompt plus the obsolete 3200-token output cap exceeded the 8192-token serving context by one token. The job was cancelled and the entire qualification will be rerun. This is an excluded context-budget preflight, not a target capability result.",
+    "formal_target_opened": false
+  },
+  "model": {
+    "id": "Qwen/Qwen3.5-9B",
+    "hf_snapshot": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+    "role": "target_native_candidate_generator",
+    "weights": "base",
+    "source_game_lora_loaded": false,
+    "harness_lora_loaded": false
+  },
+  "frozen_components": {
+    "goal_manifest": {
+      "path": "configs/webshop_synthetic_unique_v14_frozen.json",
+      "sha256": "fc5d8a8ea2c5b9cfe6296fab6d36d623bdf8c539e31b45cd3c0bc7e2601705ee"
+    },
+    "source_program": {
+      "path": "runs/sokoban_search_automaton_v16/artifact.json",
+      "sha256": "261847ec1825dac50f87da013c3967d939e593f2c204abcd046d1886eb7f6a54"
+    },
+    "target_grounder": {
+      "path": "docs/results/webshop_neural_symbolic_v9_frozen_grounder.json",
+      "sha256": "bbf8a22ebec8e7ab6d55e570f230ba4fcb2b8630d1dc81bd24ba103f68701782"
+    },
+    "runner": {
+      "path": "scripts/run_webshop_search_automaton_v16.py",
+      "sha256": "af0f5364e4240dc5ed92bfa62be21732599fd1483015eec4daaf95376eda8bdf"
+    },
+    "controller": {
+      "path": "src/motif_transfer/webshop_search_automaton_v16.py",
+      "sha256": "478994c5da56ee783e59823a79f026dfa2f7185d0f733a835bfe11e5cdd46c38"
+    },
+    "server": {
+      "path": "scripts/run_webshop_direct_server_v4.py",
+      "sha256": "b4193345c656a381e74f760df105c76b77aed3cc2dcbcc917449df313808ea78"
+    },
+    "launcher": {
+      "path": "cluster/run_webshop_qwen35_9b_scale_v1.sbatch",
+      "sha256": "91be6f3f3fdecb2d8e9d5f0c1ab5fe642e09bddd5b7cf06f9057b8076b55cd0b"
+    }
+  },
+  "conditions": [
+    "raw_target_only",
+    "authentic_search_automaton_plus_target",
+    "event_binding_permuted_control",
+    "ledger_blind_control",
+    "target_native_search_ceiling"
+  ],
+  "task_policy": {
+    "role": "development",
+    "selection": "all_preexisting_development_tasks_in_frozen_manifest",
+    "smoke_tasks": [
+      "webshop.0"
+    ],
+    "qualification_tasks": [
+      "webshop.0",
+      "webshop.1",
+      "webshop.2",
+      "webshop.3",
+      "webshop.4",
+      "webshop.5",
+      "webshop.6",
+      "webshop.7",
+      "webshop.8",
+      "webshop.9",
+      "webshop.10",
+      "webshop.11",
+      "webshop.12",
+      "webshop.13",
+      "webshop.14",
+      "webshop.15",
+      "webshop.17",
+      "webshop.19",
+      "webshop.21",
+      "webshop.22",
+      "webshop.23",
+      "webshop.26",
+      "webshop.27",
+      "webshop.30"
+    ],
+    "formal_reserve_opened": false
+  },
+  "runtime": {
+    "goal_seed": 233,
+    "maximum_output_tokens": 512,
+    "maximum_steps": 12,
+    "schema_retries": 3,
+    "candidate_count": 5,
+    "temperature": 0,
+    "model_context_length": 8192,
+    "gpu_memory_utilization": 0.82,
+    "enable_thinking": false,
+    "decision_cache_seeded": false
+  },
+  "gates": {
+    "transport": [
+      "served_model_identity_exact",
+      "all_receipts_complete",
+      "matched_initial_state_hashes",
+      "zero_non_native_action_failures"
+    ],
+    "target_actor": [
+      "raw_policy_executes_native_actions",
+      "target_native_search_ceiling_executes_without_failure",
+      "ceiling_success_exceeds_raw_or_raw_success_leaves_headroom"
+    ],
+    "transfer": [
+      "authentic_success_gain_over_raw",
+      "zero_negative_transfer_vs_raw",
+      "strictly_beats_destructive_controls",
+      "matches_isomorphic_target_search_ceiling"
+    ]
+  },
+  "formal_reserve_opened": false
+}

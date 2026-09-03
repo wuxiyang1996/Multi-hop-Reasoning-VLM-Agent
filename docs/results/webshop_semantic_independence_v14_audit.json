@@ -1,0 +1,622 @@
+{
+  "schema_version": 1,
+  "status": "WEBSHOP_SEMANTICALLY_INDEPENDENT_REPLICATION_NOT_ESTABLISHED",
+  "claim_correction": "Task-level paired results remain historical observations, but IDs 114-177 wrap over the same 13 human goal semantics. They are pseudoreplicates and cannot establish an independent 32-goal WebShop confirmation.",
+  "original_v13": {
+    "task_level": {
+      "tasks": 32,
+      "authentic_strict": 18,
+      "baseline_strict": 11,
+      "wins": 7,
+      "losses": 0,
+      "ties": 25,
+      "net_wins": 7,
+      "exact_two_sided_p": 0.015625
+    },
+    "semantic_cluster_level": {
+      "semantic_clusters": 13,
+      "positive_clusters": 5,
+      "negative_clusters": 0,
+      "tied_clusters": 8,
+      "positive_minus_negative": 5,
+      "cluster_sign_exact_two_sided_p": 0.0625,
+      "clusters": [
+        {
+          "goal": "hello, i'm looking for a pair of cargo pants for everyday casual wear? but also hiking-friendly. also, i want an orange pair please, and price lower than 30.00 dollars",
+          "tasks": 3,
+          "task_ids": [
+            "webshop.114",
+            "webshop.127",
+            "webshop.140"
+          ],
+          "strict_success_delta": 2
+        },
+        {
+          "goal": "i am looking for a gluten free, 100% vegan plant based protein shake that is soy-free, and price lower than 40.00 dollars",
+          "tasks": 2,
+          "task_ids": [
+            "webshop.121",
+            "webshop.134"
+          ],
+          "strict_success_delta": 0
+        },
+        {
+          "goal": "i am looking for a pair of men's size 10.5 black loafers with rubber soles, and price lower than 70.00 dollars",
+          "tasks": 3,
+          "task_ids": [
+            "webshop.119",
+            "webshop.132",
+            "webshop.145"
+          ],
+          "strict_success_delta": 0
+        },
+        {
+          "goal": "i am looking for blue color toothbrushes that helps to maintain my oral hygiene, and price lower than 50.00 dollars",
+          "tasks": 3,
+          "task_ids": [
+            "webshop.117",
+            "webshop.130",
+            "webshop.143"
+          ],
+          "strict_success_delta": 0
+        },
+        {
+          "goal": "i am looking for x-large, red color women faux fur lined winter warm jacket coat, and price lower than 80.00 dollars",
+          "tasks": 2,
+          "task_ids": [
+            "webshop.126",
+            "webshop.139"
+          ],
+          "strict_success_delta": 1
+        },
+        {
+          "goal": "i am looking fresh scent body lotion for dry skin, and price lower than 20.00 dollars",
+          "tasks": 3,
+          "task_ids": [
+            "webshop.116",
+            "webshop.129",
+            "webshop.142"
+          ],
+          "strict_success_delta": 0
+        },
+        {
+          "goal": "i need a 120 ml hair mask treatment, and price lower than 140.00 dollars",
+          "tasks": 2,
+          "task_ids": [
+            "webshop.122",
+            "webshop.135"
+          ],
+          "strict_success_delta": 0
+        },
+        {
+          "goal": "i need cruelty free deodorant that has a woody scent and is 1.6 oz, and price lower than 60.00 dollars",
+          "tasks": 3,
+          "task_ids": [
+            "webshop.115",
+            "webshop.128",
+            "webshop.141"
+          ],
+          "strict_success_delta": 1
+        },
+        {
+          "goal": "i need some draw string shorts that are official cleveland university. the need to be small and charcoal along with being machine washable, and price lower than 60.00 dollars",
+          "tasks": 2,
+          "task_ids": [
+            "webshop.124",
+            "webshop.137"
+          ],
+          "strict_success_delta": 0
+        },
+        {
+          "goal": "i want a pink niuta 2 pack hair towel wrap for dry hair, and price lower than 30.00 dollars",
+          "tasks": 2,
+          "task_ids": [
+            "webshop.123",
+            "webshop.136"
+          ],
+          "strict_success_delta": 0
+        },
+        {
+          "goal": "i want to buy a folding storage box ottoman which i can easily install and has faux leather, the size of it should be 60x40x40cm, and price lower than 170.00 dollars",
+          "tasks": 2,
+          "task_ids": [
+            "webshop.120",
+            "webshop.133"
+          ],
+          "strict_success_delta": 1
+        },
+        {
+          "goal": "place order for a pack of 12 blue diamond almonds that is gluten free and has the pecan flavor, and price lower than 70.00 dollars",
+          "tasks": 3,
+          "task_ids": [
+            "webshop.118",
+            "webshop.131",
+            "webshop.144"
+          ],
+          "strict_success_delta": 2
+        },
+        {
+          "goal": "show me an one organic hair growth serum roller set for all hair types, and price lower than 40.00 dollars",
+          "tasks": 2,
+          "task_ids": [
+            "webshop.125",
+            "webshop.138"
+          ],
+          "strict_success_delta": 0
+        }
+      ]
+    },
+    "unique_goal_semantics": 13,
+    "goal_multiplicities": {
+      "hello, i'm looking for a pair of cargo pants for everyday casual wear? but also hiking-friendly. also, i want an orange pair please, and price lower than 30.00 dollars": 3,
+      "i am looking for a gluten free, 100% vegan plant based protein shake that is soy-free, and price lower than 40.00 dollars": 2,
+      "i am looking for a pair of men's size 10.5 black loafers with rubber soles, and price lower than 70.00 dollars": 3,
+      "i am looking for blue color toothbrushes that helps to maintain my oral hygiene, and price lower than 50.00 dollars": 3,
+      "i am looking for x-large, red color women faux fur lined winter warm jacket coat, and price lower than 80.00 dollars": 2,
+      "i am looking fresh scent body lotion for dry skin, and price lower than 20.00 dollars": 3,
+      "i need a 120 ml hair mask treatment, and price lower than 140.00 dollars": 2,
+      "i need cruelty free deodorant that has a woody scent and is 1.6 oz, and price lower than 60.00 dollars": 3,
+      "i need some draw string shorts that are official cleveland university. the need to be small and charcoal along with being machine washable, and price lower than 60.00 dollars": 2,
+      "i want a pink niuta 2 pack hair towel wrap for dry hair, and price lower than 30.00 dollars": 2,
+      "i want to buy a folding storage box ottoman which i can easily install and has faux leather, the size of it should be 60x40x40cm, and price lower than 170.00 dollars": 2,
+      "place order for a pack of 12 blue diamond almonds that is gluten free and has the pecan flavor, and price lower than 70.00 dollars": 3,
+      "show me an one organic hair growth serum roller set for all hair types, and price lower than 40.00 dollars": 2
+    }
+  },
+  "replication_v1": {
+    "task_level": {
+      "tasks": 32,
+      "authentic_strict": 14,
+      "baseline_strict": 9,
+      "wins": 6,
+      "losses": 1,
+      "ties": 25,
+      "net_wins": 5,
+      "exact_two_sided_p": 0.125
+    },
+    "semantic_cluster_level": {
+      "semantic_clusters": 13,
+      "positive_clusters": 4,
+      "negative_clusters": 1,
+      "tied_clusters": 8,
+      "positive_minus_negative": 3,
+      "cluster_sign_exact_two_sided_p": 0.375,
+      "clusters": [
+        {
+          "goal": "hello, i'm looking for a pair of cargo pants for everyday casual wear? but also hiking-friendly. also, i want an orange pair please, and price lower than 30.00 dollars",
+          "tasks": 2,
+          "task_ids": [
+            "webshop.153",
+            "webshop.166"
+          ],
+          "strict_success_delta": 0
+        },
+        {
+          "goal": "i am looking for a gluten free, 100% vegan plant based protein shake that is soy-free, and price lower than 40.00 dollars",
+          "tasks": 3,
+          "task_ids": [
+            "webshop.147",
+            "webshop.160",
+            "webshop.173"
+          ],
+          "strict_success_delta": 0
+        },
+        {
+          "goal": "i am looking for a pair of men's size 10.5 black loafers with rubber soles, and price lower than 70.00 dollars",
+          "tasks": 2,
+          "task_ids": [
+            "webshop.158",
+            "webshop.171"
+          ],
+          "strict_success_delta": -1
+        },
+        {
+          "goal": "i am looking for blue color toothbrushes that helps to maintain my oral hygiene, and price lower than 50.00 dollars",
+          "tasks": 2,
+          "task_ids": [
+            "webshop.156",
+            "webshop.169"
+          ],
+          "strict_success_delta": 0
+        },
+        {
+          "goal": "i am looking for x-large, red color women faux fur lined winter warm jacket coat, and price lower than 80.00 dollars",
+          "tasks": 2,
+          "task_ids": [
+            "webshop.152",
+            "webshop.165"
+          ],
+          "strict_success_delta": 1
+        },
+        {
+          "goal": "i am looking fresh scent body lotion for dry skin, and price lower than 20.00 dollars",
+          "tasks": 2,
+          "task_ids": [
+            "webshop.155",
+            "webshop.168"
+          ],
+          "strict_success_delta": 0
+        },
+        {
+          "goal": "i need a 120 ml hair mask treatment, and price lower than 140.00 dollars",
+          "tasks": 3,
+          "task_ids": [
+            "webshop.148",
+            "webshop.161",
+            "webshop.174"
+          ],
+          "strict_success_delta": 0
+        },
+        {
+          "goal": "i need cruelty free deodorant that has a woody scent and is 1.6 oz, and price lower than 60.00 dollars",
+          "tasks": 2,
+          "task_ids": [
+            "webshop.154",
+            "webshop.167"
+          ],
+          "strict_success_delta": 0
+        },
+        {
+          "goal": "i need some draw string shorts that are official cleveland university. the need to be small and charcoal along with being machine washable, and price lower than 60.00 dollars",
+          "tasks": 3,
+          "task_ids": [
+            "webshop.150",
+            "webshop.163",
+            "webshop.176"
+          ],
+          "strict_success_delta": 1
+        },
+        {
+          "goal": "i want a pink niuta 2 pack hair towel wrap for dry hair, and price lower than 30.00 dollars",
+          "tasks": 3,
+          "task_ids": [
+            "webshop.149",
+            "webshop.162",
+            "webshop.175"
+          ],
+          "strict_success_delta": 0
+        },
+        {
+          "goal": "i want to buy a folding storage box ottoman which i can easily install and has faux leather, the size of it should be 60x40x40cm, and price lower than 170.00 dollars",
+          "tasks": 3,
+          "task_ids": [
+            "webshop.146",
+            "webshop.159",
+            "webshop.172"
+          ],
+          "strict_success_delta": 3
+        },
+        {
+          "goal": "place order for a pack of 12 blue diamond almonds that is gluten free and has the pecan flavor, and price lower than 70.00 dollars",
+          "tasks": 2,
+          "task_ids": [
+            "webshop.157",
+            "webshop.170"
+          ],
+          "strict_success_delta": 1
+        },
+        {
+          "goal": "show me an one organic hair growth serum roller set for all hair types, and price lower than 40.00 dollars",
+          "tasks": 3,
+          "task_ids": [
+            "webshop.151",
+            "webshop.164",
+            "webshop.177"
+          ],
+          "strict_success_delta": 0
+        }
+      ]
+    },
+    "unique_goal_semantics": 13,
+    "goal_multiplicities": {
+      "hello, i'm looking for a pair of cargo pants for everyday casual wear? but also hiking-friendly. also, i want an orange pair please, and price lower than 30.00 dollars": 2,
+      "i am looking for a gluten free, 100% vegan plant based protein shake that is soy-free, and price lower than 40.00 dollars": 3,
+      "i am looking for a pair of men's size 10.5 black loafers with rubber soles, and price lower than 70.00 dollars": 2,
+      "i am looking for blue color toothbrushes that helps to maintain my oral hygiene, and price lower than 50.00 dollars": 2,
+      "i am looking for x-large, red color women faux fur lined winter warm jacket coat, and price lower than 80.00 dollars": 2,
+      "i am looking fresh scent body lotion for dry skin, and price lower than 20.00 dollars": 2,
+      "i need a 120 ml hair mask treatment, and price lower than 140.00 dollars": 3,
+      "i need cruelty free deodorant that has a woody scent and is 1.6 oz, and price lower than 60.00 dollars": 2,
+      "i need some draw string shorts that are official cleveland university. the need to be small and charcoal along with being machine washable, and price lower than 60.00 dollars": 3,
+      "i want a pink niuta 2 pack hair towel wrap for dry hair, and price lower than 30.00 dollars": 3,
+      "i want to buy a folding storage box ottoman which i can easily install and has faux leather, the size of it should be 60x40x40cm, and price lower than 170.00 dollars": 3,
+      "place order for a pack of 12 blue diamond almonds that is gluten free and has the pecan flavor, and price lower than 70.00 dollars": 2,
+      "show me an one organic hair growth serum roller set for all hair types, and price lower than 40.00 dollars": 3
+    }
+  },
+  "combined_descriptive_same_clusters": {
+    "semantic_clusters": 13,
+    "positive_clusters": 6,
+    "negative_clusters": 1,
+    "tied_clusters": 6,
+    "positive_minus_negative": 5,
+    "cluster_sign_exact_two_sided_p": 0.125,
+    "clusters": [
+      {
+        "goal": "hello, i'm looking for a pair of cargo pants for everyday casual wear? but also hiking-friendly. also, i want an orange pair please, and price lower than 30.00 dollars",
+        "tasks": 5,
+        "task_ids": [
+          "webshop.114",
+          "webshop.127",
+          "webshop.140",
+          "webshop.153",
+          "webshop.166"
+        ],
+        "strict_success_delta": 2
+      },
+      {
+        "goal": "i am looking for a gluten free, 100% vegan plant based protein shake that is soy-free, and price lower than 40.00 dollars",
+        "tasks": 5,
+        "task_ids": [
+          "webshop.121",
+          "webshop.134",
+          "webshop.147",
+          "webshop.160",
+          "webshop.173"
+        ],
+        "strict_success_delta": 0
+      },
+      {
+        "goal": "i am looking for a pair of men's size 10.5 black loafers with rubber soles, and price lower than 70.00 dollars",
+        "tasks": 5,
+        "task_ids": [
+          "webshop.119",
+          "webshop.132",
+          "webshop.145",
+          "webshop.158",
+          "webshop.171"
+        ],
+        "strict_success_delta": -1
+      },
+      {
+        "goal": "i am looking for blue color toothbrushes that helps to maintain my oral hygiene, and price lower than 50.00 dollars",
+        "tasks": 5,
+        "task_ids": [
+          "webshop.117",
+          "webshop.130",
+          "webshop.143",
+          "webshop.156",
+          "webshop.169"
+        ],
+        "strict_success_delta": 0
+      },
+      {
+        "goal": "i am looking for x-large, red color women faux fur lined winter warm jacket coat, and price lower than 80.00 dollars",
+        "tasks": 4,
+        "task_ids": [
+          "webshop.126",
+          "webshop.139",
+          "webshop.152",
+          "webshop.165"
+        ],
+        "strict_success_delta": 2
+      },
+      {
+        "goal": "i am looking fresh scent body lotion for dry skin, and price lower than 20.00 dollars",
+        "tasks": 5,
+        "task_ids": [
+          "webshop.116",
+          "webshop.129",
+          "webshop.142",
+          "webshop.155",
+          "webshop.168"
+        ],
+        "strict_success_delta": 0
+      },
+      {
+        "goal": "i need a 120 ml hair mask treatment, and price lower than 140.00 dollars",
+        "tasks": 5,
+        "task_ids": [
+          "webshop.122",
+          "webshop.135",
+          "webshop.148",
+          "webshop.161",
+          "webshop.174"
+        ],
+        "strict_success_delta": 0
+      },
+      {
+        "goal": "i need cruelty free deodorant that has a woody scent and is 1.6 oz, and price lower than 60.00 dollars",
+        "tasks": 5,
+        "task_ids": [
+          "webshop.115",
+          "webshop.128",
+          "webshop.141",
+          "webshop.154",
+          "webshop.167"
+        ],
+        "strict_success_delta": 1
+      },
+      {
+        "goal": "i need some draw string shorts that are official cleveland university. the need to be small and charcoal along with being machine washable, and price lower than 60.00 dollars",
+        "tasks": 5,
+        "task_ids": [
+          "webshop.124",
+          "webshop.137",
+          "webshop.150",
+          "webshop.163",
+          "webshop.176"
+        ],
+        "strict_success_delta": 1
+      },
+      {
+        "goal": "i want a pink niuta 2 pack hair towel wrap for dry hair, and price lower than 30.00 dollars",
+        "tasks": 5,
+        "task_ids": [
+          "webshop.123",
+          "webshop.136",
+          "webshop.149",
+          "webshop.162",
+          "webshop.175"
+        ],
+        "strict_success_delta": 0
+      },
+      {
+        "goal": "i want to buy a folding storage box ottoman which i can easily install and has faux leather, the size of it should be 60x40x40cm, and price lower than 170.00 dollars",
+        "tasks": 5,
+        "task_ids": [
+          "webshop.120",
+          "webshop.133",
+          "webshop.146",
+          "webshop.159",
+          "webshop.172"
+        ],
+        "strict_success_delta": 4
+      },
+      {
+        "goal": "place order for a pack of 12 blue diamond almonds that is gluten free and has the pecan flavor, and price lower than 70.00 dollars",
+        "tasks": 5,
+        "task_ids": [
+          "webshop.118",
+          "webshop.131",
+          "webshop.144",
+          "webshop.157",
+          "webshop.170"
+        ],
+        "strict_success_delta": 3
+      },
+      {
+        "goal": "show me an one organic hair growth serum roller set for all hair types, and price lower than 40.00 dollars",
+        "tasks": 5,
+        "task_ids": [
+          "webshop.125",
+          "webshop.138",
+          "webshop.151",
+          "webshop.164",
+          "webshop.177"
+        ],
+        "strict_success_delta": 0
+      }
+    ]
+  },
+  "semantic_independence_preflight": {
+    "tasks": 32,
+    "unique_goal_semantics": 13,
+    "required_unique_goal_semantics": 32,
+    "duplicate_goal_semantics": [
+      "hello, i'm looking for a pair of cargo pants for everyday casual wear? but also hiking-friendly. also, i want an orange pair please, and price lower than 30.00 dollars",
+      "i am looking for a gluten free, 100% vegan plant based protein shake that is soy-free, and price lower than 40.00 dollars",
+      "i am looking for a pair of men's size 10.5 black loafers with rubber soles, and price lower than 70.00 dollars",
+      "i am looking for blue color toothbrushes that helps to maintain my oral hygiene, and price lower than 50.00 dollars",
+      "i am looking for x-large, red color women faux fur lined winter warm jacket coat, and price lower than 80.00 dollars",
+      "i am looking fresh scent body lotion for dry skin, and price lower than 20.00 dollars",
+      "i need a 120 ml hair mask treatment, and price lower than 140.00 dollars",
+      "i need cruelty free deodorant that has a woody scent and is 1.6 oz, and price lower than 60.00 dollars",
+      "i need some draw string shorts that are official cleveland university. the need to be small and charcoal along with being machine washable, and price lower than 60.00 dollars",
+      "i want a pink niuta 2 pack hair towel wrap for dry hair, and price lower than 30.00 dollars",
+      "i want to buy a folding storage box ottoman which i can easily install and has faux leather, the size of it should be 60x40x40cm, and price lower than 170.00 dollars",
+      "place order for a pack of 12 blue diamond almonds that is gluten free and has the pecan flavor, and price lower than 70.00 dollars",
+      "show me an one organic hair growth serum roller set for all hair types, and price lower than 40.00 dollars"
+    ],
+    "duplicate_multiplicities": {
+      "hello, i'm looking for a pair of cargo pants for everyday casual wear? but also hiking-friendly. also, i want an orange pair please, and price lower than 30.00 dollars": 2,
+      "i am looking for a gluten free, 100% vegan plant based protein shake that is soy-free, and price lower than 40.00 dollars": 3,
+      "i am looking for a pair of men's size 10.5 black loafers with rubber soles, and price lower than 70.00 dollars": 2,
+      "i am looking for blue color toothbrushes that helps to maintain my oral hygiene, and price lower than 50.00 dollars": 2,
+      "i am looking for x-large, red color women faux fur lined winter warm jacket coat, and price lower than 80.00 dollars": 2,
+      "i am looking fresh scent body lotion for dry skin, and price lower than 20.00 dollars": 2,
+      "i need a 120 ml hair mask treatment, and price lower than 140.00 dollars": 3,
+      "i need cruelty free deodorant that has a woody scent and is 1.6 oz, and price lower than 60.00 dollars": 2,
+      "i need some draw string shorts that are official cleveland university. the need to be small and charcoal along with being machine washable, and price lower than 60.00 dollars": 3,
+      "i want a pink niuta 2 pack hair towel wrap for dry hair, and price lower than 30.00 dollars": 3,
+      "i want to buy a folding storage box ottoman which i can easily install and has faux leather, the size of it should be 60x40x40cm, and price lower than 170.00 dollars": 3,
+      "place order for a pack of 12 blue diamond almonds that is gluten free and has the pecan flavor, and price lower than 70.00 dollars": 2,
+      "show me an one organic hair growth serum roller set for all hair types, and price lower than 40.00 dollars": 3
+    },
+    "consumed_instruction_overlap": [
+      "hello, i'm looking for a pair of cargo pants for everyday casual wear? but also hiking-friendly. also, i want an orange pair please, and price lower than 30.00 dollars",
+      "i am looking for a gluten free, 100% vegan plant based protein shake that is soy-free, and price lower than 40.00 dollars",
+      "i am looking for a pair of men's size 10.5 black loafers with rubber soles, and price lower than 70.00 dollars",
+      "i am looking for blue color toothbrushes that helps to maintain my oral hygiene, and price lower than 50.00 dollars",
+      "i am looking for x-large, red color women faux fur lined winter warm jacket coat, and price lower than 80.00 dollars",
+      "i am looking fresh scent body lotion for dry skin, and price lower than 20.00 dollars",
+      "i need a 120 ml hair mask treatment, and price lower than 140.00 dollars",
+      "i need cruelty free deodorant that has a woody scent and is 1.6 oz, and price lower than 60.00 dollars",
+      "i need some draw string shorts that are official cleveland university. the need to be small and charcoal along with being machine washable, and price lower than 60.00 dollars",
+      "i want a pink niuta 2 pack hair towel wrap for dry hair, and price lower than 30.00 dollars",
+      "i want to buy a folding storage box ottoman which i can easily install and has faux leather, the size of it should be 60x40x40cm, and price lower than 170.00 dollars",
+      "place order for a pack of 12 blue diamond almonds that is gluten free and has the pecan flavor, and price lower than 70.00 dollars",
+      "show me an one organic hair growth serum roller set for all hair types, and price lower than 40.00 dollars"
+    ],
+    "candidate_unique_asins": 0,
+    "consumed_asin_overlap": [],
+    "gates": {
+      "enough_unique_goal_semantics": false,
+      "one_task_per_goal_semantics": false,
+      "instruction_disjoint_from_consumed": false,
+      "asin_disjoint_from_consumed": true,
+      "one_task_per_asin": true
+    },
+    "passed": false
+  },
+  "same_unique_semantic_goal_set": true,
+  "overlapping_unique_goal_semantics": 13,
+  "distinct_initial_state_hashes": {
+    "original": 32,
+    "replication": 32,
+    "note": "Different state hashes do not imply different goals; canonical task-specific URLs/prompts differ while instruction semantics repeat."
+  },
+  "server_mechanism": {
+    "bridge_rule": "goal_idx = numeric_session_suffix % len(goals)",
+    "server_app": "/fs/gamma-projects/vlm-robot/emnlp2026_download/workspace/vendor/WebShop/web_agent_site/app.py",
+    "server_app_sha256": "2161ee48cea38a8d8e0dfa2e386f059bd006af47e5549ea41051e26f3d553d24"
+  },
+  "available_goal_pool": {
+    "product_rows": 1000,
+    "human_goal_asins_in_product_set": 13,
+    "human_goals_generated": 13,
+    "synthetic_eligible_products": 415,
+    "synthetic_option_specific_goals": 6910,
+    "synthetic_goal_median_per_product": 2,
+    "synthetic_goal_maximum_per_product": 558,
+    "synthetic_products_over_100_option_combinations": 14,
+    "data_hashes": {
+      "products": "30a4765c3a327af72d9a9a95a6b2486d516f0fa1d3ecd83681901ce82a21b269",
+      "human_instructions": "cf78667548a71786e1d9049c24b802e48e1084ad4bb021cae56ce1f6d96954a3",
+      "synthetic_instructions": "f88a36314a397b53b3d9c3fa5878e5f7b26d35019a51ec83fbedeca61a948f6f"
+    }
+  },
+  "known_regression_webshop_171": {
+    "goal": "i am looking for a pair of men's size 10.5 black loafers with rubber soles, and price lower than 70.00 dollars",
+    "authentic_reward": 0.75,
+    "authentic_strict_success": false,
+    "coverage_commit_audit": [
+      {
+        "step": 6,
+        "selected_action": "click('82')",
+        "authorized": false,
+        "coverage": {
+          "required": [
+            "10.5",
+            "black"
+          ],
+          "verified": [
+            "black"
+          ],
+          "missing": [
+            "10.5"
+          ],
+          "commit_authorized": false,
+          "pending_signature": null
+        }
+      }
+    ],
+    "diagnosis": "The binary ready-state summary lost prerequisite multiplicity. Only the black constraint had a verified state-changing action before commit; size 10.5 remained unverified. A target-native set-coverage gate would reject it."
+  },
+  "required_next_protocol": [
+    "Switch the server to its synthetic goal generator; the installed human subset has only 13 goals.",
+    "Enumerate and freeze goal objects before model calls; require one task per instruction hash.",
+    "Require instruction and ASIN disjointness from every consumed WebShop split.",
+    "Run target-only, target-native coverage-only, authentic source plus coverage, and destructive controls.",
+    "Use semantic-goal clusters (not task IDs) as the primary inference unit."
+  ],
+  "cost_decision": "DO_NOT_SPEND_PROVIDER_CALLS_UNTIL_SEMANTIC_RESERVE_PREFLIGHT_PASSES",
+  "inputs": {
+    "original_run": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/webshop_sokoban_effect_transfer_v13/fresh_replication",
+    "replication_run": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/webshop_sokoban_effect_replication_v1",
+    "original_summary_sha256": "812ce4adf2fc451808719409843b3a87b8e6143fc46aa0a2c9155af8e741573f",
+    "replication_summary_sha256": "afd3c0c117e17945ba017694efcf27fdc769d2f8e5aca1305239d1a6ec54acd9",
+    "regression_receipt_sha256": "627080a84ae8041bb1dd3d27e12381a43cdf1e98079c3825c796a1fa1ff7c0e8"
+  },
+  "artifact_sha256": "a57c8180868b6616b0bc044edef69eb601b35bfe8cf5dcfcfa0ecd627b855949"
+}

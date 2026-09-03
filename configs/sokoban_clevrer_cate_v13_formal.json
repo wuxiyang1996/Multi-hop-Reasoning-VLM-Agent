@@ -1,0 +1,52 @@
+{
+  "schema_version": 13,
+  "status": "FROZEN_BEFORE_V13_FORMAL_OUTCOMES",
+  "claim_boundary": "Prospective evaluation of a real-Sokoban symbolic recovery contract with a CLEVRER-native neural paired-uplift grounder. The transferred object is COMMIT/VERIFY/EXPECTED_EFFECT_REFUTED/REPLAN, while all video, program, relation, answer-vector, and dynamics grounding stays target-native. This is adaptation-based rather than zero-shot transfer; it can validate selective recovery in this fixed local CLEVRER setup, but cannot by itself prove that the Sokoban provenance is necessary compared with an extensionally identical target-only controller or establish transfer to other video benchmarks.",
+  "source": {
+    "receipt": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/docs/results/sokoban_effect_program_v2_compact_receipt.json",
+    "required_artifact_version": "SOKOBAN_EFFECT_PROGRAM_V2",
+    "transferred_contract": "COMMIT -> VERIFY_EXPECTED_EFFECT; EXPECTED_EFFECT_REFUTED -> REPLAN_OR_ABSTAIN"
+  },
+  "grounder": {
+    "artifact": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/clevrer_sokoban_cate_v13_training/frozen_cate_artifact.json",
+    "training_report": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/clevrer_sokoban_cate_v13_training/training_report.json",
+    "training_config": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/configs/clevrer_sokoban_cate_v13_training.json",
+    "runtime_inputs": "public question and choice text; explicit-edge and trajectory-native executor answer vectors; typed executor error count",
+    "forbidden_runtime_inputs": "official functional programs; official answer labels; formal or reserve outcomes"
+  },
+  "target": {
+    "split_manifest": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/configs/clevrer_sokoban_cate_v13_splits.json",
+    "official_root": "/fs/gamma-projects/vlm-robot/datasets/CLEVRER-official",
+    "split": "formal",
+    "explicit_relation_prediction_directory": "with_edge_supervision_old",
+    "trajectory_prediction_directory": "without_edge_supervision",
+    "recovery_realization": "SWITCH_FROM_EXPLICIT_RELATION_TO_TARGET_NATIVE_TRAJECTORY_RELATIONS"
+  },
+  "gates": {
+    "expected_formal_samples": 144,
+    "minimum_authentic_recoveries": 8,
+    "minimum_primary_net_wins": 5,
+    "maximum_primary_exact_p": 0.05,
+    "strict_control_conditions": [
+      "target_trajectory_only",
+      "permuted_uplift_cate_recover",
+      "source_inverted_effect_recover",
+      "source_shuffled_grounding_recover",
+      "target_family_matched_marginal_recover",
+      "target_error_only_recover",
+      "target_disagreement_recover"
+    ],
+    "reserve_outcomes_must_not_be_queried": true
+  },
+  "frozen_lineage": {
+    "source_receipt_sha256": "8f175c0edda951eba2064e9c53a8db6a25cdfa9fb0de8049d371dbf5335c9e80",
+    "split_manifest_sha256": "130ae9d7adf2356070947b460109bb83d2d541d958153f364543c6b349c29f82",
+    "cate_artifact_file_sha256": "43023c92874832cf36128edca0ad04f0874465cf95e4941bd082c72a34f959b3",
+    "training_report_sha256": "cb9340434314352dc5b71a49dfd6c6d8a36c94f19ad8a51913fe1f0a23736371",
+    "training_config_sha256": "33ff4df36295e18df3bf2ad5a31a2ba6746860d464f785656190b4eeed2c2c43",
+    "runner_sha256": "ca031d815fbc549e2996086019301b11d32ad306c70a6663e54186961510154b",
+    "cate_module_sha256": "86b165ee347479c0a63d76b830895a18f35e7dc18c3c1db84aaa986291c9a3af",
+    "recovery_module_sha256": "55776f55966a4c982e718701e15474442a4998769ee5a1a7aebbebb7fd7c5bae",
+    "target_compiler_sha256": "49be363fac3603213ba5621855f7f6cdd6f5d17804961acb57ea6f3699b8ff5c"
+  }
+}

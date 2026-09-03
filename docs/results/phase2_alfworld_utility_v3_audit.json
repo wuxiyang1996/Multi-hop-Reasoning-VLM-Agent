@@ -1,0 +1,49 @@
+{
+  "schema_version": "phase2-alfworld-selective-independent-audit-v3",
+  "status": "PHASE2_ALFWORLD_V3_INDEPENDENT_AUDIT_PASSED",
+  "manifest_sha256": "0612c38d5195122e00303de56ec1cd02c6b71a00190f9c9026408712b5abf960",
+  "report_sha256": "981600e4d0f03aa77802045e1aa461c8a032fc1aee333c8d8d1af0fabf24a8d5",
+  "receipt_count": 375,
+  "receipt_sha256_aggregate": "b39f9b6ea78a5139f177c73ca51e396406e441830abd2310271cd84e589653b9",
+  "result": {
+    "raw_successes": 37,
+    "authentic_successes": 57,
+    "authentic_vs_raw": {
+      "wins": 21,
+      "losses": 1,
+      "ties": 53,
+      "net_wins": 20,
+      "exact_two_sided_p": 1.0967254638671875e-05,
+      "reward_wins": 21,
+      "reward_losses": 1,
+      "reward_ties": 53,
+      "reward_net_wins": 20,
+      "reward_exact_two_sided_p": 1.0967254638671875e-05,
+      "action_contrast_tasks": 61
+    },
+    "negative_transfer_rate": 0.045454545454545456
+  },
+  "gates": {
+    "manifest_valid": true,
+    "exactly_375_receipts": true,
+    "exactly_375_pre_reset_markers": true,
+    "independent_rebuild_byte_equivalent": true,
+    "saved_report_hash_reproduced": true,
+    "validated_status_reproduced": true,
+    "all_13_preregistered_gates_pass": true,
+    "v1_order_failure_preserved": true,
+    "v2_negative_result_preserved": true,
+    "v1_v2_v3_target_sets_disjoint": true,
+    "complete_140_task_partition": true,
+    "exactly_14_arity_abstentions": true,
+    "out_of_scope_conditions_exactly_match_raw": true,
+    "zero_historical_outcome_reuse": true,
+    "one_reset_per_receipt": true
+  },
+  "file_sha256": {
+    "manifest": "aaf208beda3540b3dff69c233f9fce512b21f7d7379f3bfebb75caf4f33ae8f7",
+    "report": "7320dfeb8e7512c215e2a7292c4a0a89a6b435bebe2cb1ad2eb0d1d8b3feaa21",
+    "preflight": "3c44eac9245140f5944d92e4070c4014f43ee18cbd22dca443933d46b33468c2"
+  },
+  "audit_sha256": "1fb75a064f1db0cb538205e64e2ef62cd11aa614664f7e32122081c4a2ffc0fd"
+}

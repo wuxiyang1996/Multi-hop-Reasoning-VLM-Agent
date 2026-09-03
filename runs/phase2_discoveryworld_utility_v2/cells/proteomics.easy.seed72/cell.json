@@ -1,0 +1,65 @@
+{
+  "schema_version": "phase2-discoveryworld-selective-cell-v2",
+  "manifest_sha256": "36e9fbb35836bd1e4a0d51fa3a305b598534c617b6d53a74671f8bbb2c779afa",
+  "task_id": "proteomics.easy.seed72",
+  "source_game": "gymv_streets_of_rage_2",
+  "source_artifact_sha256": "0811312fd98f697b572a72e5c1d2da4417ec6ec35c9db00e51d8f1bb4d1123d6",
+  "applicable": true,
+  "abstention_rule": null,
+  "outcomes": {
+    "target_native_myopic": false,
+    "authentic_sokoban_effect_plus_target": true,
+    "commit_availability_control_plus_target": false,
+    "inverted_effect_control_plus_target": false,
+    "position_prior_control_plus_target": false
+  },
+  "recovery_steps": {
+    "target_native_myopic": 8,
+    "authentic_sokoban_effect_plus_target": 2,
+    "commit_availability_control_plus_target": 8,
+    "inverted_effect_control_plus_target": 8,
+    "position_prior_control_plus_target": 8
+  },
+  "authentic_source_routes": [
+    {
+      "domain": "discoveryworld",
+      "episode_id": "proteomics.easy.seed72",
+      "decision_index": 0,
+      "target_event": "NO_ACTIVE_CANDIDATE_AND_UNTRIED_REMAIN",
+      "source_action": "EXPLORE_UNTRIED",
+      "native_action_id": "58d33ca73ab473e09b6935c757f0700aac4a21f745b18a017d3a3d41c32e82e0",
+      "native_action": {
+        "action": "TELEPORT_TO_OBJECT",
+        "arg1": 43006
+      },
+      "admitted": true,
+      "reason": "SOURCE_EVENT_ROUTE_TARGET_NATIVE_REALIZATION",
+      "source_artifact_sha256": "0811312fd98f697b572a72e5c1d2da4417ec6ec35c9db00e51d8f1bb4d1123d6",
+      "target_evidence_sha256": "cf040f7682aeff7c8de1e10414019dde48c79633b4efac4ed3821636b9e14e7a",
+      "receipt_sha256": "f5a4597adccdbe56db576f50a25427a98a60be9db5e83cba756dd10fca4027eb"
+    },
+    {
+      "domain": "discoveryworld",
+      "episode_id": "proteomics.easy.seed72",
+      "decision_index": 1,
+      "target_event": "ACTIVE_CANDIDATE_VERIFIED",
+      "source_action": "COMMIT_VERIFY",
+      "native_action_id": "b416f6086b8c0bc2779d49eefaae0e71279596bd193e5fcffcf497bb279deeec",
+      "native_action": {
+        "action": "DROP",
+        "arg1": 17557
+      },
+      "admitted": true,
+      "reason": "SOURCE_EVENT_ROUTE_TARGET_NATIVE_REALIZATION",
+      "source_artifact_sha256": "0811312fd98f697b572a72e5c1d2da4417ec6ec35c9db00e51d8f1bb4d1123d6",
+      "target_evidence_sha256": "c867ab3bf4891ee38ddaed3956552126e2b13187bef6de5c981227fa9e62fbfb",
+      "receipt_sha256": "93809b14b1fb6b6c926e7bac7446f186e5efb94a146ec17331f8c4d0db13da5a"
+    }
+  ],
+  "matched_result_file_sha256": "de0f77aaddca5516e5b7176989d92ae89e543be5ec40a014a2cdc09fd49eab3e",
+  "all_matched_forks": true,
+  "all_selection_receipts_valid": true,
+  "policy_runtime_saw_oracle_scorecard": false,
+  "runtime_error": null,
+  "cell_sha256": "15afbcf9adec67d8a94a71f9141b885aadfcffa0f40df7a2df56973beada9040"
+}

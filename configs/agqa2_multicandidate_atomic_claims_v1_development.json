@@ -1,0 +1,54 @@
+{
+  "schema_version": "agqa-multicandidate-atomic-claims-v1-development-protocol-v1",
+  "status": "FROZEN_ON_CONSUMED_DEVELOPMENT_NOT_TRANSFER_EVIDENCE",
+  "claim_boundary": "Multi-candidate atomic predicate verification on an already consumed AGQA balanced-train development cohort. The VLM sees no question, temporal operator, answer, answer alternatives, official STSG/program, source controller, or target outcome. This stage cannot authorize the Harness.",
+  "repair_hypothesis": "The one-best proposal is the dominant information bottleneck. Verify all fixed detector candidates independently for the typed outer predicate, then use a deterministic temporal executor with separately frozen answer-blind anchor intervals.",
+  "immutable_inputs": {
+    "cohort_file_sha256": "4a41e3389aa146ce3d39b88402e94c08c05c144aaa7ffe7426c35f635cf861eb",
+    "sgdet_file_sha256": "37d59769f73087f3a7d295db2622e1aa86ea2e44be4f5391f037972d00561813",
+    "candidate_grounding_file_sha256": "efaf584c3f272d869121a68505d8ef249018c2e15d6f782621812a1114cbedca",
+    "anchor_localizations_file_sha256": "091e5c70d4c4763349367e85f29cc9be63f01af235bc8b6ace9c9d7e52838d14",
+    "collector_sha256": "91484467cd865716c1fc8c5b59f081287b43d2ccc4510428ba1aaa26efc6a6bb",
+    "atomic_helper_sha256": "0f08b3c08b138a320e2a10a8c8732ca5252319fa588b1dd5aeba850f104f1d85"
+  },
+  "multicandidate_atomic_claims": {
+    "model": "qwen/qwen3-vl-235b-a22b-instruct",
+    "provider": "parasail",
+    "provider_allow_fallbacks": false,
+    "seed": 0,
+    "top_k_candidates": 12,
+    "candidate_batch_size": 4,
+    "maximum_event_frames": 24,
+    "temporal_uncertainty_frames": 4,
+    "minimum_object_score": 0.05,
+    "frames_per_panel": 4,
+    "panel_frame_width": 320,
+    "jpeg_quality": 90,
+    "max_tokens": 640,
+    "maximum_contract_attempts": 2,
+    "temperature": 0,
+    "thinking": false,
+    "proposal_stage_may_authorize_harness": false
+  },
+  "authority": {
+    "parser_derived_root_predicate_and_role_read": true,
+    "frozen_answer_blind_anchor_localizations_read": true,
+    "raw_video_frames_read": true,
+    "prediction_only_public_detector_tracks_read": true,
+    "question_text_supplied_to_vlm": false,
+    "temporal_operator_supplied_to_vlm": false,
+    "agqa_answer_read": false,
+    "agqa_answer_alternatives_read": false,
+    "official_scene_graph_read": false,
+    "official_stsg_read": false,
+    "functional_program_read": false,
+    "source_controller_read": false,
+    "target_outcome_read": false
+  },
+  "development_policy": {
+    "this_cohort_is_permanently_consumed": true,
+    "provider_or_prompt_selection_from_fresh_outcomes_forbidden": true,
+    "fresh_video_and_task_disjoint_qualification_required_after_development": true,
+    "all_harness_arms_must_share_exact_final_grounding_receipts": true
+  }
+}

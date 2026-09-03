@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "status": "DEVELOPMENT_ADAPTATION_ONLY",
+  "claim_boundary": "TIR adaptation only; qualification and held-out outcomes remain unread.",
+  "source": {
+    "controlled_v3_config": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/configs/controlled_neural_symbolic_transfer_v3_formal.json",
+    "controlled_v3_config_content_sha256": "d5fb9c1976c1ac735d7efa4b0d8291dfc603b32f47a3ac6cf045519e3888d940",
+    "transferred_structure": "STATE_DEPENDENT_TEST_VS_COMMIT_MATCHED_INTERVENTION_VALUES",
+    "model_seed": 2026081221
+  },
+  "target": {
+    "benchmark": "TIR-Bench",
+    "families": ["maze", "refcoco", "rotation_game", "visual_search"],
+    "official_evaluator": "exact_answer_letter",
+    "target_native_actions": ["inspect_grid_crop", "commit_answer_slot"]
+  },
+  "model": {
+    "provider": "openrouter",
+    "id": "qwen/qwen3-vl-32b-instruct",
+    "base_url": "https://openrouter.ai/api/v1",
+    "timeout_seconds": 180,
+    "max_retries": 2,
+    "temperature": 0
+  },
+  "media": {
+    "grid_rows": 3,
+    "grid_columns": 3,
+    "max_side": 640,
+    "jpeg_quality": 84
+  },
+  "target_grounder": {
+    "kind": "target_native_vlm_crop_ranker_plus_slot_symmetric_temperature_and_gain_mlp",
+    "seed": 2026081222,
+    "gain_seed": 2026081223,
+    "gain_hidden_units": 16,
+    "training_authority": "TIR_INTERNAL_ADAPTATION_ONLY"
+  },
+  "policy": {
+    "max_tests": 4,
+    "fallback_commit_threshold": 0.72,
+    "uncertainty_scale": 0.5,
+    "decision_margin": 0.0025,
+    "information_gain_threshold": 0.025
+  },
+  "conditions": [
+    "target_only",
+    "authentic_source_plus_target",
+    "shuffled_source_plus_target",
+    "source_marginal_plus_target",
+    "target_native_information_gain"
+  ],
+  "splits": {
+    "adaptation": ["158", "721", "1122", "622", "423", "49", "474", "958", "800", "516", "785", "270", "713", "735", "1110", "532"],
+    "qualification": [],
+    "held_out": []
+  },
+  "selection_receipt": {
+    "parent_manifest": "configs/real_game_multitarget_v5_manifest.json",
+    "rule": "existing V5 adaptation MCQ families plus first three reserve IDs per family in sorted family order",
+    "content_or_outcome_used": false,
+    "structural_exclusions": {
+      "82": "non-MCQ numeric answer; replaced by first A-F visual_search reserve after all tentatively assigned formal IDs"
+    }
+  }
+}

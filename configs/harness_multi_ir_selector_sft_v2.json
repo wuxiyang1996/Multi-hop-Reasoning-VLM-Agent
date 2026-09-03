@@ -1,0 +1,44 @@
+{
+  "schema_version": "harness-multi-ir-selector-sft-build-config-v2",
+  "output_schema_version": "harness-multi-ir-selector-sft-v2",
+  "expected_source_program_count": 7,
+  "required_ir_kinds": [
+    "FINITE_STRUCTURAL_DELTA_SEQUENCE",
+    "RECURRENT_GOAL_ACQUISITION_RELATION_PROGRAM",
+    "RECURRENT_GOAL_RELATION_PROGRAM",
+    "RECURRENT_RELATIONAL_TRANSITION_PROGRAM",
+    "SPARSE_TEMPORAL_EFFECT_FUNCTION"
+  ],
+  "source_artifacts": {
+    "structural_manifest": "configs/source_structural_v5c_frozen/manifest.json",
+    "structural_confirmation": "runs/source_structural_v5c_fresh/report.json",
+    "relational_artifact": "runs/sokoban_relational_structural_v2/artifact.json",
+    "relational_confirmation": "runs/sokoban_relational_structural_v2/fresh_confirmation_report.json",
+    "acquisition_artifact": "runs/sokoban_goal_acquisition_v1/artifact.json",
+    "acquisition_confirmation": "runs/sokoban_goal_acquisition_v1/fresh_confirmation_report.json",
+    "goal_relation_artifact": "runs/sokoban_goal_relation_macro_v3/artifact.json",
+    "goal_relation_confirmation": "runs/sokoban_goal_relation_macro_v3/fresh_confirmation_report.json",
+    "temporal_function_artifacts": [
+      {
+        "source_game": "candy_crush",
+        "artifact": "configs/phase3_source_function_v4/frozen_reserve/programs/candy_crush.json",
+        "confirmation": "runs/phase3_source_function_v4_reserve/report.json"
+      }
+    ]
+  },
+  "split_repetition_ranges": {
+    "train": [
+      0,
+      64
+    ],
+    "validation": [
+      64,
+      80
+    ],
+    "source_held_out": [
+      80,
+      96
+    ]
+  },
+  "claim_boundary": "SOURCE_ONLY_ANONYMOUS_FIVE_SCHEMA_MULTI_IR_SELECTION;CANDY_TEMPORAL_AND_SOKOBAN_GOAL_RELATION_REMAIN_SEPARATE_PRIMITIVES;NO_TARGET_COMPOSITION_EXAMPLE;NO_TARGET_OUTCOME;NO_NATIVE_ACTION"
+}

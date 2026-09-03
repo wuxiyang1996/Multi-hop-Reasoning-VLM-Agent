@@ -1,0 +1,19 @@
+{
+  "schema_version": "discoveryworld-target-only-phase1-direct-v4",
+  "claim_boundary": "Six fresh Proteomics Easy seeds39-44, with the same independently qualified Qwen target acquisition frozen in V3.",
+  "manifest": "configs/phase1_direct_prospective_v4/discoveryworld_target_manifest.json",
+  "manifest_role": "formal_reserve",
+  "model": {
+    "api_key_name": "OPENROUTER_API_KEY",
+    "base_url": "https://openrouter.ai/api/v1",
+    "maximum_output_tokens": 1200,
+    "model": "qwen/qwen3.5-35b-a3b",
+    "provider": "openrouter",
+    "schema_attempts": 3,
+    "temperature": 0
+  },
+  "runtime": {
+    "include_vision": false,
+    "maximum_steps": 96
+  }
+}

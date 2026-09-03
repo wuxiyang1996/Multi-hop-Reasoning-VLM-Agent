@@ -1,0 +1,70 @@
+{
+  "schema_version": "phase3-discoveryworld-grounding-config-v1",
+  "status": "FROZEN_BEFORE_V2_QUALIFICATION_TASK_RESET",
+  "role": "qualification",
+  "reads_target_success": false,
+  "claim_boundary": "Untouched component-only qualification of the V2 target-native grounder on Proteomics Easy seeds89-96; fixed horizon and frozen V1 qualification thresholds; no evaluator, official success persistence, source program, or Phase-3 formal-reserve task.",
+  "tasks": [
+    {
+      "scenario": "Proteomics",
+      "difficulty": "Easy",
+      "seed": 89
+    },
+    {
+      "scenario": "Proteomics",
+      "difficulty": "Easy",
+      "seed": 90
+    },
+    {
+      "scenario": "Proteomics",
+      "difficulty": "Easy",
+      "seed": 91
+    },
+    {
+      "scenario": "Proteomics",
+      "difficulty": "Easy",
+      "seed": 92
+    },
+    {
+      "scenario": "Proteomics",
+      "difficulty": "Easy",
+      "seed": 93
+    },
+    {
+      "scenario": "Proteomics",
+      "difficulty": "Easy",
+      "seed": 94
+    },
+    {
+      "scenario": "Proteomics",
+      "difficulty": "Easy",
+      "seed": 95
+    },
+    {
+      "scenario": "Proteomics",
+      "difficulty": "Easy",
+      "seed": 96
+    }
+  ],
+  "model": {
+    "provider": "openrouter",
+    "base_url": "https://openrouter.ai/api/v1",
+    "api_key_name": "OPENROUTER_API_KEY",
+    "model": "openai/gpt-4.1-mini",
+    "affordance_model": "openai/gpt-4.1",
+    "temperature": 0,
+    "maximum_output_tokens": 1200,
+    "schema_attempts": 3
+  },
+  "runtime": {
+    "qualification_steps": 24,
+    "environment_maximum_steps": 96,
+    "task_workers": 4,
+    "thread_id_base": 134000
+  },
+  "qualification_gates": {
+    "minimum_steps": 128,
+    "maximum_schema_fallback_rate": 0.1,
+    "maximum_invalid_native_actions": 0
+  }
+}

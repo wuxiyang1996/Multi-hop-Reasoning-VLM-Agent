@@ -1,0 +1,129 @@
+{
+  "schema_version": "alfworld-target-acquisition-train-itt-v20-selection",
+  "status": "FROZEN_TRAIN_ITT_BEFORE_COMPILATION_OR_ANY_POLICY_RESET",
+  "namespace": "alfworld-target-acquisition-fresh-v20-train-itt",
+  "source_split": "official_alfworld_json_2.1.1_train",
+  "selection_rule": "FIRST 16 BY ASCENDING SHA256(NAMESPACE NUL TASK_ID) FROM ALL PICK_TWO_OBJ_AND_PLACE IDENTITIES WITH TRAJ_DATA AND INITIAL_STATE BUT NO PACKAGED GAME.TW-PDDL; EXCLUDE OFFICIAL MOVABLE-RECEPTACLE AND SLICED UNSUPPORTED IDENTITIES",
+  "eligible_population": 228,
+  "eligible_population_task_ids_sha256": "15f684a0b19110f6c48df7bfc09a21df4f2bdf02310ceb04080e2fa58af34856",
+  "selection_used_identity_only": true,
+  "selection_used_compiler_solvability_observation_or_policy_outcome": false,
+  "compiler_rejected_tasks_must_remain_in_intention_to_treat_matrix": true,
+  "pre_freeze_policy_execution_exposure_by_task": {
+    "pick_two_obj_and_place-ButterKnife-None-SinkBasin-22/trial_T20190908_124318_750122/game.tw-pddl": 0,
+    "pick_two_obj_and_place-Potato-None-SinkBasin-24/trial_T20190908_212045_643714/game.tw-pddl": 0,
+    "pick_two_obj_and_place-SoapBar-None-BathtubBasin-405/trial_T20190909_003054_204398/game.tw-pddl": 0,
+    "pick_two_obj_and_place-ToiletPaper-None-Cabinet-402/trial_T20190908_144858_323079/game.tw-pddl": 0,
+    "pick_two_obj_and_place-SoapBar-None-SinkBasin-416/trial_T20190909_072000_431593/game.tw-pddl": 0,
+    "pick_two_obj_and_place-Cloth-None-Shelf-326/trial_T20190908_112531_422092/game.tw-pddl": 0,
+    "pick_two_obj_and_place-Ladle-None-Drawer-4/trial_T20190908_154812_240120/game.tw-pddl": 0,
+    "pick_two_obj_and_place-SoapBar-None-BathtubBasin-422/trial_T20190909_133340_569898/game.tw-pddl": 0,
+    "pick_two_obj_and_place-Cloth-None-Dresser-317/trial_T20190908_043229_211174/game.tw-pddl": 0,
+    "pick_two_obj_and_place-HandTowel-None-SinkBasin-409/trial_T20190909_044736_892213/game.tw-pddl": 0,
+    "pick_two_obj_and_place-Candle-None-CounterTop-402/trial_T20190909_082632_515262/game.tw-pddl": 0,
+    "pick_two_obj_and_place-HandTowel-None-SinkBasin-412/trial_T20190908_065110_052233/game.tw-pddl": 0,
+    "pick_two_obj_and_place-Newspaper-None-Drawer-224/trial_T20190911_101119_501414/game.tw-pddl": 0,
+    "pick_two_obj_and_place-Spoon-None-CounterTop-23/trial_T20190908_065339_118901/game.tw-pddl": 0,
+    "pick_two_obj_and_place-HandTowel-None-BathtubBasin-410/trial_T20190907_115524_102392/game.tw-pddl": 0,
+    "pick_two_obj_and_place-SoapBottle-None-Toilet-426/trial_T20190908_040111_212084/game.tw-pddl": 0
+  },
+  "tasks": [
+    {
+      "task_id": "pick_two_obj_and_place-ButterKnife-None-SinkBasin-22/trial_T20190908_124318_750122/game.tw-pddl",
+      "rank_sha256": "05a0cacb29220a3e3304dc6b2c88ead9b5b6357016fd724d115e6a2fa1204b47",
+      "traj_data_file_sha256": "946ae3fb3c84c23adce67fb699b89dc84684fad5d7e11d2a4de3170e92596184",
+      "initial_state_file_sha256": "bf45b2e66c9232553d4d4b1fd4dc1308d1d147adec62dfc51821df419002aa89"
+    },
+    {
+      "task_id": "pick_two_obj_and_place-Potato-None-SinkBasin-24/trial_T20190908_212045_643714/game.tw-pddl",
+      "rank_sha256": "06af5d390612eebe1dbf11ee27cc7065a6ade7d5407ba5a41590bc3b52c02766",
+      "traj_data_file_sha256": "f6699fa6e4979c06899b22cd3c8360a067c1118571fbde314c42243420e67dd7",
+      "initial_state_file_sha256": "4e019c4a2c5bb7667bd513bfbe58ae40dcecff6213a135a70dcc86d2821b250e"
+    },
+    {
+      "task_id": "pick_two_obj_and_place-SoapBar-None-BathtubBasin-405/trial_T20190909_003054_204398/game.tw-pddl",
+      "rank_sha256": "0b61ee4c2232ff1439f31432e78ffe3cca4f3e4472c6060ac5e700197ec1a5c9",
+      "traj_data_file_sha256": "d763af319b321a3d0cfb46c8d3c2a3b3ed793073cedf724910ab1454acc75845",
+      "initial_state_file_sha256": "8f35b4e08b302b0e03c1d2a89f6a82d373e2fa505c152d71234d4f0d98020bfb"
+    },
+    {
+      "task_id": "pick_two_obj_and_place-ToiletPaper-None-Cabinet-402/trial_T20190908_144858_323079/game.tw-pddl",
+      "rank_sha256": "0c1889c419d110239501e08da88e57ed32b8bfe5c458380d22ec58a42cfea1b1",
+      "traj_data_file_sha256": "1d5cf2a6ce1523b1c0b72638161fdc7c46e7cb5ce2345b5d593bb29312b3bc10",
+      "initial_state_file_sha256": "d764549f603f4eb19f32e474fbe1a1f240def7bca0420c11c2750123e1d60805"
+    },
+    {
+      "task_id": "pick_two_obj_and_place-SoapBar-None-SinkBasin-416/trial_T20190909_072000_431593/game.tw-pddl",
+      "rank_sha256": "0d8eb5dc22a3a5b3f1ac70497742c5aaf3988fefbb545b1a8f3721f68f0e51d1",
+      "traj_data_file_sha256": "5d798922a47ee970f88a2e9a3d16ba66a2b2bf4852d5c3f08907837b40bc7879",
+      "initial_state_file_sha256": "63db0eca8607949fecbbee64e7fbe8f547b5f07be2bf470438b06a173afd3cae"
+    },
+    {
+      "task_id": "pick_two_obj_and_place-Cloth-None-Shelf-326/trial_T20190908_112531_422092/game.tw-pddl",
+      "rank_sha256": "0da24dbd9d64632022f2a64e6c81e98f0c50f92d9a57255a3ead49900acdb705",
+      "traj_data_file_sha256": "8470c91f7ca9790dd0b27b27e942401833243bd8e154d0ed7cf4525c5d18c005",
+      "initial_state_file_sha256": "ccfb67d20ac0cc9456c6bdf323afd8a7abfff7a51da7e3124241954ee97650a1"
+    },
+    {
+      "task_id": "pick_two_obj_and_place-Ladle-None-Drawer-4/trial_T20190908_154812_240120/game.tw-pddl",
+      "rank_sha256": "0e879902c2f81353a30065d96ab6a98546d3c482c470cb81f0e36e0fa521bb0f",
+      "traj_data_file_sha256": "7df25c1c1d32617cc4ac872bc02ef69264420c3bfe82134b2f791c8c4ce7f402",
+      "initial_state_file_sha256": "9e8c039650cb95116c6051c22e969fa921d2bb4559a180b218eefe166ad963b9"
+    },
+    {
+      "task_id": "pick_two_obj_and_place-SoapBar-None-BathtubBasin-422/trial_T20190909_133340_569898/game.tw-pddl",
+      "rank_sha256": "0eb9fc9617327a6b939f23fc944f9a2cdf672beb245c420ed328662eacbd140b",
+      "traj_data_file_sha256": "8974c1ac57c66b2d8df34046d7cd7bf95dc605454586260a1714d869ac3bf1e1",
+      "initial_state_file_sha256": "e55ed97590d39f52237b7f266bff4e772d430447c0f5f67336560b603fe42c9e"
+    },
+    {
+      "task_id": "pick_two_obj_and_place-Cloth-None-Dresser-317/trial_T20190908_043229_211174/game.tw-pddl",
+      "rank_sha256": "102083ea62748399ecb6ca3d35fe25f0a238e8690e36eb708a59578160ac9f37",
+      "traj_data_file_sha256": "0326b92b7be5c082c4e8f965e7371bbf4d0adf30a37523628208d2c63f700ed1",
+      "initial_state_file_sha256": "152171559cb9ae3b8f4f2fdf080c8f8fb12fedf38b535c457fcf57fc7ab4bb83"
+    },
+    {
+      "task_id": "pick_two_obj_and_place-HandTowel-None-SinkBasin-409/trial_T20190909_044736_892213/game.tw-pddl",
+      "rank_sha256": "1159e944c51a2a1665138d67a3a6a4eabd2ca248c9e15771a1d04a82a64e3739",
+      "traj_data_file_sha256": "d1f4a50e241dc55e7421280f5abb74e8e6739f791afd2cb646c698bfe8dc770d",
+      "initial_state_file_sha256": "a8000f3acdfeab8dd37e406b0de71802d204448f9fc468f2b0935a96ec2bccdb"
+    },
+    {
+      "task_id": "pick_two_obj_and_place-Candle-None-CounterTop-402/trial_T20190909_082632_515262/game.tw-pddl",
+      "rank_sha256": "125c9d08605685afa9a9fbab010182633700df5a69bfbf293d729d8dd074b2bb",
+      "traj_data_file_sha256": "67459c424072cb7c670432a3bf0745982cbf6831d60679b2f9570d32ecadd4d1",
+      "initial_state_file_sha256": "563159b557d14476571697a69bfed0576a6d1bc4401f5eb0a1ca5090520c00ec"
+    },
+    {
+      "task_id": "pick_two_obj_and_place-HandTowel-None-SinkBasin-412/trial_T20190908_065110_052233/game.tw-pddl",
+      "rank_sha256": "12e93d92e7b06bfe229f73d55f19b7b5757757ea5ce9f5fbbb2dda39a1bec952",
+      "traj_data_file_sha256": "31f81b58e5ab231420c3d84481c10f829903e050c1bb388588e3e657522c9644",
+      "initial_state_file_sha256": "c2ae2bfb7294a8f366eb5923c5d6938176c79327f5ec11fad9ab02bc075bb7cf"
+    },
+    {
+      "task_id": "pick_two_obj_and_place-Newspaper-None-Drawer-224/trial_T20190911_101119_501414/game.tw-pddl",
+      "rank_sha256": "12fe34d82fb45429c79510e1903919494ed65fadcde0ff042de2e95f53ac8507",
+      "traj_data_file_sha256": "c1cba3ca1f944503ee4b6f91538884810c87b650d2a299b4df5c32f42c720367",
+      "initial_state_file_sha256": "4afb57302f40bb93fb5b8d6d9eb1025208505501c4d7eab47880c921f411afbe"
+    },
+    {
+      "task_id": "pick_two_obj_and_place-Spoon-None-CounterTop-23/trial_T20190908_065339_118901/game.tw-pddl",
+      "rank_sha256": "172e460e1143d112254f1916d3f879532c241c3351e3388a746476326c106f46",
+      "traj_data_file_sha256": "69c3725a5542b050dab82e73485b5ebf1469e120d7ff8aa1a392f2784eea0bfb",
+      "initial_state_file_sha256": "60dbd6fb1b5ed1741d6b4be088f0fde1940ca6495ed15fb30d64678f337ca1b6"
+    },
+    {
+      "task_id": "pick_two_obj_and_place-HandTowel-None-BathtubBasin-410/trial_T20190907_115524_102392/game.tw-pddl",
+      "rank_sha256": "176301b6543df8dce227c503598b62b5aa622e9cf009ab7da4a9f271a6ec01af",
+      "traj_data_file_sha256": "cc466060aacb2fe025f15ce1bf10c49c95625293b8b88b4058402f1432c4d249",
+      "initial_state_file_sha256": "beac105aa79887ae40a12f9c8151023ed449fa66f97c1b5811559103306ba5ab"
+    },
+    {
+      "task_id": "pick_two_obj_and_place-SoapBottle-None-Toilet-426/trial_T20190908_040111_212084/game.tw-pddl",
+      "rank_sha256": "187af980603c8231447bab329acffa551cc573d86435ee8f24e0ca756e65e949",
+      "traj_data_file_sha256": "31bc4c98ab6026d07d3472e6207bf1ca1eab180c80a2c44e0b7162dc9c94979d",
+      "initial_state_file_sha256": "8930da08fe9ca6401b9c2e311d3fd1800f54a1aa784abc37be5c26fe95bebd6f"
+    }
+  ],
+  "selection_sha256": "68e801a52b41e38624879abd4753a1b7b949b5048b7612647e8526be6b1afdb4"
+}

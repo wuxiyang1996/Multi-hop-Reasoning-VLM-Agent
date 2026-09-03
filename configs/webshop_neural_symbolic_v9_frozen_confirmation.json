@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "artifact_role": "FROZEN_BEFORE_WEBSHOP_V9_CONFIRMATION",
+  "status": "FROZEN_BEFORE_CONFIRMATION",
+  "confirmation_task_ids": [
+    "webshop.7"
+  ],
+  "confirmation_group_ids": [
+    "B09HX5CD2D"
+  ],
+  "conditions": [
+    "target_only",
+    "target_native_myopic",
+    "authentic_source_plus_target",
+    "shuffled_source_plus_target",
+    "source_marginal_plus_target"
+  ],
+  "primary_gate": {
+    "require_matched_initial_state_hashes": true,
+    "require_zero_failures": true,
+    "require_authentic_strict_success": true,
+    "require_authentic_reward_at_least_target_only": true,
+    "require_authentic_steps_at_most_target_only": true,
+    "require_authentic_source_decision": true,
+    "require_source_specific_action_contrast": true,
+    "source_specific_controls": [
+      "shuffled_source_plus_target",
+      "source_marginal_plus_target"
+    ]
+  },
+  "interpretation_boundary": "A single consumed semantic-group confirmation is a pilot validation, not population-level WebShop validation and not original-held-out evidence.",
+  "runtime_hashes": {
+    "grounder": "bbf8a22ebec8e7ab6d55e570f230ba4fcb2b8630d1dc81bd24ba103f68701782",
+    "calibration_summary": "9c73feeffc6a6a1c41b616647b02a0336f306e48819e566d49a09837dcf59b84",
+    "runner": "b4acb16036c94b8f2c47489a58ebb3138710ce99f3df3bec72f1702e202198ca",
+    "core": "4ccaa42dbcfe8179465cb464cd3aa3c60e6323b56c043bb6e593a8896c43251d",
+    "grouped_split": "ceae3a45146915cd8f7bf717abdebcba178e656797af131d5ca0e7e867eb6877",
+    "goal_manifest": "f78bc0a3714f603066c0a54e72e9ff91a1656c2fbd5176a3862aa0f82d21a676"
+  },
+  "confirmation_read_or_run": false,
+  "original_held_out_read_or_run": false
+}

@@ -1,0 +1,76 @@
+{
+  "base_evaluation_protocol_sha256": "2c70ec61f27daaaec3ec1540a149e03d5bffdeb0201f9f42b1a8a33a466465c5",
+  "claim_boundary": "ONE_HUNDRED_FIFTY_NEW_CROSS_EXPERIMENT_VIDEO_DISJOINT_ATOMIC_BEFORE_AFTER_ROWS_FROM_OFFICIAL_TRAIN_METADATA;V42_RULE_QUALIFICATION_ONLY",
+  "confirmatory_claim_allowed": false,
+  "cost_projection": {
+    "frozen_cap_usd": 1.35,
+    "projected_150_row_cost_usd": 1.05
+  },
+  "development_calibration": {
+    "decision": "SELECT_SKILL",
+    "losses": 0,
+    "reason": "V42_FINITE_CLASS_VIEW_RELIABILITY_INDUCTION",
+    "ties": 186,
+    "wins": 14
+  },
+  "download_receipt_file_sha256": "160d95d1eef29e5047f5187832b44f9530e0570b992d2878e90e263fbb1e5fe1",
+  "failure_policy": {
+    "failed_gate": "STOP_BEFORE_NEW_TEST_FORMAL",
+    "passed": "FREEZE_ONE_NEW_VIDEO_DISJOINT_TEST_FORMAL",
+    "qualification": "RUN_ONCE;NO_POST_OUTCOME_THRESHOLD_CHANGE"
+  },
+  "postground_evaluation_protocol": {
+    "aggregate_adapter_sha256": "6021b1865e3cbf138c0fe1d4054861a13d15a6cbbdfe8c527ea33e874ec05945",
+    "calibration_artifact_sha256": "ac30e4aecfe9d88a96e3dd7552c048eb5ea46dd1fec6191ce504d82e3f7774f1",
+    "calibration_rule_sha256": "6fb3ff0078ff9fb2ec53afbc5d260b05f1c8dc3618331f147ffeb0143dd2fa5d",
+    "calibrator_module_sha256": "c91c3186ab459246e0e8d4b094876672a8b2376ef7037b725e4c0ea9622f1982",
+    "confirmatory_claim": false,
+    "evaluator_module_sha256": "fcfab86aa873d933bc1ffd5c02bb7871ff815b2f6837c3e09695d1f5e11a49ce",
+    "fallback": "PRESERVE_MATCHED_TARGET_NATIVE_DIRECT_ON_ABSTENTION",
+    "gates": {
+      "maximum_exact_one_sided_pvalue": 0.05,
+      "maximum_reported_provider_cost_usd": 1.35,
+      "maximum_source_losses": 1,
+      "minimum_source_authorizations": 25,
+      "minimum_source_minus_target_correct": 6,
+      "minimum_source_wins": 7,
+      "required_effect_shuffled_abstentions": 150,
+      "required_generic_scaffold_matches": 150,
+      "required_target_written_equivalent_matches": 150,
+      "required_unique_videos": 150,
+      "required_valid_rows": 150,
+      "required_wrong_source_abstentions": 150
+    },
+    "runtime_calibrator_authority": "ABSTENTION_ONLY",
+    "sample_count": 150,
+    "schema_version": "agqa2-view-reliability-v43-qualification-protocol-v1",
+    "source_program_sha256": "cc5f177fd54a2f17ccaa688ea1ecf6d0ae2395554a97a921563e70c32721601d",
+    "target_executor_sha256": "ff7b92a29b28b4c90c1bb511ae995b9c6b7b31c32ff0890455bd05b2dee92ece",
+    "target_grounder_sha256": "b49ef512875968110b26a2725e75b93533e63114ec0452b8d2043156ee6e595e"
+  },
+  "postground_evaluation_protocol_sha256": "d4f162b9a9d41d36a25d5c4ad98ac10e1dd098c68ae72ea055ca137259206d8f",
+  "qualification_gates": {
+    "maximum_exact_one_sided_pvalue": 0.05,
+    "maximum_reported_provider_cost_usd": 1.35,
+    "maximum_source_losses": 1,
+    "minimum_source_authorizations": 25,
+    "minimum_source_minus_target_correct": 6,
+    "minimum_source_wins": 7,
+    "required_effect_shuffled_abstentions": 150,
+    "required_generic_scaffold_matches": 150,
+    "required_target_written_equivalent_matches": 150,
+    "required_unique_videos": 150,
+    "required_valid_rows": 150,
+    "required_wrong_source_abstentions": 150
+  },
+  "qualification_manifest_sha256": "449a3d46f94b71ad4d3d3badf7ff497a243f75d87e0bb14c8cb51d6051da7a6d",
+  "qualified_v33_development_report_sha256": "ac30e4aecfe9d88a96e3dd7552c048eb5ea46dd1fec6191ce504d82e3f7774f1",
+  "schema_version": "agqa2-view-reliability-v43-preregistration-v1",
+  "selection_manifest_sha256": "2a463d2031346559bc729180e9782338461b52f0d82a70309c1eeee3c2d94bb7",
+  "source_program_sha256": "cc5f177fd54a2f17ccaa688ea1ecf6d0ae2395554a97a921563e70c32721601d",
+  "status": "FROZEN_BEFORE_ANY_V34_FORMAL_PROVIDER_OR_OUTCOME_CALL",
+  "v42_training_artifact": "configs/agqa2_view_reliability_v42/training_artifact.json",
+  "v42_training_artifact_file_sha256": "b52b699003ac62b20e71572ea1ecf0d38be1095cd47c216a2b923da98814b954",
+  "v42_training_artifact_sha256": "ac30e4aecfe9d88a96e3dd7552c048eb5ea46dd1fec6191ce504d82e3f7774f1",
+  "v43_status": "FROZEN_BEFORE_ANY_V43_QUALIFICATION_PROVIDER_OR_OUTCOME_CALL"
+}

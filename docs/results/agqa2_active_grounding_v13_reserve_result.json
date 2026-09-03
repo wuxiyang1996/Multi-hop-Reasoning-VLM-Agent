@@ -1,0 +1,34 @@
+{
+  "schema_version": "agqa2-active-grounding-v13-reserve-result-v1",
+  "status": "AGQA2_ACTIVE_GROUNDER_V13_RESERVE_QUALIFIED",
+  "grounder_qualified": true,
+  "grounder_sha256": "b781750694866a034ef991bf3e27604e15193f8f14dd094f8838eaeac045fb2a",
+  "manifest_sha256": "343f86371ad3eb62bb81d8c177430744eeb51ba6bac7f7e65ada16339a5d8ed6",
+  "config_sha256": "5dc806214a3cd44077cdb2ec065de5fc97dceb7613833b94b36e2f8fb50ef8da",
+  "preregistration_sha256": "eaf08ad63ec30b3170da45101841bf65b09f215c7c78b4dadbbf58b9c4290b57",
+  "metrics": {
+    "valid_runtime_rows": 9,
+    "route_correct": 9,
+    "decisive_executions": 6,
+    "decisive_correct": 5,
+    "decisive_accuracy": 0.8333333333333334,
+    "direct_correct": 6,
+    "typed_fallback_correct": 7,
+    "typed_vs_direct_wins": 1,
+    "typed_vs_direct_losses": 0,
+    "source_typed_overrides": 1,
+    "unified_harness_executor_authorizations": 6,
+    "unified_harness_correct": 7,
+    "unified_harness_vs_direct_delta": 1,
+    "consensus_tiebreaks_triggered": 4
+  },
+  "controls": {
+    "source_permuted_abstentions": 9,
+    "target_written_equivalent_matches": 9
+  },
+  "all_preregistered_gates_passed": true,
+  "gain_task_id": "MYBRN-1024",
+  "gain_evidence": "THREE_VIEW_MAJORITY_OBSERVED_CARRYING_BAG_WITH_OBJECT_AGREEMENT",
+  "reported_provider_cost_usd": 0.084566216,
+  "report_sha256": "e2a0dd56dd7f5b62997ccf78d91aa36268f9ab95cba5dc4a55e38800647baf98"
+}

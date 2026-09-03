@@ -1,0 +1,20 @@
+{
+  "schema_version": "discoveryworld-target-only-config-v22-normal-formal",
+  "manifest": "configs/discoveryworld_v1_manifest.json",
+  "manifest_role": "formal_reserve",
+  "task_indices": [29, 30, 37, 38, 45, 46],
+  "claim_boundary": "Frozen target-only acquisition on six previously unopened Normal instances: Space Sick and Proteomics seeds2-4. The target policy receives no source program or evaluator scorecard. These rollouts may be used only by the separately frozen V22 outcome-blind first-commit matched evaluation; no code, prompt, model, horizon, task, fork rule, arm, or gate may change after collection begins.",
+  "model": {
+    "provider": "openrouter",
+    "base_url": "https://openrouter.ai/api/v1",
+    "model": "qwen/qwen3.5-35b-a3b",
+    "api_key_name": "OPENROUTER_API_KEY",
+    "temperature": 0,
+    "maximum_output_tokens": 1200,
+    "schema_attempts": 3
+  },
+  "runtime": {
+    "maximum_steps": 96,
+    "include_vision": false
+  }
+}

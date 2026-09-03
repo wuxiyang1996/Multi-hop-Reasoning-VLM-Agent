@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "status": "SOURCE_GATE_AND_TARGET_DEVELOPMENT",
+  "claim_boundary": "A procedural interactive game suite supplies matched intervention returns over a typed workflow automaton. ALFWorld supplies its own frozen neural grounder and native actions. This development config cannot authorize confirmation or valid_unseen evaluation.",
+  "source": {
+    "train_surfaces": ["grid_quest", "factory_quest", "dungeon_quest", "space_quest"],
+    "evaluation_surfaces": ["island_quest", "circuit_quest"],
+    "train_domains_per_surface": 24,
+    "evaluation_domains_per_surface": 12,
+    "train_states_per_domain": 24,
+    "evaluation_states_per_domain": 24,
+    "replicates_per_action": 16,
+    "ensemble_size": 11,
+    "ridge_alpha": 0.35,
+    "train_seed": 91001,
+    "evaluation_seed": 191001,
+    "model_seed": 91003,
+    "control_seed": 91002,
+    "workflow": {
+      "minimum_budget": 7,
+      "maximum_budget": 16,
+      "completion_probability_range": [0.35, 0.95],
+      "failure_cost_range": [0.01, 0.18],
+      "progress_reward": 0.15,
+      "invalid_option_cost": 0.18
+    },
+    "minimum_relative_mse_improvement_over_each_control": 0.10
+  },
+  "target": {
+    "base_artifact": "runs/multisource_alfworld_neurosymbolic_v3_diagnostic/frozen_candidate_artifact.json",
+    "artifact": "runs/procedural_game_alfworld_v1_development/frozen_candidate_artifact.json"
+  }
+}

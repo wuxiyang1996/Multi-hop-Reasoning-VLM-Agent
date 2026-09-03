@@ -1,0 +1,26 @@
+{
+  "answer_or_scene_graph_read_during_freeze": false,
+  "confirmatory_claim": false,
+  "cost_cap_usd": 4.0,
+  "development_report_sha256": "ec881e508519a82a4a687ad79e3a3681727ce2cdf0d1ef7e80b071cce92df723",
+  "download_receipt_file_sha256": "95cf2cc25ce281efbd6952c872d71a28a238ec6e412674cb9682a23eac1a1e1d",
+  "failure_policy": {
+    "failed_gate": "STOP_BEFORE_FULL_DISTRIBUTION_TEST_FORMAL",
+    "passed": "FREEZE_ONE_FULL_DISTRIBUTION_TEST_FORMAL",
+    "post_outcome_rule_change": "FORBIDDEN"
+  },
+  "grounder_sha256": "a5199eab3d4a80431d76a7480258d73bff25298a989880834eabf5460f927e5a",
+  "manifest_sha256": "88e0305f7e3e5401b5719c9e98f409a61ad80184f39247652811af95aad1b53b",
+  "qualification_gates": {
+    "maximum_exact_one_sided_pvalue": 0.05,
+    "maximum_losses": 0,
+    "minimum_candidate_predictions": 40,
+    "minimum_net_gain": 5,
+    "minimum_wins": 5,
+    "required_unique_videos": 240,
+    "required_valid_rows": 240
+  },
+  "schema_version": "agqa2-temporal-localized-query-prereg-v60",
+  "selection_manifest_sha256": "66ff91c1d7f0f71d6eeca5ec90896fb9a1ad424c5398b14b5f8220d3e6dfe03e",
+  "status": "FROZEN_BEFORE_ANY_V60_PROVIDER_OR_OUTCOME_CALL"
+}

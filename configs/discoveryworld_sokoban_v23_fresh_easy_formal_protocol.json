@@ -1,0 +1,91 @@
+{
+  "schema_version": "discoveryworld-sokoban-fresh-easy-formal-v23",
+  "status": "FORMAL_RESERVE_PROTOCOL_FROZEN_BEFORE_OPEN",
+  "evaluation_stage": "FORMAL_RESERVE",
+  "candidate_commit": "d84955dd67a782ab9aa907e4f5410deb687f3dc6",
+  "claim_boundary": "Fresh held-out game-to-DiscoveryWorld neural-symbolic transfer evaluation on 12 previously unrun Easy instances from Space Sick and Proteomics seeds5-10. Target-native neural binding and target symbols instantiate the source-qualified Sokoban positive-effect guard; the shared target-native spatial realizer may execute POSITION but may not choose COMMIT. Passing validates this mechanism for these two Easy interfaces and seeds, not all DiscoveryWorld tasks or Normal difficulty.",
+  "target_baseline_config": "configs/discoveryworld_target_only_v23_fresh_easy_formal.json",
+  "task_ids": [
+    "space_sick.easy.seed5",
+    "proteomics.easy.seed5",
+    "space_sick.easy.seed6",
+    "proteomics.easy.seed6",
+    "space_sick.easy.seed7",
+    "proteomics.easy.seed7",
+    "space_sick.easy.seed8",
+    "proteomics.easy.seed8",
+    "space_sick.easy.seed9",
+    "proteomics.easy.seed9",
+    "space_sick.easy.seed10",
+    "proteomics.easy.seed10"
+  ],
+  "fork_rule": {
+    "name": "FIRST_PREDECLARED_NATIVE_COMMIT_PROPOSAL",
+    "allowed_commit_actions": ["DROP", "PUT"],
+    "reads_action_success": false,
+    "reads_terminal_outcome": false,
+    "reads_evaluation_or_scorecard": false,
+    "minimum_fork_after_episode_step": 1
+  },
+  "recovery_horizon": 8,
+  "conditions": [
+    "target_native_myopic",
+    "authentic_sokoban_effect_plus_target",
+    "commit_availability_control_plus_target",
+    "inverted_effect_control_plus_target",
+    "position_prior_control_plus_target"
+  ],
+  "source_contract": {
+    "compact_receipt": "docs/results/sokoban_effect_program_v2_compact_receipt.json",
+    "source_program_sha256": "6b02dc1d7271bbd435e90539cedd7d56d04fcc1ad03798dd6dd06146d67f1fcd",
+    "source_confirmation_sha256": "d64606c916ce6e812ae1b920771d5175cb48983a2f141b2dab6f43d491a6c1ed",
+    "require_source_gate_passed": true,
+    "transferred_structure": "DIRECT_PROGRESS_AVAILABLE_OR_ASSIGNMENT_IMPROVEMENT_AVAILABLE_THEN_COMMIT_AND_VERIFY_ELSE_POSITION_AND_RECOMPUTE"
+  },
+  "target_native_spatial_realizer": {
+    "enabled": true,
+    "schema_version": "discoveryworld-local-spatial-realization-v1",
+    "activation": "AFTER_SUCCESSFUL_TARGET_BOUND_TELEPORT",
+    "objective": "STRICT_WORST_CASE_RELATION_ERROR_REDUCTION_OVER_UI_COMPATIBLE_VECTORS",
+    "may_select_commit": false,
+    "shared_across_all_conditions": true
+  },
+  "selector": {
+    "prerequisite_threshold": 0.9,
+    "positive_effect_threshold": 0.65
+  },
+  "model": {
+    "provider": "openrouter",
+    "base_url": "https://openrouter.ai/api/v1",
+    "model": "qwen/qwen3.5-35b-a3b",
+    "api_key_name": "OPENROUTER_API_KEY",
+    "temperature": 0,
+    "maximum_output_tokens": 1600,
+    "hidden_reasoning_effort": "none",
+    "schema_attempts": 4
+  },
+  "formal_gates": {
+    "minimum_eligible_forks": 6,
+    "both_target_themes_represented": true,
+    "zero_runtime_or_receipt_failures": true,
+    "zero_authentic_negative_transfer_vs_target_native": true,
+    "minimum_authentic_success_gain_vs_target_native": 1,
+    "authentic_successes_strictly_greater_than_commit_availability_control": true,
+    "authentic_successes_strictly_greater_than_position_prior_control": true,
+    "all_policy_and_audit_forks_matched": true,
+    "zero_policy_oracle_scorecard_use": true
+  },
+  "conclusion_rule": {
+    "all_gates_pass": "Game-to-DiscoveryWorld effect-guard transfer is validated for Space Sick and Proteomics Easy seeds5-10 under this exact protocol.",
+    "any_gate_fails": "Fresh validation fails; report signals and failure modes without adapting on the opened instances or weakening gates."
+  },
+  "integrity": {
+    "target_runner_sha256": "8c908e84e7da5b27474cbc14da7164b3d46c32bc0b406938179cff5d42466377",
+    "fork_freezer_sha256": "14348733b8752388087aa64e97f3cd574c3819aaf82331d078078322956c7613",
+    "matched_runner_sha256": "14a768760c4a327c2486a3400310a771f9074ebe69ead83c848c425b2d54527d",
+    "environment_wrapper_sha256": "4bace77f80ca7710b7107b8bbc896d8f12649a3725d38c6071c446d7184e2cb8",
+    "target_policy_sha256": "7d054c6ffe8dac48283f4f99be067ffe9a1be9eb985419c3fa78ebdeef54857d",
+    "transfer_selector_sha256": "8d50120bacf89ceca5a6884f6ba90f55a9147a945f5008c9fbbf25ac260af2b7",
+    "source_compact_receipt_file_sha256": "8f175c0edda951eba2064e9c53a8db6a25cdfa9fb0de8049d371dbf5335c9e80"
+  }
+}

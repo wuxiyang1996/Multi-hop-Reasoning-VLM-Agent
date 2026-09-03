@@ -1,0 +1,2006 @@
+[
+  {
+    "schema_version": "tir-maze-structural-receipt-v2",
+    "collection_contract_sha256": "e369f3696299fab3cdfccf6a3ce8791f38a1c5045873d8dc2fc3ac8999ca4375",
+    "sample_id": "594",
+    "family": "maze",
+    "image_path": "/fs/gamma-projects/vlm-robot/datasets/TIR-Bench/data/maze/42.png",
+    "image_sha256": "c36cfc759a045c4dba6e862b11e0b04b8be8ce4879e5e3a264869a546191ed9c",
+    "prompt_sha256": "3b9712360160c50e45b2f70ce72b5de8149520b9bfdc25738abab6bf2739f924",
+    "neural_binding": {
+      "role": "TARGET_NATIVE_NEURAL_MAZE_BINDING",
+      "answer_or_gold_seen": false,
+      "move_deltas": {
+        "R": [
+          1,
+          0
+        ],
+        "L": [
+          -1,
+          0
+        ],
+        "U": [
+          0,
+          -1
+        ],
+        "D": [
+          0,
+          1
+        ]
+      },
+      "start_color_rgb": [
+        255,
+        0,
+        0
+      ],
+      "goal_color_rgb": [
+        0,
+        128,
+        0
+      ],
+      "start_corner": "top-left",
+      "goal_corner": "bottom-right",
+      "confidence": 0.99
+    },
+    "neural_binding_valid": true,
+    "binding_usage": {
+      "model": "openai/gpt-4.1-mini",
+      "finish_reason": "stop",
+      "prompt_tokens": 605,
+      "completion_tokens": 109,
+      "cost": 0.0004164,
+      "response_sha256": "b5102719c036895a7527c46dc4fbec21a4b0fb3f27b14015579a5e75e2dc8968"
+    },
+    "baseline_answer": "E",
+    "baseline_usage": {
+      "model": "openai/gpt-4.1-mini",
+      "finish_reason": "stop",
+      "prompt_tokens": 764,
+      "completion_tokens": 36,
+      "cost": 0.0003632,
+      "response_sha256": "3b123eb1df54c1d7f5b4b3a974ed90802dc5ec58bc4f028b724b7242bdf3c2fd"
+    },
+    "conditions": {
+      "source_induced": {
+        "condition": "source_induced",
+        "selected_answer": "D",
+        "source_option": "EXECUTE",
+        "target_native_action": "execute_neurally_bound_typed_relations",
+        "candidate_receipts": [
+          {
+            "answer_slot": "D",
+            "sequence_sha256": "9322054ccc5d9da074375bc5514d0c2401bfb424fde961cc49c1b428cbc007b2",
+            "grounded_operator_type_id": "ATYPE_a51cbb518f4b6b10",
+            "grounded_terminal_predicate_family": "TARGET_CONTROL_TO_VISUAL_GOAL_RELATION",
+            "node_count": 21,
+            "steps_executed": 56,
+            "terminal_node": [
+              20,
+              20
+            ],
+            "goal_node": [
+              20,
+              20
+            ],
+            "first_invalid": null,
+            "goal_reached": true
+          }
+        ],
+        "grounded_start_pixel": [
+          37.740932642487046,
+          37.740932642487046
+        ],
+        "grounded_goal_pixel": [
+          473.4594594594595,
+          473.4108108108108
+        ],
+        "binding_sha256": "cebec4f9872375c9f7015dce3412d4465d5d2a8650cfe2c22be0bd8e6603bf84",
+        "source_artifact_sha256": "8e751718cd5df14141a8dce0b10f4c57eb4d676a9ff3d125e3f293fdbe9c83ce",
+        "target_grounding_contract": {
+          "operator": "UPDATE_CONTROL_STATE_POSITION_TO_NATIVE_MAZE_EDGE",
+          "terminal_predicate": "ENTITY_GOAL_RELATION_TO_CONTROL_VISUAL_GOAL",
+          "neural_inputs": "MOVE_RELATIONS_AND_START_GOAL_VISUAL_ENTITIES_ONLY",
+          "gold_or_answer_seen": false
+        },
+        "receipt_sha256": "6df4e179f4fa9a11e4be05bb1749975213d3d8366154e9da7d8eb2a0dd209454"
+      },
+      "alpha_renamed_source": {
+        "condition": "alpha_renamed_source",
+        "selected_answer": "D",
+        "source_option": "EXECUTE",
+        "target_native_action": "execute_neurally_bound_typed_relations",
+        "candidate_receipts": [
+          {
+            "answer_slot": "D",
+            "sequence_sha256": "6005f465d2a0a878beb05b069c4773091740721c559c5953a923c9eed4cf661b",
+            "grounded_operator_type_id": "ATYPE_a51cbb518f4b6b10",
+            "grounded_terminal_predicate_family": "TARGET_CONTROL_TO_VISUAL_GOAL_RELATION",
+            "node_count": 21,
+            "steps_executed": 56,
+            "terminal_node": [
+              20,
+              20
+            ],
+            "goal_node": [
+              20,
+              20
+            ],
+            "first_invalid": null,
+            "goal_reached": true
+          }
+        ],
+        "grounded_start_pixel": [
+          37.740932642487046,
+          37.740932642487046
+        ],
+        "grounded_goal_pixel": [
+          473.4594594594595,
+          473.4108108108108
+        ],
+        "binding_sha256": "cebec4f9872375c9f7015dce3412d4465d5d2a8650cfe2c22be0bd8e6603bf84",
+        "source_artifact_sha256": "8e751718cd5df14141a8dce0b10f4c57eb4d676a9ff3d125e3f293fdbe9c83ce",
+        "target_grounding_contract": {
+          "operator": "UPDATE_CONTROL_STATE_POSITION_TO_NATIVE_MAZE_EDGE",
+          "terminal_predicate": "ENTITY_GOAL_RELATION_TO_CONTROL_VISUAL_GOAL",
+          "neural_inputs": "MOVE_RELATIONS_AND_START_GOAL_VISUAL_ENTITIES_ONLY",
+          "gold_or_answer_seen": false
+        },
+        "receipt_sha256": "d9e909948fe4eac5f28cb838de3462e09acd91e85b8bebd0f01e4561b27b6c58"
+      },
+      "source_relation_permuted": {
+        "condition": "source_relation_permuted",
+        "selected_answer": null,
+        "source_option": "ABSTAIN",
+        "target_native_action": "execute_neurally_bound_typed_relations",
+        "candidate_receipts": [],
+        "grounded_start_pixel": [
+          37.740932642487046,
+          37.740932642487046
+        ],
+        "grounded_goal_pixel": [
+          473.4594594594595,
+          473.4108108108108
+        ],
+        "binding_sha256": "cebec4f9872375c9f7015dce3412d4465d5d2a8650cfe2c22be0bd8e6603bf84",
+        "source_artifact_sha256": "8e751718cd5df14141a8dce0b10f4c57eb4d676a9ff3d125e3f293fdbe9c83ce",
+        "target_grounding_contract": {
+          "operator": "UPDATE_CONTROL_STATE_POSITION_TO_NATIVE_MAZE_EDGE",
+          "terminal_predicate": "ENTITY_GOAL_RELATION_TO_CONTROL_VISUAL_GOAL",
+          "neural_inputs": "MOVE_RELATIONS_AND_START_GOAL_VISUAL_ENTITIES_ONLY",
+          "gold_or_answer_seen": false
+        },
+        "receipt_sha256": "daeb0f46a9554115fba363caab31f58f781b698124a44c711593035e3e81e842"
+      },
+      "generic_scaffold": {
+        "condition": "generic_scaffold",
+        "selected_answer": "D",
+        "source_option": "GENERIC",
+        "target_native_action": "shortest_option_without_grounded_effects",
+        "candidate_receipts": [],
+        "binding_sha256": "cebec4f9872375c9f7015dce3412d4465d5d2a8650cfe2c22be0bd8e6603bf84",
+        "source_artifact_sha256": null,
+        "receipt_sha256": "a3e19d4edc6e59217826f34c5eafc167acba6dc00c548cc55a5e17cced362206"
+      },
+      "target_native_ceiling": {
+        "condition": "target_native_ceiling",
+        "selected_answer": "D",
+        "source_option": "TARGET_NATIVE",
+        "target_native_action": "execute_neurally_bound_typed_relations",
+        "candidate_receipts": [
+          {
+            "answer_slot": "D",
+            "sequence_sha256": "9322054ccc5d9da074375bc5514d0c2401bfb424fde961cc49c1b428cbc007b2",
+            "grounded_operator_type_id": "ATYPE_a51cbb518f4b6b10",
+            "grounded_terminal_predicate_family": "TARGET_CONTROL_TO_VISUAL_GOAL_RELATION",
+            "node_count": 21,
+            "steps_executed": 56,
+            "terminal_node": [
+              20,
+              20
+            ],
+            "goal_node": [
+              20,
+              20
+            ],
+            "first_invalid": null,
+            "goal_reached": true
+          }
+        ],
+        "grounded_start_pixel": [
+          37.740932642487046,
+          37.740932642487046
+        ],
+        "grounded_goal_pixel": [
+          473.4594594594595,
+          473.4108108108108
+        ],
+        "binding_sha256": "cebec4f9872375c9f7015dce3412d4465d5d2a8650cfe2c22be0bd8e6603bf84",
+        "source_artifact_sha256": null,
+        "target_grounding_contract": {
+          "operator": "UPDATE_CONTROL_STATE_POSITION_TO_NATIVE_MAZE_EDGE",
+          "terminal_predicate": "ENTITY_GOAL_RELATION_TO_CONTROL_VISUAL_GOAL",
+          "neural_inputs": "MOVE_RELATIONS_AND_START_GOAL_VISUAL_ENTITIES_ONLY",
+          "gold_or_answer_seen": false
+        },
+        "receipt_sha256": "bf13bb55c4d0e1245907b4884ca1e998c6751a8b63b927a4a37510a4711704ef"
+      }
+    },
+    "gold_answer_evaluator_only": "D",
+    "receipt_sha256": "732d4786e8cf06898c293e777fcb315935ae84492b957e732643d445b714b95d"
+  },
+  {
+    "schema_version": "tir-maze-structural-receipt-v2",
+    "collection_contract_sha256": "e369f3696299fab3cdfccf6a3ce8791f38a1c5045873d8dc2fc3ac8999ca4375",
+    "sample_id": "173",
+    "family": "maze",
+    "image_path": "/fs/gamma-projects/vlm-robot/datasets/TIR-Bench/data/maze/21.png",
+    "image_sha256": "0c96c0acf4db680af1a0c55e40fe3837890888399914747707755360cab0dc78",
+    "prompt_sha256": "1a6aaaabb750fe8164f26461ac01ef5a79be6bcb9b2f86b0511a355535382c4b",
+    "neural_binding": {
+      "role": "TARGET_NATIVE_NEURAL_MAZE_BINDING",
+      "answer_or_gold_seen": false,
+      "move_deltas": {
+        "R": [
+          1,
+          0
+        ],
+        "L": [
+          -1,
+          0
+        ],
+        "U": [
+          0,
+          -1
+        ],
+        "D": [
+          0,
+          1
+        ]
+      },
+      "start_color_rgb": [
+        255,
+        0,
+        0
+      ],
+      "goal_color_rgb": [
+        0,
+        128,
+        0
+      ],
+      "start_corner": "top-left",
+      "goal_corner": "bottom-right",
+      "confidence": 0.99
+    },
+    "neural_binding_valid": true,
+    "binding_usage": {
+      "model": "openai/gpt-4.1-mini",
+      "finish_reason": "stop",
+      "prompt_tokens": 605,
+      "completion_tokens": 109,
+      "cost": 0.0004164,
+      "response_sha256": "b5102719c036895a7527c46dc4fbec21a4b0fb3f27b14015579a5e75e2dc8968"
+    },
+    "baseline_answer": "A",
+    "baseline_usage": {
+      "model": "openai/gpt-4.1-mini",
+      "finish_reason": "stop",
+      "prompt_tokens": 769,
+      "completion_tokens": 34,
+      "cost": 0.000362,
+      "response_sha256": "38a2e3a1e39f9dbc65ca186f4c96c16fa22f89f1d6e3173f351a1e064962a5e2"
+    },
+    "conditions": {
+      "source_induced": {
+        "condition": "source_induced",
+        "selected_answer": "C",
+        "source_option": "EXECUTE",
+        "target_native_action": "execute_neurally_bound_typed_relations",
+        "candidate_receipts": [
+          {
+            "answer_slot": "C",
+            "sequence_sha256": "603b4e03a741b86eb5a93915c872d369328b1e1f0ad916a2c78e6d7f6e36b1c5",
+            "grounded_operator_type_id": "ATYPE_a51cbb518f4b6b10",
+            "grounded_terminal_predicate_family": "TARGET_CONTROL_TO_VISUAL_GOAL_RELATION",
+            "node_count": 13,
+            "steps_executed": 48,
+            "terminal_node": [
+              12,
+              12
+            ],
+            "goal_node": [
+              12,
+              12
+            ],
+            "first_invalid": null,
+            "goal_reached": true
+          }
+        ],
+        "grounded_start_pixel": [
+          55.259067357512954,
+          55.259067357512954
+        ],
+        "grounded_goal_pixel": [
+          456.0,
+          456.0
+        ],
+        "binding_sha256": "cebec4f9872375c9f7015dce3412d4465d5d2a8650cfe2c22be0bd8e6603bf84",
+        "source_artifact_sha256": "8e751718cd5df14141a8dce0b10f4c57eb4d676a9ff3d125e3f293fdbe9c83ce",
+        "target_grounding_contract": {
+          "operator": "UPDATE_CONTROL_STATE_POSITION_TO_NATIVE_MAZE_EDGE",
+          "terminal_predicate": "ENTITY_GOAL_RELATION_TO_CONTROL_VISUAL_GOAL",
+          "neural_inputs": "MOVE_RELATIONS_AND_START_GOAL_VISUAL_ENTITIES_ONLY",
+          "gold_or_answer_seen": false
+        },
+        "receipt_sha256": "8fc8a49dac26e56d56df0513ec388a8384839091d63cb9cfc9f051aaf410b2be"
+      },
+      "alpha_renamed_source": {
+        "condition": "alpha_renamed_source",
+        "selected_answer": "C",
+        "source_option": "EXECUTE",
+        "target_native_action": "execute_neurally_bound_typed_relations",
+        "candidate_receipts": [
+          {
+            "answer_slot": "C",
+            "sequence_sha256": "a12133f13fc4adceac30720304a6075f6d55747693e8a1cebc640d898080e568",
+            "grounded_operator_type_id": "ATYPE_a51cbb518f4b6b10",
+            "grounded_terminal_predicate_family": "TARGET_CONTROL_TO_VISUAL_GOAL_RELATION",
+            "node_count": 13,
+            "steps_executed": 48,
+            "terminal_node": [
+              12,
+              12
+            ],
+            "goal_node": [
+              12,
+              12
+            ],
+            "first_invalid": null,
+            "goal_reached": true
+          }
+        ],
+        "grounded_start_pixel": [
+          55.259067357512954,
+          55.259067357512954
+        ],
+        "grounded_goal_pixel": [
+          456.0,
+          456.0
+        ],
+        "binding_sha256": "cebec4f9872375c9f7015dce3412d4465d5d2a8650cfe2c22be0bd8e6603bf84",
+        "source_artifact_sha256": "8e751718cd5df14141a8dce0b10f4c57eb4d676a9ff3d125e3f293fdbe9c83ce",
+        "target_grounding_contract": {
+          "operator": "UPDATE_CONTROL_STATE_POSITION_TO_NATIVE_MAZE_EDGE",
+          "terminal_predicate": "ENTITY_GOAL_RELATION_TO_CONTROL_VISUAL_GOAL",
+          "neural_inputs": "MOVE_RELATIONS_AND_START_GOAL_VISUAL_ENTITIES_ONLY",
+          "gold_or_answer_seen": false
+        },
+        "receipt_sha256": "da212b5d413e00b87bf1f8924b3f880c478cf3fcdc183535b713268bfa2aec8d"
+      },
+      "source_relation_permuted": {
+        "condition": "source_relation_permuted",
+        "selected_answer": null,
+        "source_option": "ABSTAIN",
+        "target_native_action": "execute_neurally_bound_typed_relations",
+        "candidate_receipts": [],
+        "grounded_start_pixel": [
+          55.259067357512954,
+          55.259067357512954
+        ],
+        "grounded_goal_pixel": [
+          456.0,
+          456.0
+        ],
+        "binding_sha256": "cebec4f9872375c9f7015dce3412d4465d5d2a8650cfe2c22be0bd8e6603bf84",
+        "source_artifact_sha256": "8e751718cd5df14141a8dce0b10f4c57eb4d676a9ff3d125e3f293fdbe9c83ce",
+        "target_grounding_contract": {
+          "operator": "UPDATE_CONTROL_STATE_POSITION_TO_NATIVE_MAZE_EDGE",
+          "terminal_predicate": "ENTITY_GOAL_RELATION_TO_CONTROL_VISUAL_GOAL",
+          "neural_inputs": "MOVE_RELATIONS_AND_START_GOAL_VISUAL_ENTITIES_ONLY",
+          "gold_or_answer_seen": false
+        },
+        "receipt_sha256": "81629adaaf43fdd1638f588c0a978219e42b9c7d88eb2ccfdd5335d7b96367d2"
+      },
+      "generic_scaffold": {
+        "condition": "generic_scaffold",
+        "selected_answer": "C",
+        "source_option": "GENERIC",
+        "target_native_action": "shortest_option_without_grounded_effects",
+        "candidate_receipts": [],
+        "binding_sha256": "cebec4f9872375c9f7015dce3412d4465d5d2a8650cfe2c22be0bd8e6603bf84",
+        "source_artifact_sha256": null,
+        "receipt_sha256": "7320ac81aa3b3b6a33a44f269cb961e134b1059090db845fd5efebd98bbb5b6d"
+      },
+      "target_native_ceiling": {
+        "condition": "target_native_ceiling",
+        "selected_answer": "C",
+        "source_option": "TARGET_NATIVE",
+        "target_native_action": "execute_neurally_bound_typed_relations",
+        "candidate_receipts": [
+          {
+            "answer_slot": "C",
+            "sequence_sha256": "603b4e03a741b86eb5a93915c872d369328b1e1f0ad916a2c78e6d7f6e36b1c5",
+            "grounded_operator_type_id": "ATYPE_a51cbb518f4b6b10",
+            "grounded_terminal_predicate_family": "TARGET_CONTROL_TO_VISUAL_GOAL_RELATION",
+            "node_count": 13,
+            "steps_executed": 48,
+            "terminal_node": [
+              12,
+              12
+            ],
+            "goal_node": [
+              12,
+              12
+            ],
+            "first_invalid": null,
+            "goal_reached": true
+          }
+        ],
+        "grounded_start_pixel": [
+          55.259067357512954,
+          55.259067357512954
+        ],
+        "grounded_goal_pixel": [
+          456.0,
+          456.0
+        ],
+        "binding_sha256": "cebec4f9872375c9f7015dce3412d4465d5d2a8650cfe2c22be0bd8e6603bf84",
+        "source_artifact_sha256": null,
+        "target_grounding_contract": {
+          "operator": "UPDATE_CONTROL_STATE_POSITION_TO_NATIVE_MAZE_EDGE",
+          "terminal_predicate": "ENTITY_GOAL_RELATION_TO_CONTROL_VISUAL_GOAL",
+          "neural_inputs": "MOVE_RELATIONS_AND_START_GOAL_VISUAL_ENTITIES_ONLY",
+          "gold_or_answer_seen": false
+        },
+        "receipt_sha256": "9fd36ae49b72c4b59ee3139f9054d8a1e9b9dceb1070a97d06581479bd981cb0"
+      }
+    },
+    "gold_answer_evaluator_only": "C",
+    "receipt_sha256": "d68541f9b6e1b30514d8c1cd2b216571095fc1e96fa9f5ca523c2b1e19c40a38"
+  },
+  {
+    "schema_version": "tir-maze-structural-receipt-v2",
+    "collection_contract_sha256": "e369f3696299fab3cdfccf6a3ce8791f38a1c5045873d8dc2fc3ac8999ca4375",
+    "sample_id": "625",
+    "family": "maze",
+    "image_path": "/fs/gamma-projects/vlm-robot/datasets/TIR-Bench/data/maze/104.png",
+    "image_sha256": "3b5b915e4c7f8709f6d44789ff848b052d1496f1188715829e72dabb4dd6d6ba",
+    "prompt_sha256": "ba76e130e152989667f00a247a0f65a818b876f8e18dd2f8a64e8a0a69b835a5",
+    "neural_binding": {
+      "role": "TARGET_NATIVE_NEURAL_MAZE_BINDING",
+      "answer_or_gold_seen": false,
+      "move_deltas": {
+        "R": [
+          1,
+          0
+        ],
+        "L": [
+          -1,
+          0
+        ],
+        "U": [
+          0,
+          -1
+        ],
+        "D": [
+          0,
+          1
+        ]
+      },
+      "start_color_rgb": [
+        255,
+        0,
+        0
+      ],
+      "goal_color_rgb": [
+        0,
+        128,
+        0
+      ],
+      "start_corner": "top-left",
+      "goal_corner": "bottom-right",
+      "confidence": 0.99
+    },
+    "neural_binding_valid": true,
+    "binding_usage": {
+      "model": "openai/gpt-4.1-mini",
+      "finish_reason": "stop",
+      "prompt_tokens": 1124,
+      "completion_tokens": 109,
+      "cost": 0.000624,
+      "response_sha256": "b5102719c036895a7527c46dc4fbec21a4b0fb3f27b14015579a5e75e2dc8968"
+    },
+    "baseline_answer": "E",
+    "baseline_usage": {
+      "model": "openai/gpt-4.1-mini",
+      "finish_reason": "stop",
+      "prompt_tokens": 1890,
+      "completion_tokens": 42,
+      "cost": 0.0008232,
+      "response_sha256": "a9ac59de9bfae438494ce57432f2474fc5636e4bedbecc0d404b8ae4d0ca6a8d"
+    },
+    "conditions": {
+      "source_induced": {
+        "condition": "source_induced",
+        "selected_answer": "E",
+        "source_option": "EXECUTE",
+        "target_native_action": "execute_neurally_bound_typed_relations",
+        "candidate_receipts": [
+          {
+            "answer_slot": "E",
+            "sequence_sha256": "8bd22b8328990b1cd38995c2ec3932d55a7b372dce185852dc26945cc7163df0",
+            "grounded_operator_type_id": "ATYPE_a51cbb518f4b6b10",
+            "grounded_terminal_predicate_family": "TARGET_CONTROL_TO_VISUAL_GOAL_RELATION",
+            "node_count": 45,
+            "steps_executed": 548,
+            "terminal_node": [
+              44,
+              44
+            ],
+            "goal_node": [
+              44,
+              44
+            ],
+            "first_invalid": null,
+            "goal_reached": true
+          }
+        ],
+        "grounded_start_pixel": [
+          58.0,
+          58.0
+        ],
+        "grounded_goal_pixel": [
+          1477.359173126615,
+          1477.3385012919896
+        ],
+        "binding_sha256": "cebec4f9872375c9f7015dce3412d4465d5d2a8650cfe2c22be0bd8e6603bf84",
+        "source_artifact_sha256": "8e751718cd5df14141a8dce0b10f4c57eb4d676a9ff3d125e3f293fdbe9c83ce",
+        "target_grounding_contract": {
+          "operator": "UPDATE_CONTROL_STATE_POSITION_TO_NATIVE_MAZE_EDGE",
+          "terminal_predicate": "ENTITY_GOAL_RELATION_TO_CONTROL_VISUAL_GOAL",
+          "neural_inputs": "MOVE_RELATIONS_AND_START_GOAL_VISUAL_ENTITIES_ONLY",
+          "gold_or_answer_seen": false
+        },
+        "receipt_sha256": "e0590973542f59b740702c7325c807e19b22aa21824a6494b7a21e4713a15bea"
+      },
+      "alpha_renamed_source": {
+        "condition": "alpha_renamed_source",
+        "selected_answer": "E",
+        "source_option": "EXECUTE",
+        "target_native_action": "execute_neurally_bound_typed_relations",
+        "candidate_receipts": [
+          {
+            "answer_slot": "E",
+            "sequence_sha256": "228e9fc86d6ddd4ee43f85bd26d972ca48dea93d6ea96970aa49ff7049827188",
+            "grounded_operator_type_id": "ATYPE_a51cbb518f4b6b10",
+            "grounded_terminal_predicate_family": "TARGET_CONTROL_TO_VISUAL_GOAL_RELATION",
+            "node_count": 45,
+            "steps_executed": 548,
+            "terminal_node": [
+              44,
+              44
+            ],
+            "goal_node": [
+              44,
+              44
+            ],
+            "first_invalid": null,
+            "goal_reached": true
+          }
+        ],
+        "grounded_start_pixel": [
+          58.0,
+          58.0
+        ],
+        "grounded_goal_pixel": [
+          1477.359173126615,
+          1477.3385012919896
+        ],
+        "binding_sha256": "cebec4f9872375c9f7015dce3412d4465d5d2a8650cfe2c22be0bd8e6603bf84",
+        "source_artifact_sha256": "8e751718cd5df14141a8dce0b10f4c57eb4d676a9ff3d125e3f293fdbe9c83ce",
+        "target_grounding_contract": {
+          "operator": "UPDATE_CONTROL_STATE_POSITION_TO_NATIVE_MAZE_EDGE",
+          "terminal_predicate": "ENTITY_GOAL_RELATION_TO_CONTROL_VISUAL_GOAL",
+          "neural_inputs": "MOVE_RELATIONS_AND_START_GOAL_VISUAL_ENTITIES_ONLY",
+          "gold_or_answer_seen": false
+        },
+        "receipt_sha256": "ec0dbc1c55aaee8aa663ace53d1dcb96260d4360edb4918e9e33f6bb40969334"
+      },
+      "source_relation_permuted": {
+        "condition": "source_relation_permuted",
+        "selected_answer": null,
+        "source_option": "ABSTAIN",
+        "target_native_action": "execute_neurally_bound_typed_relations",
+        "candidate_receipts": [],
+        "grounded_start_pixel": [
+          58.0,
+          58.0
+        ],
+        "grounded_goal_pixel": [
+          1477.359173126615,
+          1477.3385012919896
+        ],
+        "binding_sha256": "cebec4f9872375c9f7015dce3412d4465d5d2a8650cfe2c22be0bd8e6603bf84",
+        "source_artifact_sha256": "8e751718cd5df14141a8dce0b10f4c57eb4d676a9ff3d125e3f293fdbe9c83ce",
+        "target_grounding_contract": {
+          "operator": "UPDATE_CONTROL_STATE_POSITION_TO_NATIVE_MAZE_EDGE",
+          "terminal_predicate": "ENTITY_GOAL_RELATION_TO_CONTROL_VISUAL_GOAL",
+          "neural_inputs": "MOVE_RELATIONS_AND_START_GOAL_VISUAL_ENTITIES_ONLY",
+          "gold_or_answer_seen": false
+        },
+        "receipt_sha256": "a78070e97b0055604c3c70e808f2bef58fc609d8f21c7d78851066a12e8ddaa7"
+      },
+      "generic_scaffold": {
+        "condition": "generic_scaffold",
+        "selected_answer": "B",
+        "source_option": "GENERIC",
+        "target_native_action": "shortest_option_without_grounded_effects",
+        "candidate_receipts": [],
+        "binding_sha256": "cebec4f9872375c9f7015dce3412d4465d5d2a8650cfe2c22be0bd8e6603bf84",
+        "source_artifact_sha256": null,
+        "receipt_sha256": "ebb7c769d2658e6abfc4642ab9d7204b992d9ac8279024c87c8859d6580f44bd"
+      },
+      "target_native_ceiling": {
+        "condition": "target_native_ceiling",
+        "selected_answer": "E",
+        "source_option": "TARGET_NATIVE",
+        "target_native_action": "execute_neurally_bound_typed_relations",
+        "candidate_receipts": [
+          {
+            "answer_slot": "E",
+            "sequence_sha256": "8bd22b8328990b1cd38995c2ec3932d55a7b372dce185852dc26945cc7163df0",
+            "grounded_operator_type_id": "ATYPE_a51cbb518f4b6b10",
+            "grounded_terminal_predicate_family": "TARGET_CONTROL_TO_VISUAL_GOAL_RELATION",
+            "node_count": 45,
+            "steps_executed": 548,
+            "terminal_node": [
+              44,
+              44
+            ],
+            "goal_node": [
+              44,
+              44
+            ],
+            "first_invalid": null,
+            "goal_reached": true
+          }
+        ],
+        "grounded_start_pixel": [
+          58.0,
+          58.0
+        ],
+        "grounded_goal_pixel": [
+          1477.359173126615,
+          1477.3385012919896
+        ],
+        "binding_sha256": "cebec4f9872375c9f7015dce3412d4465d5d2a8650cfe2c22be0bd8e6603bf84",
+        "source_artifact_sha256": null,
+        "target_grounding_contract": {
+          "operator": "UPDATE_CONTROL_STATE_POSITION_TO_NATIVE_MAZE_EDGE",
+          "terminal_predicate": "ENTITY_GOAL_RELATION_TO_CONTROL_VISUAL_GOAL",
+          "neural_inputs": "MOVE_RELATIONS_AND_START_GOAL_VISUAL_ENTITIES_ONLY",
+          "gold_or_answer_seen": false
+        },
+        "receipt_sha256": "e70dc81db90425b3008a42d3613179cb1fe4942bbde59618568073529065c02b"
+      }
+    },
+    "gold_answer_evaluator_only": "E",
+    "receipt_sha256": "93c2ed7f8f51d7efca6cd4ef74aac7d752a8849d7b4b982b298ce460a873e0e1"
+  },
+  {
+    "schema_version": "tir-maze-structural-receipt-v2",
+    "collection_contract_sha256": "e369f3696299fab3cdfccf6a3ce8791f38a1c5045873d8dc2fc3ac8999ca4375",
+    "sample_id": "663",
+    "family": "maze",
+    "image_path": "/fs/gamma-projects/vlm-robot/datasets/TIR-Bench/data/maze/108.png",
+    "image_sha256": "a453d62da7a328ec1320d0aef7a73a44fdaefab8bbf266548961f60c00dd46c5",
+    "prompt_sha256": "5571a9f7425845a70cd8d5ec2f94de1b3a1aa4541640f2441ff1dce7eeb44ac0",
+    "neural_binding": {
+      "role": "TARGET_NATIVE_NEURAL_MAZE_BINDING",
+      "answer_or_gold_seen": false,
+      "move_deltas": {
+        "R": [
+          1,
+          0
+        ],
+        "L": [
+          -1,
+          0
+        ],
+        "U": [
+          0,
+          -1
+        ],
+        "D": [
+          0,
+          1
+        ]
+      },
+      "start_color_rgb": [
+        255,
+        0,
+        0
+      ],
+      "goal_color_rgb": [
+        0,
+        128,
+        0
+      ],
+      "start_corner": "top-left",
+      "goal_corner": "bottom-right",
+      "confidence": 0.99
+    },
+    "neural_binding_valid": true,
+    "binding_usage": {
+      "model": "openai/gpt-4.1-mini",
+      "finish_reason": "stop",
+      "prompt_tokens": 1124,
+      "completion_tokens": 109,
+      "cost": 0.000624,
+      "response_sha256": "b5102719c036895a7527c46dc4fbec21a4b0fb3f27b14015579a5e75e2dc8968"
+    },
+    "baseline_answer": "E",
+    "baseline_usage": {
+      "model": "openai/gpt-4.1-mini",
+      "finish_reason": "stop",
+      "prompt_tokens": 2000,
+      "completion_tokens": 38,
+      "cost": 0.0008608,
+      "response_sha256": "b2e77c3c735ddf027c2b06be1a29b6deda0fc4fefe023ace8fc6f842cb5adc44"
+    },
+    "conditions": {
+      "source_induced": {
+        "condition": "source_induced",
+        "selected_answer": "E",
+        "source_option": "EXECUTE",
+        "target_native_action": "execute_neurally_bound_typed_relations",
+        "candidate_receipts": [
+          {
+            "answer_slot": "E",
+            "sequence_sha256": "217da172466f469a2223eda533a5f0a5e90f6b0356d3585e3051bffd85e3c1b3",
+            "grounded_operator_type_id": "ATYPE_a51cbb518f4b6b10",
+            "grounded_terminal_predicate_family": "TARGET_CONTROL_TO_VISUAL_GOAL_RELATION",
+            "node_count": 45,
+            "steps_executed": 492,
+            "terminal_node": [
+              44,
+              44
+            ],
+            "goal_node": [
+              44,
+              44
+            ],
+            "first_invalid": null,
+            "goal_reached": true
+          }
+        ],
+        "grounded_start_pixel": [
+          58.0,
+          58.0
+        ],
+        "grounded_goal_pixel": [
+          1477.359173126615,
+          1477.3385012919896
+        ],
+        "binding_sha256": "cebec4f9872375c9f7015dce3412d4465d5d2a8650cfe2c22be0bd8e6603bf84",
+        "source_artifact_sha256": "8e751718cd5df14141a8dce0b10f4c57eb4d676a9ff3d125e3f293fdbe9c83ce",
+        "target_grounding_contract": {
+          "operator": "UPDATE_CONTROL_STATE_POSITION_TO_NATIVE_MAZE_EDGE",
+          "terminal_predicate": "ENTITY_GOAL_RELATION_TO_CONTROL_VISUAL_GOAL",
+          "neural_inputs": "MOVE_RELATIONS_AND_START_GOAL_VISUAL_ENTITIES_ONLY",
+          "gold_or_answer_seen": false
+        },
+        "receipt_sha256": "c43e3c9a5e0e460e231f4ec953a6e1aa682e22cba28a9230181ef60f5e3f7dd1"
+      },
+      "alpha_renamed_source": {
+        "condition": "alpha_renamed_source",
+        "selected_answer": "E",
+        "source_option": "EXECUTE",
+        "target_native_action": "execute_neurally_bound_typed_relations",
+        "candidate_receipts": [
+          {
+            "answer_slot": "E",
+            "sequence_sha256": "837ab74da40289eb5a19064b6d03ae9590f22d325969dda4306d9393d71ac89f",
+            "grounded_operator_type_id": "ATYPE_a51cbb518f4b6b10",
+            "grounded_terminal_predicate_family": "TARGET_CONTROL_TO_VISUAL_GOAL_RELATION",
+            "node_count": 45,
+            "steps_executed": 492,
+            "terminal_node": [
+              44,
+              44
+            ],
+            "goal_node": [
+              44,
+              44
+            ],
+            "first_invalid": null,
+            "goal_reached": true
+          }
+        ],
+        "grounded_start_pixel": [
+          58.0,
+          58.0
+        ],
+        "grounded_goal_pixel": [
+          1477.359173126615,
+          1477.3385012919896
+        ],
+        "binding_sha256": "cebec4f9872375c9f7015dce3412d4465d5d2a8650cfe2c22be0bd8e6603bf84",
+        "source_artifact_sha256": "8e751718cd5df14141a8dce0b10f4c57eb4d676a9ff3d125e3f293fdbe9c83ce",
+        "target_grounding_contract": {
+          "operator": "UPDATE_CONTROL_STATE_POSITION_TO_NATIVE_MAZE_EDGE",
+          "terminal_predicate": "ENTITY_GOAL_RELATION_TO_CONTROL_VISUAL_GOAL",
+          "neural_inputs": "MOVE_RELATIONS_AND_START_GOAL_VISUAL_ENTITIES_ONLY",
+          "gold_or_answer_seen": false
+        },
+        "receipt_sha256": "05f06a434476be5c2033db8be264860ebfdc05432e313962388ec935ddec0d15"
+      },
+      "source_relation_permuted": {
+        "condition": "source_relation_permuted",
+        "selected_answer": null,
+        "source_option": "ABSTAIN",
+        "target_native_action": "execute_neurally_bound_typed_relations",
+        "candidate_receipts": [],
+        "grounded_start_pixel": [
+          58.0,
+          58.0
+        ],
+        "grounded_goal_pixel": [
+          1477.359173126615,
+          1477.3385012919896
+        ],
+        "binding_sha256": "cebec4f9872375c9f7015dce3412d4465d5d2a8650cfe2c22be0bd8e6603bf84",
+        "source_artifact_sha256": "8e751718cd5df14141a8dce0b10f4c57eb4d676a9ff3d125e3f293fdbe9c83ce",
+        "target_grounding_contract": {
+          "operator": "UPDATE_CONTROL_STATE_POSITION_TO_NATIVE_MAZE_EDGE",
+          "terminal_predicate": "ENTITY_GOAL_RELATION_TO_CONTROL_VISUAL_GOAL",
+          "neural_inputs": "MOVE_RELATIONS_AND_START_GOAL_VISUAL_ENTITIES_ONLY",
+          "gold_or_answer_seen": false
+        },
+        "receipt_sha256": "a78070e97b0055604c3c70e808f2bef58fc609d8f21c7d78851066a12e8ddaa7"
+      },
+      "generic_scaffold": {
+        "condition": "generic_scaffold",
+        "selected_answer": "A",
+        "source_option": "GENERIC",
+        "target_native_action": "shortest_option_without_grounded_effects",
+        "candidate_receipts": [],
+        "binding_sha256": "cebec4f9872375c9f7015dce3412d4465d5d2a8650cfe2c22be0bd8e6603bf84",
+        "source_artifact_sha256": null,
+        "receipt_sha256": "49210a8218a53073626136251a08adc24036ef3d39c6c2a7761f1a020c18d95f"
+      },
+      "target_native_ceiling": {
+        "condition": "target_native_ceiling",
+        "selected_answer": "E",
+        "source_option": "TARGET_NATIVE",
+        "target_native_action": "execute_neurally_bound_typed_relations",
+        "candidate_receipts": [
+          {
+            "answer_slot": "E",
+            "sequence_sha256": "217da172466f469a2223eda533a5f0a5e90f6b0356d3585e3051bffd85e3c1b3",
+            "grounded_operator_type_id": "ATYPE_a51cbb518f4b6b10",
+            "grounded_terminal_predicate_family": "TARGET_CONTROL_TO_VISUAL_GOAL_RELATION",
+            "node_count": 45,
+            "steps_executed": 492,
+            "terminal_node": [
+              44,
+              44
+            ],
+            "goal_node": [
+              44,
+              44
+            ],
+            "first_invalid": null,
+            "goal_reached": true
+          }
+        ],
+        "grounded_start_pixel": [
+          58.0,
+          58.0
+        ],
+        "grounded_goal_pixel": [
+          1477.359173126615,
+          1477.3385012919896
+        ],
+        "binding_sha256": "cebec4f9872375c9f7015dce3412d4465d5d2a8650cfe2c22be0bd8e6603bf84",
+        "source_artifact_sha256": null,
+        "target_grounding_contract": {
+          "operator": "UPDATE_CONTROL_STATE_POSITION_TO_NATIVE_MAZE_EDGE",
+          "terminal_predicate": "ENTITY_GOAL_RELATION_TO_CONTROL_VISUAL_GOAL",
+          "neural_inputs": "MOVE_RELATIONS_AND_START_GOAL_VISUAL_ENTITIES_ONLY",
+          "gold_or_answer_seen": false
+        },
+        "receipt_sha256": "fa4a01fce34e1fb3641536ad6f7e3d180373abb352566bccf13d89bfea02fa40"
+      }
+    },
+    "gold_answer_evaluator_only": "E",
+    "receipt_sha256": "08b6f76e03c28c1086a8fb0c36aed1c4f2670d80bc9d70207ece3d000a0c2646"
+  },
+  {
+    "schema_version": "tir-maze-structural-receipt-v2",
+    "collection_contract_sha256": "e369f3696299fab3cdfccf6a3ce8791f38a1c5045873d8dc2fc3ac8999ca4375",
+    "sample_id": "126",
+    "family": "maze",
+    "image_path": "/fs/gamma-projects/vlm-robot/datasets/TIR-Bench/data/maze/37.png",
+    "image_sha256": "75315a08981717cde5b24bbd5ffab5e5c0c2b886ab9ea30b1e14c1429e43b4f9",
+    "prompt_sha256": "af9a9e894e2462cf3d335fe71997f2b3d4442655ee478887be045848f08a9a1d",
+    "neural_binding": {
+      "role": "TARGET_NATIVE_NEURAL_MAZE_BINDING",
+      "answer_or_gold_seen": false,
+      "move_deltas": {
+        "R": [
+          1,
+          0
+        ],
+        "L": [
+          -1,
+          0
+        ],
+        "U": [
+          0,
+          -1
+        ],
+        "D": [
+          0,
+          1
+        ]
+      },
+      "start_color_rgb": [
+        255,
+        0,
+        0
+      ],
+      "goal_color_rgb": [
+        0,
+        128,
+        0
+      ],
+      "start_corner": "top-left",
+      "goal_corner": "bottom-right",
+      "confidence": 0.99
+    },
+    "neural_binding_valid": true,
+    "binding_usage": {
+      "model": "openai/gpt-4.1-mini",
+      "finish_reason": "stop",
+      "prompt_tokens": 605,
+      "completion_tokens": 109,
+      "cost": 0.0004164,
+      "response_sha256": "b5102719c036895a7527c46dc4fbec21a4b0fb3f27b14015579a5e75e2dc8968"
+    },
+    "baseline_answer": "A",
+    "baseline_usage": {
+      "model": "openai/gpt-4.1-mini",
+      "finish_reason": "stop",
+      "prompt_tokens": 884,
+      "completion_tokens": 40,
+      "cost": 0.0004176,
+      "response_sha256": "125919b802c9a4c051daf4270cbde3a9fef2d6976af0991c13167577838c6753"
+    },
+    "conditions": {
+      "source_induced": {
+        "condition": "source_induced",
+        "selected_answer": "A",
+        "source_option": "EXECUTE",
+        "target_native_action": "execute_neurally_bound_typed_relations",
+        "candidate_receipts": [
+          {
+            "answer_slot": "A",
+            "sequence_sha256": "84e18eedbdbabeb0d411e39de2f18de748e3147cc4aac8feb28874be346c6803",
+            "grounded_operator_type_id": "ATYPE_a51cbb518f4b6b10",
+            "grounded_terminal_predicate_family": "TARGET_CONTROL_TO_VISUAL_GOAL_RELATION",
+            "node_count": 17,
+            "steps_executed": 120,
+            "terminal_node": [
+              16,
+              16
+            ],
+            "goal_node": [
+              16,
+              16
+            ],
+            "first_invalid": null,
+            "goal_reached": true
+          }
+        ],
+        "grounded_start_pixel": [
+          44.52879581151832,
+          44.52879581151832
+        ],
+        "grounded_goal_pixel": [
+          466.8633879781421,
+          466.8633879781421
+        ],
+        "binding_sha256": "cebec4f9872375c9f7015dce3412d4465d5d2a8650cfe2c22be0bd8e6603bf84",
+        "source_artifact_sha256": "8e751718cd5df14141a8dce0b10f4c57eb4d676a9ff3d125e3f293fdbe9c83ce",
+        "target_grounding_contract": {
+          "operator": "UPDATE_CONTROL_STATE_POSITION_TO_NATIVE_MAZE_EDGE",
+          "terminal_predicate": "ENTITY_GOAL_RELATION_TO_CONTROL_VISUAL_GOAL",
+          "neural_inputs": "MOVE_RELATIONS_AND_START_GOAL_VISUAL_ENTITIES_ONLY",
+          "gold_or_answer_seen": false
+        },
+        "receipt_sha256": "b69e391be15bb60cb436190722ff1602fd49d8a02b9257430955caeb9fd7be18"
+      },
+      "alpha_renamed_source": {
+        "condition": "alpha_renamed_source",
+        "selected_answer": "A",
+        "source_option": "EXECUTE",
+        "target_native_action": "execute_neurally_bound_typed_relations",
+        "candidate_receipts": [
+          {
+            "answer_slot": "A",
+            "sequence_sha256": "80c21e5a713b1b3febc59b5e51228098f0198a4ef44894e502125806738813f3",
+            "grounded_operator_type_id": "ATYPE_a51cbb518f4b6b10",
+            "grounded_terminal_predicate_family": "TARGET_CONTROL_TO_VISUAL_GOAL_RELATION",
+            "node_count": 17,
+            "steps_executed": 120,
+            "terminal_node": [
+              16,
+              16
+            ],
+            "goal_node": [
+              16,
+              16
+            ],
+            "first_invalid": null,
+            "goal_reached": true
+          }
+        ],
+        "grounded_start_pixel": [
+          44.52879581151832,
+          44.52879581151832
+        ],
+        "grounded_goal_pixel": [
+          466.8633879781421,
+          466.8633879781421
+        ],
+        "binding_sha256": "cebec4f9872375c9f7015dce3412d4465d5d2a8650cfe2c22be0bd8e6603bf84",
+        "source_artifact_sha256": "8e751718cd5df14141a8dce0b10f4c57eb4d676a9ff3d125e3f293fdbe9c83ce",
+        "target_grounding_contract": {
+          "operator": "UPDATE_CONTROL_STATE_POSITION_TO_NATIVE_MAZE_EDGE",
+          "terminal_predicate": "ENTITY_GOAL_RELATION_TO_CONTROL_VISUAL_GOAL",
+          "neural_inputs": "MOVE_RELATIONS_AND_START_GOAL_VISUAL_ENTITIES_ONLY",
+          "gold_or_answer_seen": false
+        },
+        "receipt_sha256": "8f16dde8d9039b6c3bb6fd85b3a480c28503f43191a74f8961b7c1c032ee38e4"
+      },
+      "source_relation_permuted": {
+        "condition": "source_relation_permuted",
+        "selected_answer": null,
+        "source_option": "ABSTAIN",
+        "target_native_action": "execute_neurally_bound_typed_relations",
+        "candidate_receipts": [],
+        "grounded_start_pixel": [
+          44.52879581151832,
+          44.52879581151832
+        ],
+        "grounded_goal_pixel": [
+          466.8633879781421,
+          466.8633879781421
+        ],
+        "binding_sha256": "cebec4f9872375c9f7015dce3412d4465d5d2a8650cfe2c22be0bd8e6603bf84",
+        "source_artifact_sha256": "8e751718cd5df14141a8dce0b10f4c57eb4d676a9ff3d125e3f293fdbe9c83ce",
+        "target_grounding_contract": {
+          "operator": "UPDATE_CONTROL_STATE_POSITION_TO_NATIVE_MAZE_EDGE",
+          "terminal_predicate": "ENTITY_GOAL_RELATION_TO_CONTROL_VISUAL_GOAL",
+          "neural_inputs": "MOVE_RELATIONS_AND_START_GOAL_VISUAL_ENTITIES_ONLY",
+          "gold_or_answer_seen": false
+        },
+        "receipt_sha256": "501e156fac44977d2c78a6df6a764cee46026ed34859a71f956061834fc50174"
+      },
+      "generic_scaffold": {
+        "condition": "generic_scaffold",
+        "selected_answer": "B",
+        "source_option": "GENERIC",
+        "target_native_action": "shortest_option_without_grounded_effects",
+        "candidate_receipts": [],
+        "binding_sha256": "cebec4f9872375c9f7015dce3412d4465d5d2a8650cfe2c22be0bd8e6603bf84",
+        "source_artifact_sha256": null,
+        "receipt_sha256": "ebb7c769d2658e6abfc4642ab9d7204b992d9ac8279024c87c8859d6580f44bd"
+      },
+      "target_native_ceiling": {
+        "condition": "target_native_ceiling",
+        "selected_answer": "A",
+        "source_option": "TARGET_NATIVE",
+        "target_native_action": "execute_neurally_bound_typed_relations",
+        "candidate_receipts": [
+          {
+            "answer_slot": "A",
+            "sequence_sha256": "84e18eedbdbabeb0d411e39de2f18de748e3147cc4aac8feb28874be346c6803",
+            "grounded_operator_type_id": "ATYPE_a51cbb518f4b6b10",
+            "grounded_terminal_predicate_family": "TARGET_CONTROL_TO_VISUAL_GOAL_RELATION",
+            "node_count": 17,
+            "steps_executed": 120,
+            "terminal_node": [
+              16,
+              16
+            ],
+            "goal_node": [
+              16,
+              16
+            ],
+            "first_invalid": null,
+            "goal_reached": true
+          }
+        ],
+        "grounded_start_pixel": [
+          44.52879581151832,
+          44.52879581151832
+        ],
+        "grounded_goal_pixel": [
+          466.8633879781421,
+          466.8633879781421
+        ],
+        "binding_sha256": "cebec4f9872375c9f7015dce3412d4465d5d2a8650cfe2c22be0bd8e6603bf84",
+        "source_artifact_sha256": null,
+        "target_grounding_contract": {
+          "operator": "UPDATE_CONTROL_STATE_POSITION_TO_NATIVE_MAZE_EDGE",
+          "terminal_predicate": "ENTITY_GOAL_RELATION_TO_CONTROL_VISUAL_GOAL",
+          "neural_inputs": "MOVE_RELATIONS_AND_START_GOAL_VISUAL_ENTITIES_ONLY",
+          "gold_or_answer_seen": false
+        },
+        "receipt_sha256": "86e062ef41418f186488e48dd68933ba9a94d580ba34325ce8bd65ab40496886"
+      }
+    },
+    "gold_answer_evaluator_only": "A",
+    "receipt_sha256": "a5464857cbb4fd72ec4dad5acb930e73c0fefd4879e15b07fd99aca8ce95b75d"
+  },
+  {
+    "schema_version": "tir-maze-structural-receipt-v2",
+    "collection_contract_sha256": "e369f3696299fab3cdfccf6a3ce8791f38a1c5045873d8dc2fc3ac8999ca4375",
+    "sample_id": "119",
+    "family": "maze",
+    "image_path": "/fs/gamma-projects/vlm-robot/datasets/TIR-Bench/data/maze/77.png",
+    "image_sha256": "dcd17fdd90e5b61952fa48b34e6a1724b18a1e3a4765bb493e1cb19ff55e5e33",
+    "prompt_sha256": "f124a294c18465fa2f81de1e209f9a1ea0da90723339d76aa7e28aa40dcb93f6",
+    "neural_binding": {
+      "role": "TARGET_NATIVE_NEURAL_MAZE_BINDING",
+      "answer_or_gold_seen": false,
+      "move_deltas": {
+        "R": [
+          1,
+          0
+        ],
+        "L": [
+          -1,
+          0
+        ],
+        "U": [
+          0,
+          -1
+        ],
+        "D": [
+          0,
+          1
+        ]
+      },
+      "start_color_rgb": [
+        255,
+        0,
+        0
+      ],
+      "goal_color_rgb": [
+        0,
+        128,
+        0
+      ],
+      "start_corner": "top-left",
+      "goal_corner": "bottom-right",
+      "confidence": 0.99
+    },
+    "neural_binding_valid": true,
+    "binding_usage": {
+      "model": "openai/gpt-4.1-mini",
+      "finish_reason": "stop",
+      "prompt_tokens": 1124,
+      "completion_tokens": 109,
+      "cost": 0.000624,
+      "response_sha256": "b5102719c036895a7527c46dc4fbec21a4b0fb3f27b14015579a5e75e2dc8968"
+    },
+    "baseline_answer": "C",
+    "baseline_usage": {
+      "model": "openai/gpt-4.1-mini",
+      "finish_reason": "stop",
+      "prompt_tokens": 1632,
+      "completion_tokens": 45,
+      "cost": 0.0007248,
+      "response_sha256": "37fd845cdce4b40a8816c44d0f72e786366caacc8c79ca4ddf21516908b27449"
+    },
+    "conditions": {
+      "source_induced": {
+        "condition": "source_induced",
+        "selected_answer": null,
+        "source_option": "ABSTAIN",
+        "target_native_action": "execute_neurally_bound_typed_relations",
+        "candidate_receipts": [],
+        "grounded_start_pixel": [
+          51.7438202247191,
+          51.7438202247191
+        ],
+        "grounded_goal_pixel": [
+          971.5890410958904,
+          971.5890410958904
+        ],
+        "binding_sha256": "cebec4f9872375c9f7015dce3412d4465d5d2a8650cfe2c22be0bd8e6603bf84",
+        "source_artifact_sha256": "8e751718cd5df14141a8dce0b10f4c57eb4d676a9ff3d125e3f293fdbe9c83ce",
+        "target_grounding_contract": {
+          "operator": "UPDATE_CONTROL_STATE_POSITION_TO_NATIVE_MAZE_EDGE",
+          "terminal_predicate": "ENTITY_GOAL_RELATION_TO_CONTROL_VISUAL_GOAL",
+          "neural_inputs": "MOVE_RELATIONS_AND_START_GOAL_VISUAL_ENTITIES_ONLY",
+          "gold_or_answer_seen": false
+        },
+        "receipt_sha256": "2a9db92c83d6314502c23e7e45a2a2fdac96050d158c4d42424300351f0351ea"
+      },
+      "alpha_renamed_source": {
+        "condition": "alpha_renamed_source",
+        "selected_answer": null,
+        "source_option": "ABSTAIN",
+        "target_native_action": "execute_neurally_bound_typed_relations",
+        "candidate_receipts": [],
+        "grounded_start_pixel": [
+          51.7438202247191,
+          51.7438202247191
+        ],
+        "grounded_goal_pixel": [
+          971.5890410958904,
+          971.5890410958904
+        ],
+        "binding_sha256": "cebec4f9872375c9f7015dce3412d4465d5d2a8650cfe2c22be0bd8e6603bf84",
+        "source_artifact_sha256": "8e751718cd5df14141a8dce0b10f4c57eb4d676a9ff3d125e3f293fdbe9c83ce",
+        "target_grounding_contract": {
+          "operator": "UPDATE_CONTROL_STATE_POSITION_TO_NATIVE_MAZE_EDGE",
+          "terminal_predicate": "ENTITY_GOAL_RELATION_TO_CONTROL_VISUAL_GOAL",
+          "neural_inputs": "MOVE_RELATIONS_AND_START_GOAL_VISUAL_ENTITIES_ONLY",
+          "gold_or_answer_seen": false
+        },
+        "receipt_sha256": "713707ac01dc658581df7dafc9da21528e61f8e4ece8225624e8940010225b95"
+      },
+      "source_relation_permuted": {
+        "condition": "source_relation_permuted",
+        "selected_answer": null,
+        "source_option": "ABSTAIN",
+        "target_native_action": "execute_neurally_bound_typed_relations",
+        "candidate_receipts": [],
+        "grounded_start_pixel": [
+          51.7438202247191,
+          51.7438202247191
+        ],
+        "grounded_goal_pixel": [
+          971.5890410958904,
+          971.5890410958904
+        ],
+        "binding_sha256": "cebec4f9872375c9f7015dce3412d4465d5d2a8650cfe2c22be0bd8e6603bf84",
+        "source_artifact_sha256": "8e751718cd5df14141a8dce0b10f4c57eb4d676a9ff3d125e3f293fdbe9c83ce",
+        "target_grounding_contract": {
+          "operator": "UPDATE_CONTROL_STATE_POSITION_TO_NATIVE_MAZE_EDGE",
+          "terminal_predicate": "ENTITY_GOAL_RELATION_TO_CONTROL_VISUAL_GOAL",
+          "neural_inputs": "MOVE_RELATIONS_AND_START_GOAL_VISUAL_ENTITIES_ONLY",
+          "gold_or_answer_seen": false
+        },
+        "receipt_sha256": "719b7d311b2d977de52b6d79c1a14a022d6e5e30c4bf6c2960a29f8755101706"
+      },
+      "generic_scaffold": {
+        "condition": "generic_scaffold",
+        "selected_answer": "A",
+        "source_option": "GENERIC",
+        "target_native_action": "shortest_option_without_grounded_effects",
+        "candidate_receipts": [],
+        "binding_sha256": "cebec4f9872375c9f7015dce3412d4465d5d2a8650cfe2c22be0bd8e6603bf84",
+        "source_artifact_sha256": null,
+        "receipt_sha256": "49210a8218a53073626136251a08adc24036ef3d39c6c2a7761f1a020c18d95f"
+      },
+      "target_native_ceiling": {
+        "condition": "target_native_ceiling",
+        "selected_answer": null,
+        "source_option": "TARGET_NATIVE",
+        "target_native_action": "execute_neurally_bound_typed_relations",
+        "candidate_receipts": [],
+        "grounded_start_pixel": [
+          51.7438202247191,
+          51.7438202247191
+        ],
+        "grounded_goal_pixel": [
+          971.5890410958904,
+          971.5890410958904
+        ],
+        "binding_sha256": "cebec4f9872375c9f7015dce3412d4465d5d2a8650cfe2c22be0bd8e6603bf84",
+        "source_artifact_sha256": null,
+        "target_grounding_contract": {
+          "operator": "UPDATE_CONTROL_STATE_POSITION_TO_NATIVE_MAZE_EDGE",
+          "terminal_predicate": "ENTITY_GOAL_RELATION_TO_CONTROL_VISUAL_GOAL",
+          "neural_inputs": "MOVE_RELATIONS_AND_START_GOAL_VISUAL_ENTITIES_ONLY",
+          "gold_or_answer_seen": false
+        },
+        "receipt_sha256": "5785d873ea1ae4db728d2dc1b162f256b47844669395dd0e7e8d5dd3008429c1"
+      }
+    },
+    "gold_answer_evaluator_only": "F",
+    "receipt_sha256": "06fafbc464e429b25ba9e75ad7ef634e4e71c9bed18e82465dd488770d927d52"
+  },
+  {
+    "schema_version": "tir-maze-structural-receipt-v2",
+    "collection_contract_sha256": "e369f3696299fab3cdfccf6a3ce8791f38a1c5045873d8dc2fc3ac8999ca4375",
+    "sample_id": "384",
+    "family": "maze",
+    "image_path": "/fs/gamma-projects/vlm-robot/datasets/TIR-Bench/data/maze/15.png",
+    "image_sha256": "03259245cc92a2e8a98dda06c1bd6079c0329ce8358136809672745efad5aa4d",
+    "prompt_sha256": "a419adccac3204d2d4a32083a4adbdd504bfefe04fafc7346710f0aede657866",
+    "neural_binding": {
+      "role": "TARGET_NATIVE_NEURAL_MAZE_BINDING",
+      "answer_or_gold_seen": false,
+      "move_deltas": {
+        "R": [
+          1,
+          0
+        ],
+        "L": [
+          -1,
+          0
+        ],
+        "U": [
+          0,
+          -1
+        ],
+        "D": [
+          0,
+          1
+        ]
+      },
+      "start_color_rgb": [
+        255,
+        0,
+        0
+      ],
+      "goal_color_rgb": [
+        0,
+        128,
+        0
+      ],
+      "start_corner": "top-left",
+      "goal_corner": "bottom-right",
+      "confidence": 0.99
+    },
+    "neural_binding_valid": true,
+    "binding_usage": {
+      "model": "openai/gpt-4.1-mini",
+      "finish_reason": "stop",
+      "prompt_tokens": 605,
+      "completion_tokens": 70,
+      "cost": 0.000354,
+      "response_sha256": "b5102719c036895a7527c46dc4fbec21a4b0fb3f27b14015579a5e75e2dc8968"
+    },
+    "baseline_answer": "A",
+    "baseline_usage": {
+      "model": "openai/gpt-4.1-mini",
+      "finish_reason": "stop",
+      "prompt_tokens": 688,
+      "completion_tokens": 34,
+      "cost": 0.0003296,
+      "response_sha256": "38a2e3a1e39f9dbc65ca186f4c96c16fa22f89f1d6e3173f351a1e064962a5e2"
+    },
+    "conditions": {
+      "source_induced": {
+        "condition": "source_induced",
+        "selected_answer": "A",
+        "source_option": "EXECUTE",
+        "target_native_action": "execute_neurally_bound_typed_relations",
+        "candidate_receipts": [
+          {
+            "answer_slot": "A",
+            "sequence_sha256": "4404b5a05ae342f782c3c2381953b70772b058b8e1f9d9362d23b47e1f537d57",
+            "grounded_operator_type_id": "ATYPE_a51cbb518f4b6b10",
+            "grounded_terminal_predicate_family": "TARGET_CONTROL_TO_VISUAL_GOAL_RELATION",
+            "node_count": 9,
+            "steps_executed": 20,
+            "terminal_node": [
+              8,
+              8
+            ],
+            "goal_node": [
+              8,
+              8
+            ],
+            "first_invalid": null,
+            "goal_reached": true
+          }
+        ],
+        "grounded_start_pixel": [
+          73.52879581151832,
+          73.52879581151832
+        ],
+        "grounded_goal_pixel": [
+          437.8633879781421,
+          437.8633879781421
+        ],
+        "binding_sha256": "cebec4f9872375c9f7015dce3412d4465d5d2a8650cfe2c22be0bd8e6603bf84",
+        "source_artifact_sha256": "8e751718cd5df14141a8dce0b10f4c57eb4d676a9ff3d125e3f293fdbe9c83ce",
+        "target_grounding_contract": {
+          "operator": "UPDATE_CONTROL_STATE_POSITION_TO_NATIVE_MAZE_EDGE",
+          "terminal_predicate": "ENTITY_GOAL_RELATION_TO_CONTROL_VISUAL_GOAL",
+          "neural_inputs": "MOVE_RELATIONS_AND_START_GOAL_VISUAL_ENTITIES_ONLY",
+          "gold_or_answer_seen": false
+        },
+        "receipt_sha256": "7956f450444dc2d91dbaf180c9556e72963e630f6daf1fb81ca0f518cdeb10ae"
+      },
+      "alpha_renamed_source": {
+        "condition": "alpha_renamed_source",
+        "selected_answer": "A",
+        "source_option": "EXECUTE",
+        "target_native_action": "execute_neurally_bound_typed_relations",
+        "candidate_receipts": [
+          {
+            "answer_slot": "A",
+            "sequence_sha256": "87e397c872f28e4b428f928002a9cb6d25cb6c8823ca788f2ca8a49b1482178c",
+            "grounded_operator_type_id": "ATYPE_a51cbb518f4b6b10",
+            "grounded_terminal_predicate_family": "TARGET_CONTROL_TO_VISUAL_GOAL_RELATION",
+            "node_count": 9,
+            "steps_executed": 20,
+            "terminal_node": [
+              8,
+              8
+            ],
+            "goal_node": [
+              8,
+              8
+            ],
+            "first_invalid": null,
+            "goal_reached": true
+          }
+        ],
+        "grounded_start_pixel": [
+          73.52879581151832,
+          73.52879581151832
+        ],
+        "grounded_goal_pixel": [
+          437.8633879781421,
+          437.8633879781421
+        ],
+        "binding_sha256": "cebec4f9872375c9f7015dce3412d4465d5d2a8650cfe2c22be0bd8e6603bf84",
+        "source_artifact_sha256": "8e751718cd5df14141a8dce0b10f4c57eb4d676a9ff3d125e3f293fdbe9c83ce",
+        "target_grounding_contract": {
+          "operator": "UPDATE_CONTROL_STATE_POSITION_TO_NATIVE_MAZE_EDGE",
+          "terminal_predicate": "ENTITY_GOAL_RELATION_TO_CONTROL_VISUAL_GOAL",
+          "neural_inputs": "MOVE_RELATIONS_AND_START_GOAL_VISUAL_ENTITIES_ONLY",
+          "gold_or_answer_seen": false
+        },
+        "receipt_sha256": "2ecdebd97452c680a4396ab594935a6ea3824fe12344470430ac0312f56eab65"
+      },
+      "source_relation_permuted": {
+        "condition": "source_relation_permuted",
+        "selected_answer": null,
+        "source_option": "ABSTAIN",
+        "target_native_action": "execute_neurally_bound_typed_relations",
+        "candidate_receipts": [],
+        "grounded_start_pixel": [
+          73.52879581151832,
+          73.52879581151832
+        ],
+        "grounded_goal_pixel": [
+          437.8633879781421,
+          437.8633879781421
+        ],
+        "binding_sha256": "cebec4f9872375c9f7015dce3412d4465d5d2a8650cfe2c22be0bd8e6603bf84",
+        "source_artifact_sha256": "8e751718cd5df14141a8dce0b10f4c57eb4d676a9ff3d125e3f293fdbe9c83ce",
+        "target_grounding_contract": {
+          "operator": "UPDATE_CONTROL_STATE_POSITION_TO_NATIVE_MAZE_EDGE",
+          "terminal_predicate": "ENTITY_GOAL_RELATION_TO_CONTROL_VISUAL_GOAL",
+          "neural_inputs": "MOVE_RELATIONS_AND_START_GOAL_VISUAL_ENTITIES_ONLY",
+          "gold_or_answer_seen": false
+        },
+        "receipt_sha256": "33bfa88637e3aae57e62f8e67eedaf520934e51435bef8dbd882328b4eb41674"
+      },
+      "generic_scaffold": {
+        "condition": "generic_scaffold",
+        "selected_answer": "A",
+        "source_option": "GENERIC",
+        "target_native_action": "shortest_option_without_grounded_effects",
+        "candidate_receipts": [],
+        "binding_sha256": "cebec4f9872375c9f7015dce3412d4465d5d2a8650cfe2c22be0bd8e6603bf84",
+        "source_artifact_sha256": null,
+        "receipt_sha256": "49210a8218a53073626136251a08adc24036ef3d39c6c2a7761f1a020c18d95f"
+      },
+      "target_native_ceiling": {
+        "condition": "target_native_ceiling",
+        "selected_answer": "A",
+        "source_option": "TARGET_NATIVE",
+        "target_native_action": "execute_neurally_bound_typed_relations",
+        "candidate_receipts": [
+          {
+            "answer_slot": "A",
+            "sequence_sha256": "4404b5a05ae342f782c3c2381953b70772b058b8e1f9d9362d23b47e1f537d57",
+            "grounded_operator_type_id": "ATYPE_a51cbb518f4b6b10",
+            "grounded_terminal_predicate_family": "TARGET_CONTROL_TO_VISUAL_GOAL_RELATION",
+            "node_count": 9,
+            "steps_executed": 20,
+            "terminal_node": [
+              8,
+              8
+            ],
+            "goal_node": [
+              8,
+              8
+            ],
+            "first_invalid": null,
+            "goal_reached": true
+          }
+        ],
+        "grounded_start_pixel": [
+          73.52879581151832,
+          73.52879581151832
+        ],
+        "grounded_goal_pixel": [
+          437.8633879781421,
+          437.8633879781421
+        ],
+        "binding_sha256": "cebec4f9872375c9f7015dce3412d4465d5d2a8650cfe2c22be0bd8e6603bf84",
+        "source_artifact_sha256": null,
+        "target_grounding_contract": {
+          "operator": "UPDATE_CONTROL_STATE_POSITION_TO_NATIVE_MAZE_EDGE",
+          "terminal_predicate": "ENTITY_GOAL_RELATION_TO_CONTROL_VISUAL_GOAL",
+          "neural_inputs": "MOVE_RELATIONS_AND_START_GOAL_VISUAL_ENTITIES_ONLY",
+          "gold_or_answer_seen": false
+        },
+        "receipt_sha256": "410c68b56ad8f780353f1f1ba68b1f024472c88d43355bc33ee60e8214b0f5b0"
+      }
+    },
+    "gold_answer_evaluator_only": "A",
+    "receipt_sha256": "62dd7fb1bdfc902e8f2711c0c60eaa0dfa2f200d5f8f321b49605160a7a8827f"
+  },
+  {
+    "schema_version": "tir-maze-structural-receipt-v2",
+    "collection_contract_sha256": "e369f3696299fab3cdfccf6a3ce8791f38a1c5045873d8dc2fc3ac8999ca4375",
+    "sample_id": "1112",
+    "family": "maze",
+    "image_path": "/fs/gamma-projects/vlm-robot/datasets/TIR-Bench/data/maze/61.png",
+    "image_sha256": "7293744ee8232f3e53fb3aadeb3fbb1806952c485dc54d1e06732fb159d30366",
+    "prompt_sha256": "d20da2ba2d62b790ef62560bb2bc618bc3ba77779234cdcca8b58dbf87a43959",
+    "neural_binding": {
+      "role": "TARGET_NATIVE_NEURAL_MAZE_BINDING",
+      "answer_or_gold_seen": false,
+      "move_deltas": {
+        "R": [
+          1,
+          0
+        ],
+        "L": [
+          -1,
+          0
+        ],
+        "U": [
+          0,
+          -1
+        ],
+        "D": [
+          0,
+          1
+        ]
+      },
+      "start_color_rgb": [
+        255,
+        0,
+        0
+      ],
+      "goal_color_rgb": [
+        0,
+        128,
+        0
+      ],
+      "start_corner": "top-left",
+      "goal_corner": "bottom-right",
+      "confidence": 0.99
+    },
+    "neural_binding_valid": true,
+    "binding_usage": {
+      "model": "openai/gpt-4.1-mini",
+      "finish_reason": "stop",
+      "prompt_tokens": 1124,
+      "completion_tokens": 109,
+      "cost": 0.000624,
+      "response_sha256": "b5102719c036895a7527c46dc4fbec21a4b0fb3f27b14015579a5e75e2dc8968"
+    },
+    "baseline_answer": "E",
+    "baseline_usage": {
+      "model": "openai/gpt-4.1-mini",
+      "finish_reason": "stop",
+      "prompt_tokens": 1461,
+      "completion_tokens": 34,
+      "cost": 0.0006388,
+      "response_sha256": "54f8391a7b33d6ad8925e0eef30695aeba3243b38c8ff05ca27afeefed78cca1"
+    },
+    "conditions": {
+      "source_induced": {
+        "condition": "source_induced",
+        "selected_answer": "D",
+        "source_option": "EXECUTE",
+        "target_native_action": "execute_neurally_bound_typed_relations",
+        "candidate_receipts": [
+          {
+            "answer_slot": "D",
+            "sequence_sha256": "c6d75d763c63bb006cd29239f3af74e1e7748548e867dd1ae9ea469c23d93b34",
+            "grounded_operator_type_id": "ATYPE_a51cbb518f4b6b10",
+            "grounded_terminal_predicate_family": "TARGET_CONTROL_TO_VISUAL_GOAL_RELATION",
+            "node_count": 29,
+            "steps_executed": 184,
+            "terminal_node": [
+              28,
+              28
+            ],
+            "goal_node": [
+              28,
+              28
+            ],
+            "first_invalid": null,
+            "goal_reached": true
+          }
+        ],
+        "grounded_start_pixel": [
+          58.4375,
+          58.4375
+        ],
+        "grounded_goal_pixel": [
+          965.0296540362439,
+          965.0296540362439
+        ],
+        "binding_sha256": "cebec4f9872375c9f7015dce3412d4465d5d2a8650cfe2c22be0bd8e6603bf84",
+        "source_artifact_sha256": "8e751718cd5df14141a8dce0b10f4c57eb4d676a9ff3d125e3f293fdbe9c83ce",
+        "target_grounding_contract": {
+          "operator": "UPDATE_CONTROL_STATE_POSITION_TO_NATIVE_MAZE_EDGE",
+          "terminal_predicate": "ENTITY_GOAL_RELATION_TO_CONTROL_VISUAL_GOAL",
+          "neural_inputs": "MOVE_RELATIONS_AND_START_GOAL_VISUAL_ENTITIES_ONLY",
+          "gold_or_answer_seen": false
+        },
+        "receipt_sha256": "6eeb5686f1d490a3d61228a1cc951b98409d63963aa5a78750d3783fd6340921"
+      },
+      "alpha_renamed_source": {
+        "condition": "alpha_renamed_source",
+        "selected_answer": "D",
+        "source_option": "EXECUTE",
+        "target_native_action": "execute_neurally_bound_typed_relations",
+        "candidate_receipts": [
+          {
+            "answer_slot": "D",
+            "sequence_sha256": "a423fa413028e503ae773e6f25594757d8936c296205261bef711ffe4e360db7",
+            "grounded_operator_type_id": "ATYPE_a51cbb518f4b6b10",
+            "grounded_terminal_predicate_family": "TARGET_CONTROL_TO_VISUAL_GOAL_RELATION",
+            "node_count": 29,
+            "steps_executed": 184,
+            "terminal_node": [
+              28,
+              28
+            ],
+            "goal_node": [
+              28,
+              28
+            ],
+            "first_invalid": null,
+            "goal_reached": true
+          }
+        ],
+        "grounded_start_pixel": [
+          58.4375,
+          58.4375
+        ],
+        "grounded_goal_pixel": [
+          965.0296540362439,
+          965.0296540362439
+        ],
+        "binding_sha256": "cebec4f9872375c9f7015dce3412d4465d5d2a8650cfe2c22be0bd8e6603bf84",
+        "source_artifact_sha256": "8e751718cd5df14141a8dce0b10f4c57eb4d676a9ff3d125e3f293fdbe9c83ce",
+        "target_grounding_contract": {
+          "operator": "UPDATE_CONTROL_STATE_POSITION_TO_NATIVE_MAZE_EDGE",
+          "terminal_predicate": "ENTITY_GOAL_RELATION_TO_CONTROL_VISUAL_GOAL",
+          "neural_inputs": "MOVE_RELATIONS_AND_START_GOAL_VISUAL_ENTITIES_ONLY",
+          "gold_or_answer_seen": false
+        },
+        "receipt_sha256": "6f2c23c1cf84582c6e58669c2e99884930ca00b8d6ea7376d3b30b2b0a1729ab"
+      },
+      "source_relation_permuted": {
+        "condition": "source_relation_permuted",
+        "selected_answer": null,
+        "source_option": "ABSTAIN",
+        "target_native_action": "execute_neurally_bound_typed_relations",
+        "candidate_receipts": [],
+        "grounded_start_pixel": [
+          58.4375,
+          58.4375
+        ],
+        "grounded_goal_pixel": [
+          965.0296540362439,
+          965.0296540362439
+        ],
+        "binding_sha256": "cebec4f9872375c9f7015dce3412d4465d5d2a8650cfe2c22be0bd8e6603bf84",
+        "source_artifact_sha256": "8e751718cd5df14141a8dce0b10f4c57eb4d676a9ff3d125e3f293fdbe9c83ce",
+        "target_grounding_contract": {
+          "operator": "UPDATE_CONTROL_STATE_POSITION_TO_NATIVE_MAZE_EDGE",
+          "terminal_predicate": "ENTITY_GOAL_RELATION_TO_CONTROL_VISUAL_GOAL",
+          "neural_inputs": "MOVE_RELATIONS_AND_START_GOAL_VISUAL_ENTITIES_ONLY",
+          "gold_or_answer_seen": false
+        },
+        "receipt_sha256": "d896d2303671f7ca05a79fdd30c4604f0af9c38e76448ea6544892028ddad73a"
+      },
+      "generic_scaffold": {
+        "condition": "generic_scaffold",
+        "selected_answer": "A",
+        "source_option": "GENERIC",
+        "target_native_action": "shortest_option_without_grounded_effects",
+        "candidate_receipts": [],
+        "binding_sha256": "cebec4f9872375c9f7015dce3412d4465d5d2a8650cfe2c22be0bd8e6603bf84",
+        "source_artifact_sha256": null,
+        "receipt_sha256": "49210a8218a53073626136251a08adc24036ef3d39c6c2a7761f1a020c18d95f"
+      },
+      "target_native_ceiling": {
+        "condition": "target_native_ceiling",
+        "selected_answer": "D",
+        "source_option": "TARGET_NATIVE",
+        "target_native_action": "execute_neurally_bound_typed_relations",
+        "candidate_receipts": [
+          {
+            "answer_slot": "D",
+            "sequence_sha256": "c6d75d763c63bb006cd29239f3af74e1e7748548e867dd1ae9ea469c23d93b34",
+            "grounded_operator_type_id": "ATYPE_a51cbb518f4b6b10",
+            "grounded_terminal_predicate_family": "TARGET_CONTROL_TO_VISUAL_GOAL_RELATION",
+            "node_count": 29,
+            "steps_executed": 184,
+            "terminal_node": [
+              28,
+              28
+            ],
+            "goal_node": [
+              28,
+              28
+            ],
+            "first_invalid": null,
+            "goal_reached": true
+          }
+        ],
+        "grounded_start_pixel": [
+          58.4375,
+          58.4375
+        ],
+        "grounded_goal_pixel": [
+          965.0296540362439,
+          965.0296540362439
+        ],
+        "binding_sha256": "cebec4f9872375c9f7015dce3412d4465d5d2a8650cfe2c22be0bd8e6603bf84",
+        "source_artifact_sha256": null,
+        "target_grounding_contract": {
+          "operator": "UPDATE_CONTROL_STATE_POSITION_TO_NATIVE_MAZE_EDGE",
+          "terminal_predicate": "ENTITY_GOAL_RELATION_TO_CONTROL_VISUAL_GOAL",
+          "neural_inputs": "MOVE_RELATIONS_AND_START_GOAL_VISUAL_ENTITIES_ONLY",
+          "gold_or_answer_seen": false
+        },
+        "receipt_sha256": "827426964d378c9efea8a37f2586541a72972eb7279939fdc3c2a50a8a51e160"
+      }
+    },
+    "gold_answer_evaluator_only": "D",
+    "receipt_sha256": "8e815f5c5e10c0f44ac0874458c17bd074dd27ceb33a1192adfc373982f07a1b"
+  },
+  {
+    "schema_version": "tir-maze-structural-receipt-v2",
+    "collection_contract_sha256": "e369f3696299fab3cdfccf6a3ce8791f38a1c5045873d8dc2fc3ac8999ca4375",
+    "sample_id": "488",
+    "family": "maze",
+    "image_path": "/fs/gamma-projects/vlm-robot/datasets/TIR-Bench/data/maze/71.png",
+    "image_sha256": "3f743affe2baa14f895fe1175e8d3593696e1c9121cf338094489d9a6cbcf4eb",
+    "prompt_sha256": "810e2353cff20ac8ce4a8db88bbf7a9851ac947b52fd82497c3394a6c24215a0",
+    "neural_binding": {
+      "role": "TARGET_NATIVE_NEURAL_MAZE_BINDING",
+      "answer_or_gold_seen": false,
+      "move_deltas": {
+        "R": [
+          1,
+          0
+        ],
+        "L": [
+          -1,
+          0
+        ],
+        "U": [
+          0,
+          -1
+        ],
+        "D": [
+          0,
+          1
+        ]
+      },
+      "start_color_rgb": [
+        255,
+        0,
+        0
+      ],
+      "goal_color_rgb": [
+        0,
+        128,
+        0
+      ],
+      "start_corner": "top-left",
+      "goal_corner": "bottom-right",
+      "confidence": 0.99
+    },
+    "neural_binding_valid": true,
+    "binding_usage": {
+      "model": "openai/gpt-4.1-mini",
+      "finish_reason": "stop",
+      "prompt_tokens": 1124,
+      "completion_tokens": 70,
+      "cost": 0.0005616,
+      "response_sha256": "b5102719c036895a7527c46dc4fbec21a4b0fb3f27b14015579a5e75e2dc8968"
+    },
+    "baseline_answer": "E",
+    "baseline_usage": {
+      "model": "openai/gpt-4.1-mini",
+      "finish_reason": "stop",
+      "prompt_tokens": 1431,
+      "completion_tokens": 37,
+      "cost": 0.0006316,
+      "response_sha256": "b0f1dd810352b8c322abaf2742606004591adbcc493924bced362dcc28657470"
+    },
+    "conditions": {
+      "source_induced": {
+        "condition": "source_induced",
+        "selected_answer": "E",
+        "source_option": "EXECUTE",
+        "target_native_action": "execute_neurally_bound_typed_relations",
+        "candidate_receipts": [
+          {
+            "answer_slot": "E",
+            "sequence_sha256": "7a1cee8493a83dd503cf5fee4eecb5dab90d789edc3b54ce31f1860190452511",
+            "grounded_operator_type_id": "ATYPE_a51cbb518f4b6b10",
+            "grounded_terminal_predicate_family": "TARGET_CONTROL_TO_VISUAL_GOAL_RELATION",
+            "node_count": 33,
+            "steps_executed": 100,
+            "terminal_node": [
+              32,
+              32
+            ],
+            "goal_node": [
+              32,
+              32
+            ],
+            "first_invalid": null,
+            "goal_reached": true
+          }
+        ],
+        "grounded_start_pixel": [
+          51.7438202247191,
+          51.7438202247191
+        ],
+        "grounded_goal_pixel": [
+          971.5890410958904,
+          971.5890410958904
+        ],
+        "binding_sha256": "cebec4f9872375c9f7015dce3412d4465d5d2a8650cfe2c22be0bd8e6603bf84",
+        "source_artifact_sha256": "8e751718cd5df14141a8dce0b10f4c57eb4d676a9ff3d125e3f293fdbe9c83ce",
+        "target_grounding_contract": {
+          "operator": "UPDATE_CONTROL_STATE_POSITION_TO_NATIVE_MAZE_EDGE",
+          "terminal_predicate": "ENTITY_GOAL_RELATION_TO_CONTROL_VISUAL_GOAL",
+          "neural_inputs": "MOVE_RELATIONS_AND_START_GOAL_VISUAL_ENTITIES_ONLY",
+          "gold_or_answer_seen": false
+        },
+        "receipt_sha256": "22731bb58d10e09917ea6c58c13d9e1204b67e9ed07da71e36abcfa5ff72ec10"
+      },
+      "alpha_renamed_source": {
+        "condition": "alpha_renamed_source",
+        "selected_answer": "E",
+        "source_option": "EXECUTE",
+        "target_native_action": "execute_neurally_bound_typed_relations",
+        "candidate_receipts": [
+          {
+            "answer_slot": "E",
+            "sequence_sha256": "968977ba5f4b4b01dae5f97d9de002fa38d6e3d7149d9285a2fb4cb53948366b",
+            "grounded_operator_type_id": "ATYPE_a51cbb518f4b6b10",
+            "grounded_terminal_predicate_family": "TARGET_CONTROL_TO_VISUAL_GOAL_RELATION",
+            "node_count": 33,
+            "steps_executed": 100,
+            "terminal_node": [
+              32,
+              32
+            ],
+            "goal_node": [
+              32,
+              32
+            ],
+            "first_invalid": null,
+            "goal_reached": true
+          }
+        ],
+        "grounded_start_pixel": [
+          51.7438202247191,
+          51.7438202247191
+        ],
+        "grounded_goal_pixel": [
+          971.5890410958904,
+          971.5890410958904
+        ],
+        "binding_sha256": "cebec4f9872375c9f7015dce3412d4465d5d2a8650cfe2c22be0bd8e6603bf84",
+        "source_artifact_sha256": "8e751718cd5df14141a8dce0b10f4c57eb4d676a9ff3d125e3f293fdbe9c83ce",
+        "target_grounding_contract": {
+          "operator": "UPDATE_CONTROL_STATE_POSITION_TO_NATIVE_MAZE_EDGE",
+          "terminal_predicate": "ENTITY_GOAL_RELATION_TO_CONTROL_VISUAL_GOAL",
+          "neural_inputs": "MOVE_RELATIONS_AND_START_GOAL_VISUAL_ENTITIES_ONLY",
+          "gold_or_answer_seen": false
+        },
+        "receipt_sha256": "015144f2aebad6800f0e2151f40ef81e2f14597c294f665c03d113fd00c03eca"
+      },
+      "source_relation_permuted": {
+        "condition": "source_relation_permuted",
+        "selected_answer": null,
+        "source_option": "ABSTAIN",
+        "target_native_action": "execute_neurally_bound_typed_relations",
+        "candidate_receipts": [],
+        "grounded_start_pixel": [
+          51.7438202247191,
+          51.7438202247191
+        ],
+        "grounded_goal_pixel": [
+          971.5890410958904,
+          971.5890410958904
+        ],
+        "binding_sha256": "cebec4f9872375c9f7015dce3412d4465d5d2a8650cfe2c22be0bd8e6603bf84",
+        "source_artifact_sha256": "8e751718cd5df14141a8dce0b10f4c57eb4d676a9ff3d125e3f293fdbe9c83ce",
+        "target_grounding_contract": {
+          "operator": "UPDATE_CONTROL_STATE_POSITION_TO_NATIVE_MAZE_EDGE",
+          "terminal_predicate": "ENTITY_GOAL_RELATION_TO_CONTROL_VISUAL_GOAL",
+          "neural_inputs": "MOVE_RELATIONS_AND_START_GOAL_VISUAL_ENTITIES_ONLY",
+          "gold_or_answer_seen": false
+        },
+        "receipt_sha256": "719b7d311b2d977de52b6d79c1a14a022d6e5e30c4bf6c2960a29f8755101706"
+      },
+      "generic_scaffold": {
+        "condition": "generic_scaffold",
+        "selected_answer": "E",
+        "source_option": "GENERIC",
+        "target_native_action": "shortest_option_without_grounded_effects",
+        "candidate_receipts": [],
+        "binding_sha256": "cebec4f9872375c9f7015dce3412d4465d5d2a8650cfe2c22be0bd8e6603bf84",
+        "source_artifact_sha256": null,
+        "receipt_sha256": "2c7bc6ccec7c9403a64a7a08f0b44ba812bbb3a657db3743eae5c10404438773"
+      },
+      "target_native_ceiling": {
+        "condition": "target_native_ceiling",
+        "selected_answer": "E",
+        "source_option": "TARGET_NATIVE",
+        "target_native_action": "execute_neurally_bound_typed_relations",
+        "candidate_receipts": [
+          {
+            "answer_slot": "E",
+            "sequence_sha256": "7a1cee8493a83dd503cf5fee4eecb5dab90d789edc3b54ce31f1860190452511",
+            "grounded_operator_type_id": "ATYPE_a51cbb518f4b6b10",
+            "grounded_terminal_predicate_family": "TARGET_CONTROL_TO_VISUAL_GOAL_RELATION",
+            "node_count": 33,
+            "steps_executed": 100,
+            "terminal_node": [
+              32,
+              32
+            ],
+            "goal_node": [
+              32,
+              32
+            ],
+            "first_invalid": null,
+            "goal_reached": true
+          }
+        ],
+        "grounded_start_pixel": [
+          51.7438202247191,
+          51.7438202247191
+        ],
+        "grounded_goal_pixel": [
+          971.5890410958904,
+          971.5890410958904
+        ],
+        "binding_sha256": "cebec4f9872375c9f7015dce3412d4465d5d2a8650cfe2c22be0bd8e6603bf84",
+        "source_artifact_sha256": null,
+        "target_grounding_contract": {
+          "operator": "UPDATE_CONTROL_STATE_POSITION_TO_NATIVE_MAZE_EDGE",
+          "terminal_predicate": "ENTITY_GOAL_RELATION_TO_CONTROL_VISUAL_GOAL",
+          "neural_inputs": "MOVE_RELATIONS_AND_START_GOAL_VISUAL_ENTITIES_ONLY",
+          "gold_or_answer_seen": false
+        },
+        "receipt_sha256": "ed947227fcd500a41b415689a2724a2d33253f4ad26a2debdd483ba5a46c8a0f"
+      }
+    },
+    "gold_answer_evaluator_only": "E",
+    "receipt_sha256": "a9d0baf9cf556764f30d962127b3ddbb20895eca6274caa5e4ac187c07bb590d"
+  }
+]

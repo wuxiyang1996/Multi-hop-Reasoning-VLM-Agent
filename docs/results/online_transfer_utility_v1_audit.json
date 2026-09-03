@@ -1,0 +1,251 @@
+{
+  "abstained_routes": [
+    "candidate/learned_latent_ontology",
+    "extension/alfworld_multiplicity",
+    "extension/discoveryworld_normal",
+    "replication/discoveryworld"
+  ],
+  "estimand": "Posterior probability that transfer wins rather than loses, conditional on a paired disagreement, for a future task on the exact registered route.",
+  "integrity": {
+    "gate_implementation_sha256": "32e45948d48763fffafa73158e615576fedbbfcc4e1c7fe93bb98494d3c9e8b1",
+    "input_file_sha256": {
+      "alfworld_multiplicity": "cfadb9e87af22fa31c89ea46c742d12df7c123d18d8c50d78e571ff328570745",
+      "clevrer": "24b0ae13889dd6035b877857c92102006b0fe03e4a9214f5004739465965caba",
+      "discoveryworld_normal": "60225e9f6a9ae65fe859ccffcc1a2c4343d3054e99bfbc1ffc90f594b8d9d0ac",
+      "four_domain": "454c1c1124af7fd43cd6a238c78f35ae677f67ab2b34926ee7b0695c4b8bb238",
+      "latent_ontology": "81e89aa81c8258d10b7d10a1f5c6243836700199b59c256c1d59b42b4160d9c5",
+      "tir_rotation": "2d161c732748a46111534fdf3ddcced5766603621a8e3778842e6d48a41fba18"
+    }
+  },
+  "limitations": [
+    "Calibration is route-level and post-replication; it is not a learned state-level applicability predictor.",
+    "Exact structural applicability predicates are designed and fail closed; arbitrary-domain analogy detection is not claimed.",
+    "The selector governs future use and never retroactively selects on the evaluated task's outcome."
+  ],
+  "protocol": {
+    "credible_lower_bound": 0.95,
+    "current_task_outcome_can_affect_its_own_decision": false,
+    "prior": "Beta(1,1)",
+    "selection_rule": "SELECT_SKILL only when the one-sided 95% lower bound exceeds 0.5 and all exact structural applicability predicates pass.",
+    "ties_count_as_exposure_not_directional_evidence": true
+  },
+  "report_sha256": "0fe3272043611fe91ee045646d2aad5886eb1901a497a72359082dfe7ed2ab71",
+  "routes": {
+    "candidate/learned_latent_ontology": {
+      "applicability": {
+        "route_registered": true,
+        "source_artifact_valid": true,
+        "target_executor_valid": true,
+        "target_grounder_valid": false,
+        "target_interface_match": true
+      },
+      "cold_start_decision": "ABSTAIN",
+      "evidence_status": "FRESH_CROSS_GAME_LATENT_ONTOLOGY_NOT_CONFIRMED",
+      "paired_outcomes": {
+        "losses": 0,
+        "ties": 0,
+        "wins": 0
+      },
+      "post_replication": {
+        "decision": "ABSTAIN",
+        "observed_disagreement_rate": 0.0,
+        "posterior_95pct_lower_win_probability_on_disagreement": 0.050000000000000044,
+        "posterior_mean_win_probability_on_disagreement": 0.5,
+        "reason": "STRUCTURAL_APPLICABILITY_FAILED"
+      }
+    },
+    "extension/alfworld_multiplicity": {
+      "applicability": {
+        "route_registered": true,
+        "source_artifact_valid": true,
+        "target_executor_valid": true,
+        "target_grounder_valid": true,
+        "target_interface_match": true
+      },
+      "cold_start_decision": "ABSTAIN",
+      "evidence_status": "FRESH_MULTIPLICITY_TRANSFER_VALIDATED",
+      "paired_outcomes": {
+        "losses": 0,
+        "ties": 3,
+        "wins": 3
+      },
+      "post_replication": {
+        "decision": "ABSTAIN",
+        "observed_disagreement_rate": 0.5,
+        "posterior_95pct_lower_win_probability_on_disagreement": 0.472870804501588,
+        "posterior_mean_win_probability_on_disagreement": 0.8,
+        "reason": "POSITIVE_DIRECTION_NOT_CALIBRATED"
+      }
+    },
+    "extension/clevrer_event_graph": {
+      "applicability": {
+        "route_registered": true,
+        "source_artifact_valid": true,
+        "target_executor_valid": true,
+        "target_grounder_valid": true,
+        "target_interface_match": true
+      },
+      "cold_start_decision": "ABSTAIN",
+      "evidence_status": "SOKOBAN_TO_CLEVRER_PROOF_NEUROSYMBOLIC_TRANSFER_FORMAL_VALIDATED",
+      "paired_outcomes": {
+        "losses": 5,
+        "ties": 688,
+        "wins": 27
+      },
+      "post_replication": {
+        "decision": "SELECT_SKILL",
+        "observed_disagreement_rate": 0.044444444444444446,
+        "posterior_95pct_lower_win_probability_on_disagreement": 0.7074771333187713,
+        "posterior_mean_win_probability_on_disagreement": 0.8235294117647058,
+        "reason": "POSTERIOR_DIRECTIONAL_UTILITY_LOWER_BOUND_POSITIVE"
+      }
+    },
+    "extension/discoveryworld_normal": {
+      "applicability": {
+        "route_registered": true,
+        "source_artifact_valid": true,
+        "target_executor_valid": true,
+        "target_grounder_valid": true,
+        "target_interface_match": true
+      },
+      "cold_start_decision": "ABSTAIN",
+      "evidence_status": "CONSUMED_NORMAL_NEGATIVE_TRANSFER_DIAGNOSED",
+      "paired_outcomes": {
+        "losses": 1,
+        "ties": 0,
+        "wins": 0
+      },
+      "post_replication": {
+        "decision": "ABSTAIN",
+        "observed_disagreement_rate": 1.0,
+        "posterior_95pct_lower_win_probability_on_disagreement": 0.025320565519103628,
+        "posterior_mean_win_probability_on_disagreement": 0.3333333333333333,
+        "reason": "POSITIVE_DIRECTION_NOT_CALIBRATED"
+      }
+    },
+    "extension/tir_rotation": {
+      "applicability": {
+        "route_registered": true,
+        "source_artifact_valid": true,
+        "target_executor_valid": true,
+        "target_grounder_valid": true,
+        "target_interface_match": true
+      },
+      "cold_start_decision": "ABSTAIN",
+      "evidence_status": "FRESH_FORMAL_COUNTERFACTUAL_ROTATION_TRANSFER_VALIDATED",
+      "paired_outcomes": {
+        "losses": 0,
+        "ties": 6,
+        "wins": 15
+      },
+      "post_replication": {
+        "decision": "SELECT_SKILL",
+        "observed_disagreement_rate": 0.7142857142857143,
+        "posterior_95pct_lower_win_probability_on_disagreement": 0.8292502770175191,
+        "posterior_mean_win_probability_on_disagreement": 0.9411764705882353,
+        "reason": "POSTERIOR_DIRECTIONAL_UTILITY_LOWER_BOUND_POSITIVE"
+      }
+    },
+    "replication/alfworld": {
+      "applicability": {
+        "route_registered": true,
+        "source_artifact_valid": true,
+        "target_executor_valid": true,
+        "target_grounder_valid": true,
+        "target_interface_match": true
+      },
+      "cold_start_decision": "ABSTAIN",
+      "evidence_status": "FINAL_HELDOUT_PASSED",
+      "paired_outcomes": {
+        "losses": 0,
+        "ties": 23,
+        "wins": 9
+      },
+      "post_replication": {
+        "decision": "SELECT_SKILL",
+        "observed_disagreement_rate": 0.28125,
+        "posterior_95pct_lower_win_probability_on_disagreement": 0.7411344491069478,
+        "posterior_mean_win_probability_on_disagreement": 0.9090909090909091,
+        "reason": "POSTERIOR_DIRECTIONAL_UTILITY_LOWER_BOUND_POSITIVE"
+      }
+    },
+    "replication/discoveryworld": {
+      "applicability": {
+        "route_registered": true,
+        "source_artifact_valid": true,
+        "target_executor_valid": true,
+        "target_grounder_valid": true,
+        "target_interface_match": true
+      },
+      "cold_start_decision": "ABSTAIN",
+      "evidence_status": "FRESH_FORMAL_TRANSFER_VALIDATED",
+      "paired_outcomes": {
+        "losses": 0,
+        "ties": 13,
+        "wins": 3
+      },
+      "post_replication": {
+        "decision": "ABSTAIN",
+        "observed_disagreement_rate": 0.1875,
+        "posterior_95pct_lower_win_probability_on_disagreement": 0.472870804501588,
+        "posterior_mean_win_probability_on_disagreement": 0.8,
+        "reason": "POSITIVE_DIRECTION_NOT_CALIBRATED"
+      }
+    },
+    "replication/tir": {
+      "applicability": {
+        "route_registered": true,
+        "source_artifact_valid": true,
+        "target_executor_valid": true,
+        "target_grounder_valid": true,
+        "target_interface_match": true
+      },
+      "cold_start_decision": "ABSTAIN",
+      "evidence_status": "FRESH_FORMAL_TRANSFER_VALIDATED",
+      "paired_outcomes": {
+        "losses": 0,
+        "ties": 26,
+        "wins": 22
+      },
+      "post_replication": {
+        "decision": "SELECT_SKILL",
+        "observed_disagreement_rate": 0.4583333333333333,
+        "posterior_95pct_lower_win_probability_on_disagreement": 0.8778766110934769,
+        "posterior_mean_win_probability_on_disagreement": 0.9583333333333334,
+        "reason": "POSTERIOR_DIRECTIONAL_UTILITY_LOWER_BOUND_POSITIVE"
+      }
+    },
+    "replication/webshop": {
+      "applicability": {
+        "route_registered": true,
+        "source_artifact_valid": true,
+        "target_executor_valid": true,
+        "target_grounder_valid": true,
+        "target_interface_match": true
+      },
+      "cold_start_decision": "ABSTAIN",
+      "evidence_status": "REAL_SOKOBAN_TO_WEBSHOP_TRANSFER_V13_NOT_VALIDATED",
+      "paired_outcomes": {
+        "losses": 1,
+        "ties": 25,
+        "wins": 6
+      },
+      "post_replication": {
+        "decision": "SELECT_SKILL",
+        "observed_disagreement_rate": 0.21875,
+        "posterior_95pct_lower_win_probability_on_disagreement": 0.5293205913988684,
+        "posterior_mean_win_probability_on_disagreement": 0.7777777777777778,
+        "reason": "POSTERIOR_DIRECTIONAL_UTILITY_LOWER_BOUND_POSITIVE"
+      }
+    }
+  },
+  "schema_version": "online-transfer-utility-audit-v1",
+  "selected_routes": [
+    "extension/clevrer_event_graph",
+    "extension/tir_rotation",
+    "replication/alfworld",
+    "replication/tir",
+    "replication/webshop"
+  ],
+  "status": "CALIBRATED_ROUTE_SELECTION_AND_ABSTENTION_AUDITED"
+}

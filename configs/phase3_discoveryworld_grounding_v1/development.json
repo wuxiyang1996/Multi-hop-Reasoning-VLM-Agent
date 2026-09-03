@@ -1,0 +1,37 @@
+{
+  "schema_version": "phase3-discoveryworld-grounding-config-v1",
+  "status": "DEVELOPMENT_CONSUMED_TASKS_ONLY",
+  "role": "development",
+  "reads_target_success": false,
+  "claim_boundary": "Grounding/schema qualification only on previously consumed Proteomics Easy tasks; no evaluator call, official success persistence, source program, or formal-reserve task.",
+  "tasks": [
+    {"scenario": "Proteomics", "difficulty": "Easy", "seed": 21},
+    {"scenario": "Proteomics", "difficulty": "Easy", "seed": 22},
+    {"scenario": "Proteomics", "difficulty": "Easy", "seed": 23},
+    {"scenario": "Proteomics", "difficulty": "Easy", "seed": 24},
+    {"scenario": "Proteomics", "difficulty": "Easy", "seed": 25},
+    {"scenario": "Proteomics", "difficulty": "Easy", "seed": 26},
+    {"scenario": "Proteomics", "difficulty": "Easy", "seed": 27},
+    {"scenario": "Proteomics", "difficulty": "Easy", "seed": 28}
+  ],
+  "model": {
+    "provider": "openrouter",
+    "base_url": "https://openrouter.ai/api/v1",
+    "api_key_name": "OPENROUTER_API_KEY",
+    "model": "openai/gpt-4.1-mini",
+    "temperature": 0,
+    "maximum_output_tokens": 1200,
+    "schema_attempts": 3
+  },
+  "runtime": {
+    "qualification_steps": 24,
+    "environment_maximum_steps": 96,
+    "task_workers": 4,
+    "thread_id_base": 131000
+  },
+  "qualification_gates": {
+    "minimum_steps": 128,
+    "maximum_schema_fallback_rate": 0.10,
+    "maximum_invalid_native_actions": 0
+  }
+}

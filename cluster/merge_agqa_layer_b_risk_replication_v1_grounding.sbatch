@@ -1,0 +1,73 @@
+#!/usr/bin/env bash
+#SBATCH --job-name=agqa-lb-risk-merge
+#SBATCH --partition=gamma
+#SBATCH --account=gamma
+#SBATCH --qos=huge-long
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --cpus-per-task=8
+#SBATCH --mem=64G
+#SBATCH --time=02:00:00
+#SBATCH --output=runs/agqa2_layer_b_raw_video_v1/risk_replication_v1/merge-%j.out
+
+set -Eeuo pipefail
+source "$(conda info --base)/etc/profile.d/conda.sh"
+conda activate cosplay-candy-a100
+cd "${SLURM_SUBMIT_DIR}"
+export PYTHONPATH="${SLURM_SUBMIT_DIR}/src:${SLURM_SUBMIT_DIR}"
+
+Q48=()
+Q96=()
+SF=()
+for SHARD in $(seq 0 5); do
+  Q48+=(--shard "runs/agqa2_layer_b_raw_video_v1/risk_replication_v1/qwen32_grounding_48f_shard${SHARD}_risk_v1.json")
+  Q96+=(--shard "runs/agqa2_layer_b_raw_video_v1/risk_replication_v1/qwen32_grounding_96f_shard${SHARD}_risk_v1.json")
+  SF+=(--shard "runs/agqa2_layer_b_raw_video_v1/risk_replication_v1/slowfast_dense_shard${SHARD}_risk_v1.json")
+done
+
+python scripts/merge_agqa_layer_b_grounding_shards.py \
+  --cohort runs/agqa2_layer_b_raw_video_v1/risk_replication_v1/public_cohort.json \
+  "${Q48[@]}" \
+  --output runs/agqa2_layer_b_raw_video_v1/risk_replication_v1/qwen32_grounding_48f_full384_risk_v1.json
+python scripts/merge_agqa_layer_b_grounding_shards.py \
+  --cohort runs/agqa2_layer_b_raw_video_v1/risk_replication_v1/public_cohort.json \
+  "${Q96[@]}" \
+  --output runs/agqa2_layer_b_raw_video_v1/risk_replication_v1/qwen32_grounding_96f_full384_risk_v1.json
+python scripts/merge_agqa_layer_b_action_probe_shards.py \
+  --cohort runs/agqa2_layer_b_raw_video_v1/risk_replication_v1/public_cohort.json \
+  "${SF[@]}" \
+  --output runs/agqa2_layer_b_raw_video_v1/risk_replication_v1/slowfast_dense_full384_risk_v1.json
+
+python scripts/merge_agqa_layer_b_charades_actions.py \
+  --cohort runs/agqa2_layer_b_raw_video_v1/risk_replication_v1/public_cohort.json \
+  --base-grounding runs/agqa2_layer_b_raw_video_v1/risk_replication_v1/qwen32_grounding_48f_full384_risk_v1.json \
+  --action-probe runs/agqa2_layer_b_raw_video_v1/risk_replication_v1/slowfast_dense_full384_risk_v1.json \
+  --threshold 0.1 \
+  --output runs/agqa2_layer_b_raw_video_v1/risk_replication_v1/composite_qwen32_48f_slowfast_all_full384_risk_v1.json
+python scripts/rebase_agqa_layer_b_charades_actions.py \
+  --cohort runs/agqa2_layer_b_raw_video_v1/risk_replication_v1/public_cohort.json \
+  --base-grounding runs/agqa2_layer_b_raw_video_v1/risk_replication_v1/qwen32_grounding_48f_full384_risk_v1.json \
+  --frozen-composite runs/agqa2_layer_b_raw_video_v1/risk_replication_v1/composite_qwen32_48f_slowfast_all_full384_risk_v1.json \
+  --slowfast-policy fill_missing \
+  --output runs/agqa2_layer_b_raw_video_v1/risk_replication_v1/composite_qwen32_48f_slowfast_fill_missing_full384_risk_v1.json
+
+python scripts/merge_agqa_layer_b_charades_actions.py \
+  --cohort runs/agqa2_layer_b_raw_video_v1/risk_replication_v1/public_cohort.json \
+  --base-grounding runs/agqa2_layer_b_raw_video_v1/risk_replication_v1/qwen32_grounding_96f_full384_risk_v1.json \
+  --action-probe runs/agqa2_layer_b_raw_video_v1/risk_replication_v1/slowfast_dense_full384_risk_v1.json \
+  --threshold 0.1 \
+  --output runs/agqa2_layer_b_raw_video_v1/risk_replication_v1/composite_qwen32_96f_slowfast_all_full384_risk_v1.json
+python scripts/rebase_agqa_layer_b_charades_actions.py \
+  --cohort runs/agqa2_layer_b_raw_video_v1/risk_replication_v1/public_cohort.json \
+  --base-grounding runs/agqa2_layer_b_raw_video_v1/risk_replication_v1/qwen32_grounding_96f_full384_risk_v1.json \
+  --frozen-composite runs/agqa2_layer_b_raw_video_v1/risk_replication_v1/composite_qwen32_96f_slowfast_all_full384_risk_v1.json \
+  --slowfast-policy fill_missing \
+  --output runs/agqa2_layer_b_raw_video_v1/risk_replication_v1/composite_qwen32_96f_slowfast_fill_missing_full384_risk_v1.json
+
+python scripts/route_agqa_layer_b_shared_grounding.py \
+  --cohort runs/agqa2_layer_b_raw_video_v1/risk_replication_v1/public_cohort.json \
+  --semantic-runtime runs/agqa2_layer_b_raw_video_v1/risk_replication_v1/semantic_runtime.json \
+  --candidate runs/agqa2_layer_b_raw_video_v1/risk_replication_v1/composite_qwen32_48f_slowfast_fill_missing_full384_risk_v1.json \
+  --candidate runs/agqa2_layer_b_raw_video_v1/risk_replication_v1/composite_qwen32_96f_slowfast_fill_missing_full384_risk_v1.json \
+  --shared-action-frame-budget 320 \
+  --output runs/agqa2_layer_b_raw_video_v1/risk_replication_v1/routed_qwen32_48f_96f_slowfast_fill_missing_full384_risk_v1.json

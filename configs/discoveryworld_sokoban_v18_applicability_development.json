@@ -1,0 +1,68 @@
+{
+  "schema_version": "discoveryworld-sokoban-applicability-development-v18",
+  "status": "POST_FORMAL_ADAPTATION_ONLY",
+  "claim_boundary": "Post-V17 adaptation on consumed Space Sick and Proteomics Easy seeds2-4. It measures whether an outcome-blind first source-effect-guard disagreement rule recovers the near-complete target states missed by first-baseline-commit selection. No result is formal transfer evidence and no Normal-difficulty instance may be opened by this config.",
+  "reference_baseline_dir": "runs/discoveryworld_v17_formal_baseline",
+  "task_ids": [
+    "space_sick.easy.seed2",
+    "proteomics.easy.seed2",
+    "space_sick.easy.seed3",
+    "proteomics.easy.seed3",
+    "space_sick.easy.seed4",
+    "proteomics.easy.seed4"
+  ],
+  "reference_runtime_hashes": {
+    "config": "0178b4ff026b75efd501643bc083870d1ccedf60fdee17f835169fa4ab0ae2e6",
+    "manifest": "641a25392da012507987733d2d1f725cd5aaa7f42f88bd88d79b957781c3400a",
+    "runner": "a23b60579716e863c56a8d9045de49a0147c65b84c252ab76bac422ca149e152",
+    "environment_wrapper": "4bace77f80ca7710b7107b8bbc896d8f12649a3725d38c6071c446d7184e2cb8",
+    "policy": "7d054c6ffe8dac48283f4f99be067ffe9a1be9eb985419c3fa78ebdeef54857d",
+    "official_environment_commit": "fd591323920be0d3786ef350955de1945aa571e5"
+  },
+  "eligibility": {
+    "name": "FIRST_SOURCE_EFFECT_GUARD_DISAGREEMENT",
+    "minimum_fork_after_episode_step": 1,
+    "minimum_binding_confidence": 0.8,
+    "allowed_commit_actions": ["DROP", "PUT"],
+    "requires_target_name_head_in_task_text": true,
+    "requires_valid_bound_commit": true,
+    "requires_target_bound_position": true,
+    "requires_no_exact_positive_commit_effect_witness": true,
+    "requires_myopic_commit": true,
+    "requires_authentic_position": true,
+    "reads_policy_visible_state": true,
+    "reads_reward_or_evaluator_fields": false,
+    "reads_recorded_action_success": false,
+    "reads_recorded_terminal_or_official_success": false
+  },
+  "recovery_horizon": 6,
+  "conditions": [
+    "target_native_myopic",
+    "authentic_sokoban_effect_plus_target",
+    "commit_availability_control_plus_target",
+    "inverted_effect_control_plus_target",
+    "position_prior_control_plus_target"
+  ],
+  "source_contract": {
+    "compact_receipt": "docs/results/sokoban_effect_program_v2_compact_receipt.json",
+    "source_program_sha256": "6b02dc1d7271bbd435e90539cedd7d56d04fcc1ad03798dd6dd06146d67f1fcd",
+    "source_confirmation_sha256": "d64606c916ce6e812ae1b920771d5175cb48983a2f141b2dab6f43d491a6c1ed",
+    "require_source_gate_passed": true,
+    "transferred_structure": "DIRECT_PROGRESS_AVAILABLE_OR_ASSIGNMENT_IMPROVEMENT_AVAILABLE_THEN_COMMIT_AND_VERIFY_ELSE_POSITION_AND_RECOMPUTE"
+  },
+  "selector": {
+    "prerequisite_threshold": 0.9,
+    "positive_effect_threshold": 0.65
+  },
+  "model": {
+    "provider": "openrouter",
+    "base_url": "https://openrouter.ai/api/v1",
+    "model": "qwen/qwen3.5-35b-a3b",
+    "api_key_name": "OPENROUTER_API_KEY",
+    "temperature": 0,
+    "maximum_output_tokens": 1600,
+    "hidden_reasoning_effort": "none",
+    "schema_attempts": 4,
+    "eligibility_schema_attempts": 2
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "schema_version": "phase2-discoveryworld-selective-cell-v2",
+  "manifest_sha256": "36e9fbb35836bd1e4a0d51fa3a305b598534c617b6d53a74671f8bbb2c779afa",
+  "task_id": "proteomics.easy.seed76",
+  "source_game": "candy_crush",
+  "source_artifact_sha256": "6f80cf4d4a8f4f5d9964680949bd55938d584165aab939b2f028c22649e2ea4d",
+  "applicable": true,
+  "abstention_rule": null,
+  "outcomes": {
+    "target_native_myopic": true,
+    "authentic_sokoban_effect_plus_target": true,
+    "commit_availability_control_plus_target": true,
+    "inverted_effect_control_plus_target": true,
+    "position_prior_control_plus_target": true
+  },
+  "recovery_steps": {
+    "target_native_myopic": 1,
+    "authentic_sokoban_effect_plus_target": 1,
+    "commit_availability_control_plus_target": 1,
+    "inverted_effect_control_plus_target": 1,
+    "position_prior_control_plus_target": 1
+  },
+  "authentic_source_routes": [
+    {
+      "domain": "discoveryworld",
+      "episode_id": "proteomics.easy.seed76",
+      "decision_index": 0,
+      "target_event": "ACTIVE_CANDIDATE_VERIFIED",
+      "source_action": "COMMIT_VERIFY",
+      "native_action_id": "b416f6086b8c0bc2779d49eefaae0e71279596bd193e5fcffcf497bb279deeec",
+      "native_action": {
+        "action": "DROP",
+        "arg1": 17557
+      },
+      "admitted": true,
+      "reason": "SOURCE_EVENT_ROUTE_TARGET_NATIVE_REALIZATION",
+      "source_artifact_sha256": "6f80cf4d4a8f4f5d9964680949bd55938d584165aab939b2f028c22649e2ea4d",
+      "target_evidence_sha256": "20d2640cff5ef6bed6093f43c9a7e3799466a9bdbfcbdd5a099b3edf18bc8756",
+      "receipt_sha256": "61b679982ba3d86712e147462d2714f215ad438a00c1b45366bad5a50c620928"
+    }
+  ],
+  "matched_result_file_sha256": "75c13220da9cdb5807fb250d4ce23421aa8333941355108e19a166a376f75210",
+  "all_matched_forks": true,
+  "all_selection_receipts_valid": true,
+  "policy_runtime_saw_oracle_scorecard": false,
+  "runtime_error": null,
+  "cell_sha256": "254356a21470bbc67e3b084b80266f9f623afa6a413e3427d69ca2f6e43e6567"
+}

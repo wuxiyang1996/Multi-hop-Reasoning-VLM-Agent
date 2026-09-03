@@ -1,0 +1,21 @@
+{
+  "schema_version": "phase3-alfworld-intervention-abstention-v11",
+  "status": "FROZEN_AFTER_V10_STATE_LEVEL_CONTROL_UNIT_FAILURE_FORMAL_UNOPENED",
+  "blocked_predecessor": "V10 froze support threshold 0.9 and passed zero-loss, H8 noninferiority, nontrivial-change, and multi-effect gates. It observed 4/36 state-level source/permuted contrasts, below an inherited 20% state gate that did not match the preregistered task-level online control.",
+  "threshold_grid": [0.0, 0.5, 0.8, 0.9, 0.95, 0.98, 0.99, 0.995, 0.999, 0.9999],
+  "train_selection": {
+    "maximum_source_h8_loss_states": 0,
+    "minimum_source_neural_change_rate": 0.02,
+    "minimum_source_permuted_contrast_rate": 0.20
+  },
+  "frozen_validation_thresholds": {
+    "maximum_source_h8_loss_states": 0,
+    "minimum_source_neural_change_rate": 0.02,
+    "minimum_source_permuted_contrast_rate": 0.10,
+    "minimum_admitted_selected_effect_types": 2
+  },
+  "control_unit_correction": "OFFLINE_STATE_CONTRAST_AT_LEAST_10_PERCENT;ONLINE_TASK_CONTRAST_AT_LEAST_4_TASKS;FORMAL_SUCCESS_MUST_STRICTLY_BEAT_PERMUTED",
+  "support_threshold_must_equal_v10": 0.9,
+  "selection_uses_adaptation_validation": false,
+  "formal_resets_before_freeze": 0
+}

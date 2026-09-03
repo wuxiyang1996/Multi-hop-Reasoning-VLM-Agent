@@ -1,0 +1,121 @@
+{
+  "claim_boundary": "Fresh tasks are absent from prior non-enumeration execution JSON. The target domain itself is not pristine: its previous failed formal run motivated this structural redesign.",
+  "conditions": [
+    "neural_only",
+    "source_induced",
+    "source_permuted",
+    "generic_scaffold",
+    "target_native_ceiling"
+  ],
+  "config_sha256": "9e1e3a78a1b3f950b7947dc41df22a1850701ec91134a55a2c07e8c1f649ddd3",
+  "development_qualification": {
+    "closed_loop_report_file_sha256": "8454e7c77069459b67d503580f08d24cd4ba14a4af8235e52e98c595c77c822b",
+    "closed_loop_report_path": "runs/alfworld_structural_transfer_v2b_development/report.json",
+    "closed_loop_status": "ALFWORLD_STRUCTURAL_DEVELOPMENT_PASSED",
+    "formal_task_ids_read": [],
+    "grounding_report_file_sha256": "db6a3ecf2668d7aa8ad6b0353cb2ed37a5db91895f968e8e2a71417818a64582",
+    "grounding_report_path": "runs/alfworld_structural_grounder_v1_development/report.json"
+  },
+  "formal_results_may_change_protocol": false,
+  "grounder": {
+    "file_sha256": "6d39aae79046ae861a5c676840098c96544c053b7ab8da63237e765fa504e3af",
+    "formal_target_outcome_read": false,
+    "grounder_sha256": "c76d4a0be29777cd74429be5d5ac91816265b4e870922a3ceed5592fe151c5ae",
+    "path": "artifacts/alfworld_structural_grounder_v1/artifact.json.gz",
+    "qualification_thresholds_frozen": true,
+    "threshold": 0.5
+  },
+  "integrity": {
+    "file_sha256": {
+      "artifacts/alfworld_structural_grounder_v1/artifact.json.gz": "6d39aae79046ae861a5c676840098c96544c053b7ab8da63237e765fa504e3af",
+      "configs/source_structural_v5c_frozen/programs/put_near.json": "dfd3c98d6ca41c7940e86819b60aa0e711bfdddffcb7fee6efa181acffed8bf9",
+      "configs/source_structural_v5c_frozen/programs/unlock_pickup.json": "355aa4822b4d25a5df2912e247f33d0b16e44d2fec42522c1772ba94a22c46f4",
+      "runs/alfworld_structural_grounder_v1_development/report.json": "db6a3ecf2668d7aa8ad6b0353cb2ed37a5db91895f968e8e2a71417818a64582",
+      "runs/alfworld_structural_transfer_v2b_development/report.json": "8454e7c77069459b67d503580f08d24cd4ba14a4af8235e52e98c595c77c822b",
+      "scripts/run_alfworld_structural_transfer_v1.py": "2f6e177de0370f6c3f4ffb89826d1c7514650a38074cabebf2f96dea45cc7571",
+      "src/motif_transfer/alfworld_env.py": "628132a058715544246960f782322f1b7d455f647115c9c85e042c4d6f1cf40e",
+      "src/motif_transfer/alfworld_structural_induction.py": "a3c7ec420f9f944cd671fc818d33f47d7d01d2433cd22bfc17790be4adeedb9f",
+      "src/motif_transfer/alfworld_structural_runtime_v1.py": "87d60965272021d5ac67516b877a30888e80d4dbce2473e4827d5c7139410da3",
+      "src/motif_transfer/structural_delta_induction.py": "bfa3e2da017f664612b0c7a5e3869ce1081514a18eaa569ec3434aeafce16a52"
+    }
+  },
+  "preregistered_gates": {
+    "changed_from_neural_action_count_min": 1,
+    "minimum_tasks": 12,
+    "negative_transfer_rate_vs_neural_max": 0.1,
+    "source_operator_admissions_min": 24,
+    "strictly_beats": [
+      "neural_only",
+      "source_permuted",
+      "generic_scaffold"
+    ],
+    "target_native_ceiling_success_rate_min": 0.6,
+    "two_sided_exact_sign_p_vs_neural_max": 0.05
+  },
+  "role": "SECOND_TARGET_STRUCTURAL_REPLICATION",
+  "schema_version": "alfworld-structural-transfer-frozen-manifest-v2",
+  "source_induced": {
+    "file_sha256": "dfd3c98d6ca41c7940e86819b60aa0e711bfdddffcb7fee6efa181acffed8bf9",
+    "path": "configs/source_structural_v5c_frozen/programs/put_near.json",
+    "program_sha256": "b0d3b7cd706f8c18f35217a30d72e2f5d88b60f437f8c9980d9dbbf7478ee2c0",
+    "selection_rule": "UNIQUE_EXACT_REPEATED_STRUCTURAL_SUBPROGRAM_MATCH",
+    "source_identity_used_as_runtime_feature": false,
+    "source_name_evaluator_label_only": "put_near"
+  },
+  "source_permuted": {
+    "control": "DETERMINISTIC_SOURCE_PROGRAM_IDENTITY_PERMUTATION",
+    "file_sha256": "355aa4822b4d25a5df2912e247f33d0b16e44d2fec42522c1772ba94a22c46f4",
+    "path": "configs/source_structural_v5c_frozen/programs/unlock_pickup.json",
+    "program_sha256": "6635161e8a514a2f2a72a3391f46ef0d6d30a461c696bf748e3942b25e9a543a",
+    "source_name_evaluator_label_only": "unlock_pickup"
+  },
+  "status": "FROZEN_BEFORE_FRESH_EXECUTION",
+  "target": {
+    "alfworld_config": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-source-fresh-v1/configs/alfworld_base_config.yaml",
+    "alfworld_data": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-github-main/.cache/alfworld_data",
+    "execution_untouched_candidate_pool_size": 92,
+    "max_steps": 180,
+    "prior_execution_evidence_file_count_scanned": 6594,
+    "seed": 2026081617,
+    "selected_task_prior_execution_occurrences": {
+      "pick_two_obj_and_place-AlarmClock-None-Desk-313/trial_T20190909_054612_605208/game.tw-pddl": 0,
+      "pick_two_obj_and_place-CellPhone-None-Bed-309/trial_T20190910_144311_654244/game.tw-pddl": 0,
+      "pick_two_obj_and_place-CellPhone-None-DiningTable-326/trial_T20190907_125954_586140/game.tw-pddl": 0,
+      "pick_two_obj_and_place-CellPhone-None-Safe-302/trial_T20190909_065455_263840/game.tw-pddl": 0,
+      "pick_two_obj_and_place-Cloth-None-Toilet-417/trial_T20190908_152417_880895/game.tw-pddl": 0,
+      "pick_two_obj_and_place-Glassbottle-None-Fridge-1/trial_T20190906_210518_664798/game.tw-pddl": 0,
+      "pick_two_obj_and_place-HandTowel-None-Toilet-412/trial_T20190907_011444_964972/game.tw-pddl": 0,
+      "pick_two_obj_and_place-Potato-None-Microwave-8/trial_T20190906_235324_262455/game.tw-pddl": 0,
+      "pick_two_obj_and_place-SprayBottle-None-CounterTop-411/trial_T20190909_045033_783510/game.tw-pddl": 0,
+      "pick_two_obj_and_place-SprayBottle-None-GarbageCan-418/trial_T20190909_051110_474114/game.tw-pddl": 0,
+      "pick_two_obj_and_place-SprayBottle-None-Toilet-429/trial_T20190907_033947_142227/game.tw-pddl": 0,
+      "pick_two_obj_and_place-Statue-None-SideTable-214/trial_T20190909_065508_033151/game.tw-pddl": 0
+    },
+    "split": "train",
+    "task_ids": [
+      "pick_two_obj_and_place-SprayBottle-None-Toilet-429/trial_T20190907_033947_142227/game.tw-pddl",
+      "pick_two_obj_and_place-Potato-None-Microwave-8/trial_T20190906_235324_262455/game.tw-pddl",
+      "pick_two_obj_and_place-CellPhone-None-Safe-302/trial_T20190909_065455_263840/game.tw-pddl",
+      "pick_two_obj_and_place-HandTowel-None-Toilet-412/trial_T20190907_011444_964972/game.tw-pddl",
+      "pick_two_obj_and_place-Statue-None-SideTable-214/trial_T20190909_065508_033151/game.tw-pddl",
+      "pick_two_obj_and_place-SprayBottle-None-GarbageCan-418/trial_T20190909_051110_474114/game.tw-pddl",
+      "pick_two_obj_and_place-SprayBottle-None-CounterTop-411/trial_T20190909_045033_783510/game.tw-pddl",
+      "pick_two_obj_and_place-AlarmClock-None-Desk-313/trial_T20190909_054612_605208/game.tw-pddl",
+      "pick_two_obj_and_place-Cloth-None-Toilet-417/trial_T20190908_152417_880895/game.tw-pddl",
+      "pick_two_obj_and_place-CellPhone-None-Bed-309/trial_T20190910_144311_654244/game.tw-pddl",
+      "pick_two_obj_and_place-Glassbottle-None-Fridge-1/trial_T20190906_210518_664798/game.tw-pddl",
+      "pick_two_obj_and_place-CellPhone-None-DiningTable-326/trial_T20190907_125954_586140/game.tw-pddl"
+    ],
+    "task_selection": "STABLE_HASH_RANK_FROM_EXECUTION_UNTOUCHED_MULTIPLICITY_POOL"
+  },
+  "target_program": {
+    "induced_sequence": [
+      "ATYPE_3c9d9c20ed4abeb6",
+      "ATYPE_e2afbbc8aa7f4ef0",
+      "ATYPE_3c9d9c20ed4abeb6",
+      "ATYPE_e2afbbc8aa7f4ef0"
+    ],
+    "program_sha256": "1614ec4b73a209d1af5f0b3e6474db18bf2925d18eb5ef97452e6910a7b21e1a",
+    "source_program_copied_as_target_body": false
+  }
+}

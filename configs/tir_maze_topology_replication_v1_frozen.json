@@ -1,0 +1,129 @@
+{
+  "claim_boundary": {
+    "consumed_development": "NOT_RUN_BY_THIS_CONFIG",
+    "heldout": "Independent prospective replication on 48 never-assigned single-image TIR maze IDs using the unchanged Sokoban topology artifact, target neural binder, pixel executor, and controls.",
+    "qualification": "ONE_SHOT_FRESH_TIR_MAZE_QUALIFICATION_OF_A_FRESH_CONFIRMED_REAL_SOKOBAN_ANONYMOUS_TOPOLOGY_EXECUTOR_WITH_TARGET_NATIVE_NEURAL_INTERFACE_BINDING_AND_PIXEL_GRAPH_GROUNDING"
+  },
+  "dataset": {
+    "file_sha256": "e764c780c53fdce2e0bb64846a8119b48b731c90c7168c6c202f270062684bc8",
+    "selection_contract": "Collect every ID previously present in a TIR split, restrict the fixed dataset to single-image maze rows, then take the first 48 unseen IDs by sha256('tir-maze-independent-replication-v1\\0' + id). No prompt, image, answer, or model outcome is read for selection."
+  },
+  "development_authority": {
+    "report_file_sha256": "baf80c68d2084eab0e9a020c078f9895e391a493324672943975ae216a4e0da6",
+    "report_path": "runs/tir_maze_topology_v2_consumed_development/consumed_development_report.json",
+    "required_status": "CONSUMED_DEVELOPMENT_GATE_PASSED"
+  },
+  "integrity": {
+    "file_sha256": {
+      "runs/sokoban_topology_skill_v1/discovery_artifact.json": "12da519aa68896a501834915f1eea5c600cc3c45c6b8a9296714a8daee656963",
+      "runs/sokoban_topology_skill_v1/fresh_confirmation_report.json": "d3c69a4ccce16b4e344eafefd0d8ade7145692aa44ecb9e491ece5b144330ee7",
+      "runs/tir_maze_topology_v2_consumed_development/consumed_development_report.json": "baf80c68d2084eab0e9a020c078f9895e391a493324672943975ae216a4e0da6",
+      "scripts/run_sokoban_topology_skill_v1.py": "547b56cc4b372c9c9c35202024d56e1e11064466441141cbd477e17a4ba3bde3",
+      "scripts/run_tir_maze_topology_v2.py": "8d7c32221f5273970ebecf03049b649f071dc38a82aa0ebdbbc4e1afdf98c31d",
+      "src/motif_transfer/sokoban_topology_skill.py": "b11a91ec9a0f719caaa41a69b2c1481058012b360f7a90687dcc74bef0a13347",
+      "src/motif_transfer/tir_maze_topology.py": "1196b6cb569d27d1b8174c5d43130ed9ffe020d824b7a48e7940b72de9d3620c"
+    }
+  },
+  "media": {
+    "jpeg_quality": 90,
+    "max_side": 768
+  },
+  "model": {
+    "authority": "BIND_R_L_U_D_DELTAS_AND_START_GOAL_COLORS_ONLY; NO_GOLD_OR_CORRECT_OPTION",
+    "base_url": "https://openrouter.ai/api/v1",
+    "id": "openai/gpt-4.1-mini",
+    "max_retries": 2,
+    "maximum_output_tokens": 1200,
+    "provider": "openrouter",
+    "temperature": 0,
+    "timeout_seconds": 180
+  },
+  "qualification_authority": {
+    "report_path": "runs/tir_maze_topology_v2_frozen/qualification_report.json",
+    "required_status": "FRESH_QUALIFICATION_GATE_PASSED"
+  },
+  "replication": {
+    "available_before_selection": 75,
+    "expected_tasks": 48,
+    "previously_assigned_ids_excluded": 45,
+    "prior_final_report_used_for_policy_change": false,
+    "role": "INDEPENDENT_FRESH_REPLICATION"
+  },
+  "schema_version": 2,
+  "source": {
+    "artifact_file_sha256": "12da519aa68896a501834915f1eea5c600cc3c45c6b8a9296714a8daee656963",
+    "artifact_path": "runs/sokoban_topology_skill_v1/discovery_artifact.json",
+    "artifact_sha256": "bdbfd067f77a75ed87a815050e52556aad509812270b1d9e214476f4382525a9",
+    "confirmation_file_sha256": "d3c69a4ccce16b4e344eafefd0d8ade7145692aa44ecb9e491ece5b144330ee7",
+    "confirmation_path": "runs/sokoban_topology_skill_v1/fresh_confirmation_report.json",
+    "confirmation_sha256": "87e69e67da6b45feb983e3244e6c5da05b5a293244edc1b670b6aeb274bcef7d"
+  },
+  "splits": {
+    "consumed_development": [],
+    "heldout": [
+      "310",
+      "531",
+      "641",
+      "555",
+      "60",
+      "557",
+      "190",
+      "12",
+      "1010",
+      "188",
+      "1004",
+      "539",
+      "235",
+      "364",
+      "460",
+      "359",
+      "410",
+      "366",
+      "733",
+      "610",
+      "442",
+      "1073",
+      "303",
+      "738",
+      "734",
+      "326",
+      "1113",
+      "412",
+      "510",
+      "45",
+      "169",
+      "506",
+      "675",
+      "84",
+      "878",
+      "138",
+      "1003",
+      "872",
+      "369",
+      "324",
+      "1066",
+      "621",
+      "438",
+      "993",
+      "373",
+      "841",
+      "579",
+      "246"
+    ],
+    "qualification": [
+      "156",
+      "908",
+      "1194",
+      "120",
+      "502",
+      "521",
+      "10",
+      "437",
+      "464",
+      "956",
+      "391",
+      "744"
+    ]
+  },
+  "status": "FROZEN_BEFORE_FRESH_QUALIFICATION"
+}

@@ -1,0 +1,20 @@
+{
+  "schema_version": "harness-multi-ir-permutation-closure-build-config-v3",
+  "output_schema_version": "harness-multi-ir-selector-sft-v3-permutation-closure",
+  "source_catalog_config": "configs/harness_multi_ir_selector_sft_v2.json",
+  "retention_heldout_dataset_dir": "runs/harness_multi_ir_selector_sft_v2",
+  "expected_source_program_count": 7,
+  "required_ir_kinds": [
+    "FINITE_STRUCTURAL_DELTA_SEQUENCE",
+    "RECURRENT_GOAL_ACQUISITION_RELATION_PROGRAM",
+    "RECURRENT_GOAL_RELATION_PROGRAM",
+    "RECURRENT_RELATIONAL_TRANSITION_PROGRAM",
+    "SPARSE_TEMPORAL_EFFECT_FUNCTION"
+  ],
+  "split_repetition_ranges": {
+    "train": [96, 352],
+    "validation": [352, 368],
+    "source_held_out": [368, 384]
+  },
+  "claim_boundary": "SOURCE_ONLY_SEVEN_PROGRAM_CATALOG_PERMUTATION_AND_ALIAS_CLOSURE;ALL_SOURCE_PROGRAMS_TREATED_SYMMETRICALLY;TWO_POSITIVE_AND_TWO_ABSTENTION_EXAMPLES_PER_PROGRAM_REPETITION;RETENTION_HELDOUT_FROM_PREVIOUS_FIVE_SCHEMA_SOURCE_GATE_MERGED_ONLY_IN_SOURCE_HELDOUT;NO_TARGET_PROMPT_IDENTITY_OUTCOME_NATIVE_ACTION_OR_ERROR_ROW"
+}

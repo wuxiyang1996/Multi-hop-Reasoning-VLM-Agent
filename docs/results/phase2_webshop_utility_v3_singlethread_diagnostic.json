@@ -1,0 +1,18 @@
+{
+  "schema_version": "phase2-webshop-singlethread-preflight-v4",
+  "status": "PHASE2_WEBSHOP_SINGLETHREAD_PREFLIGHT_PASSED",
+  "manifest_sha256": "ea5191f65341c45845a6e7ae1180d7f9bd4d8e1aa78e807043f8a6a256061cb8",
+  "live_goals_checked": 32,
+  "mismatches": [],
+  "gates": {
+    "manifest_valid_before_preflight": true,
+    "single_threaded_server": true,
+    "all_32_live_goal_hashes_match": true,
+    "unique_live_goal_hashes": true,
+    "unique_live_asins": true,
+    "zero_actions": true,
+    "zero_provider_calls": true,
+    "zero_outcomes_read": true
+  },
+  "preflight_sha256": "d928ae3b764043cca353bc2dc7fcc471e33f7833d9a8a1f6eef4eab8448f9004"
+}

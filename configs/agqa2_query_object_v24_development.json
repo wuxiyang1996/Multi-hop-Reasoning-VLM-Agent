@@ -1,0 +1,284 @@
+{
+  "acquisition": {
+    "consensus_tiebreak_on_conflict": true,
+    "maximum_source_ir_rescans_per_recurrent_operand": 2,
+    "nonrecurrent_rescans": 0,
+    "receipt_selection": "THREE_VIEW_MAJORITY_ELSE_ABSTAIN",
+    "rescan_confidence_threshold": 0.7
+  },
+  "applicability_mode": "ATOMIC_QUERY_OBJECT_ONLY_V1",
+  "claim_boundary": "EXACT_V22_TRAIN_DEVELOPMENT_SPLIT;DETERMINISTIC_INTERVAL_EVIDENCE_ENVELOPE_NORMALIZATION;NO_NEW_PROVIDER_CALLS",
+  "execution_calibration": null,
+  "expected_evaluation_protocol_sha256": "74ac82fe2c519ee3437f2ad40a3c916b3e61c1cd0a00c4ec209dbff588a9ca01",
+  "expected_grounder_sha256": "2a84c1c9f170206bd216e171072c70d8faf73bd6d7c89d562fff808bf7141a3e",
+  "expected_manifest_status": "FROZEN_V24_QUERY_OBJECT_DEVELOPMENT_BEFORE_REQUALIFICATION",
+  "expected_preregistration_status": "FROZEN_BEFORE_V24_CACHE_ONLY_REQUALIFICATION",
+  "grounder": {
+    "collector": "scripts/collect_agqa2_query_object_v24.py",
+    "collector_sha256": "66217bbe75e9ebab944c4d1ef26a258182d1577dc94be975e19d17a3392f4c6a",
+    "executor": "src/motif_transfer/agqa_frame_grounder.py",
+    "executor_sha256": "8991688819c00b1a20690fb36ab375e255033859f6d9f05f8d568659edae08c3",
+    "forbidden_fields": [
+      "answer",
+      "functional_program",
+      "sg_grounding",
+      "official_reasoning_labels",
+      "source_game_identity",
+      "answer_candidates",
+      "full_question_at_operand_grounder",
+      "competing_operand_at_operand_grounder"
+    ],
+    "module": "src/motif_transfer/agqa_active_frame_grounder.py",
+    "module_sha256": "87a41b64a77aae9cd8899f714061276fd3fcee05e8950a050fffb8849b81761c",
+    "protocol": "V22_CONSENSUS_PLUS_DETERMINISTIC_INTERVAL_ENVELOPE_V24",
+    "visible_fields": [
+      "public_question_at_text_parser_only",
+      "one_requested_operand_per_visual_call",
+      "chronological_proxy_frames",
+      "frame_timestamps"
+    ]
+  },
+  "local_object_grounder": {
+    "confidence_threshold": 0.08,
+    "forbidden_fields": [
+      "question",
+      "answer",
+      "functional_program",
+      "answer_candidates",
+      "source_identity"
+    ],
+    "implementation": "opencv_zoo_yolox_s_int8_coco_v2022nov",
+    "maximum_interval_frames": 12,
+    "model_path": "/fs/gamma-projects/vlm-robot/datasets/models/opencv_yolox/object_detection_yolox_2022nov_int8.onnx",
+    "model_sha256": "01a3b0f400b30bc1e45230e991b2e499ab42622485a330021947333fbaf03935",
+    "module": "src/motif_transfer/agqa_local_object_grounder.py",
+    "module_sha256": "800475fed6dff07aac4055e23d162f152755f217ea91025e62f395a22ff9c852",
+    "nms_threshold": 0.5,
+    "visible_fields": [
+      "vlm_grounded_interval_frame_ids",
+      "rgb_frames"
+    ]
+  },
+  "manifest": "configs/agqa2_query_object_v24_development_manifest.json",
+  "manifest_file_sha256": "6cd6fbb6ef868c11d3509ccc3b5d32212f4177f64befda960fe309bea139662c",
+  "media": {
+    "dense_proxy_frame_count": 48,
+    "frames_per_panel": 6,
+    "jpeg_quality": 80,
+    "panel_frame_width": 192,
+    "proxy_frame_max_side": 512,
+    "rescan_frame_count": 16,
+    "rescan_frame_max_side": 640,
+    "rescan_frames_per_panel": 4,
+    "rescan_panel_frame_width": 280,
+    "tiebreak_frame_count": 24,
+    "tiebreak_frame_max_side": 512,
+    "tiebreak_frames_per_panel": 4,
+    "tiebreak_panel_frame_width": 224
+  },
+  "model": {
+    "api_key_name": "OPENROUTER_API_KEY",
+    "base_url": "https://openrouter.ai/api/v1",
+    "development_model_history": [
+      {
+        "accepted_calls_persisted_and_included_in_cumulative_cost": true,
+        "id": "google/gemini-3-flash-preview",
+        "samples": 1,
+        "status": "REJECTED_FOR_PROJECTED_FULL_BATCH_COST_ABOVE_PREREGISTERED_CAP"
+      },
+      {
+        "accepted_calls_persisted_and_included_in_cumulative_cost": true,
+        "id": "google/gemini-2.5-flash-lite",
+        "samples": 1,
+        "status": "REJECTED_FOR_GENERIC_OBJECT_GROUNDING_AND_WRONG_MATCHED_DIRECT"
+      }
+    ],
+    "id": "qwen/qwen3-vl-32b-instruct",
+    "max_direct_tokens": 80,
+    "max_operand_tokens": 800,
+    "max_query_tokens": 450,
+    "max_retries": 2,
+    "provider": "openrouter",
+    "schema_retries": 2,
+    "temperature": 0,
+    "timeout_seconds": 240
+  },
+  "nonrecurrent_model": {
+    "api_key_name": "OPENROUTER_API_KEY",
+    "base_url": "https://openrouter.ai/api/v1",
+    "id": "google/gemini-3-flash-preview",
+    "max_direct_tokens": 80,
+    "max_operand_tokens": 800,
+    "max_query_tokens": 450,
+    "max_retries": 2,
+    "provider": "openrouter",
+    "reasoning": {
+      "effort": "minimal",
+      "exclude": true
+    },
+    "schema_retries": 2,
+    "temperature": 0,
+    "timeout_seconds": 240
+  },
+  "parser_model": {
+    "api_key_name": "OPENROUTER_API_KEY",
+    "base_url": "https://openrouter.ai/api/v1",
+    "id": "google/gemini-3-flash-preview",
+    "max_direct_tokens": 80,
+    "max_operand_tokens": 800,
+    "max_query_tokens": 450,
+    "max_retries": 2,
+    "provider": "openrouter",
+    "reasoning": {
+      "effort": "minimal",
+      "exclude": true
+    },
+    "schema_retries": 2,
+    "temperature": 0,
+    "timeout_seconds": 240
+  },
+  "preregistration": "configs/agqa2_query_object_v24_development_preregistration.json",
+  "preregistration_file_sha256": "2c8e62f02bf9b4e5f954e2c4fbd7eae9d8c8e654fd4bc158ec96305b1110391d",
+  "qualification_gates": {
+    "maximum_reported_provider_cost_usd": 0.3,
+    "maximum_typed_vs_direct_losses": 0,
+    "minimum_decisive_accuracy": 0.75,
+    "minimum_decisive_executions": 10,
+    "minimum_route_correct": 18,
+    "minimum_typed_vs_direct_wins": 2,
+    "required_source_permuted_abstentions": 18,
+    "required_target_written_equivalent_matches": 18,
+    "required_valid_runtime_rows": 18
+  },
+  "query_object_calibration": {
+    "direct_response_is_not_a_consensus_vote": true,
+    "minimum_neural_votes": 2,
+    "minimum_ontology_confidences": [
+      0.8,
+      0.8
+    ],
+    "mode": "CROSS_MODEL_TWO_OF_THREE_NEURAL_CONSENSUS_V1",
+    "views": [
+      "source_controlled_qwen_isolated_relation_grounder",
+      "gemini_2_5_flash_lite_fixed_ontology_grounder",
+      "gemini_3_flash_fixed_ontology_grounder"
+    ]
+  },
+  "query_object_grounder": {
+    "base_collector": "scripts/collect_agqa2_active_grounding_v3.py",
+    "base_collector_sha256": "c845a0446fe5edc60f29dedbbb8eca3527a1f0c087f130924529a64cb8cdd5f1",
+    "consensus_module": "src/motif_transfer/agqa_query_object_consensus.py",
+    "consensus_module_sha256": "0b102e43f0ac4527415eb6867e3f84bcdb7d779056d3b7844a7ed29569975bbd",
+    "fixed_dataset_level_ontology": true,
+    "forbidden_fields": [
+      "original_question",
+      "answer",
+      "functional_program",
+      "scene_graph",
+      "per_question_answer_candidates",
+      "direct_response",
+      "source_identity"
+    ],
+    "model": {
+      "api_key_name": "OPENROUTER_API_KEY",
+      "base_url": "https://openrouter.ai/api/v1",
+      "id": "google/gemini-2.5-flash-lite",
+      "max_ontology_tokens": 300,
+      "max_retries": 2,
+      "provider": "openrouter",
+      "schema_retries": 2,
+      "temperature": 0,
+      "timeout_seconds": 240
+    },
+    "module": "src/motif_transfer/agqa_query_object_grounder.py",
+    "module_sha256": "870db9a83e5f324365ce1945d1141cb9c6dab550f662611dbd316cc0883cdd84",
+    "normalization_module": "src/motif_transfer/agqa_operand_normalization.py",
+    "normalization_module_sha256": "126c5f08a269df1bf5f53b25e2323f540cda2b6422cd448171f30c4f3a98649e",
+    "normalization_rule": "OBSERVED_START_MIN_WITH_EXISTING_EVIDENCE_AND_END_MAX_WITH_EXISTING_EVIDENCE;NO_NEW_EVIDENCE_OR_LABEL",
+    "original_question_read": false,
+    "parent_consensus_collector": "scripts/collect_agqa2_query_object_v21.py",
+    "parent_consensus_collector_sha256": "58d1dad0661790a20ed418d433acc890b4563aa1571cfec997b80de61df1319c",
+    "parent_query_object_collector": "scripts/collect_agqa2_query_object_v20.py",
+    "parent_query_object_collector_sha256": "8aeffe3908c0b9efcbb77c75c42bf9524995adb52e680aaa8092259d2d6fff6f",
+    "per_question_answer_candidates_read": false,
+    "secondary_model": {
+      "api_key_name": "OPENROUTER_API_KEY",
+      "base_url": "https://openrouter.ai/api/v1",
+      "id": "google/gemini-3-flash-preview",
+      "max_ontology_tokens": 300,
+      "max_retries": 2,
+      "provider": "openrouter",
+      "reasoning": {
+        "effort": "minimal",
+        "exclude": true
+      },
+      "schema_retries": 2,
+      "temperature": 0,
+      "timeout_seconds": 240
+    },
+    "visible_fields": [
+      "one_requested_relation",
+      "global_object_ontology",
+      "chronological_proxy_frames",
+      "frame_timestamps"
+    ]
+  },
+  "query_parser_mode": "DETERMINISTIC_EXPLICIT_OPERAND_GRAMMAR_V1",
+  "report_version": "V24_QUERY_OBJECT",
+  "rescan_model": {
+    "api_key_name": "OPENROUTER_API_KEY",
+    "base_url": "https://openrouter.ai/api/v1",
+    "id": "google/gemini-3-flash-preview",
+    "max_direct_tokens": 80,
+    "max_operand_tokens": 800,
+    "max_query_tokens": 450,
+    "max_retries": 2,
+    "provider": "openrouter",
+    "reasoning": {
+      "effort": "minimal",
+      "exclude": true
+    },
+    "schema_retries": 2,
+    "temperature": 0,
+    "timeout_seconds": 240
+  },
+  "runtime_selection": null,
+  "schema_version": "agqa2-query-object-development-config-v24",
+  "sources": {
+    "arcade_report": {
+      "file_sha256": "86c833250f3555c0548785eeea6373ef0430ee9c51fad314584213fbac92e121",
+      "path": "runs/phase3_source_function_v4_reserve/report.json"
+    },
+    "goal_relation": {
+      "artifact_file_sha256": "a0edf3b2f4e095c3e31e1eec45c284aed58d83c8a9b49d0d880cd93027148b1c",
+      "artifact_path": "runs/sokoban_goal_relation_macro_v3/artifact.json",
+      "confirmation_file_sha256": "c7e8cd6969eea897513e11e4ac20db27ada1f9d06d69b85e2844020d931e9af7",
+      "confirmation_path": "runs/sokoban_goal_relation_macro_v3/fresh_confirmation_report.json"
+    },
+    "temporal_pair": {
+      "artifact_file_sha256": "762beb66b1738b5b9deff3b47ddc0e82d708ca33e1125a4b63f0ce1ddbb97741",
+      "artifact_path": "configs/phase3_source_function_v4/frozen_reserve/programs/candy_crush.json",
+      "source_game": "candy_crush"
+    },
+    "temporal_single": {
+      "artifact_file_sha256": "c81902a54dcc0fe31b4f50a6b4ca8e79d776ecb82da7d3223e40e014fec04034",
+      "artifact_path": "configs/phase3_source_function_v4/frozen_reserve/programs/gymv_columns.json",
+      "source_game": "gymv_columns"
+    }
+  },
+  "split": "development",
+  "status": "FROZEN_V24_QUERY_OBJECT_DEVELOPMENT",
+  "tiebreak_model": {
+    "api_key_name": "OPENROUTER_API_KEY",
+    "base_url": "https://openrouter.ai/api/v1",
+    "id": "google/gemini-2.5-flash-lite",
+    "max_direct_tokens": 80,
+    "max_operand_tokens": 800,
+    "max_query_tokens": 450,
+    "max_retries": 2,
+    "provider": "openrouter",
+    "schema_retries": 2,
+    "temperature": 0,
+    "timeout_seconds": 240
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "schema_version": "agqa-query-grounder-v2-track-verified-shadow-v10",
+  "status": "FROZEN_BEFORE_TRACK_VERIFIED_SHADOW_REPLAY",
+  "purpose": "Outcome-unopened transport check of the development-selected stable-track verifier on the consumed V3 qualification receipts; never qualification or transfer evidence",
+  "development_selection": {
+    "protocol": "configs/agqa2_query_grounder_v2_track_verified_development_v9.json",
+    "protocol_file_sha256": "186cc13534743b7fa41fa5a6eb9459a74574a16d6cce7e672538a76393138e9e",
+    "calibration_report": "runs/agqa2_query_grounder_v2_track_verified_development_v9/global_threshold_calibration.json",
+    "calibration_report_file_sha256": "b993dc75c8132e6ed5aa3623e3b88a01deb78405214f8cf12333b0d6bff549a9",
+    "calibration_report_sha256": "57074135d8ac1fbd5246640ce46f8a0162856bf376154ba2f24e59dae5623c5b",
+    "global_threshold": 0.76,
+    "candidate_precision": 0.6887755102040817,
+    "candidate_precision_wilson_95_lower": 0.6208522656530109,
+    "candidate_coverage": 0.30625,
+    "source_commit_fraction_diagnostic_only": 0.2734375
+  },
+  "shadow_input": {
+    "grounding_file": "runs/agqa2_query_grounder_v2_strict_boundary_powered_qualification_v3/query_grounder_candidates_frozen.json",
+    "grounding_file_sha256": "7d52e974e37bcd5605194e1513ce1b5a76baec51955f73eb1b5945c4183345d8",
+    "grounding_report_sha256": "4a42628b47c64b094494f93c7fe070c68bd97e5bf27c03e678ecccd3e4a8d51c",
+    "tasks": 1600,
+    "qualification_outcomes_opened": false,
+    "target_outcome_read": false
+  },
+  "frozen_method": {
+    "formula": "(relation_action_support * track_detection_confidence * log1p(track_frames)/log1p(sgdet_frame_budget)) ** (1/3)",
+    "weights": "UNWEIGHTED_GEOMETRIC_MEAN",
+    "sgdet_frame_budget": 64,
+    "global_threshold": 0.76,
+    "source_harness_changed": false
+  },
+  "outcome_blind_shadow_gates": {
+    "minimum_candidate_supported_fraction": 0.27,
+    "minimum_source_symbolic_commit_fraction": 0.24,
+    "maximum_source_permuted_commit_fraction": 0.05,
+    "candidate_support_required_for_every_symbolic_commit": true
+  },
+  "decision": {
+    "if_all_shadow_gates_pass": "Freeze the unchanged method and allocate one new video-disjoint qualification cohort.",
+    "if_any_shadow_gate_fails": "Return to development; do not open V3 outcomes and do not allocate qualification or formal data."
+  },
+  "claim_boundary": {
+    "shadow_is_qualification_evidence": false,
+    "shadow_is_transfer_evidence": false,
+    "v3_answers_must_remain_unopened": true,
+    "row_level_v3_data_not_used_to_select_formula_or_threshold": true
+  },
+  "implementation_sha256s": {
+    "src/motif_transfer/agqa_track_verified_candidate.py": "c145b6efeac874601eb13cd72e7e8928ef8d0b39bf229b9676852fe74ed6e24d",
+    "scripts/verify_agqa_query_candidates_with_stable_tracks.py": "97ac805c9bbdf113e8c5e396d7e5a2c9226cac3e71c599bc5be84414e53c2d92",
+    "scripts/calibrate_agqa_track_verified_threshold.py": "37140ccd52efd09b9c8d4b2f6477ea784ada6402095524ffb79176b9a1e66b64"
+  }
+}

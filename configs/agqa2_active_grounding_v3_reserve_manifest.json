@@ -1,0 +1,140 @@
+{
+  "answer_read_during_freeze": false,
+  "archive_path": "/fs/gamma-projects/vlm-robot/datasets/AGQA2-official/AGQA_balanced.zip",
+  "archive_sha256": "3cd4cc741864ac4bb875e3c1dc41d0ddea559259059b01d229527b08323bea0d",
+  "available_video_count": 104,
+  "claim_boundary": "V3_RAW_VIDEO_UNSEEN_AND_VIDEO_DISJOINT_RESERVE;AGQA_TEST_METADATA_WAS_PREVIOUSLY_GLOBALLY_SCANNED;NOT_AN_UNTOUCHED_BENCHMARK_SPLIT",
+  "development_manifest_sha256": "43af33f3fbe32109c5a828c7cb90e7be21d6b2ee23bafe4835af54702d9202ed",
+  "entry": "AGQA_balanced/test_balanced.txt",
+  "excluded_development_video_ids": [
+    "0PVKV",
+    "35ZZP",
+    "ATV2F",
+    "D1WYU",
+    "FQS7O",
+    "G6ZOB",
+    "LBRYS",
+    "MXATD",
+    "YHXU9"
+  ],
+  "functional_program_visible_to_grounder": false,
+  "manifest_sha256": "c7358611e6312d1ff71e8eae33be69e7caa2a4f3ee7040077f977a1ac232ce1f",
+  "new_video_downloads": 0,
+  "per_route": 3,
+  "prior_v3_raw_video_exposure": false,
+  "route_counts": {
+    "RELATION_RECURRENT": 3,
+    "TEMPORAL_PAIR_RECURRENT": 3,
+    "TEMPORAL_SINGLE_NONRECURRENT": 3
+  },
+  "sample_count": 9,
+  "samples": [
+    {
+      "oracle_route": "RELATION_RECURRENT",
+      "program_sha256": "6b5e8b5b4806a2f2ca2257b7ade879be4e8dddad695353e92c0a5e0826d576ca",
+      "question_sha256": "689f6e088fa4d8c58f2c2a3838d97d38b59ca7b1c768445c9834d62043f616ed",
+      "rank_sha256": "0a265c4f23feefccfb8fec9cd2b8f91243bd6b6ee9d67c73e999880b05f08d7a",
+      "task_id": "3XL0K-366",
+      "video_bytes": 1197507,
+      "video_id": "3XL0K",
+      "video_path": "/fs/gamma-projects/vlm-robot/datasets/STAR-official/videos/charades/3XL0K.mp4",
+      "video_sha256": "cbaa2f61077c077ef4326f1532d596f901cc2f2da171f7ab3b1fd9022aaf173e"
+    },
+    {
+      "oracle_route": "RELATION_RECURRENT",
+      "program_sha256": "6b5e8b5b4806a2f2ca2257b7ade879be4e8dddad695353e92c0a5e0826d576ca",
+      "question_sha256": "23cd14fcee63271d5ab21f3725498dcdabc28fb4faabfba5db00e9b30884a36f",
+      "rank_sha256": "10576cf6152a3c0ef69c5c5bff55797dc73e3acbe72fbf5cc172deba6f297b63",
+      "task_id": "W7CR5-642",
+      "video_bytes": 2254294,
+      "video_id": "W7CR5",
+      "video_path": "/fs/gamma-projects/vlm-robot/datasets/STAR-official/videos/charades/W7CR5.mp4",
+      "video_sha256": "fa70172648c2671de7e885285bfb1d53c301895b37938aadaef0d54baf0b7380"
+    },
+    {
+      "oracle_route": "RELATION_RECURRENT",
+      "program_sha256": "15eb6f34f68a47222d869700baa4bf7f517cae41420e434b666b0a79e8b0e41a",
+      "question_sha256": "0bfeda6f8754df1c190b21907183c22b0e0b4d3dd8311907af64102e82a5d360",
+      "rank_sha256": "2264530a878ff3219baae46bcd91ffb575827b3ad0778d1a3f1289a1c36f65c1",
+      "task_id": "4U8WV-441",
+      "video_bytes": 1140995,
+      "video_id": "4U8WV",
+      "video_path": "/fs/gamma-projects/vlm-robot/datasets/STAR-official/videos/charades/4U8WV.mp4",
+      "video_sha256": "6ab48d9460e4e9c89a4947c2b5fe2872b3d3ba53e40bd3d93f5aea2de02fc170"
+    },
+    {
+      "oracle_route": "TEMPORAL_PAIR_RECURRENT",
+      "program_sha256": "aea3c11c48e747a7954ecccaed07498136721c69b3c9d181bd23f468319c2c86",
+      "question_sha256": "ad7b94b385ae40a6f80b74812a16af3360896ef3f1dce6c13186680483b2d857",
+      "rank_sha256": "03646c285c9a82853ee16358a52b8f0b0e47c475a2769bf28528180f99292d09",
+      "task_id": "727IZ-28008",
+      "video_bytes": 1162521,
+      "video_id": "727IZ",
+      "video_path": "/fs/gamma-projects/vlm-robot/datasets/STAR-official/videos/charades/727IZ.mp4",
+      "video_sha256": "0765f144433461d4040b80c5bfa8805dfadefd2254aecc82c856d4b987c64239"
+    },
+    {
+      "oracle_route": "TEMPORAL_PAIR_RECURRENT",
+      "program_sha256": "5b64fd63e5fe57bd48db1d677f3213bf54ab47e9d927525438fb4ab6955e2c2f",
+      "question_sha256": "f594aaf325feea3bf57b547a9f640fea6cfcb130cad91ca5c90bb5f8ae54d20d",
+      "rank_sha256": "0cca51d6eb70d86004b0b62f90590fdada883ff51095870b56860ca52885d35c",
+      "task_id": "DGPAW-5868",
+      "video_bytes": 1007880,
+      "video_id": "DGPAW",
+      "video_path": "/fs/gamma-projects/vlm-robot/datasets/STAR-official/videos/charades/DGPAW.mp4",
+      "video_sha256": "e8b8d1ccca09643a446366d79d3a7bc0d339e5829a152b62ebcc7fcde4e76eb7"
+    },
+    {
+      "oracle_route": "TEMPORAL_PAIR_RECURRENT",
+      "program_sha256": "322bf3aa202677a3d2658709a75b75641da0ead05fb8938c97c9b38d36f8d420",
+      "question_sha256": "99ef6e0074c4eb72dcdfac7515c3054f22d396cd0ced1efb6cd152f934df04be",
+      "rank_sha256": "121126a4f127170b56d964acb6b0233bf1a55da0576caed75e982599c7da81a0",
+      "task_id": "M8OYC-11581",
+      "video_bytes": 1290999,
+      "video_id": "M8OYC",
+      "video_path": "/fs/gamma-projects/vlm-robot/datasets/STAR-official/videos/charades/M8OYC.mp4",
+      "video_sha256": "ff07db94e41fe2d93e79bc437d747e2ecd780203189534b690903e098cae2edd"
+    },
+    {
+      "oracle_route": "TEMPORAL_SINGLE_NONRECURRENT",
+      "program_sha256": "08ba0ca7d8075b9aeb8e97cee31abd048ff035f30d3c524389cb60453ee04877",
+      "question_sha256": "5d67bb5e0072ac34cf82a83e65bca3fb50759e370af4482cc7b59d510de574e8",
+      "rank_sha256": "024dfbdae4322150c87d3552602a26a1ab96630b87baf6472bdc164fc5d32492",
+      "task_id": "VIN5T-4556",
+      "video_bytes": 788475,
+      "video_id": "VIN5T",
+      "video_path": "/fs/gamma-projects/vlm-robot/datasets/STAR-official/videos/charades/VIN5T.mp4",
+      "video_sha256": "6797019cf1b54c5f974f882acef9d5d3b7f7cd073904e1ae3652a11c292f29dc"
+    },
+    {
+      "oracle_route": "TEMPORAL_SINGLE_NONRECURRENT",
+      "program_sha256": "9401319a8f991beedd3d52210634cae1227eed39d1f5a185e99ca60c8c4cd838",
+      "question_sha256": "fec8b676aa13d8112d6edfc26967f8c6d31be3be7f3698071b15a64f3794d25c",
+      "rank_sha256": "085a175f2956d8c9e6ad4b61b6f68b5d8bce5b535466c0362a1966138fb1b5c1",
+      "task_id": "NYHD7-2895",
+      "video_bytes": 2625047,
+      "video_id": "NYHD7",
+      "video_path": "/fs/gamma-projects/vlm-robot/datasets/STAR-official/videos/charades/NYHD7.mp4",
+      "video_sha256": "4315fd95750277fb1bcd60e3d8c80861e89724eff3f9cdfdcfd4f115ed813b2c"
+    },
+    {
+      "oracle_route": "TEMPORAL_SINGLE_NONRECURRENT",
+      "program_sha256": "deb1a5be96c5f3b44ee35f3e91941193406956440555fcd2c68fa9e0f5db90a7",
+      "question_sha256": "b58cb20c56b184bf1621a5876e0db6325234d240e144f154d9c6ff432a7b901d",
+      "rank_sha256": "1cfad97208d214c4d2deef5072792c0606a22cc4d9098722c46085beeea20dee",
+      "task_id": "R971Z-13938",
+      "video_bytes": 1588043,
+      "video_id": "R971Z",
+      "video_path": "/fs/gamma-projects/vlm-robot/datasets/STAR-official/videos/charades/R971Z.mp4",
+      "video_sha256": "5bc58c63934b4c18c35963d3832495cef0ff634ebe362a07f4a02df545fe3b1f"
+    }
+  ],
+  "scene_graph_grounding_read_during_freeze": false,
+  "schema_version": "agqa2-active-grounding-manifest-v3",
+  "selection_nonce": "agqa2-active-grounding-raw-video-unseen-reserve-v3",
+  "selection_rule": "EXCLUDE_ALL_V2_DEVELOPMENT_VIDEO_IDS;SHA256_RANK_WITHIN_ORACLE_ROUTE;SCARCE_ROUTE_FIRST;GLOBAL_VIDEO_DISJOINT;NO_ANSWER_OR_SCENE_GRAPH_READ",
+  "split": "reserve",
+  "status": "FROZEN_RAW_VIDEO_UNSEEN_RESERVE_BEFORE_V3_NEURAL_CALLS",
+  "unique_video_count": 9,
+  "video_root": "/fs/gamma-projects/vlm-robot/datasets/STAR-official/videos/charades"
+}

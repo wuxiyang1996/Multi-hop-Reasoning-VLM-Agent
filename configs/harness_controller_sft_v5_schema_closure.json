@@ -1,0 +1,54 @@
+{
+  "schema_version": "harness-controller-sft-build-v5-schema-closure",
+  "program_root": "configs/phase3_source_function_v4/frozen_reserve/programs",
+  "development_rows_root": "runs/phase3_source_confirmation_v1",
+  "fresh_reserve_rows_root": "runs/phase3_source_function_v4_reserve",
+  "augment_retry_equivariance": true,
+  "augment_cardinality_equivariance": true,
+  "augment_missing_schema_all_cardinalities": true,
+  "cardinality_grid": [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+  "families": {
+    "candy_crush": {"primary_horizon": 16, "split": "train"},
+    "gymv_columns": {"primary_horizon": 50, "split": "validation"},
+    "gymv_streets_of_rage_2": {"primary_horizon": 50, "split": "train"},
+    "gymv_strider": {"primary_horizon": 22, "split": "train"},
+    "gymv_thunder_force_iii": {
+      "primary_horizon": 23,
+      "rows_root": "runs/phase3_typed_effect_source_reserve_v2",
+      "split": "source_held_out"
+    },
+    "tetris": {"primary_horizon": 16, "split": "train"}
+  },
+  "split_policy": {
+    "kind": "WHOLE_SOURCE_FAMILY_HELD_OUT_WITH_ARITY_AND_SCHEMA_GRID",
+    "train_rows": "development_rows_root",
+    "validation_rows": "fresh_reserve_rows_root",
+    "source_held_out_rows": "gymv_thunder_force_iii frozen reserve",
+    "target_rows": 0
+  },
+  "controls": [
+    "DETERMINISTIC_EFFECT_BINDING_SHUFFLE",
+    "NONUNIQUE_ARGMAX_CONTROL",
+    "SINGLETON_CANDIDATE_CONTROL",
+    "MISSING_TYPED_EFFECT_CONTROL",
+    "PROGRAM_TRIAL_BUDGET",
+    "PROGRAM_GRAPH_EDGE",
+    "ALPHA_RENAMED_RETRY_LEDGER",
+    "DOMINATED_EXTENSION_RETRY_LEDGER",
+    "CARDINALITY_EQUIVARIANT_SOURCE_EXECUTION",
+    "CARDINALITY_EQUIVARIANT_EFFECT_ROTATION",
+    "CARDINALITY_EQUIVARIANT_TIED_CONTROL",
+    "CARDINALITY_EQUIVARIANT_MISSING_SCHEMA_CONTROL",
+    "CARDINALITY_EQUIVARIANT_SINGLETON_BOUNDARY"
+  ],
+  "cardinality_induction": {
+    "kind": "SOURCE_PROGRAM_SYMMETRY_CLOSURE",
+    "subsets": "retain the source-program ranked prefix and alpha-rename opaque candidate IDs",
+    "extensions": "append only zero-effect dominated candidates",
+    "labels": "recompute every decision, binding, reason, and next state with the frozen source executor",
+    "matched_boundary_controls": "for every arity 2 through 12 add one missing-effect-schema control; retain tied controls at arities 2 and 3 and the singleton boundary at arity 2",
+    "target_candidate_counts_read": false,
+    "target_examples_read": false
+  },
+  "claim_boundary": "SOURCE_ONLY_CONTROLLER_SFT_V5_CARDINALITY_AND_SCHEMA_CLOSURE;ARITY_2_TO_12_FROM_SOURCE_PROGRAM_SYMMETRIES;MISSING_EFFECT_SCHEMA_AT_EVERY_ARITY;NO_TARGET_DATA;NO_NATIVE_ACTIONS;NO_HAND_AUTHORED_TARGET_LABELS"
+}

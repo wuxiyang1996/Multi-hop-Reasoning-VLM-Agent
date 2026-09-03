@@ -1,0 +1,99 @@
+{
+  "family_counts": {
+    "look_at_obj_in_light": {
+      "available": 308,
+      "selected_train": 6,
+      "selected_validation": 2
+    },
+    "pick_and_place_simple": {
+      "available": 790,
+      "selected_train": 6,
+      "selected_validation": 2
+    },
+    "pick_clean_then_place_in_recep": {
+      "available": 650,
+      "selected_train": 6,
+      "selected_validation": 2
+    },
+    "pick_cool_then_place_in_recep": {
+      "available": 533,
+      "selected_train": 6,
+      "selected_validation": 2
+    },
+    "pick_heat_then_place_in_recep": {
+      "available": 459,
+      "selected_train": 6,
+      "selected_validation": 2
+    },
+    "pick_two_obj_and_place": {
+      "available": 813,
+      "selected_train": 6,
+      "selected_validation": 2
+    }
+  },
+  "per_family": 8,
+  "qualification_or_heldout_read": false,
+  "rank_function": "sha256(seed, task_family, relative_game_path)",
+  "schema_version": "alfworld-v2-outcome-blind-pool-v1",
+  "seed": 88401,
+  "selection_authority": "TRAIN_PATH_NAMES_ONLY",
+  "selection_used_file_contents": false,
+  "selection_used_rollout_outcomes": false,
+  "splits": {
+    "adaptation_train": [
+      "pick_and_place_simple-Plate-None-Dresser-218/trial_T20190907_013508_041432/game.tw-pddl",
+      "pick_and_place_simple-Book-None-Cabinet-310/trial_T20190908_154222_896076/game.tw-pddl",
+      "pick_and_place_simple-Candle-None-Cart-401/trial_T20190909_081855_856149/game.tw-pddl",
+      "pick_and_place_simple-SprayBottle-None-Toilet-420/trial_T20190909_113816_097874/game.tw-pddl",
+      "pick_and_place_simple-Cloth-None-CounterTop-414/trial_T20190909_065011_738215/game.tw-pddl",
+      "pick_and_place_simple-CD-None-Shelf-326/trial_T20190908_050350_303115/game.tw-pddl",
+      "pick_two_obj_and_place-Lettuce-None-Fridge-27/trial_T20190907_212302_910644/game.tw-pddl",
+      "pick_two_obj_and_place-Cup-None-Shelf-1/trial_T20190908_015321_582840/game.tw-pddl",
+      "pick_two_obj_and_place-Candle-None-Cabinet-412/trial_T20190908_222933_552183/game.tw-pddl",
+      "pick_two_obj_and_place-CreditCard-None-ArmChair-214/trial_T20190909_033000_959343/game.tw-pddl",
+      "pick_two_obj_and_place-ToiletPaper-None-Cabinet-417/trial_T20190909_115038_213553/game.tw-pddl",
+      "pick_two_obj_and_place-ToiletPaper-None-Toilet-429/trial_T20190909_031718_783966/game.tw-pddl",
+      "pick_clean_then_place_in_recep-SoapBar-None-GarbageCan-420/trial_T20190906_201023_015139/game.tw-pddl",
+      "pick_clean_then_place_in_recep-Cloth-None-Toilet-411/trial_T20190908_011620_868206/game.tw-pddl",
+      "pick_clean_then_place_in_recep-Pan-None-Fridge-13/trial_T20190908_084127_538881/game.tw-pddl",
+      "pick_clean_then_place_in_recep-Cloth-None-Cart-430/trial_T20190906_194203_696787/game.tw-pddl",
+      "pick_clean_then_place_in_recep-Ladle-None-Cabinet-20/trial_T20190907_195135_687248/game.tw-pddl",
+      "pick_clean_then_place_in_recep-DishSponge-None-Toilet-427/trial_T20190908_234137_732626/game.tw-pddl",
+      "pick_heat_then_place_in_recep-Egg-None-Fridge-20/trial_T20190907_224620_688915/game.tw-pddl",
+      "pick_heat_then_place_in_recep-Cup-None-CounterTop-22/trial_T20190909_023638_397924/game.tw-pddl",
+      "pick_heat_then_place_in_recep-Tomato-None-GarbageCan-2/trial_T20190908_111837_382989/game.tw-pddl",
+      "pick_heat_then_place_in_recep-Bread-None-DiningTable-15/trial_T20190907_030821_134146/game.tw-pddl",
+      "pick_heat_then_place_in_recep-Egg-None-Fridge-4/trial_T20190908_220801_550894/game.tw-pddl",
+      "pick_heat_then_place_in_recep-Mug-None-CoffeeMachine-26/trial_T20190907_113552_080857/game.tw-pddl",
+      "pick_cool_then_place_in_recep-Bowl-None-Microwave-25/trial_T20190906_180204_213411/game.tw-pddl",
+      "pick_cool_then_place_in_recep-Egg-None-Microwave-5/trial_T20190908_005812_214691/game.tw-pddl",
+      "pick_cool_then_place_in_recep-Plate-None-Microwave-7/trial_T20190909_130643_778745/game.tw-pddl",
+      "pick_cool_then_place_in_recep-Potato-None-Microwave-18/trial_T20190909_152047_812506/game.tw-pddl",
+      "pick_cool_then_place_in_recep-Egg-None-Microwave-5/trial_T20190908_005703_215661/game.tw-pddl",
+      "pick_cool_then_place_in_recep-Tomato-None-Microwave-17/trial_T20190912_065413_070433/game.tw-pddl",
+      "look_at_obj_in_light-CD-None-DeskLamp-319/trial_T20190909_123058_970211/game.tw-pddl",
+      "look_at_obj_in_light-Mug-None-DeskLamp-323/trial_T20190907_041056_308386/game.tw-pddl",
+      "look_at_obj_in_light-KeyChain-None-DeskLamp-309/trial_T20190909_094219_644881/game.tw-pddl",
+      "look_at_obj_in_light-CD-None-DeskLamp-302/trial_T20190907_154604_364291/game.tw-pddl",
+      "look_at_obj_in_light-CD-None-DeskLamp-316/trial_T20190909_114536_775689/game.tw-pddl",
+      "look_at_obj_in_light-CD-None-DeskLamp-306/trial_T20190906_221709_218020/game.tw-pddl"
+    ],
+    "adaptation_validation": [
+      "pick_and_place_simple-Laptop-None-Ottoman-203/trial_T20190908_110606_176017/game.tw-pddl",
+      "pick_and_place_simple-Pan-None-CounterTop-8/trial_T20190908_105520_133293/game.tw-pddl",
+      "pick_two_obj_and_place-SprayBottle-None-GarbageCan-420/trial_T20190909_141746_420846/game.tw-pddl",
+      "pick_two_obj_and_place-Mug-None-Cabinet-318/trial_T20190907_222852_159147/game.tw-pddl",
+      "pick_clean_then_place_in_recep-SoapBar-None-Cabinet-403/trial_T20190906_161918_796066/game.tw-pddl",
+      "pick_clean_then_place_in_recep-Ladle-None-Drawer-16/trial_T20190909_024553_470193/game.tw-pddl",
+      "pick_heat_then_place_in_recep-Cup-None-CounterTop-17/trial_T20190908_130923_081236/game.tw-pddl",
+      "pick_heat_then_place_in_recep-Potato-None-CounterTop-19/trial_T20190909_152158_373637/game.tw-pddl",
+      "pick_cool_then_place_in_recep-Mug-None-Cabinet-22/trial_T20190908_144232_130522/game.tw-pddl",
+      "pick_cool_then_place_in_recep-Bowl-None-Microwave-7/trial_T20190908_231310_981246/game.tw-pddl",
+      "look_at_obj_in_light-Pen-None-DeskLamp-327/trial_T20190909_085506_003852/game.tw-pddl",
+      "look_at_obj_in_light-Mug-None-DeskLamp-301/trial_T20190908_155916_103990/game.tw-pddl"
+    ]
+  },
+  "status": "FROZEN_BEFORE_COLLECTION",
+  "train_root": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-github-main/.cache/alfworld_data/json_2.1.1/train",
+  "validation_per_family": 2
+}

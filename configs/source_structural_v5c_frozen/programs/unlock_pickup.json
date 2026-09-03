@@ -1,0 +1,227 @@
+{
+  "abstention_rule": {
+    "missing_target_delta_prediction": "ABSTAIN",
+    "nonunique_target_operator_binding": "ABSTAIN",
+    "observed_delta_mismatch": "ABSTAIN",
+    "source_not_qualified": "ABSTAIN"
+  },
+  "forbidden_named_policy_tokens": [
+    "EXPLORE_UNTRIED",
+    "BACKTRACK_REPLAN",
+    "COMMIT_VERIFY"
+  ],
+  "induced_sequence": [
+    "ATYPE_3c9d9c20ed4abeb6",
+    "ATYPE_18eeebf1cd0ef26f",
+    "ATYPE_e2afbbc8aa7f4ef0",
+    "ATYPE_3c9d9c20ed4abeb6"
+  ],
+  "induction_authority": "SOURCE_STATE_ACTION_NEXT_STATE_DELTAS_ONLY;NO_TASK_OR_ACTION_IDENTITY_FEATURE;NO_TARGET_DATA",
+  "operators": [
+    {
+      "learned_guards": [
+        {
+          "feature": "carrier_cardinality",
+          "operator": "EQ",
+          "value": 0
+        },
+        {
+          "feature": "entity_cardinality",
+          "operator": "EQ",
+          "value": 3
+        },
+        {
+          "feature": "mutable_false_cardinality",
+          "operator": "EQ",
+          "value": 1
+        },
+        {
+          "feature": "mutable_true_cardinality",
+          "operator": "EQ",
+          "value": 1
+        },
+        {
+          "feature": "relation_cardinality",
+          "operator": "EQ",
+          "value": 0
+        }
+      ],
+      "operator_id": "OP_83b3a38c348c8874",
+      "operator_type_descriptor": {
+        "arity": 1,
+        "operation": "ADD",
+        "operator_type_id": "ATYPE_3c9d9c20ed4abeb6",
+        "predicate_family": "ENTITY_SLOT",
+        "schema_version": "anonymous-structural-operator-type-v1",
+        "value_kind": "ENTITY_REFERENCE"
+      },
+      "operator_type_id": "ATYPE_3c9d9c20ed4abeb6",
+      "position": 0,
+      "target_binding": "TARGET_NATIVE_NEURAL_DELTA_GROUNDER"
+    },
+    {
+      "learned_guards": [
+        {
+          "feature": "carrier_cardinality",
+          "operator": "EQ",
+          "value": 1
+        },
+        {
+          "feature": "entity_cardinality",
+          "operator": "EQ",
+          "value": 2
+        },
+        {
+          "feature": "mutable_false_cardinality",
+          "operator": "EQ",
+          "value": 1
+        },
+        {
+          "feature": "mutable_true_cardinality",
+          "operator": "EQ",
+          "value": 1
+        },
+        {
+          "feature": "relation_cardinality",
+          "operator": "EQ",
+          "value": 0
+        }
+      ],
+      "operator_id": "OP_90f13a6ca8776af9",
+      "operator_type_descriptor": {
+        "arity": 1,
+        "operation": "UPDATE",
+        "operator_type_id": "ATYPE_18eeebf1cd0ef26f",
+        "predicate_family": "ENTITY_ATTRIBUTE",
+        "schema_version": "anonymous-structural-operator-type-v1",
+        "value_kind": "BOOLEAN_VECTOR"
+      },
+      "operator_type_id": "ATYPE_18eeebf1cd0ef26f",
+      "position": 1,
+      "target_binding": "TARGET_NATIVE_NEURAL_DELTA_GROUNDER"
+    },
+    {
+      "learned_guards": [
+        {
+          "feature": "carrier_cardinality",
+          "operator": "EQ",
+          "value": 1
+        },
+        {
+          "feature": "entity_cardinality",
+          "operator": "EQ",
+          "value": 2
+        },
+        {
+          "feature": "mutable_false_cardinality",
+          "operator": "EQ",
+          "value": 1
+        },
+        {
+          "feature": "mutable_true_cardinality",
+          "operator": "EQ",
+          "value": 1
+        },
+        {
+          "feature": "relation_cardinality",
+          "operator": "EQ",
+          "value": 0
+        }
+      ],
+      "operator_id": "OP_36abf41ea2f5bc78",
+      "operator_type_descriptor": {
+        "arity": 1,
+        "operation": "REMOVE",
+        "operator_type_id": "ATYPE_e2afbbc8aa7f4ef0",
+        "predicate_family": "ENTITY_SLOT",
+        "schema_version": "anonymous-structural-operator-type-v1",
+        "value_kind": "ENTITY_REFERENCE"
+      },
+      "operator_type_id": "ATYPE_e2afbbc8aa7f4ef0",
+      "position": 2,
+      "target_binding": "TARGET_NATIVE_NEURAL_DELTA_GROUNDER"
+    },
+    {
+      "learned_guards": [
+        {
+          "feature": "carrier_cardinality",
+          "operator": "EQ",
+          "value": 0
+        },
+        {
+          "feature": "entity_cardinality",
+          "operator": "EQ",
+          "value": 3
+        },
+        {
+          "feature": "mutable_false_cardinality",
+          "operator": "EQ",
+          "value": 1
+        },
+        {
+          "feature": "mutable_true_cardinality",
+          "operator": "EQ",
+          "value": 1
+        },
+        {
+          "feature": "relation_cardinality",
+          "operator": "EQ",
+          "value": 0
+        }
+      ],
+      "operator_id": "OP_80934db099c424d7",
+      "operator_type_descriptor": {
+        "arity": 1,
+        "operation": "ADD",
+        "operator_type_id": "ATYPE_3c9d9c20ed4abeb6",
+        "predicate_family": "ENTITY_SLOT",
+        "schema_version": "anonymous-structural-operator-type-v1",
+        "value_kind": "ENTITY_REFERENCE"
+      },
+      "operator_type_id": "ATYPE_3c9d9c20ed4abeb6",
+      "position": 3,
+      "target_binding": "TARGET_NATIVE_NEURAL_DELTA_GROUNDER"
+    }
+  ],
+  "program_sha256": "6635161e8a514a2f2a72a3391f46ef0d6d30a461c696bf748e3942b25e9a543a",
+  "qualification_gates": {
+    "minimum_discovery_success_paths": true,
+    "nonempty_induced_operator_sequence": true,
+    "qualification_success_support": true
+  },
+  "qualification_metrics": {
+    "control_paths": 8,
+    "control_support": 0.0,
+    "control_support_authority": "DIAGNOSTIC_ONLY;A_NECESSARY_SUBGOAL_PROGRAM_MAY_APPEAR_IN_AN_UNFINISHED_CONTROL_PATH",
+    "success_paths": 4,
+    "success_support": 1.0
+  },
+  "schema_version": "source-induced-structural-program-v1",
+  "source_action_identity_exported": false,
+  "source_receipts_sha256": "6720d91eab248952febfed4994baed92671d974f5601d74247c3e42d247df1a3",
+  "source_task_identity_used_as_feature": false,
+  "status": "SOURCE_STRUCTURAL_PROGRAM_QUALIFIED",
+  "target_data_read": false,
+  "transition_graph": [
+    {
+      "from": "OP_83b3a38c348c8874",
+      "guard": "OBSERVED_MATCHING_STRUCTURAL_DELTA",
+      "to": "OP_90f13a6ca8776af9"
+    },
+    {
+      "from": "OP_90f13a6ca8776af9",
+      "guard": "OBSERVED_MATCHING_STRUCTURAL_DELTA",
+      "to": "OP_36abf41ea2f5bc78"
+    },
+    {
+      "from": "OP_36abf41ea2f5bc78",
+      "guard": "OBSERVED_MATCHING_STRUCTURAL_DELTA",
+      "to": "OP_80934db099c424d7"
+    },
+    {
+      "from": "OP_80934db099c424d7",
+      "guard": "OBSERVED_MATCHING_STRUCTURAL_DELTA",
+      "to": "TERMINAL_OUTCOME_CHECK"
+    }
+  ]
+}

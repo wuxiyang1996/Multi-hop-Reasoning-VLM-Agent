@@ -1,0 +1,25 @@
+{
+  "schema_version": "agqa2-qwen235-fresh-reserve-preregistration-v1",
+  "status": "FROZEN_BEFORE_ANY_V65_PROVIDER_OR_OUTCOME_CALL",
+  "selection_file_sha256": "93a238ec50c4547ed14320a63facef9276a3bb39da53d277d3bc5ce6517f2541",
+  "selection_manifest_sha256": "0332f2d333fe81d2b80428bf39a2b9881f39e79923dd07642d8bf1b1b07585a1",
+  "download_receipt_file_sha256": "41edd1a3d492219ac1f9e46de7b4a215181a94680ffa1d854052fab71e5287ad",
+  "authorizer_freeze_file_sha256": "a317469297e00fff1a9f126311f2609679bb683272059df056321e031e90a53a",
+  "sample_count": 30,
+  "unique_video_count": 30,
+  "model_id": "qwen/qwen3-vl-235b-a22b-instruct",
+  "matched_arms": ["neural_only_direct", "source_induced_selective", "source_permuted_abstention", "target_written_equivalent"],
+  "primary_endpoint": "source_induced_selective_minus_neural_only_exact_correct",
+  "gates": {
+    "minimum_authorized": 8,
+    "minimum_wins": 2,
+    "maximum_losses": 0,
+    "minimum_net_gain": 2,
+    "required_route_accuracy": 1.0,
+    "required_source_permuted_abstention_rate": 1.0,
+    "required_target_written_equivalent_rate": 1.0,
+    "maximum_reported_provider_cost_usd": 0.5
+  },
+  "claim_boundary": "30_PREVIOUSLY_RUNTIME_UNEXPOSED_OFFICIAL_TEST_VIDEOS;ONE_EXISTS_TASK_PER_VIDEO;SELECTIVE_APPLICABILITY_CLASS_ONLY;NOT_FULL_AGQA_DISTRIBUTION_OR_SOTA",
+  "forbidden": ["changing_authorizer_after_outcomes", "target_training", "runtime_answer_access", "runtime_program_access", "runtime_scene_graph_access"]
+}

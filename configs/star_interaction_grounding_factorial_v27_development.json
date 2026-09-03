@@ -1,0 +1,78 @@
+{
+  "schema_version": 27,
+  "status": "FROZEN_BEFORE_V27_FACTORIAL_OUTCOMES",
+  "claim_boundary": "Consumed-development-only 2x2 factorial testing target-native grounding view (uniform 24 frames versus wrapper-selected 12 adjacent BEFORE/AFTER pairs using the same 24 proxy frames) and source-symbolic execution (same-model direct commitment versus real Sokoban REFUTED -> REPLAN). Every condition uses openai/gpt-4.1-mini through OpenRouter. Within each evidence view, direct and typed-proof branches receive identical panels and one neural call each. The active view executes detect_scene_changes and compare_frames without stubs; four transition anchors are uniform and eight are selected by outcome-blind pixel change. Gold and official structures are unavailable until four neural calls, two source executions, and four destructive controls are immutable. This run can diagnose and select but cannot confirm transfer; fresh videos remain sealed.",
+  "source_receipt": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/docs/results/sokoban_effect_program_v2_compact_receipt.json",
+  "input_v25_receipts": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/star_interaction_qwen_v25_development/receipts.json",
+  "expected_rows": 128,
+  "expected_clusters": 64,
+  "wrapper_root": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent",
+  "benchmark": {
+    "root": "/fs/gamma-projects/vlm-robot/datasets/STAR-official",
+    "split": "val",
+    "family": "Interaction"
+  },
+  "model": {
+    "provider": "openrouter",
+    "api_key_name": "OPENROUTER_API_KEY",
+    "id": "openai/gpt-4.1-mini",
+    "base_url": "https://openrouter.ai/api/v1",
+    "timeout_seconds": 180,
+    "max_retries": 1,
+    "schema_retries": 3,
+    "max_tokens": 1600,
+    "max_proof_tokens": 2400
+  },
+  "media": {
+    "primary_frame_count": 12,
+    "proof_frame_count": 24,
+    "proof_frames_per_panel": 12,
+    "proxy_frame_max_side": 720,
+    "primary_frame_width": 224,
+    "proof_frame_width": 192,
+    "jpeg_quality": 88,
+    "transition_pair_count": 12,
+    "uniform_anchor_pair_count": 4,
+    "scene_change_threshold": 0.0
+  },
+  "grounding_contract": {
+    "protocol": "DETECT_CHANGE_THEN_COMPARE_BEFORE_AFTER_V1",
+    "required_tools": [
+      "detect_scene_changes",
+      "compare_frames"
+    ],
+    "proxy_frame_count": 24,
+    "same_frame_slot_budget_per_view": 24,
+    "same_neural_call_budget_per_branch": 1,
+    "silent_stub_allowed": false
+  },
+  "development_advancement_gates": {
+    "active_source_minimum_net_wins_vs_active_direct": 1,
+    "active_source_maximum_exact_two_sided_p": 0.1,
+    "active_source_cluster_bootstrap_lower_must_exceed": 0.0,
+    "active_source_strictly_above_raw_typed_proof": true,
+    "active_source_strictly_above_binding_control": true,
+    "active_source_strictly_above_topology_control": true,
+    "minimum_active_by_source_interaction_net_wins": 1,
+    "active_direct_minimum_net_wins_vs_uniform_direct": 0
+  },
+  "cluster_bootstrap": {
+    "resamples": 20000,
+    "seed": 27143,
+    "primary_independence_unit": "video_id"
+  },
+  "frozen_lineage": {
+    "source_receipt_sha256": "8f175c0edda951eba2064e9c53a8db6a25cdfa9fb0de8049d371dbf5335c9e80",
+    "input_v25_receipts_sha256": "4793cc7342bdabfb7f4c61bf81a7960936d3a5837cfb777bee2f03c504c12df9",
+    "collector_sha256": "538c6ed78c02e18cdc0ff52087cf58346559b44d6d2a40981059b27d6febcc85",
+    "active_collector_sha256": "2da80d912f9b74f757e9739ab54baea498120410c71d495f6145a9714eccfba9",
+    "v24_collector_sha256": "c3248baff7a51a8084cd8a2e34a21541f9d3b4a192c7a89e24ed03d77ea5249a",
+    "paired_collector_sha256": "1a2cba5619aee6a767cf73bcbaa7044594911f5c5903ef65ae98e6e62921bee1",
+    "generic_collector_sha256": "2566c89492c43e9dfe366aa49f6c1de63ed53a5c5f7b330f009ef77ab64acf46",
+    "transport_module_sha256": "2675beb07d86fe31124c9588b4dde61ff86c1915b31dd829e57f90b8c058f335",
+    "symbolic_executor_sha256": "167b6ad313440615531d2f023b474ef70999c0de635768215458222d17f31294",
+    "wrapper_bridge_sha256": "18c6e36ef8cffd7ce0531728459af14593905823d39d27b63985d6b68de1a522",
+    "wrapper_tools_video_sha256": "7081106cd7925abba1e9aed9cfced326124b7052e28c411f5c24b70a1e8fa1fc",
+    "analyzer_sha256": "a28a895ae693cad967a4f54bf5550c3f2c3142457ee3c67ac1f38eae2e48ef35"
+  }
+}

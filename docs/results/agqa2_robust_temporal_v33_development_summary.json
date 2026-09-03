@@ -1,0 +1,46 @@
+{
+  "confirmatory_claim": false,
+  "development_report_file_sha256": "28a6aa87915f3e03cd0a4a420b344d5c96afe9ca752514741b30ec12bff44ed9",
+  "development_report_sha256": "0b054fb68a17b765eecd1c3842e3d15cee326b065d300d47895d2bcc87c05d06",
+  "future_route_calibration": {
+    "decision": "SELECT_SKILL",
+    "losses": 0,
+    "posterior_lower_win_probability": 0.5492802716530589,
+    "reason": "POSTERIOR_DIRECTIONAL_UTILITY_LOWER_BOUND_POSITIVE",
+    "ties": 31,
+    "wins": 4
+  },
+  "grounder_qualified": true,
+  "grounder_sha256": "b7b9c21142a91582edc67a31e87f8e96e7ec407d4a8ebc2334434626b09ef40a",
+  "postground_target_grounder_sha256": "2aa91116771c459c61a33764c83086e0f49eee8936914fc50d8a8a0940adaf5c",
+  "provider_calls": 0,
+  "qualification_gates": {
+    "current_outcome_never_used_for_authorization": true,
+    "effect_shuffled_always_abstains": true,
+    "future_directional_utility_calibrated": true,
+    "minimum_four_source_wins": true,
+    "minimum_twelve_structural_authorizations": true,
+    "required_35_consumed_temporal_pair_rows": true,
+    "runtime_integrity_qualified": true,
+    "source_matches_generic_scaffold": true,
+    "source_matches_target_written_equivalent": true,
+    "unified_harness_matches_frozen_structural_candidates": true,
+    "wrong_source_type_always_abstains": true,
+    "zero_source_losses": true
+  },
+  "reported_provider_cost_usd": 0.0,
+  "rows": 35,
+  "schema_version": "agqa2-robust-temporal-v33-development-summary-v1",
+  "source_authorizations": 12,
+  "source_program_sha256": "cc5f177fd54a2f17ccaa688ea1ecf6d0ae2395554a97a921563e70c32721601d",
+  "source_vs_target_native": {
+    "left_correct": 26,
+    "left_minus_right_correct": 4,
+    "losses": 0,
+    "right_correct": 22,
+    "ties": 31,
+    "wins": 4
+  },
+  "status": "AGQA2_ROBUST_TEMPORAL_V33_DEVELOPMENT_QUALIFIED",
+  "summary_sha256": "50cae5b489da16656a87b13410f86b91be93fb8be62e71cda3b9b0b2248d77ab"
+}

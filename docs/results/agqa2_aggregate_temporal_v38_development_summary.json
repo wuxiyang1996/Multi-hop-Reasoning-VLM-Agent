@@ -1,0 +1,40 @@
+{
+  "confirmatory_claim": false,
+  "development_report_file_sha256": "e255991d74c6e764392a69bd2e9ab70cfe786361acb3f4e55eca7711ed64b972",
+  "development_report_sha256": "f30d4580bdbe67c5677ed3ad601c000cfb1c595e65490fbdb2b2bf6a21ba89a5",
+  "grounder_qualified": true,
+  "grounder_sha256": "6c617dd0847f132257dcdc2d584511bdd1b00a87c68190dbbc6ff453ccc27e7f",
+  "method_selected_after_v37_development_outcome_access": true,
+  "postground_target_grounder_sha256": "22b1d6c7b6cf42806ce7813f118d1a5fe59269686059d09dcd64cb01e7ffbb54",
+  "qualification_gates": {
+    "current_outcome_never_used_for_authorization": true,
+    "maximum_exact_one_sided_pvalue": true,
+    "maximum_reported_provider_cost_usd": true,
+    "maximum_source_losses": true,
+    "minimum_source_authorizations": true,
+    "minimum_source_minus_target_correct": true,
+    "minimum_source_wins": true,
+    "required_effect_shuffled_abstentions": true,
+    "required_generic_scaffold_matches": true,
+    "required_target_written_equivalent_matches": true,
+    "required_unique_videos": true,
+    "required_valid_rows": true,
+    "required_wrong_source_abstentions": true,
+    "runtime_integrity_qualified": true
+  },
+  "rows": 100,
+  "schema_version": "agqa2-aggregate-temporal-v38-development-summary-v1",
+  "source_executor_authorizations": 42,
+  "source_program_sha256": "cc5f177fd54a2f17ccaa688ea1ecf6d0ae2395554a97a921563e70c32721601d",
+  "source_vs_target_native": {
+    "exact_one_sided_pvalue": 0.005859375,
+    "left_correct": 76,
+    "left_minus_right_correct": 9,
+    "losses": 1,
+    "right_correct": 67,
+    "ties": 89,
+    "wins": 10
+  },
+  "status": "AGQA2_AGGREGATE_TEMPORAL_V38_DEVELOPMENT_METHOD_SELECTED",
+  "summary_sha256": "44a58393fdf0d90be37c2aa9af6e99c818b65f993989102b125a10cadebc9f2c"
+}

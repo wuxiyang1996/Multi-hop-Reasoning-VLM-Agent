@@ -1,0 +1,1023 @@
+{
+  "schema_version": "webshop-structural-v18-reserve-v1",
+  "artifact_role": "MATCHED_TRANSPORT_OPTION_RELATION_WEBSHOP_V18_RESERVE",
+  "status": "FROZEN_BEFORE_ANY_V18_PROVIDER_CALL_OR_OUTCOME",
+  "claim_boundary": "Native synthetic relation goals, unique ASIN/semantics, disjoint from human, V14, and consumed/invalid V17 goals. Exact-query result ordering is replayed across matched arms.",
+  "goal_seed": 719,
+  "server_goal_count": 6910,
+  "number_of_registered_tasks_required": 333,
+  "roles": {
+    "transport_qualification": [
+      {
+        "task_id": "webshop.8",
+        "server_goal_index": 8,
+        "asin": "B09S6LZYHQ",
+        "instruction_text": "Find me women's swimsuits & cover ups with tummy control for teen girls with color: pink, and size: small, and price lower than 40.00 dollars",
+        "goal": {
+          "asin": "B09S6LZYHQ",
+          "category": "fashion",
+          "query": "women's swimsuits & cover ups",
+          "name": "One Piece Swimsuit for Women Halter Cut Out Bathing Suit Sexy Criss Cross Swimwear Backless Tie Dye Monokini Beachwear",
+          "product_category": "Clothing, Shoes & Jewelry › Women › Clothing › Swimsuits & Cover Ups › One-Pieces",
+          "instruction_text": "Find me women's swimsuits & cover ups with tummy control for teen girls with color: pink, and size: small, and price lower than 40.00 dollars",
+          "attributes": [
+            "tummy control",
+            "teen girls"
+          ],
+          "price_upper": 40.0,
+          "goal_options": {
+            "color": "pink",
+            "size": "small"
+          },
+          "weight": 0.0048203267824497254
+        },
+        "goal_sha256": "5569aa83545282fe6838df24f910eed8eb555f9549b966b816aad9ef86b0462b"
+      },
+      {
+        "task_id": "webshop.28",
+        "server_goal_index": 28,
+        "asin": "B09CQ45ZRB",
+        "instruction_text": "Find me non slip desks for living room with color: snowmangoo0240, and size: 19.7x31.5in+19.7x47.2in, and price lower than 50.00 dollars",
+        "goal": {
+          "asin": "B09CQ45ZRB",
+          "category": "garden",
+          "query": "desks",
+          "name": "Merry Christmas Kitchen Mat 2 PCS Cushioned Anti Fatigue Kitchen Runner Rugs Truck with Xmas Tree Red and Black Buffalo Plaid Comfort Standing Desk Mat for Office Floor Mat 19.7\"x31.5\"+19.7\"x47.2\"",
+          "product_category": "Home & Kitchen › Kitchen & Dining › Kitchen Utensils & Gadgets › Kitchen Accessories › Comfort Mats",
+          "instruction_text": "Find me non slip desks for living room with color: snowmangoo0240, and size: 19.7x31.5in+19.7x47.2in, and price lower than 50.00 dollars",
+          "attributes": [
+            "non slip",
+            "living room"
+          ],
+          "price_upper": 50.0,
+          "goal_options": {
+            "color": "snowmangoo0240",
+            "size": "19.7x31.5in+19.7x47.2in"
+          },
+          "weight": 0.0017171984252893823
+        },
+        "goal_sha256": "e07d436b27f5a12291dcf8d08e40b18d5e480ab0be9ee88ad00840b5b58f116e"
+      },
+      {
+        "task_id": "webshop.46",
+        "server_goal_index": 46,
+        "asin": "B08Q43LJKJ",
+        "instruction_text": "Find me fleece lined women's pants with long sleeve for teen girls with color: gray, and size: 4x-large, and price lower than 60.00 dollars",
+        "goal": {
+          "asin": "B08Q43LJKJ",
+          "category": "fashion",
+          "query": "women's pants",
+          "name": "Womens Winter Plus Velvet Thick Lamb Velvet Leggings Trousers High-Waisted Leggings Warm Pants",
+          "product_category": "Clothing, Shoes & Jewelry › Novelty & More › Clothing › Novelty › Women › Leggings",
+          "instruction_text": "Find me fleece lined women's pants with long sleeve for teen girls with color: gray, and size: 4x-large, and price lower than 60.00 dollars",
+          "attributes": [
+            "fleece lined",
+            "long sleeve",
+            "teen girls"
+          ],
+          "price_upper": 60.0,
+          "goal_options": {
+            "color": "gray",
+            "size": "4x-large"
+          },
+          "weight": 0.013165501244416539
+        },
+        "goal_sha256": "ffc3bb14cadd2126f35b7d792a0b449071a5845c436fc8d17e112c28a5a6e135"
+      },
+      {
+        "task_id": "webshop.58",
+        "server_goal_index": 58,
+        "asin": "B09CDK9Q6Y",
+        "instruction_text": "Find me hand wash, machine wash women's dresses with quality polyester, long sleeve with color: black, and size: large, and price lower than 60.00 dollars",
+        "goal": {
+          "asin": "B09CDK9Q6Y",
+          "category": "fashion",
+          "query": "women's dresses",
+          "name": "Halfword Women's One Shoulder Bodycon Dress Sexy Cut Out Club Cocktail Wedding Mini Dress",
+          "product_category": "Clothing, Shoes & Jewelry › Women › Clothing › Dresses",
+          "instruction_text": "Find me hand wash, machine wash women's dresses with quality polyester, long sleeve with color: black, and size: large, and price lower than 60.00 dollars",
+          "attributes": [
+            "hand wash",
+            "machine wash",
+            "quality polyester",
+            "long sleeve"
+          ],
+          "price_upper": 60.0,
+          "goal_options": {
+            "color": "black",
+            "size": "large"
+          },
+          "weight": 0.009589520131835307
+        },
+        "goal_sha256": "8ab8ab65602feeb594495090638fadfa42874c2f84fad5d26c80b42024a4c60c"
+      }
+    ],
+    "formal_reserve": [
+      {
+        "task_id": "webshop.59",
+        "server_goal_index": 59,
+        "asin": "B09QKJHF4Q",
+        "instruction_text": "Find me day comfort, anti slip, non slip women's oxfords with high heel, closed toe, ankle strap, memory foam, rubber sole with color: black, and size: 9, and price lower than 50.00 dollars",
+        "goal": {
+          "asin": "B09QKJHF4Q",
+          "category": "fashion",
+          "query": "women's oxfords",
+          "name": "LIUEONG Lady Metal Buckle Platform Shoes Booties Comfortable High Top Boots Casual Shoes Comfort Women's Closed Toe Ankle Strap",
+          "product_category": "Clothing, Shoes & Jewelry › Women › Shoes › Boots › Ankle & Bootie",
+          "instruction_text": "Find me day comfort, anti slip, non slip women's oxfords with high heel, closed toe, ankle strap, memory foam, rubber sole with color: black, and size: 9, and price lower than 50.00 dollars",
+          "attributes": [
+            "day comfort",
+            "anti slip",
+            "non slip",
+            "high heel",
+            "closed toe",
+            "ankle strap",
+            "memory foam",
+            "rubber sole"
+          ],
+          "price_upper": 50.0,
+          "goal_options": {
+            "color": "black",
+            "size": "9"
+          },
+          "weight": 0.008468973886306401
+        },
+        "goal_sha256": "1b09b66972d86b113a8f03a86258b9490690a255761c1431007d165901ff2166"
+      },
+      {
+        "task_id": "webshop.70",
+        "server_goal_index": 70,
+        "asin": "B09BW4S48B",
+        "instruction_text": "Find me makeup remover for sensitive skin, nail polish with style: lagom travel kit, and price lower than 40.00 dollars",
+        "goal": {
+          "asin": "B09BW4S48B",
+          "category": "beauty",
+          "query": "makeup remover",
+          "name": "LAGOM 5 Layer Cotton Pad 100% Natural Hypoallergenic Separable Cleansing Puff Lint-Free Soft Facial Square Wipe Eye Cosmetic Toner Makeup Nail Polish Remover Sensitive Dry Oily Skin 2\"x2.75\" 80 Count",
+          "product_category": "Beauty & Personal Care › Tools & Accessories › Cotton Balls & Swabs › Cotton Pads & Rounds",
+          "instruction_text": "Find me makeup remover for sensitive skin, nail polish with style: lagom travel kit, and price lower than 40.00 dollars",
+          "attributes": [
+            "sensitive skin",
+            "nail polish"
+          ],
+          "price_upper": 40.0,
+          "goal_options": {
+            "style": "lagom travel kit"
+          },
+          "weight": 0.12878787878787878
+        },
+        "goal_sha256": "0f9b6261c4ccdf4158da5fe3a88440b5d3ef27abba2080d57282f84ce7eb0bc8"
+      },
+      {
+        "task_id": "webshop.78",
+        "server_goal_index": 78,
+        "asin": "B09P57ZKGP",
+        "instruction_text": "Find me high performance, high speed flashes with color: blue, and size: 128mb, and price lower than 140.00 dollars",
+        "goal": {
+          "asin": "B09P57ZKGP",
+          "category": "electronics",
+          "query": "flashes",
+          "name": "10 Pack 512MB USB Flash Drives Gift Stick Business Bidding Thumb Drive USB 2.0 high Speed Pen Drives (512MB, Black)",
+          "product_category": "Electronics › Computers & Accessories › Data Storage › USB Flash Drives",
+          "instruction_text": "Find me high performance, high speed flashes with color: blue, and size: 128mb, and price lower than 140.00 dollars",
+          "attributes": [
+            "high performance",
+            "high speed"
+          ],
+          "price_upper": 140.0,
+          "goal_options": {
+            "color": "blue",
+            "size": "128mb"
+          },
+          "weight": 0.04090909090909091
+        },
+        "goal_sha256": "4e5a57bf01d6d68742a69efe8923a79a5d2a9f48e22b203735f3277331b72c77"
+      },
+      {
+        "task_id": "webshop.102",
+        "server_goal_index": 102,
+        "asin": "B07GYWW3NY",
+        "instruction_text": "Find me straight leg, machine washable men's jeans with color: charcoal dust, and size: 34w x 30l, and price lower than 80.00 dollars",
+        "goal": {
+          "asin": "B07GYWW3NY",
+          "category": "fashion",
+          "query": "men's jeans",
+          "name": "J. Crew - Men's - Sutton Straight-Fit Flex Chino (Multiple Size/Color Options)",
+          "product_category": "Clothing, Shoes & Jewelry › Men › Clothing › Jeans",
+          "instruction_text": "Find me straight leg, machine washable men's jeans with color: charcoal dust, and size: 34w x 30l, and price lower than 80.00 dollars",
+          "attributes": [
+            "straight leg",
+            "machine washable"
+          ],
+          "price_upper": 80.0,
+          "goal_options": {
+            "color": "charcoal dust",
+            "size": "34w x 30l"
+          },
+          "weight": 0.007372862536087052
+        },
+        "goal_sha256": "6757217bcd058be2c9ecf04e2ef3b8f3ff97b850683537af72e486d1837b272e"
+      },
+      {
+        "task_id": "webshop.105",
+        "server_goal_index": 105,
+        "asin": "B01DJGWDBA",
+        "instruction_text": "Find me men's fashion sneakers with memory foam, rubber sole with color: gray | navy, and size: 9.5, and price lower than 80.00 dollars",
+        "goal": {
+          "asin": "B01DJGWDBA",
+          "category": "fashion",
+          "query": "men's fashion sneakers",
+          "name": "Skechers Originals Men's Retros OG 90 Fashion Sneaker",
+          "product_category": "Clothing, Shoes & Jewelry › Men › Shoes › Fashion Sneakers",
+          "instruction_text": "Find me men's fashion sneakers with memory foam, rubber sole with color: gray | navy, and size: 9.5, and price lower than 80.00 dollars",
+          "attributes": [
+            "memory foam",
+            "rubber sole"
+          ],
+          "price_upper": 80.0,
+          "goal_options": {
+            "color": "gray | navy",
+            "size": "9.5"
+          },
+          "weight": 0.005776194455439739
+        },
+        "goal_sha256": "dfbea0e5414504f70e564bd0d63c4e329303e2604964007e409ae1b06348017f"
+      },
+      {
+        "task_id": "webshop.110",
+        "server_goal_index": 110,
+        "asin": "B07RPMCNKD",
+        "instruction_text": "Find me light weight, non slip women's outdoor shoes with rubber sole, soft material, memory foam with color: grey, and size: 8-9, and price lower than 60.00 dollars",
+        "goal": {
+          "asin": "B07RPMCNKD",
+          "category": "fashion",
+          "query": "women's outdoor shoes",
+          "name": "ULTRAIDEAS Women's Comfy Lightweight Slippers Non-Slip House Shoes for Indoor & Outdoor",
+          "product_category": "Clothing, Shoes & Jewelry › Women › Shoes › Slippers",
+          "instruction_text": "Find me light weight, non slip women's outdoor shoes with rubber sole, soft material, memory foam with color: grey, and size: 8-9, and price lower than 60.00 dollars",
+          "attributes": [
+            "light weight",
+            "non slip",
+            "rubber sole",
+            "soft material",
+            "memory foam"
+          ],
+          "price_upper": 60.0,
+          "goal_options": {
+            "color": "grey",
+            "size": "8-9"
+          },
+          "weight": 0.018539755410083944
+        },
+        "goal_sha256": "e01703b25c4408a398d8503f8401e4d58b44e0964844f2ae5554a710cb40e7a7"
+      },
+      {
+        "task_id": "webshop.111",
+        "server_goal_index": 111,
+        "asin": "B09MFZ726L",
+        "instruction_text": "Find me open toe women's flats with rubber sole for daily wear with color: black, and size: 7, and price lower than 60.00 dollars",
+        "goal": {
+          "asin": "B09MFZ726L",
+          "category": "fashion",
+          "query": "women's flats",
+          "name": "Olivia Miller Women’s Fashion Ladies Shoes, Sara PU Vegan Leather & Rhinestones Double Strap Cutout Band Slip On Open Toe Trendy Casual Summer Slide Flat Sandals",
+          "product_category": "Clothing, Shoes & Jewelry › Women › Shoes › Sandals › Slides",
+          "instruction_text": "Find me open toe women's flats with rubber sole for daily wear with color: black, and size: 7, and price lower than 60.00 dollars",
+          "attributes": [
+            "open toe",
+            "rubber sole",
+            "daily wear"
+          ],
+          "price_upper": 60.0,
+          "goal_options": {
+            "color": "black",
+            "size": "7"
+          },
+          "weight": 0.006200749645957226
+        },
+        "goal_sha256": "570c1389791fdf81a75a8191f7d36bfa69d34a60bf430f228172349c5986cda0"
+      },
+      {
+        "task_id": "webshop.118",
+        "server_goal_index": 118,
+        "asin": "B08L2ZDWN2",
+        "instruction_text": "Find me super soft decorative pillows for living room with color: black, and size: 20''x20'', and price lower than 50.00 dollars",
+        "goal": {
+          "asin": "B08L2ZDWN2",
+          "category": "garden",
+          "query": "decorative pillows",
+          "name": "PAVILIA Decorative Sherpa Throw Pillow Covers, Set of 2, 18x18, Light Pink Blush Fluffy Pillow Cases for Couch, Bed, Sofa|Soft Accent Cushion Cover, Shaggy Living Room Decor",
+          "product_category": "Home & Kitchen › Bedding › Decorative Pillows, Inserts & Covers › Throw Pillow Covers",
+          "instruction_text": "Find me super soft decorative pillows for living room with color: black, and size: 20''x20'', and price lower than 50.00 dollars",
+          "attributes": [
+            "super soft",
+            "living room"
+          ],
+          "price_upper": 50.0,
+          "goal_options": {
+            "color": "black",
+            "size": "20''x20''"
+          },
+          "weight": 0.024615975422427033
+        },
+        "goal_sha256": "ac92b41136d6f7ae1bd33e0197ac6ea17f2a8834646a68164bf1df83edd482d3"
+      },
+      {
+        "task_id": "webshop.121",
+        "server_goal_index": 121,
+        "asin": "B095KCTB3Y",
+        "instruction_text": "Find me non slip, easy clean computer armoires with pu leather with color: red, and size: 120x60cm, and price lower than 60.00 dollars",
+        "goal": {
+          "asin": "B095KCTB3Y",
+          "category": "garden",
+          "query": "computer armoires",
+          "name": "Office Desk Pad, Writing Mat with Full Grip Fixation Lip, Non-Slip PU Leather Table Blotter Desk Protector Gaming Mat Laptop Keyboard Working Mat, Waterproof Table Protective Pad",
+          "product_category": "Office Products › Office & School Supplies › Desk Accessories & Workspace Organizers › Desk Pads & Blotters",
+          "instruction_text": "Find me non slip, easy clean computer armoires with pu leather with color: red, and size: 120x60cm, and price lower than 60.00 dollars",
+          "attributes": [
+            "non slip",
+            "easy clean",
+            "pu leather"
+          ],
+          "price_upper": 60.0,
+          "goal_options": {
+            "color": "red",
+            "size": "120x60cm"
+          },
+          "weight": 0.012524727265605108
+        },
+        "goal_sha256": "978cac218219b7f1954e12541ec441e22867b989d4c4a180245bd69fa157916d"
+      },
+      {
+        "task_id": "webshop.125",
+        "server_goal_index": 125,
+        "asin": "B08LQZ5BRC",
+        "instruction_text": "Find me plant based, dairy free, gluten free breakfast foods with flavor name: mixed berry exercise recovery (12-pack), and price lower than 70.00 dollars",
+        "goal": {
+          "asin": "B08LQZ5BRC",
+          "category": "grocery",
+          "query": "breakfast foods",
+          "name": "Organic Raw Sprouted Hi-Protein Whole Food Bars - Vanilla (12-pack)",
+          "product_category": "Grocery & Gourmet Food › Snacks & Sweets › Snack Foods › Bars › High Protein",
+          "instruction_text": "Find me plant based, dairy free, gluten free breakfast foods with flavor name: mixed berry exercise recovery (12-pack), and price lower than 70.00 dollars",
+          "attributes": [
+            "plant based",
+            "dairy free",
+            "gluten free"
+          ],
+          "price_upper": 70.0,
+          "goal_options": {
+            "flavor name": "mixed berry exercise recovery (12-pack)"
+          },
+          "weight": 0.03632756132756133
+        },
+        "goal_sha256": "07a2914a50d0ad03e668c02bd5aac5ad86f128c6330c35e0873ee140bf98273a"
+      },
+      {
+        "task_id": "webshop.128",
+        "server_goal_index": 128,
+        "asin": "B09NNMV9LN",
+        "instruction_text": "Find me loose fit, light weight, slim fit men's henleys with long sleeve, short sleeve, contrast color, unique design for gym workout, teen girls with color: c-gray, and size: xx-large, and price lower than 30.00 dollars",
+        "goal": {
+          "asin": "B09NNMV9LN",
+          "category": "fashion",
+          "query": "men's henleys",
+          "name": "JSPOYOU Mens Short Sleeve Crewneck 3D Graphic Tunic Shirts Big & Tall Tie Dye Summer Top Basic Designed Classic Cotton Shirt",
+          "product_category": "Clothing, Shoes & Jewelry › Men › Clothing › Shirts › Henleys",
+          "instruction_text": "Find me loose fit, light weight, slim fit men's henleys with long sleeve, short sleeve, contrast color, unique design for gym workout, teen girls with color: c-gray, and size: xx-large, and price lower than 30.00 dollars",
+          "attributes": [
+            "loose fit",
+            "light weight",
+            "slim fit",
+            "long sleeve",
+            "short sleeve",
+            "contrast color",
+            "unique design",
+            "gym workout",
+            "teen girls"
+          ],
+          "price_upper": 30.0,
+          "goal_options": {
+            "color": "c-gray",
+            "size": "xx-large"
+          },
+          "weight": 0.004756120809375458
+        },
+        "goal_sha256": "29e621cd08d8bbd9a477494ecb33a5416a0c339e8b28ddf262497018eb2c7e09"
+      },
+      {
+        "task_id": "webshop.129",
+        "server_goal_index": 129,
+        "asin": "B09P7H5YK7",
+        "instruction_text": "Find me machine wash men's dress shirts with polyester heathers, heathers cotton, cotton heather, needle sleeve, classic fit with color: purple, and fit type: men, and size: large, and price lower than 30.00 dollars",
+        "goal": {
+          "asin": "B09P7H5YK7",
+          "category": "fashion",
+          "query": "men's dress shirts",
+          "name": "It's In My DNA Palestinian Shirt Arabic Gifts Palestine Flag Tank Top",
+          "product_category": "Clothing, Shoes & Jewelry › Novelty & More › Clothing › Novelty › Women › Tops & Tees › Tanks & Camis",
+          "instruction_text": "Find me machine wash men's dress shirts with polyester heathers, heathers cotton, cotton heather, needle sleeve, classic fit with color: purple, and fit type: men, and size: large, and price lower than 30.00 dollars",
+          "attributes": [
+            "machine wash",
+            "polyester heathers",
+            "heathers cotton",
+            "cotton heather",
+            "needle sleeve",
+            "classic fit"
+          ],
+          "price_upper": 30.0,
+          "goal_options": {
+            "color": "purple",
+            "fit type": "men",
+            "size": "large"
+          },
+          "weight": 0.0007773492690577492
+        },
+        "goal_sha256": "408d558aa3ff4b2cf1382b79fda31b4289e765fb99c8fc2ae679498eadebf129"
+      },
+      {
+        "task_id": "webshop.137",
+        "server_goal_index": 137,
+        "asin": "B0861GWJV2",
+        "instruction_text": "Find me quick drying women's swimsuits & cover ups with nylon spandex, long sleeve with color: grey, and size: tag xl = us 10, and price lower than 120.00 dollars",
+        "goal": {
+          "asin": "B0861GWJV2",
+          "category": "fashion",
+          "query": "women's swimsuits & cover ups",
+          "name": "Meijunter Islamic Women Swimwear Burkini Muslim Hijab Swimsuit Modest Swim Surf Wear Sun Protection Swimming 3 Pieces Suit",
+          "product_category": "Clothing, Shoes & Jewelry › Women › Clothing › Swimsuits & Cover Ups › Cover-Ups",
+          "instruction_text": "Find me quick drying women's swimsuits & cover ups with nylon spandex, long sleeve with color: grey, and size: tag xl = us 10, and price lower than 120.00 dollars",
+          "attributes": [
+            "quick drying",
+            "nylon spandex",
+            "long sleeve"
+          ],
+          "price_upper": 120.0,
+          "goal_options": {
+            "color": "grey",
+            "size": "tag xl = us 10"
+          },
+          "weight": 0.011659035841278831
+        },
+        "goal_sha256": "2cfa8ef6fd65ac1cc88ad16337a402797ee7e312fc153be9b46ffa96feaeee80"
+      },
+      {
+        "task_id": "webshop.140",
+        "server_goal_index": 140,
+        "asin": "B08DQWNJPQ",
+        "instruction_text": "Find me water resistant hair cutting tools for beauty salon, hair styling with color: black (snap button closure), and price lower than 30.00 dollars",
+        "goal": {
+          "asin": "B08DQWNJPQ",
+          "category": "beauty",
+          "query": "hair cutting tools",
+          "name": "Noverlife Pure White Makeup Cape, Short Comb-Out Beard Shaving Smock, Beauty Salon Styling Bib for Client, Barber Shop Shampoo Cloth Makeover Shawl for Cosmetics Artist Beautician Hairdresser",
+          "product_category": "Beauty & Personal Care › Hair Care › Hair Cutting Tools › Hair Cutting Kits",
+          "instruction_text": "Find me water resistant hair cutting tools for beauty salon, hair styling with color: black (snap button closure), and price lower than 30.00 dollars",
+          "attributes": [
+            "water resistant",
+            "beauty salon",
+            "hair styling"
+          ],
+          "price_upper": 30.0,
+          "goal_options": {
+            "color": "black (snap button closure)"
+          },
+          "weight": 0.18888888888888888
+        },
+        "goal_sha256": "a334777643517c87f6b1c871ec917504071c25c6a2c4c5e5044d347646704f1e"
+      },
+      {
+        "task_id": "webshop.184",
+        "server_goal_index": 184,
+        "asin": "B08P8LRFZ4",
+        "instruction_text": "Find me height adjustable, high density, easy install, easy assemble home office chairs for living room with color: type22-beige, and price lower than 130.00 dollars",
+        "goal": {
+          "asin": "B08P8LRFZ4",
+          "category": "garden",
+          "query": "home office chairs",
+          "name": "MTFY Cute Faux Fur Desk Chair for Girls Women, Comfy Fluffy Modern Home Office Chair with Wheels, Elegant Swivel Fuzzy Vanity Chair Makeup Arm Chair for Living Room, Bedroom",
+          "product_category": "Home & Kitchen › Furniture › Home Office Furniture › Home Office Chairs › Home Office Desk Chairs",
+          "instruction_text": "Find me height adjustable, high density, easy install, easy assemble home office chairs for living room with color: type22-beige, and price lower than 130.00 dollars",
+          "attributes": [
+            "height adjustable",
+            "high density",
+            "easy install",
+            "easy assemble",
+            "living room"
+          ],
+          "price_upper": 130.0,
+          "goal_options": {
+            "color": "type22-beige"
+          },
+          "weight": 0.015088473514919903
+        },
+        "goal_sha256": "adb654ef9f632d0b39aaf6f14c50e244b5e5e4c42a7d27af5c7ef05064fa0f31"
+      },
+      {
+        "task_id": "webshop.191",
+        "server_goal_index": 191,
+        "asin": "B07HYF111T",
+        "instruction_text": "Find me low carb, grain free, chocolate covered, low sugar, gluten free, dairy free granola & nutrition bars with simple ingredients with flavor name: chocolate peanut butter, and price lower than 60.00 dollars",
+        "goal": {
+          "asin": "B07HYF111T",
+          "category": "grocery",
+          "query": "granola & nutrition bars",
+          "name": "KETO BARS : The Original High Fat, Low Carb, Ketogenic Bar. Gluten Free, Vegan, Homemade with simple ingredients. [Chocolate Peanut Butter, 10 Pack]",
+          "product_category": "Grocery & Gourmet Food › Deli & Prepared Foods",
+          "instruction_text": "Find me low carb, grain free, chocolate covered, low sugar, gluten free, dairy free granola & nutrition bars with simple ingredients with flavor name: chocolate peanut butter, and price lower than 60.00 dollars",
+          "attributes": [
+            "low carb",
+            "grain free",
+            "chocolate covered",
+            "low sugar",
+            "gluten free",
+            "dairy free",
+            "simple ingredients"
+          ],
+          "price_upper": 60.0,
+          "goal_options": {
+            "flavor name": "chocolate peanut butter"
+          },
+          "weight": 0.12310863739435167
+        },
+        "goal_sha256": "c3e2fad355d1b546437db71b2b2450dd85d9c0777ad4b809f210e33019f56081"
+      },
+      {
+        "task_id": "webshop.193",
+        "server_goal_index": 193,
+        "asin": "B09B7G7P58",
+        "instruction_text": "Find me space saving, easy assemble living room sets for dining room with color: espresso, and price lower than 350.00 dollars",
+        "goal": {
+          "asin": "B09B7G7P58",
+          "category": "garden",
+          "query": "living room sets",
+          "name": "3-Piece Dining Table Set, Farmhouse Counter Height Dining Table Set, Wood Dining Table Set with Drop Leaf Table/2 Cross Back Padded Chairs/One Shelf",
+          "product_category": "Home & Kitchen › Furniture › Dining Room Furniture › Table & Chair Sets",
+          "instruction_text": "Find me space saving, easy assemble living room sets for dining room with color: espresso, and price lower than 350.00 dollars",
+          "attributes": [
+            "space saving",
+            "easy assemble",
+            "dining room"
+          ],
+          "price_upper": 350.0,
+          "goal_options": {
+            "color": "espresso"
+          },
+          "weight": 0.01780904665458551
+        },
+        "goal_sha256": "5b59a18441fb194ff3307ff170e9e5992e5a11994759205e2ffd5f9623293533"
+      },
+      {
+        "task_id": "webshop.201",
+        "server_goal_index": 201,
+        "asin": "B09HGFV91W",
+        "instruction_text": "Find me slim fit men's suits & sport coats with long sleeve, short sleeve with color: 158- army green, and size: small, and price lower than 30.00 dollars",
+        "goal": {
+          "asin": "B09HGFV91W",
+          "category": "fashion",
+          "query": "men's suits & sport coats",
+          "name": "ZHDD Tops for Mens, Men's Knight Punk Vintage Style Long Sleeve Asymmetric Hem Cowl Neck Teen Boys Gothic Pullover",
+          "product_category": "",
+          "instruction_text": "Find me slim fit men's suits & sport coats with long sleeve, short sleeve with color: 158- army green, and size: small, and price lower than 30.00 dollars",
+          "attributes": [
+            "slim fit",
+            "long sleeve",
+            "short sleeve"
+          ],
+          "price_upper": 30.0,
+          "goal_options": {
+            "color": "158- army green",
+            "size": "small"
+          },
+          "weight": 0.0009713219468298178
+        },
+        "goal_sha256": "3e6d037517925354fd5e290c325394493884ac9505cd6aa1626b67f3c0881a21"
+      },
+      {
+        "task_id": "webshop.208",
+        "server_goal_index": 208,
+        "asin": "B089K79PQ1",
+        "instruction_text": "Find me hand wash, wash cold women's bodysuit tops with polyester spandex for tumble dry, daily wear with size: medium, and price lower than 50.00 dollars",
+        "goal": {
+          "asin": "B089K79PQ1",
+          "category": "fashion",
+          "query": "women's bodysuit tops",
+          "name": "Milumia Women's Sexy Spaghetti Strap Floral Print Cami Bodycon Bodysuit Shirt Tops",
+          "product_category": "Clothing, Shoes & Jewelry › Women › Clothing › Bodysuits",
+          "instruction_text": "Find me hand wash, wash cold women's bodysuit tops with polyester spandex for tumble dry, daily wear with size: medium, and price lower than 50.00 dollars",
+          "attributes": [
+            "hand wash",
+            "wash cold",
+            "polyester spandex",
+            "tumble dry",
+            "daily wear"
+          ],
+          "price_upper": 50.0,
+          "goal_options": {
+            "size": "medium"
+          },
+          "weight": 0.0026773262454934553
+        },
+        "goal_sha256": "b55dc5e0ff2b8d236b88b400f55f4085cf9b4383699bbacd95a5d5f8f29bf06d"
+      },
+      {
+        "task_id": "webshop.213",
+        "server_goal_index": 213,
+        "asin": "B09P5V8ZSK",
+        "instruction_text": "Find me open toe, non slip women's pumps with high heel, ankle strap, arch support, rubber sole with size: 9.5-10, and price lower than 60.00 dollars",
+        "goal": {
+          "asin": "B09P5V8ZSK",
+          "category": "fashion",
+          "query": "women's pumps",
+          "name": "Women's High Heel Sandals Sexy Patent Leather Peep Toe Breathable Ankle Boots Minimalistic Thick High Heels Rear Zipper Sandals Casual Ladies Pump",
+          "product_category": "Clothing, Shoes & Jewelry › Women › Shoes › Sandals › Heeled Sandals",
+          "instruction_text": "Find me open toe, non slip women's pumps with high heel, ankle strap, arch support, rubber sole with size: 9.5-10, and price lower than 60.00 dollars",
+          "attributes": [
+            "open toe",
+            "non slip",
+            "high heel",
+            "ankle strap",
+            "arch support",
+            "rubber sole"
+          ],
+          "price_upper": 60.0,
+          "goal_options": {
+            "size": "9.5-10"
+          },
+          "weight": 0.008593344463708033
+        },
+        "goal_sha256": "eaa3ea026dbc950085bfce5347d2a3a9e5950c17017da6c1fadef8116e6965a5"
+      },
+      {
+        "task_id": "webshop.227",
+        "server_goal_index": 227,
+        "asin": "B097F54DT8",
+        "instruction_text": "Find me fully cooked, freeze dried, shelf stable, ready eat fresh meal kits with size: 6 pack, and price lower than 80.00 dollars",
+        "goal": {
+          "asin": "B097F54DT8",
+          "category": "grocery",
+          "query": "fresh meal kits",
+          "name": "OMEALS Pasta Fagioli Six Vegetarian MRE Sustainable Premium Outdoor Fully Cooked Meals w/Heater - Extended Shelf Life - No Refrigeration - Perfect for Travelers, Emergency Supplies - USA 6 Pack",
+          "product_category": "Sports & Outdoors › Outdoor Recreation",
+          "instruction_text": "Find me fully cooked, freeze dried, shelf stable, ready eat fresh meal kits with size: 6 pack, and price lower than 80.00 dollars",
+          "attributes": [
+            "fully cooked",
+            "freeze dried",
+            "shelf stable",
+            "ready eat"
+          ],
+          "price_upper": 80.0,
+          "goal_options": {
+            "size": "6 pack"
+          },
+          "weight": 0.4583333333333333
+        },
+        "goal_sha256": "42fc0c3844386a08f05f6083a540594370dbf5f6bd75eb4c4a6a24e9cded6bc8"
+      },
+      {
+        "task_id": "webshop.233",
+        "server_goal_index": 233,
+        "asin": "B09MCF64RM",
+        "instruction_text": "Find me high quality bags & cases for eye shadow with color: 001 leopard print, and price lower than 40.00 dollars",
+        "goal": {
+          "asin": "B09MCF64RM",
+          "category": "beauty",
+          "query": "bags & cases",
+          "name": "Leopard Print Makeup Bag Cheetah Small Cosmetic Bags for Women Cosmetics Pouch Travel Accessories Case Portable Zippered Cosmetic Storage Organizer for Purse",
+          "product_category": "Beauty & Personal Care › Tools & Accessories › Bags & Cases › Cosmetic Bags",
+          "instruction_text": "Find me high quality bags & cases for eye shadow with color: 001 leopard print, and price lower than 40.00 dollars",
+          "attributes": [
+            "high quality",
+            "eye shadow"
+          ],
+          "price_upper": 40.0,
+          "goal_options": {
+            "color": "001 leopard print"
+          },
+          "weight": 0.033154121863799284
+        },
+        "goal_sha256": "9275b506a9425dc691f9fdba4710032dda563b89e42dc0d3e5c1e2c62cce4fdb"
+      },
+      {
+        "task_id": "webshop.255",
+        "server_goal_index": 255,
+        "asin": "B07K6TCDR9",
+        "instruction_text": "Find me animal testing hair loss products for natural hair, dry hair, hair growth with size: 32 fl oz (pack of 1), and price lower than 30.00 dollars",
+        "goal": {
+          "asin": "B07K6TCDR9",
+          "category": "beauty",
+          "query": "hair loss products",
+          "name": "tgin Miracle Repairx Protective Leave In Conditioner For Natural Hair - Dry Hair - Curly Hair - 13 Oz",
+          "product_category": "Beauty & Personal Care › Hair Care › Shampoo & Conditioner › Conditioners",
+          "instruction_text": "Find me animal testing hair loss products for natural hair, dry hair, hair growth with size: 32 fl oz (pack of 1), and price lower than 30.00 dollars",
+          "attributes": [
+            "animal testing",
+            "natural hair",
+            "dry hair",
+            "hair growth"
+          ],
+          "price_upper": 30.0,
+          "goal_options": {
+            "size": "32 fl oz (pack of 1)"
+          },
+          "weight": 0.11274509803921567
+        },
+        "goal_sha256": "14fa731200504f3db05c0f544101ce613863e7d1c4c8e10a946c7a0709fab716"
+      },
+      {
+        "task_id": "webshop.256",
+        "server_goal_index": 256,
+        "asin": "B089VWZB64",
+        "instruction_text": "Find me alcohol free, long lasting men's fragrance with natural ingredients with scent: muk+mub+abyad+aini+bak+amboud, and price lower than 60.00 dollars",
+        "goal": {
+          "asin": "B089VWZB64",
+          "category": "beauty",
+          "query": "men's fragrance",
+          "name": "Dukhni Pure Attar Oil Blends - Alcohol Free, Vegan & Pure. Set of 6 x 6ml (0.2 Fl Oz Each) - Oud Mukhallat, Oud Mubakhar, Oud Abyad (White Oud), Oud Ya Aini, Attar Al Bakhoor, Ambar Oud",
+          "product_category": "Beauty & Personal Care › Fragrance › Women's › Sets",
+          "instruction_text": "Find me alcohol free, long lasting men's fragrance with natural ingredients with scent: muk+mub+abyad+aini+bak+amboud, and price lower than 60.00 dollars",
+          "attributes": [
+            "alcohol free",
+            "long lasting",
+            "natural ingredients"
+          ],
+          "price_upper": 60.0,
+          "goal_options": {
+            "scent": "muk+mub+abyad+aini+bak+amboud"
+          },
+          "weight": 0.1345068330362448
+        },
+        "goal_sha256": "1e0d303d40f70ee41c283a94aa6f5010074c45ff9a39b6c9896f1079b32dada1"
+      },
+      {
+        "task_id": "webshop.257",
+        "server_goal_index": 257,
+        "asin": "B09QQP3356",
+        "instruction_text": "Find me slim fit, hand wash, machine wash men's tuxedo shirts with short sleeve, regular fit, long sleeve, polyester cotton for gym workout with color: gray, and size: large, and price lower than 50.00 dollars",
+        "goal": {
+          "asin": "B09QQP3356",
+          "category": "fashion",
+          "query": "men's tuxedo shirts",
+          "name": "HAUKLIE Men's Sports Waffle Ribbed Polo Shirts Summer Short Sleeve Cotton Muscle Quarter-Zip Henley T-Shirt Tunics Tops",
+          "product_category": "Clothing, Shoes & Jewelry › Men › Clothing › Shirts › Henleys",
+          "instruction_text": "Find me slim fit, hand wash, machine wash men's tuxedo shirts with short sleeve, regular fit, long sleeve, polyester cotton for gym workout with color: gray, and size: large, and price lower than 50.00 dollars",
+          "attributes": [
+            "slim fit",
+            "hand wash",
+            "machine wash",
+            "short sleeve",
+            "regular fit",
+            "long sleeve",
+            "polyester cotton",
+            "gym workout"
+          ],
+          "price_upper": 50.0,
+          "goal_options": {
+            "color": "gray",
+            "size": "large"
+          },
+          "weight": 0.004104005286605479
+        },
+        "goal_sha256": "38dda315a2947e314b7dfedf521069c4006a02b611911ec70261880de35d3334"
+      },
+      {
+        "task_id": "webshop.275",
+        "server_goal_index": 275,
+        "asin": "B07SXLVPF3",
+        "instruction_text": "Find me high density, assembly required, ready use, long lasting mattresses with box spring, king size, memory foam with color: 53x74, and price lower than 920.00 dollars",
+        "goal": {
+          "asin": "B07SXLVPF3",
+          "category": "garden",
+          "query": "mattresses",
+          "name": "Mayton 12-Inch King Size Mattress, Box Spring And Bed Frame - Foam Encased Soft Pillow Top Hybrid Contouring Comfort, No Assembly Required 78x79",
+          "product_category": "Home & Kitchen › Furniture › Bedroom Furniture › Mattresses & Box Springs › Mattresses",
+          "instruction_text": "Find me high density, assembly required, ready use, long lasting mattresses with box spring, king size, memory foam with color: 53x74, and price lower than 920.00 dollars",
+          "attributes": [
+            "high density",
+            "assembly required",
+            "ready use",
+            "long lasting",
+            "box spring",
+            "king size",
+            "memory foam"
+          ],
+          "price_upper": 920.0,
+          "goal_options": {
+            "color": "53x74"
+          },
+          "weight": 0.06790224462638256
+        },
+        "goal_sha256": "e0cde713e42794876a8ded584ee4a08454ade0313e82f9d949c38cc3265ba840"
+      },
+      {
+        "task_id": "webshop.279",
+        "server_goal_index": 279,
+        "asin": "B07LBNRY7H",
+        "instruction_text": "Find me officially licensed men's sweaters with classic fit with size: unisex xl, and price lower than 70.00 dollars",
+        "goal": {
+          "asin": "B07LBNRY7H",
+          "category": "fashion",
+          "query": "men's sweaters",
+          "name": "Friday The 13th Jason TGIF Pullover Hoodie",
+          "product_category": "Clothing, Shoes & Jewelry › Novelty & More › Clothing › Novelty › Men › Hoodies",
+          "instruction_text": "Find me officially licensed men's sweaters with classic fit with size: unisex xl, and price lower than 70.00 dollars",
+          "attributes": [
+            "officially licensed",
+            "classic fit"
+          ],
+          "price_upper": 70.0,
+          "goal_options": {
+            "size": "unisex xl"
+          },
+          "weight": 0.0021668154984382767
+        },
+        "goal_sha256": "fc95cabdb7d0c6d5f5f47fcf131c0cc695614b502604fc61bb0b66ab1b189b5e"
+      },
+      {
+        "task_id": "webshop.284",
+        "server_goal_index": 284,
+        "asin": "B07N7TDKXQ",
+        "instruction_text": "Find me machine washable men's t-shirts with short sleeve for tumble dry with color: 12 pack mix short sleeve, and size: 4x-large, and price lower than 140.00 dollars",
+        "goal": {
+          "asin": "B07N7TDKXQ",
+          "category": "fashion",
+          "query": "men's t-shirts",
+          "name": "SOCKS'NBULK Mens Cotton Crew Neck Short Sleeve T-Shirts Mix Colors Bulk",
+          "product_category": "Clothing, Shoes & Jewelry › Men › Clothing › Underwear › Undershirts",
+          "instruction_text": "Find me machine washable men's t-shirts with short sleeve for tumble dry with color: 12 pack mix short sleeve, and size: 4x-large, and price lower than 140.00 dollars",
+          "attributes": [
+            "machine washable",
+            "short sleeve",
+            "tumble dry"
+          ],
+          "price_upper": 140.0,
+          "goal_options": {
+            "color": "12 pack mix short sleeve",
+            "size": "4x-large"
+          },
+          "weight": 0.0036512437007267975
+        },
+        "goal_sha256": "25a911de0c19588e4a07ded6c01b1eb657dc0d9e0df174c285d110eea9e8e8f1"
+      },
+      {
+        "task_id": "webshop.286",
+        "server_goal_index": 286,
+        "asin": "B09B77K9YQ",
+        "instruction_text": "Find me console tables with wood frame for living room with color: navy, and price lower than 320.00 dollars",
+        "goal": {
+          "asin": "B09B77K9YQ",
+          "category": "garden",
+          "query": "console tables",
+          "name": "Rhomtree 36” Wood Console Table Sideboard Hall Table with 2 Drawers, 1 Cabinet and 1 Shelf Modern Sofa Table for Hallway, Entryway, Living Room, Kitchen (Green with Brown Top)",
+          "product_category": "Home & Kitchen › Furniture › Living Room Furniture › Tables › Sofa & Console Tables",
+          "instruction_text": "Find me console tables with wood frame for living room with color: navy, and price lower than 320.00 dollars",
+          "attributes": [
+            "wood frame",
+            "living room"
+          ],
+          "price_upper": 320.0,
+          "goal_options": {
+            "color": "navy"
+          },
+          "weight": 0.01747311827956989
+        },
+        "goal_sha256": "988ea6e02213d1e2e52123e1dcb684216d1c5228803a78e71e1e4bfc31f767b5"
+      },
+      {
+        "task_id": "webshop.292",
+        "server_goal_index": 292,
+        "asin": "B07PVZPS58",
+        "instruction_text": "Find me machine wash men's underwear with polyester spandex with size: medium, and price lower than 50.00 dollars",
+        "goal": {
+          "asin": "B07PVZPS58",
+          "category": "fashion",
+          "query": "men's underwear",
+          "name": "BRIEF INSANITY Hot Rod Boxer Briefs for Men and Women | Vintage Car Print Boxer Shorts - Funny, Humorous, Novelty Underwear",
+          "product_category": "Clothing, Shoes & Jewelry › Men › Clothing › Underwear › Boxers",
+          "instruction_text": "Find me machine wash men's underwear with polyester spandex with size: medium, and price lower than 50.00 dollars",
+          "attributes": [
+            "machine wash",
+            "polyester spandex"
+          ],
+          "price_upper": 50.0,
+          "goal_options": {
+            "size": "medium"
+          },
+          "weight": 0.0008823104383988353
+        },
+        "goal_sha256": "d45a5697ba3a39c7ce71f21434f7aaeab2f0fe33d2dcc7c5e8751c77286315ba"
+      },
+      {
+        "task_id": "webshop.306",
+        "server_goal_index": 306,
+        "asin": "B09NRF2QGD",
+        "instruction_text": "Find me hall trees with solid wood, storage space for living room with color: beige, and price lower than 340.00 dollars",
+        "goal": {
+          "asin": "B09NRF2QGD",
+          "category": "garden",
+          "query": "hall trees",
+          "name": "DIANDIAN Sturdy Coat Rack Stand Hall Solid Wood Coat Tree with 9 Round Hook, for Clothing Hats, Hallway Entryway Office, Easy Assembly (Color : Beige)",
+          "product_category": "Home & Kitchen › Furniture › Entryway Furniture › Coat Racks",
+          "instruction_text": "Find me hall trees with solid wood, storage space for living room with color: beige, and price lower than 340.00 dollars",
+          "attributes": [
+            "solid wood",
+            "storage space",
+            "living room"
+          ],
+          "price_upper": 340.0,
+          "goal_options": {
+            "color": "beige"
+          },
+          "weight": 0.017650729646697387
+        },
+        "goal_sha256": "dc683539d6015c9ab83dba2fa8d63c5a65f6f4b249cbc0c01782891aed00d4f1"
+      },
+      {
+        "task_id": "webshop.332",
+        "server_goal_index": 332,
+        "asin": "B083HXHG75",
+        "instruction_text": "Find me heavy duty video glasses with glass screen, tempered glass, case cover with color: black, and price lower than 30.00 dollars",
+        "goal": {
+          "asin": "B083HXHG75",
+          "category": "electronics",
+          "query": "video glasses",
+          "name": "DuoLide for Huawei Y9 2019 / Enjoy 9 Plus Case with Tempered Glass Screen Protector,Hybrid Heavy Duty Dual Layer Anti-Scratch Shockproof Defender Kickstand Armor Case Cover, Red",
+          "product_category": "Cell Phones & Accessories › Cases, Holsters & Sleeves › Basic Cases",
+          "instruction_text": "Find me heavy duty video glasses with glass screen, tempered glass, case cover with color: black, and price lower than 30.00 dollars",
+          "attributes": [
+            "heavy duty",
+            "glass screen",
+            "tempered glass",
+            "case cover"
+          ],
+          "price_upper": 30.0,
+          "goal_options": {
+            "color": "black"
+          },
+          "weight": 0.06471688034188035
+        },
+        "goal_sha256": "b80a754e9f970b4087962be03bbaa002407f3c73f9593fb94b478cd4dcfc8fcd"
+      }
+    ]
+  },
+  "preflight": {
+    "all_selected_vs_all_prior_and_human": {
+      "tasks": 36,
+      "unique_goal_semantics": 36,
+      "required_unique_goal_semantics": 36,
+      "duplicate_goal_semantics": [],
+      "duplicate_multiplicities": {},
+      "consumed_instruction_overlap": [],
+      "candidate_unique_asins": 36,
+      "consumed_asin_overlap": [],
+      "gates": {
+        "enough_unique_goal_semantics": true,
+        "one_task_per_goal_semantics": true,
+        "instruction_disjoint_from_consumed": true,
+        "asin_disjoint_from_consumed": true,
+        "one_task_per_asin": true
+      },
+      "passed": true
+    },
+    "formal_vs_qualification_all_prior_and_human": {
+      "tasks": 32,
+      "unique_goal_semantics": 32,
+      "required_unique_goal_semantics": 32,
+      "duplicate_goal_semantics": [],
+      "duplicate_multiplicities": {},
+      "consumed_instruction_overlap": [],
+      "candidate_unique_asins": 32,
+      "consumed_asin_overlap": [],
+      "gates": {
+        "enough_unique_goal_semantics": true,
+        "one_task_per_goal_semantics": true,
+        "instruction_disjoint_from_consumed": true,
+        "asin_disjoint_from_consumed": true,
+        "one_task_per_asin": true
+      },
+      "passed": true
+    },
+    "all_have_nonempty_relation_schema": true
+  },
+  "prior_manifest_artifact_sha256s": [
+    "bcd08bd8c037811053bdb069cb1e97b5711cce914e002ffbfa55e56faf7588e7",
+    "bd7cb1dfe5c05b0d76fbf6022003720493e450bf504b73d5192e80eb3813ae04"
+  ],
+  "transport_contract": {
+    "first_native_query_result_is_authoritative": true,
+    "identical_query_replays_identical_asin_order": true,
+    "source_free_controls_must_have_exact_trajectory_match": true,
+    "authentic_and_target_ceiling_must_have_exact_trajectory_match": true
+  },
+  "runtime_hashes": {
+    "freezer": "f253dd8a4c0f2cd5c6270f33ad1bf296a114e1f6d04780efd90d66f149457c70",
+    "server_launcher": "bbd9ec49d77fc8da38f2682d65b008291fcad3fbf3f0e576b15d28a62827a33a",
+    "transport_adapter": "88b7671322575fe573b249c53c66910ad27923ac72beab41ed923de8bba402b8",
+    "prior_manifests": {
+      "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/configs/webshop_synthetic_unique_v14_frozen.json": "fc5d8a8ea2c5b9cfe6296fab6d36d623bdf8c539e31b45cd3c0bc7e2601705ee",
+      "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/configs/webshop_structural_v17_frozen.json": "afb6be5f6770ee0e1981fcf88a6557cd6242c0bfb692d534b9cb4c6df15da7ac"
+    }
+  },
+  "formal_outcomes_read_or_run": false,
+  "artifact_sha256": "590d5d0074cd0a79953b43912ef27a1faa41fe09b5e3e01e5b64f0bd567091e0"
+}

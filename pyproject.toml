@@ -11,9 +11,18 @@ dependencies = ["jsonschema>=4.0"]
 
 [project.optional-dependencies]
 test = ["pytest>=8"]
+source-spatial = [
+  "gymnasium>=1.2.2",
+  "minigrid>=3.0.0",
+]
+source-spatial-3d = [
+  "gymnasium>=1.2.2",
+  "miniworld @ git+https://github.com/Farama-Foundation/Miniworld.git",
+]
 vtb = [
   "beautifulsoup4>=4.12",
   "duckdb>=1.1",
+  "imageio-ffmpeg>=0.6",
   "litellm>=1.0",
   "matplotlib>=3.8",
   "numpy>=1.24",

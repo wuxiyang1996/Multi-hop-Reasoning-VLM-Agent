@@ -1,0 +1,62 @@
+{
+  "schema_version": "alfworld-target-acquisition-fresh-v18-selection",
+  "status": "FROZEN_BEFORE_COMPILATION_OR_ANY_V18_POLICY_RESET",
+  "namespace": "alfworld-target-acquisition-fresh-v18-valid-seen",
+  "source_split": "official_alfworld_json_2.1.1_valid_seen",
+  "selection_rule": "ALL SORTED PICK_TWO_OBJ_AND_PLACE IDENTITIES WITH TRAJ_DATA AND INITIAL_STATE BUT NO PACKAGED GAME.TW-PDDL; EXCLUDE OFFICIAL MOVABLE-RECEPTACLE AND SLICED UNSUPPORTED IDENTITIES",
+  "selection_used_directory_identity_and_task_type_only": true,
+  "selection_used_observation_walkthrough_or_policy_outcome": false,
+  "pre_freeze_policy_execution_exposure_by_task": {
+    "pick_two_obj_and_place-KeyChain-None-Shelf-207/trial_T20190909_131701_482365/game.tw-pddl": 0,
+    "pick_two_obj_and_place-KeyChain-None-Sofa-202/trial_T20190908_102840_789300/game.tw-pddl": 0,
+    "pick_two_obj_and_place-KeyChain-None-Sofa-225/trial_T20190907_143000_904569/game.tw-pddl": 0,
+    "pick_two_obj_and_place-RemoteControl-None-CoffeeTable-207/trial_T20190908_122244_451639/game.tw-pddl": 0,
+    "pick_two_obj_and_place-SoapBar-None-Toilet-412/trial_T20190908_071602_531614/game.tw-pddl": 0,
+    "pick_two_obj_and_place-SoapBar-None-Toilet-417/trial_T20190908_191330_157502/game.tw-pddl": 0,
+    "pick_two_obj_and_place-SoapBottle-None-Drawer-415/trial_T20190907_161729_798002/game.tw-pddl": 0,
+    "pick_two_obj_and_place-Spoon-None-CounterTop-23/trial_T20190908_065238_500229/game.tw-pddl": 0
+  },
+  "tasks": [
+    {
+      "task_id": "pick_two_obj_and_place-KeyChain-None-Shelf-207/trial_T20190909_131701_482365/game.tw-pddl",
+      "traj_data_file_sha256": "cf57bccf9daffece49b455d16260bb78c8213e699be633652673ab36cbf034b0",
+      "initial_state_file_sha256": "8b9ff52080131f537d99284dee85b8976a9a5f9561dd439762780dfd75bf4817"
+    },
+    {
+      "task_id": "pick_two_obj_and_place-KeyChain-None-Sofa-202/trial_T20190908_102840_789300/game.tw-pddl",
+      "traj_data_file_sha256": "bbccfee81f21b766a22ab4e87e44d0838da0e2536728b02a4712594e0e2b6959",
+      "initial_state_file_sha256": "9b9aaefa3a762aa8e7eb64bbd2275fc67b8c6a45159f8c1866deb9113ae7df26"
+    },
+    {
+      "task_id": "pick_two_obj_and_place-KeyChain-None-Sofa-225/trial_T20190907_143000_904569/game.tw-pddl",
+      "traj_data_file_sha256": "13c646a7febc3c9a6d511f3e479ddb67adbc24264c8f3a12530b310f7ef98d4d",
+      "initial_state_file_sha256": "e861dbfb043d95231184876653446e8145563f930781e484865bda2edd49636b"
+    },
+    {
+      "task_id": "pick_two_obj_and_place-RemoteControl-None-CoffeeTable-207/trial_T20190908_122244_451639/game.tw-pddl",
+      "traj_data_file_sha256": "78e2ea956b64fcf2bd9d8a2c7e4112fedea4a990d8d8d1878e3e727f9663e242",
+      "initial_state_file_sha256": "f2b81329773defec144af487025663169ae1a6ac7b45e2925bf406a3e8b87934"
+    },
+    {
+      "task_id": "pick_two_obj_and_place-SoapBar-None-Toilet-412/trial_T20190908_071602_531614/game.tw-pddl",
+      "traj_data_file_sha256": "8f849719bac8b71b1dc7f9404607f6258032761fb363113e86f081d720caaada",
+      "initial_state_file_sha256": "6ca523582a0342a86eb3914b288412e2985104261615b4d2ef3a1c0074c5b394"
+    },
+    {
+      "task_id": "pick_two_obj_and_place-SoapBar-None-Toilet-417/trial_T20190908_191330_157502/game.tw-pddl",
+      "traj_data_file_sha256": "c39adf06712a1703d97c9242af3159dde3e57e23f20cf03a311c5980645290f6",
+      "initial_state_file_sha256": "0be8a5f8658aecd501c911c3230e327b7858940552d556cb321865e7d13d71c4"
+    },
+    {
+      "task_id": "pick_two_obj_and_place-SoapBottle-None-Drawer-415/trial_T20190907_161729_798002/game.tw-pddl",
+      "traj_data_file_sha256": "acd265d2587c434da1714827c1c13e4a9199890d97cb968c8185f80deb280054",
+      "initial_state_file_sha256": "7beae0a9962e3449c69cfb0eee04c460ac726713fcc31eb75c4e317b5462ce5e"
+    },
+    {
+      "task_id": "pick_two_obj_and_place-Spoon-None-CounterTop-23/trial_T20190908_065238_500229/game.tw-pddl",
+      "traj_data_file_sha256": "4b4846d4355316f71bbdabee40addb041558811656077f0a6b5ca0aed1ef9ae0",
+      "initial_state_file_sha256": "cc5bfa3ec24b1184d71b1ef9111bf5532d20d8671a237a943ceb4120ea569ac3"
+    }
+  ],
+  "selection_sha256": "3a4b57ab4e8981e709fb12df38012f9a3f95b854233a4087f9d2d28781ed397e"
+}

@@ -1,0 +1,65 @@
+{
+  "schema_version": "agqa-query-grounder-v2-task-disjoint-qualification-v1",
+  "status": "FROZEN_BEFORE_TASK_SELECTION_PARSER_GROUNDING_OR_TASK_OUTCOMES",
+  "parent_grounder_freeze": "configs/agqa2_query_grounder_v2_action_genome_qualification_v1.json",
+  "raw_video_exposure_audit": "runs/agqa2_query_grounder_v2_qualification_v1/raw_video_exposure_audit.json",
+  "why_protocol_changed": "Historical content-addressed evidence covers all 1814 AGQA official-test videos, so a new video-disjoint untouched AGQA reserve is impossible. This protocol permits previously viewed raw videos but requires never-mentioned task IDs from official compositional evaluation slices.",
+  "claim_boundary": "Locked task-disjoint AGQA replication with raw-video inputs; not an untouched-video result. CLEVRER remains the fresh-video primary result.",
+  "selection": {
+    "official_split": "AGQA balanced test / Action Genome test",
+    "structural_type": "query",
+    "slices": {
+      "more_steps": {"videos": 20, "tasks_per_video": 2},
+      "novel_composition": {"videos": 20, "tasks_per_video": 2}
+    },
+    "total_videos": 40,
+    "total_tasks": 80,
+    "all_task_ids_must_be_absent_from_prior_configs_runs_and_result_docs": true,
+    "prior_raw_video_exposure_allowed_and_reported": true,
+    "selection_uses_answer_program_scene_graph_or_outcome": false
+  },
+  "authority": {
+    "task_answers_visible_to_grounder": false,
+    "official_stsg_visible_to_grounder": false,
+    "functional_program_visible_to_grounder": false,
+    "per_video_action_genome_boxes_or_relations_visible_to_grounder": false,
+    "source_controller_visible_to_grounder": false,
+    "target_outcomes_visible_to_grounder": false,
+    "public_action_genome_object_relation_ontology_allowed": true,
+    "public_charades_action_ontology_allowed": true,
+    "official_action_genome_split_metadata_used_by_evaluator_audit_only": true
+  },
+  "frozen_grounder": {
+    "sgdet_uniform_unique_and_model_frame_presentations": 64,
+    "slowfast_unique_sampled_frames": 48,
+    "slowfast_model_frame_presentations": 96,
+    "candidate_support_threshold": 0.675,
+    "candidate_confidence": "minimum of weighted pairwise top share and maximum absolute frozen-neural evidence",
+    "sgdet_rrf_weight": 0.6,
+    "slowfast_rrf_weight": 0.4,
+    "predicate_specific_whitelist_or_routing": false,
+    "stable_tracking": {
+      "same_class_only": true,
+      "within_frame_nms_iou": 0.7,
+      "minimum_track_affinity": 0.15,
+      "maximum_sampled_frame_gap": 6
+    },
+    "typed_event_deduplication_minimum_interval_iou": 0.5
+  },
+  "qualification_cohort": {
+    "query_tasks": 80
+  },
+  "qualification_gates": {
+    "provider_and_contract_success_fraction_minimum": 0.95,
+    "gold_entity_present_in_inventory_fraction_minimum": 0.45,
+    "unique_supported_requested_role_precision_minimum": 0.6,
+    "unique_supported_coverage_fraction_minimum": 0.2,
+    "residual_duplicate_typed_event_key_count_maximum": 0,
+    "authority_safe_receipt_fraction": 1.0,
+    "held_out_action_genome_split_fraction": 1.0
+  },
+  "decision": {
+    "if_all_gates_pass": "Freeze a new task-disjoint broad five-arm replication without claiming untouched videos.",
+    "if_any_gate_fails": "Do not tune on these outcomes and do not open the broad replication."
+  }
+}

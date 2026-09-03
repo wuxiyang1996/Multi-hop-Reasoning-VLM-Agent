@@ -1,0 +1,3151 @@
+{
+  "schema_version": "source-cyclic-intervention-forks-v1",
+  "role": "reserve",
+  "config_sha256": "765a85a3d009a8b3454100f4f0f60fb9915c6ba2bde53c1002846b993207548c",
+  "official_tetris_environment_file_sha256": "a58e60fd68f85d34bad5ca378bd01bc19a3689a0ea0a4aa8562e171ad3edfa8b",
+  "episodes": [
+    {
+      "episode_id": "tetris-source-087d0d77aa1f23ab",
+      "seed_commitment": "087d0d77aa1f23ab631f7ffa7bc2dedd8c9f818bdd26d0de6e6b17d14598063c",
+      "group_order": 4,
+      "probe_primitive_steps": 3,
+      "candidates": [
+        {
+          "candidate_id": "CAND_286f85846d0d",
+          "probe_effect_element": 3,
+          "recovery_effect_element": 2,
+          "primitive_transitions": [
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "4d352ddf8289ff02e419fe310cd0a562ef5bde05c9abdf5a9ecc7e2a20a8a1cc"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 2,
+              "raw_action_exported": false,
+              "transition_sha256": "891b0ff38fbfc2711674a9909293c50a17bff6246236a5e538d05c061e4c3056"
+            },
+            {
+              "state_element": 2,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 3,
+              "raw_action_exported": false,
+              "transition_sha256": "4a1252111ce9caa115ef74822ac952b251c9294b210a01db577bab8c57cce0c3"
+            },
+            {
+              "state_element": 3,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 1,
+              "next_state_element": 0,
+              "raw_action_exported": false,
+              "transition_sha256": "8bdbb3267079cb5110e5ec21e390807d2ebcee11fe3489232b302b307140bfda"
+            },
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "70ac42dde7dcacf387f1a9908ffdc9718f02171d5d962441d3c25bdac9721558"
+            }
+          ],
+          "returned_to_identity": false,
+          "raw_strategy_exported": false,
+          "candidate_sha256": "2fa93de2af9f6b0b5f7937b12a507d097de884495dfe0903b4445ee3adfdfa58"
+        },
+        {
+          "candidate_id": "CAND_9566603bdf77",
+          "probe_effect_element": 3,
+          "recovery_effect_element": 0,
+          "primitive_transitions": [
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "4d352ddf8289ff02e419fe310cd0a562ef5bde05c9abdf5a9ecc7e2a20a8a1cc"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 2,
+              "raw_action_exported": false,
+              "transition_sha256": "891b0ff38fbfc2711674a9909293c50a17bff6246236a5e538d05c061e4c3056"
+            },
+            {
+              "state_element": 2,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 3,
+              "raw_action_exported": false,
+              "transition_sha256": "4a1252111ce9caa115ef74822ac952b251c9294b210a01db577bab8c57cce0c3"
+            },
+            {
+              "state_element": 3,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 0,
+              "next_state_element": 3,
+              "raw_action_exported": false,
+              "transition_sha256": "efae3fe6362b684c852ace6116907498c2ae631f46d8a76b88fc21085a542f5b"
+            }
+          ],
+          "returned_to_identity": false,
+          "raw_strategy_exported": false,
+          "candidate_sha256": "430605f4fe2ee9b21851f8eec3b12462f93b2829b7a0f1ef140c4588bdeb352c"
+        },
+        {
+          "candidate_id": "CAND_9d9bb971d245",
+          "probe_effect_element": 3,
+          "recovery_effect_element": 1,
+          "primitive_transitions": [
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "4d352ddf8289ff02e419fe310cd0a562ef5bde05c9abdf5a9ecc7e2a20a8a1cc"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 2,
+              "raw_action_exported": false,
+              "transition_sha256": "891b0ff38fbfc2711674a9909293c50a17bff6246236a5e538d05c061e4c3056"
+            },
+            {
+              "state_element": 2,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 3,
+              "raw_action_exported": false,
+              "transition_sha256": "4a1252111ce9caa115ef74822ac952b251c9294b210a01db577bab8c57cce0c3"
+            },
+            {
+              "state_element": 3,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 3,
+              "next_state_element": 2,
+              "raw_action_exported": false,
+              "transition_sha256": "aae54e3d6d1eb189ab2f8d14a0420e69dacd5196eedaa6647357b64eee655bef"
+            },
+            {
+              "state_element": 2,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 3,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "05f369fbe79500bd23501919bb3c1160050db2d70aa459ff39752677c1c14ed6"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 3,
+              "next_state_element": 0,
+              "raw_action_exported": false,
+              "transition_sha256": "2b92270cda89ca71355509df19427cd685f1fe3e85e6c471b00ec49211b0de2c"
+            }
+          ],
+          "returned_to_identity": true,
+          "raw_strategy_exported": false,
+          "candidate_sha256": "ef20119c92f2f1bb4443a9a0e7c4edfe7c07c77cf216f0f75d0eb17c199155ee"
+        },
+        {
+          "candidate_id": "CAND_e2ddddf6dc35",
+          "probe_effect_element": 3,
+          "recovery_effect_element": 3,
+          "primitive_transitions": [
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "4d352ddf8289ff02e419fe310cd0a562ef5bde05c9abdf5a9ecc7e2a20a8a1cc"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 2,
+              "raw_action_exported": false,
+              "transition_sha256": "891b0ff38fbfc2711674a9909293c50a17bff6246236a5e538d05c061e4c3056"
+            },
+            {
+              "state_element": 2,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 3,
+              "raw_action_exported": false,
+              "transition_sha256": "4a1252111ce9caa115ef74822ac952b251c9294b210a01db577bab8c57cce0c3"
+            },
+            {
+              "state_element": 3,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 1,
+              "next_state_element": 0,
+              "raw_action_exported": false,
+              "transition_sha256": "8bdbb3267079cb5110e5ec21e390807d2ebcee11fe3489232b302b307140bfda"
+            },
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "70ac42dde7dcacf387f1a9908ffdc9718f02171d5d962441d3c25bdac9721558"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 1,
+              "next_state_element": 2,
+              "raw_action_exported": false,
+              "transition_sha256": "5c1a7fa43200c0dd72adfd4754891a4343037bf1c73a76eacd8aaeb30eabebca"
+            }
+          ],
+          "returned_to_identity": false,
+          "raw_strategy_exported": false,
+          "candidate_sha256": "dab40722ceb10ea21a78dce623209fbe2d9825365c8299fc1efe23d13ed9e1b9"
+        }
+      ],
+      "episode_sha256": "3532440bfc6f2fda3b6dd2d56cdc2ccf22192339ea15dc5f3d301e439d7cb0a2"
+    },
+    {
+      "episode_id": "tetris-source-db6bd5d5110eb345",
+      "seed_commitment": "db6bd5d5110eb345856659d612357a551c025385d86b33e6eac43036423b7033",
+      "group_order": 4,
+      "probe_primitive_steps": 3,
+      "candidates": [
+        {
+          "candidate_id": "CAND_286f85846d0d",
+          "probe_effect_element": 3,
+          "recovery_effect_element": 2,
+          "primitive_transitions": [
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "4d352ddf8289ff02e419fe310cd0a562ef5bde05c9abdf5a9ecc7e2a20a8a1cc"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 2,
+              "raw_action_exported": false,
+              "transition_sha256": "891b0ff38fbfc2711674a9909293c50a17bff6246236a5e538d05c061e4c3056"
+            },
+            {
+              "state_element": 2,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 3,
+              "raw_action_exported": false,
+              "transition_sha256": "4a1252111ce9caa115ef74822ac952b251c9294b210a01db577bab8c57cce0c3"
+            },
+            {
+              "state_element": 3,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 1,
+              "next_state_element": 0,
+              "raw_action_exported": false,
+              "transition_sha256": "8bdbb3267079cb5110e5ec21e390807d2ebcee11fe3489232b302b307140bfda"
+            },
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "70ac42dde7dcacf387f1a9908ffdc9718f02171d5d962441d3c25bdac9721558"
+            }
+          ],
+          "returned_to_identity": false,
+          "raw_strategy_exported": false,
+          "candidate_sha256": "2fa93de2af9f6b0b5f7937b12a507d097de884495dfe0903b4445ee3adfdfa58"
+        },
+        {
+          "candidate_id": "CAND_9566603bdf77",
+          "probe_effect_element": 3,
+          "recovery_effect_element": 0,
+          "primitive_transitions": [
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "4d352ddf8289ff02e419fe310cd0a562ef5bde05c9abdf5a9ecc7e2a20a8a1cc"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 2,
+              "raw_action_exported": false,
+              "transition_sha256": "891b0ff38fbfc2711674a9909293c50a17bff6246236a5e538d05c061e4c3056"
+            },
+            {
+              "state_element": 2,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 3,
+              "raw_action_exported": false,
+              "transition_sha256": "4a1252111ce9caa115ef74822ac952b251c9294b210a01db577bab8c57cce0c3"
+            },
+            {
+              "state_element": 3,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 0,
+              "next_state_element": 3,
+              "raw_action_exported": false,
+              "transition_sha256": "efae3fe6362b684c852ace6116907498c2ae631f46d8a76b88fc21085a542f5b"
+            }
+          ],
+          "returned_to_identity": false,
+          "raw_strategy_exported": false,
+          "candidate_sha256": "430605f4fe2ee9b21851f8eec3b12462f93b2829b7a0f1ef140c4588bdeb352c"
+        },
+        {
+          "candidate_id": "CAND_9d9bb971d245",
+          "probe_effect_element": 3,
+          "recovery_effect_element": 1,
+          "primitive_transitions": [
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "4d352ddf8289ff02e419fe310cd0a562ef5bde05c9abdf5a9ecc7e2a20a8a1cc"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 2,
+              "raw_action_exported": false,
+              "transition_sha256": "891b0ff38fbfc2711674a9909293c50a17bff6246236a5e538d05c061e4c3056"
+            },
+            {
+              "state_element": 2,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 3,
+              "raw_action_exported": false,
+              "transition_sha256": "4a1252111ce9caa115ef74822ac952b251c9294b210a01db577bab8c57cce0c3"
+            },
+            {
+              "state_element": 3,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 3,
+              "next_state_element": 2,
+              "raw_action_exported": false,
+              "transition_sha256": "aae54e3d6d1eb189ab2f8d14a0420e69dacd5196eedaa6647357b64eee655bef"
+            },
+            {
+              "state_element": 2,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 3,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "05f369fbe79500bd23501919bb3c1160050db2d70aa459ff39752677c1c14ed6"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 3,
+              "next_state_element": 0,
+              "raw_action_exported": false,
+              "transition_sha256": "2b92270cda89ca71355509df19427cd685f1fe3e85e6c471b00ec49211b0de2c"
+            }
+          ],
+          "returned_to_identity": true,
+          "raw_strategy_exported": false,
+          "candidate_sha256": "ef20119c92f2f1bb4443a9a0e7c4edfe7c07c77cf216f0f75d0eb17c199155ee"
+        },
+        {
+          "candidate_id": "CAND_e2ddddf6dc35",
+          "probe_effect_element": 3,
+          "recovery_effect_element": 3,
+          "primitive_transitions": [
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "4d352ddf8289ff02e419fe310cd0a562ef5bde05c9abdf5a9ecc7e2a20a8a1cc"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 2,
+              "raw_action_exported": false,
+              "transition_sha256": "891b0ff38fbfc2711674a9909293c50a17bff6246236a5e538d05c061e4c3056"
+            },
+            {
+              "state_element": 2,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 3,
+              "raw_action_exported": false,
+              "transition_sha256": "4a1252111ce9caa115ef74822ac952b251c9294b210a01db577bab8c57cce0c3"
+            },
+            {
+              "state_element": 3,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 1,
+              "next_state_element": 0,
+              "raw_action_exported": false,
+              "transition_sha256": "8bdbb3267079cb5110e5ec21e390807d2ebcee11fe3489232b302b307140bfda"
+            },
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "70ac42dde7dcacf387f1a9908ffdc9718f02171d5d962441d3c25bdac9721558"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 1,
+              "next_state_element": 2,
+              "raw_action_exported": false,
+              "transition_sha256": "5c1a7fa43200c0dd72adfd4754891a4343037bf1c73a76eacd8aaeb30eabebca"
+            }
+          ],
+          "returned_to_identity": false,
+          "raw_strategy_exported": false,
+          "candidate_sha256": "dab40722ceb10ea21a78dce623209fbe2d9825365c8299fc1efe23d13ed9e1b9"
+        }
+      ],
+      "episode_sha256": "0ae9b8005720e862ee6799807aa7b22a43143adc4ea446f0ac68e475acc74146"
+    },
+    {
+      "episode_id": "tetris-source-3463bcb8209fafea",
+      "seed_commitment": "3463bcb8209fafea4659010ac0746553d7faeafad4b3c1bc9e3920a6812fb8d1",
+      "group_order": 4,
+      "probe_primitive_steps": 1,
+      "candidates": [
+        {
+          "candidate_id": "CAND_286f85846d0d",
+          "probe_effect_element": 1,
+          "recovery_effect_element": 2,
+          "primitive_transitions": [
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "4d352ddf8289ff02e419fe310cd0a562ef5bde05c9abdf5a9ecc7e2a20a8a1cc"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 1,
+              "next_state_element": 2,
+              "raw_action_exported": false,
+              "transition_sha256": "5c1a7fa43200c0dd72adfd4754891a4343037bf1c73a76eacd8aaeb30eabebca"
+            },
+            {
+              "state_element": 2,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 1,
+              "next_state_element": 3,
+              "raw_action_exported": false,
+              "transition_sha256": "5b9701331e6b998e981c8418ade720eec0b5329ccd83f80a07a9d795b9ea9322"
+            }
+          ],
+          "returned_to_identity": false,
+          "raw_strategy_exported": false,
+          "candidate_sha256": "a513d6bb5acdd5edb3d176967c4af9fbb35fb07b35ddd10b6a580c40ac4abae9"
+        },
+        {
+          "candidate_id": "CAND_9566603bdf77",
+          "probe_effect_element": 1,
+          "recovery_effect_element": 0,
+          "primitive_transitions": [
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "4d352ddf8289ff02e419fe310cd0a562ef5bde05c9abdf5a9ecc7e2a20a8a1cc"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 0,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "5641efed3344cdbd25f392eb7cfaef3df95cfb251115b1de29d46bbffcc849de"
+            }
+          ],
+          "returned_to_identity": false,
+          "raw_strategy_exported": false,
+          "candidate_sha256": "367d81c218e9ebe301883562221016ef0c5428a663d33b577fc813c4f9597547"
+        },
+        {
+          "candidate_id": "CAND_9d9bb971d245",
+          "probe_effect_element": 1,
+          "recovery_effect_element": 1,
+          "primitive_transitions": [
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "4d352ddf8289ff02e419fe310cd0a562ef5bde05c9abdf5a9ecc7e2a20a8a1cc"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 1,
+              "next_state_element": 2,
+              "raw_action_exported": false,
+              "transition_sha256": "5c1a7fa43200c0dd72adfd4754891a4343037bf1c73a76eacd8aaeb30eabebca"
+            }
+          ],
+          "returned_to_identity": false,
+          "raw_strategy_exported": false,
+          "candidate_sha256": "a780219f8ecb47a65b0419ff7f5c62202bd19776eb1ef471d78b2378e79e80cc"
+        },
+        {
+          "candidate_id": "CAND_e2ddddf6dc35",
+          "probe_effect_element": 1,
+          "recovery_effect_element": 3,
+          "primitive_transitions": [
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "4d352ddf8289ff02e419fe310cd0a562ef5bde05c9abdf5a9ecc7e2a20a8a1cc"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 3,
+              "next_state_element": 0,
+              "raw_action_exported": false,
+              "transition_sha256": "2b92270cda89ca71355509df19427cd685f1fe3e85e6c471b00ec49211b0de2c"
+            }
+          ],
+          "returned_to_identity": true,
+          "raw_strategy_exported": false,
+          "candidate_sha256": "82fe0735a36027d1693977163f2731b80198536de7a65e6932ba837c3d8cfd5f"
+        }
+      ],
+      "episode_sha256": "d5d6fe3a89e77e93cd3b423da5a85bf87c9ba1afe5764c46bdd3356f4f961f28"
+    },
+    {
+      "episode_id": "tetris-source-098d63a83cb079c5",
+      "seed_commitment": "098d63a83cb079c5598e6c87a345f4b0417fdcb1326f7d249ffe267af7be7d8c",
+      "group_order": 4,
+      "probe_primitive_steps": 1,
+      "candidates": [
+        {
+          "candidate_id": "CAND_286f85846d0d",
+          "probe_effect_element": 1,
+          "recovery_effect_element": 2,
+          "primitive_transitions": [
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "4d352ddf8289ff02e419fe310cd0a562ef5bde05c9abdf5a9ecc7e2a20a8a1cc"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 1,
+              "next_state_element": 2,
+              "raw_action_exported": false,
+              "transition_sha256": "5c1a7fa43200c0dd72adfd4754891a4343037bf1c73a76eacd8aaeb30eabebca"
+            },
+            {
+              "state_element": 2,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 1,
+              "next_state_element": 3,
+              "raw_action_exported": false,
+              "transition_sha256": "5b9701331e6b998e981c8418ade720eec0b5329ccd83f80a07a9d795b9ea9322"
+            }
+          ],
+          "returned_to_identity": false,
+          "raw_strategy_exported": false,
+          "candidate_sha256": "a513d6bb5acdd5edb3d176967c4af9fbb35fb07b35ddd10b6a580c40ac4abae9"
+        },
+        {
+          "candidate_id": "CAND_9566603bdf77",
+          "probe_effect_element": 1,
+          "recovery_effect_element": 0,
+          "primitive_transitions": [
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "4d352ddf8289ff02e419fe310cd0a562ef5bde05c9abdf5a9ecc7e2a20a8a1cc"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 0,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "5641efed3344cdbd25f392eb7cfaef3df95cfb251115b1de29d46bbffcc849de"
+            }
+          ],
+          "returned_to_identity": false,
+          "raw_strategy_exported": false,
+          "candidate_sha256": "367d81c218e9ebe301883562221016ef0c5428a663d33b577fc813c4f9597547"
+        },
+        {
+          "candidate_id": "CAND_9d9bb971d245",
+          "probe_effect_element": 1,
+          "recovery_effect_element": 1,
+          "primitive_transitions": [
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "4d352ddf8289ff02e419fe310cd0a562ef5bde05c9abdf5a9ecc7e2a20a8a1cc"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 1,
+              "next_state_element": 2,
+              "raw_action_exported": false,
+              "transition_sha256": "5c1a7fa43200c0dd72adfd4754891a4343037bf1c73a76eacd8aaeb30eabebca"
+            }
+          ],
+          "returned_to_identity": false,
+          "raw_strategy_exported": false,
+          "candidate_sha256": "a780219f8ecb47a65b0419ff7f5c62202bd19776eb1ef471d78b2378e79e80cc"
+        },
+        {
+          "candidate_id": "CAND_e2ddddf6dc35",
+          "probe_effect_element": 1,
+          "recovery_effect_element": 3,
+          "primitive_transitions": [
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "4d352ddf8289ff02e419fe310cd0a562ef5bde05c9abdf5a9ecc7e2a20a8a1cc"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 3,
+              "next_state_element": 0,
+              "raw_action_exported": false,
+              "transition_sha256": "2b92270cda89ca71355509df19427cd685f1fe3e85e6c471b00ec49211b0de2c"
+            }
+          ],
+          "returned_to_identity": true,
+          "raw_strategy_exported": false,
+          "candidate_sha256": "82fe0735a36027d1693977163f2731b80198536de7a65e6932ba837c3d8cfd5f"
+        }
+      ],
+      "episode_sha256": "085a03bba055d709f6659ce8ad0c5d444f30994f623dd4d3bee47b714e2a1172"
+    },
+    {
+      "episode_id": "tetris-source-891eaebcccab51ed",
+      "seed_commitment": "891eaebcccab51edf1131177412123347e72a26a67e184b64cfe9f3f83856355",
+      "group_order": 4,
+      "probe_primitive_steps": 1,
+      "candidates": [
+        {
+          "candidate_id": "CAND_286f85846d0d",
+          "probe_effect_element": 1,
+          "recovery_effect_element": 2,
+          "primitive_transitions": [
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "4d352ddf8289ff02e419fe310cd0a562ef5bde05c9abdf5a9ecc7e2a20a8a1cc"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 1,
+              "next_state_element": 2,
+              "raw_action_exported": false,
+              "transition_sha256": "5c1a7fa43200c0dd72adfd4754891a4343037bf1c73a76eacd8aaeb30eabebca"
+            },
+            {
+              "state_element": 2,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 1,
+              "next_state_element": 3,
+              "raw_action_exported": false,
+              "transition_sha256": "5b9701331e6b998e981c8418ade720eec0b5329ccd83f80a07a9d795b9ea9322"
+            }
+          ],
+          "returned_to_identity": false,
+          "raw_strategy_exported": false,
+          "candidate_sha256": "a513d6bb5acdd5edb3d176967c4af9fbb35fb07b35ddd10b6a580c40ac4abae9"
+        },
+        {
+          "candidate_id": "CAND_9566603bdf77",
+          "probe_effect_element": 1,
+          "recovery_effect_element": 0,
+          "primitive_transitions": [
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "4d352ddf8289ff02e419fe310cd0a562ef5bde05c9abdf5a9ecc7e2a20a8a1cc"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 0,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "5641efed3344cdbd25f392eb7cfaef3df95cfb251115b1de29d46bbffcc849de"
+            }
+          ],
+          "returned_to_identity": false,
+          "raw_strategy_exported": false,
+          "candidate_sha256": "367d81c218e9ebe301883562221016ef0c5428a663d33b577fc813c4f9597547"
+        },
+        {
+          "candidate_id": "CAND_9d9bb971d245",
+          "probe_effect_element": 1,
+          "recovery_effect_element": 1,
+          "primitive_transitions": [
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "4d352ddf8289ff02e419fe310cd0a562ef5bde05c9abdf5a9ecc7e2a20a8a1cc"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 1,
+              "next_state_element": 2,
+              "raw_action_exported": false,
+              "transition_sha256": "5c1a7fa43200c0dd72adfd4754891a4343037bf1c73a76eacd8aaeb30eabebca"
+            }
+          ],
+          "returned_to_identity": false,
+          "raw_strategy_exported": false,
+          "candidate_sha256": "a780219f8ecb47a65b0419ff7f5c62202bd19776eb1ef471d78b2378e79e80cc"
+        },
+        {
+          "candidate_id": "CAND_e2ddddf6dc35",
+          "probe_effect_element": 1,
+          "recovery_effect_element": 3,
+          "primitive_transitions": [
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "4d352ddf8289ff02e419fe310cd0a562ef5bde05c9abdf5a9ecc7e2a20a8a1cc"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 3,
+              "next_state_element": 0,
+              "raw_action_exported": false,
+              "transition_sha256": "2b92270cda89ca71355509df19427cd685f1fe3e85e6c471b00ec49211b0de2c"
+            }
+          ],
+          "returned_to_identity": true,
+          "raw_strategy_exported": false,
+          "candidate_sha256": "82fe0735a36027d1693977163f2731b80198536de7a65e6932ba837c3d8cfd5f"
+        }
+      ],
+      "episode_sha256": "7b74382a5a8ce744626b74e9cd1ca41b5e9d0b86b2aa624e8b77042e16405775"
+    },
+    {
+      "episode_id": "tetris-source-38f00bdeadb62b4d",
+      "seed_commitment": "38f00bdeadb62b4d541da7d88787986b579e63f5a51f979274e83a23937c90f7",
+      "group_order": 4,
+      "probe_primitive_steps": 1,
+      "candidates": [
+        {
+          "candidate_id": "CAND_286f85846d0d",
+          "probe_effect_element": 1,
+          "recovery_effect_element": 2,
+          "primitive_transitions": [
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "4d352ddf8289ff02e419fe310cd0a562ef5bde05c9abdf5a9ecc7e2a20a8a1cc"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 1,
+              "next_state_element": 2,
+              "raw_action_exported": false,
+              "transition_sha256": "5c1a7fa43200c0dd72adfd4754891a4343037bf1c73a76eacd8aaeb30eabebca"
+            },
+            {
+              "state_element": 2,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 1,
+              "next_state_element": 3,
+              "raw_action_exported": false,
+              "transition_sha256": "5b9701331e6b998e981c8418ade720eec0b5329ccd83f80a07a9d795b9ea9322"
+            }
+          ],
+          "returned_to_identity": false,
+          "raw_strategy_exported": false,
+          "candidate_sha256": "a513d6bb5acdd5edb3d176967c4af9fbb35fb07b35ddd10b6a580c40ac4abae9"
+        },
+        {
+          "candidate_id": "CAND_9566603bdf77",
+          "probe_effect_element": 1,
+          "recovery_effect_element": 0,
+          "primitive_transitions": [
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "4d352ddf8289ff02e419fe310cd0a562ef5bde05c9abdf5a9ecc7e2a20a8a1cc"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 0,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "5641efed3344cdbd25f392eb7cfaef3df95cfb251115b1de29d46bbffcc849de"
+            }
+          ],
+          "returned_to_identity": false,
+          "raw_strategy_exported": false,
+          "candidate_sha256": "367d81c218e9ebe301883562221016ef0c5428a663d33b577fc813c4f9597547"
+        },
+        {
+          "candidate_id": "CAND_9d9bb971d245",
+          "probe_effect_element": 1,
+          "recovery_effect_element": 1,
+          "primitive_transitions": [
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "4d352ddf8289ff02e419fe310cd0a562ef5bde05c9abdf5a9ecc7e2a20a8a1cc"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 1,
+              "next_state_element": 2,
+              "raw_action_exported": false,
+              "transition_sha256": "5c1a7fa43200c0dd72adfd4754891a4343037bf1c73a76eacd8aaeb30eabebca"
+            }
+          ],
+          "returned_to_identity": false,
+          "raw_strategy_exported": false,
+          "candidate_sha256": "a780219f8ecb47a65b0419ff7f5c62202bd19776eb1ef471d78b2378e79e80cc"
+        },
+        {
+          "candidate_id": "CAND_e2ddddf6dc35",
+          "probe_effect_element": 1,
+          "recovery_effect_element": 3,
+          "primitive_transitions": [
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "4d352ddf8289ff02e419fe310cd0a562ef5bde05c9abdf5a9ecc7e2a20a8a1cc"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 3,
+              "next_state_element": 0,
+              "raw_action_exported": false,
+              "transition_sha256": "2b92270cda89ca71355509df19427cd685f1fe3e85e6c471b00ec49211b0de2c"
+            }
+          ],
+          "returned_to_identity": true,
+          "raw_strategy_exported": false,
+          "candidate_sha256": "82fe0735a36027d1693977163f2731b80198536de7a65e6932ba837c3d8cfd5f"
+        }
+      ],
+      "episode_sha256": "aacefa3d806ee36ef3b5b9dea222c4103d91419a3b3ee75baf914d62b3acb5d8"
+    },
+    {
+      "episode_id": "tetris-source-307920c9e648a115",
+      "seed_commitment": "307920c9e648a11539ec51fa8ff96fcd8ff285af69d8d7f72d6b1aabffae4cc0",
+      "group_order": 4,
+      "probe_primitive_steps": 3,
+      "candidates": [
+        {
+          "candidate_id": "CAND_286f85846d0d",
+          "probe_effect_element": 3,
+          "recovery_effect_element": 2,
+          "primitive_transitions": [
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "4d352ddf8289ff02e419fe310cd0a562ef5bde05c9abdf5a9ecc7e2a20a8a1cc"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 2,
+              "raw_action_exported": false,
+              "transition_sha256": "891b0ff38fbfc2711674a9909293c50a17bff6246236a5e538d05c061e4c3056"
+            },
+            {
+              "state_element": 2,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 3,
+              "raw_action_exported": false,
+              "transition_sha256": "4a1252111ce9caa115ef74822ac952b251c9294b210a01db577bab8c57cce0c3"
+            },
+            {
+              "state_element": 3,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 1,
+              "next_state_element": 0,
+              "raw_action_exported": false,
+              "transition_sha256": "8bdbb3267079cb5110e5ec21e390807d2ebcee11fe3489232b302b307140bfda"
+            },
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "70ac42dde7dcacf387f1a9908ffdc9718f02171d5d962441d3c25bdac9721558"
+            }
+          ],
+          "returned_to_identity": false,
+          "raw_strategy_exported": false,
+          "candidate_sha256": "2fa93de2af9f6b0b5f7937b12a507d097de884495dfe0903b4445ee3adfdfa58"
+        },
+        {
+          "candidate_id": "CAND_9566603bdf77",
+          "probe_effect_element": 3,
+          "recovery_effect_element": 0,
+          "primitive_transitions": [
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "4d352ddf8289ff02e419fe310cd0a562ef5bde05c9abdf5a9ecc7e2a20a8a1cc"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 2,
+              "raw_action_exported": false,
+              "transition_sha256": "891b0ff38fbfc2711674a9909293c50a17bff6246236a5e538d05c061e4c3056"
+            },
+            {
+              "state_element": 2,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 3,
+              "raw_action_exported": false,
+              "transition_sha256": "4a1252111ce9caa115ef74822ac952b251c9294b210a01db577bab8c57cce0c3"
+            },
+            {
+              "state_element": 3,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 0,
+              "next_state_element": 3,
+              "raw_action_exported": false,
+              "transition_sha256": "efae3fe6362b684c852ace6116907498c2ae631f46d8a76b88fc21085a542f5b"
+            }
+          ],
+          "returned_to_identity": false,
+          "raw_strategy_exported": false,
+          "candidate_sha256": "430605f4fe2ee9b21851f8eec3b12462f93b2829b7a0f1ef140c4588bdeb352c"
+        },
+        {
+          "candidate_id": "CAND_9d9bb971d245",
+          "probe_effect_element": 3,
+          "recovery_effect_element": 1,
+          "primitive_transitions": [
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "4d352ddf8289ff02e419fe310cd0a562ef5bde05c9abdf5a9ecc7e2a20a8a1cc"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 2,
+              "raw_action_exported": false,
+              "transition_sha256": "891b0ff38fbfc2711674a9909293c50a17bff6246236a5e538d05c061e4c3056"
+            },
+            {
+              "state_element": 2,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 3,
+              "raw_action_exported": false,
+              "transition_sha256": "4a1252111ce9caa115ef74822ac952b251c9294b210a01db577bab8c57cce0c3"
+            },
+            {
+              "state_element": 3,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 3,
+              "next_state_element": 2,
+              "raw_action_exported": false,
+              "transition_sha256": "aae54e3d6d1eb189ab2f8d14a0420e69dacd5196eedaa6647357b64eee655bef"
+            },
+            {
+              "state_element": 2,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 3,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "05f369fbe79500bd23501919bb3c1160050db2d70aa459ff39752677c1c14ed6"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 3,
+              "next_state_element": 0,
+              "raw_action_exported": false,
+              "transition_sha256": "2b92270cda89ca71355509df19427cd685f1fe3e85e6c471b00ec49211b0de2c"
+            }
+          ],
+          "returned_to_identity": true,
+          "raw_strategy_exported": false,
+          "candidate_sha256": "ef20119c92f2f1bb4443a9a0e7c4edfe7c07c77cf216f0f75d0eb17c199155ee"
+        },
+        {
+          "candidate_id": "CAND_e2ddddf6dc35",
+          "probe_effect_element": 3,
+          "recovery_effect_element": 3,
+          "primitive_transitions": [
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "4d352ddf8289ff02e419fe310cd0a562ef5bde05c9abdf5a9ecc7e2a20a8a1cc"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 2,
+              "raw_action_exported": false,
+              "transition_sha256": "891b0ff38fbfc2711674a9909293c50a17bff6246236a5e538d05c061e4c3056"
+            },
+            {
+              "state_element": 2,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 3,
+              "raw_action_exported": false,
+              "transition_sha256": "4a1252111ce9caa115ef74822ac952b251c9294b210a01db577bab8c57cce0c3"
+            },
+            {
+              "state_element": 3,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 1,
+              "next_state_element": 0,
+              "raw_action_exported": false,
+              "transition_sha256": "8bdbb3267079cb5110e5ec21e390807d2ebcee11fe3489232b302b307140bfda"
+            },
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "70ac42dde7dcacf387f1a9908ffdc9718f02171d5d962441d3c25bdac9721558"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 1,
+              "next_state_element": 2,
+              "raw_action_exported": false,
+              "transition_sha256": "5c1a7fa43200c0dd72adfd4754891a4343037bf1c73a76eacd8aaeb30eabebca"
+            }
+          ],
+          "returned_to_identity": false,
+          "raw_strategy_exported": false,
+          "candidate_sha256": "dab40722ceb10ea21a78dce623209fbe2d9825365c8299fc1efe23d13ed9e1b9"
+        }
+      ],
+      "episode_sha256": "83824102f49c4f0c8f4f0a2d98ee19e61a6f4ceea60ab6222455bc241d2397bc"
+    },
+    {
+      "episode_id": "tetris-source-9af46ec9186f7e41",
+      "seed_commitment": "9af46ec9186f7e415759ff3428e2691ddcd8ea0a70298ab6b88a307aee3666a5",
+      "group_order": 4,
+      "probe_primitive_steps": 3,
+      "candidates": [
+        {
+          "candidate_id": "CAND_286f85846d0d",
+          "probe_effect_element": 3,
+          "recovery_effect_element": 2,
+          "primitive_transitions": [
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "4d352ddf8289ff02e419fe310cd0a562ef5bde05c9abdf5a9ecc7e2a20a8a1cc"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 2,
+              "raw_action_exported": false,
+              "transition_sha256": "891b0ff38fbfc2711674a9909293c50a17bff6246236a5e538d05c061e4c3056"
+            },
+            {
+              "state_element": 2,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 3,
+              "raw_action_exported": false,
+              "transition_sha256": "4a1252111ce9caa115ef74822ac952b251c9294b210a01db577bab8c57cce0c3"
+            },
+            {
+              "state_element": 3,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 1,
+              "next_state_element": 0,
+              "raw_action_exported": false,
+              "transition_sha256": "8bdbb3267079cb5110e5ec21e390807d2ebcee11fe3489232b302b307140bfda"
+            },
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "70ac42dde7dcacf387f1a9908ffdc9718f02171d5d962441d3c25bdac9721558"
+            }
+          ],
+          "returned_to_identity": false,
+          "raw_strategy_exported": false,
+          "candidate_sha256": "2fa93de2af9f6b0b5f7937b12a507d097de884495dfe0903b4445ee3adfdfa58"
+        },
+        {
+          "candidate_id": "CAND_9566603bdf77",
+          "probe_effect_element": 3,
+          "recovery_effect_element": 0,
+          "primitive_transitions": [
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "4d352ddf8289ff02e419fe310cd0a562ef5bde05c9abdf5a9ecc7e2a20a8a1cc"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 2,
+              "raw_action_exported": false,
+              "transition_sha256": "891b0ff38fbfc2711674a9909293c50a17bff6246236a5e538d05c061e4c3056"
+            },
+            {
+              "state_element": 2,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 3,
+              "raw_action_exported": false,
+              "transition_sha256": "4a1252111ce9caa115ef74822ac952b251c9294b210a01db577bab8c57cce0c3"
+            },
+            {
+              "state_element": 3,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 0,
+              "next_state_element": 3,
+              "raw_action_exported": false,
+              "transition_sha256": "efae3fe6362b684c852ace6116907498c2ae631f46d8a76b88fc21085a542f5b"
+            }
+          ],
+          "returned_to_identity": false,
+          "raw_strategy_exported": false,
+          "candidate_sha256": "430605f4fe2ee9b21851f8eec3b12462f93b2829b7a0f1ef140c4588bdeb352c"
+        },
+        {
+          "candidate_id": "CAND_9d9bb971d245",
+          "probe_effect_element": 3,
+          "recovery_effect_element": 1,
+          "primitive_transitions": [
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "4d352ddf8289ff02e419fe310cd0a562ef5bde05c9abdf5a9ecc7e2a20a8a1cc"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 2,
+              "raw_action_exported": false,
+              "transition_sha256": "891b0ff38fbfc2711674a9909293c50a17bff6246236a5e538d05c061e4c3056"
+            },
+            {
+              "state_element": 2,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 3,
+              "raw_action_exported": false,
+              "transition_sha256": "4a1252111ce9caa115ef74822ac952b251c9294b210a01db577bab8c57cce0c3"
+            },
+            {
+              "state_element": 3,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 3,
+              "next_state_element": 2,
+              "raw_action_exported": false,
+              "transition_sha256": "aae54e3d6d1eb189ab2f8d14a0420e69dacd5196eedaa6647357b64eee655bef"
+            },
+            {
+              "state_element": 2,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 3,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "05f369fbe79500bd23501919bb3c1160050db2d70aa459ff39752677c1c14ed6"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 3,
+              "next_state_element": 0,
+              "raw_action_exported": false,
+              "transition_sha256": "2b92270cda89ca71355509df19427cd685f1fe3e85e6c471b00ec49211b0de2c"
+            }
+          ],
+          "returned_to_identity": true,
+          "raw_strategy_exported": false,
+          "candidate_sha256": "ef20119c92f2f1bb4443a9a0e7c4edfe7c07c77cf216f0f75d0eb17c199155ee"
+        },
+        {
+          "candidate_id": "CAND_e2ddddf6dc35",
+          "probe_effect_element": 3,
+          "recovery_effect_element": 3,
+          "primitive_transitions": [
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "4d352ddf8289ff02e419fe310cd0a562ef5bde05c9abdf5a9ecc7e2a20a8a1cc"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 2,
+              "raw_action_exported": false,
+              "transition_sha256": "891b0ff38fbfc2711674a9909293c50a17bff6246236a5e538d05c061e4c3056"
+            },
+            {
+              "state_element": 2,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 3,
+              "raw_action_exported": false,
+              "transition_sha256": "4a1252111ce9caa115ef74822ac952b251c9294b210a01db577bab8c57cce0c3"
+            },
+            {
+              "state_element": 3,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 1,
+              "next_state_element": 0,
+              "raw_action_exported": false,
+              "transition_sha256": "8bdbb3267079cb5110e5ec21e390807d2ebcee11fe3489232b302b307140bfda"
+            },
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "70ac42dde7dcacf387f1a9908ffdc9718f02171d5d962441d3c25bdac9721558"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 1,
+              "next_state_element": 2,
+              "raw_action_exported": false,
+              "transition_sha256": "5c1a7fa43200c0dd72adfd4754891a4343037bf1c73a76eacd8aaeb30eabebca"
+            }
+          ],
+          "returned_to_identity": false,
+          "raw_strategy_exported": false,
+          "candidate_sha256": "dab40722ceb10ea21a78dce623209fbe2d9825365c8299fc1efe23d13ed9e1b9"
+        }
+      ],
+      "episode_sha256": "448d9d68d63881457006075312ecc0e2ff60f89955e5bb1e1b5fde2f85d30a4c"
+    },
+    {
+      "episode_id": "tetris-source-427160132c8b55b5",
+      "seed_commitment": "427160132c8b55b5b2869d7c12fe536fe85ba02ace34b7effee68f76c2847c1c",
+      "group_order": 4,
+      "probe_primitive_steps": 3,
+      "candidates": [
+        {
+          "candidate_id": "CAND_286f85846d0d",
+          "probe_effect_element": 3,
+          "recovery_effect_element": 2,
+          "primitive_transitions": [
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "4d352ddf8289ff02e419fe310cd0a562ef5bde05c9abdf5a9ecc7e2a20a8a1cc"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 2,
+              "raw_action_exported": false,
+              "transition_sha256": "891b0ff38fbfc2711674a9909293c50a17bff6246236a5e538d05c061e4c3056"
+            },
+            {
+              "state_element": 2,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 3,
+              "raw_action_exported": false,
+              "transition_sha256": "4a1252111ce9caa115ef74822ac952b251c9294b210a01db577bab8c57cce0c3"
+            },
+            {
+              "state_element": 3,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 1,
+              "next_state_element": 0,
+              "raw_action_exported": false,
+              "transition_sha256": "8bdbb3267079cb5110e5ec21e390807d2ebcee11fe3489232b302b307140bfda"
+            },
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "70ac42dde7dcacf387f1a9908ffdc9718f02171d5d962441d3c25bdac9721558"
+            }
+          ],
+          "returned_to_identity": false,
+          "raw_strategy_exported": false,
+          "candidate_sha256": "2fa93de2af9f6b0b5f7937b12a507d097de884495dfe0903b4445ee3adfdfa58"
+        },
+        {
+          "candidate_id": "CAND_9566603bdf77",
+          "probe_effect_element": 3,
+          "recovery_effect_element": 0,
+          "primitive_transitions": [
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "4d352ddf8289ff02e419fe310cd0a562ef5bde05c9abdf5a9ecc7e2a20a8a1cc"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 2,
+              "raw_action_exported": false,
+              "transition_sha256": "891b0ff38fbfc2711674a9909293c50a17bff6246236a5e538d05c061e4c3056"
+            },
+            {
+              "state_element": 2,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 3,
+              "raw_action_exported": false,
+              "transition_sha256": "4a1252111ce9caa115ef74822ac952b251c9294b210a01db577bab8c57cce0c3"
+            },
+            {
+              "state_element": 3,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 0,
+              "next_state_element": 3,
+              "raw_action_exported": false,
+              "transition_sha256": "efae3fe6362b684c852ace6116907498c2ae631f46d8a76b88fc21085a542f5b"
+            }
+          ],
+          "returned_to_identity": false,
+          "raw_strategy_exported": false,
+          "candidate_sha256": "430605f4fe2ee9b21851f8eec3b12462f93b2829b7a0f1ef140c4588bdeb352c"
+        },
+        {
+          "candidate_id": "CAND_9d9bb971d245",
+          "probe_effect_element": 3,
+          "recovery_effect_element": 1,
+          "primitive_transitions": [
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "4d352ddf8289ff02e419fe310cd0a562ef5bde05c9abdf5a9ecc7e2a20a8a1cc"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 2,
+              "raw_action_exported": false,
+              "transition_sha256": "891b0ff38fbfc2711674a9909293c50a17bff6246236a5e538d05c061e4c3056"
+            },
+            {
+              "state_element": 2,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 3,
+              "raw_action_exported": false,
+              "transition_sha256": "4a1252111ce9caa115ef74822ac952b251c9294b210a01db577bab8c57cce0c3"
+            },
+            {
+              "state_element": 3,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 3,
+              "next_state_element": 2,
+              "raw_action_exported": false,
+              "transition_sha256": "aae54e3d6d1eb189ab2f8d14a0420e69dacd5196eedaa6647357b64eee655bef"
+            },
+            {
+              "state_element": 2,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 3,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "05f369fbe79500bd23501919bb3c1160050db2d70aa459ff39752677c1c14ed6"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 3,
+              "next_state_element": 0,
+              "raw_action_exported": false,
+              "transition_sha256": "2b92270cda89ca71355509df19427cd685f1fe3e85e6c471b00ec49211b0de2c"
+            }
+          ],
+          "returned_to_identity": true,
+          "raw_strategy_exported": false,
+          "candidate_sha256": "ef20119c92f2f1bb4443a9a0e7c4edfe7c07c77cf216f0f75d0eb17c199155ee"
+        },
+        {
+          "candidate_id": "CAND_e2ddddf6dc35",
+          "probe_effect_element": 3,
+          "recovery_effect_element": 3,
+          "primitive_transitions": [
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "4d352ddf8289ff02e419fe310cd0a562ef5bde05c9abdf5a9ecc7e2a20a8a1cc"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 2,
+              "raw_action_exported": false,
+              "transition_sha256": "891b0ff38fbfc2711674a9909293c50a17bff6246236a5e538d05c061e4c3056"
+            },
+            {
+              "state_element": 2,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 3,
+              "raw_action_exported": false,
+              "transition_sha256": "4a1252111ce9caa115ef74822ac952b251c9294b210a01db577bab8c57cce0c3"
+            },
+            {
+              "state_element": 3,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 1,
+              "next_state_element": 0,
+              "raw_action_exported": false,
+              "transition_sha256": "8bdbb3267079cb5110e5ec21e390807d2ebcee11fe3489232b302b307140bfda"
+            },
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "70ac42dde7dcacf387f1a9908ffdc9718f02171d5d962441d3c25bdac9721558"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 1,
+              "next_state_element": 2,
+              "raw_action_exported": false,
+              "transition_sha256": "5c1a7fa43200c0dd72adfd4754891a4343037bf1c73a76eacd8aaeb30eabebca"
+            }
+          ],
+          "returned_to_identity": false,
+          "raw_strategy_exported": false,
+          "candidate_sha256": "dab40722ceb10ea21a78dce623209fbe2d9825365c8299fc1efe23d13ed9e1b9"
+        }
+      ],
+      "episode_sha256": "a016f47e367a09038316305682e3fcba6144c1bfab96f9a21d08aaf4fe06f7ec"
+    },
+    {
+      "episode_id": "tetris-source-658d86157eb65417",
+      "seed_commitment": "658d86157eb65417bc1b48b3764f7ac62afd9c38b4e4af41ad59385a32dea6ff",
+      "group_order": 4,
+      "probe_primitive_steps": 3,
+      "candidates": [
+        {
+          "candidate_id": "CAND_286f85846d0d",
+          "probe_effect_element": 3,
+          "recovery_effect_element": 2,
+          "primitive_transitions": [
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "4d352ddf8289ff02e419fe310cd0a562ef5bde05c9abdf5a9ecc7e2a20a8a1cc"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 2,
+              "raw_action_exported": false,
+              "transition_sha256": "891b0ff38fbfc2711674a9909293c50a17bff6246236a5e538d05c061e4c3056"
+            },
+            {
+              "state_element": 2,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 3,
+              "raw_action_exported": false,
+              "transition_sha256": "4a1252111ce9caa115ef74822ac952b251c9294b210a01db577bab8c57cce0c3"
+            },
+            {
+              "state_element": 3,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 1,
+              "next_state_element": 0,
+              "raw_action_exported": false,
+              "transition_sha256": "8bdbb3267079cb5110e5ec21e390807d2ebcee11fe3489232b302b307140bfda"
+            },
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "70ac42dde7dcacf387f1a9908ffdc9718f02171d5d962441d3c25bdac9721558"
+            }
+          ],
+          "returned_to_identity": false,
+          "raw_strategy_exported": false,
+          "candidate_sha256": "2fa93de2af9f6b0b5f7937b12a507d097de884495dfe0903b4445ee3adfdfa58"
+        },
+        {
+          "candidate_id": "CAND_9566603bdf77",
+          "probe_effect_element": 3,
+          "recovery_effect_element": 0,
+          "primitive_transitions": [
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "4d352ddf8289ff02e419fe310cd0a562ef5bde05c9abdf5a9ecc7e2a20a8a1cc"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 2,
+              "raw_action_exported": false,
+              "transition_sha256": "891b0ff38fbfc2711674a9909293c50a17bff6246236a5e538d05c061e4c3056"
+            },
+            {
+              "state_element": 2,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 3,
+              "raw_action_exported": false,
+              "transition_sha256": "4a1252111ce9caa115ef74822ac952b251c9294b210a01db577bab8c57cce0c3"
+            },
+            {
+              "state_element": 3,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 0,
+              "next_state_element": 3,
+              "raw_action_exported": false,
+              "transition_sha256": "efae3fe6362b684c852ace6116907498c2ae631f46d8a76b88fc21085a542f5b"
+            }
+          ],
+          "returned_to_identity": false,
+          "raw_strategy_exported": false,
+          "candidate_sha256": "430605f4fe2ee9b21851f8eec3b12462f93b2829b7a0f1ef140c4588bdeb352c"
+        },
+        {
+          "candidate_id": "CAND_9d9bb971d245",
+          "probe_effect_element": 3,
+          "recovery_effect_element": 1,
+          "primitive_transitions": [
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "4d352ddf8289ff02e419fe310cd0a562ef5bde05c9abdf5a9ecc7e2a20a8a1cc"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 2,
+              "raw_action_exported": false,
+              "transition_sha256": "891b0ff38fbfc2711674a9909293c50a17bff6246236a5e538d05c061e4c3056"
+            },
+            {
+              "state_element": 2,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 3,
+              "raw_action_exported": false,
+              "transition_sha256": "4a1252111ce9caa115ef74822ac952b251c9294b210a01db577bab8c57cce0c3"
+            },
+            {
+              "state_element": 3,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 3,
+              "next_state_element": 2,
+              "raw_action_exported": false,
+              "transition_sha256": "aae54e3d6d1eb189ab2f8d14a0420e69dacd5196eedaa6647357b64eee655bef"
+            },
+            {
+              "state_element": 2,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 3,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "05f369fbe79500bd23501919bb3c1160050db2d70aa459ff39752677c1c14ed6"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 3,
+              "next_state_element": 0,
+              "raw_action_exported": false,
+              "transition_sha256": "2b92270cda89ca71355509df19427cd685f1fe3e85e6c471b00ec49211b0de2c"
+            }
+          ],
+          "returned_to_identity": true,
+          "raw_strategy_exported": false,
+          "candidate_sha256": "ef20119c92f2f1bb4443a9a0e7c4edfe7c07c77cf216f0f75d0eb17c199155ee"
+        },
+        {
+          "candidate_id": "CAND_e2ddddf6dc35",
+          "probe_effect_element": 3,
+          "recovery_effect_element": 3,
+          "primitive_transitions": [
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "4d352ddf8289ff02e419fe310cd0a562ef5bde05c9abdf5a9ecc7e2a20a8a1cc"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 2,
+              "raw_action_exported": false,
+              "transition_sha256": "891b0ff38fbfc2711674a9909293c50a17bff6246236a5e538d05c061e4c3056"
+            },
+            {
+              "state_element": 2,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 3,
+              "raw_action_exported": false,
+              "transition_sha256": "4a1252111ce9caa115ef74822ac952b251c9294b210a01db577bab8c57cce0c3"
+            },
+            {
+              "state_element": 3,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 1,
+              "next_state_element": 0,
+              "raw_action_exported": false,
+              "transition_sha256": "8bdbb3267079cb5110e5ec21e390807d2ebcee11fe3489232b302b307140bfda"
+            },
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "70ac42dde7dcacf387f1a9908ffdc9718f02171d5d962441d3c25bdac9721558"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 1,
+              "next_state_element": 2,
+              "raw_action_exported": false,
+              "transition_sha256": "5c1a7fa43200c0dd72adfd4754891a4343037bf1c73a76eacd8aaeb30eabebca"
+            }
+          ],
+          "returned_to_identity": false,
+          "raw_strategy_exported": false,
+          "candidate_sha256": "dab40722ceb10ea21a78dce623209fbe2d9825365c8299fc1efe23d13ed9e1b9"
+        }
+      ],
+      "episode_sha256": "813de99849786544926c2f557abf11d065d5a3ea23f1fb591f5e870d3fe8e035"
+    },
+    {
+      "episode_id": "tetris-source-9608c08fbe466ae9",
+      "seed_commitment": "9608c08fbe466ae955b8c3acdde74bfb32a301a86c30409929e47b43400801dd",
+      "group_order": 4,
+      "probe_primitive_steps": 3,
+      "candidates": [
+        {
+          "candidate_id": "CAND_286f85846d0d",
+          "probe_effect_element": 3,
+          "recovery_effect_element": 2,
+          "primitive_transitions": [
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "4d352ddf8289ff02e419fe310cd0a562ef5bde05c9abdf5a9ecc7e2a20a8a1cc"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 2,
+              "raw_action_exported": false,
+              "transition_sha256": "891b0ff38fbfc2711674a9909293c50a17bff6246236a5e538d05c061e4c3056"
+            },
+            {
+              "state_element": 2,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 3,
+              "raw_action_exported": false,
+              "transition_sha256": "4a1252111ce9caa115ef74822ac952b251c9294b210a01db577bab8c57cce0c3"
+            },
+            {
+              "state_element": 3,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 1,
+              "next_state_element": 0,
+              "raw_action_exported": false,
+              "transition_sha256": "8bdbb3267079cb5110e5ec21e390807d2ebcee11fe3489232b302b307140bfda"
+            },
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "70ac42dde7dcacf387f1a9908ffdc9718f02171d5d962441d3c25bdac9721558"
+            }
+          ],
+          "returned_to_identity": false,
+          "raw_strategy_exported": false,
+          "candidate_sha256": "2fa93de2af9f6b0b5f7937b12a507d097de884495dfe0903b4445ee3adfdfa58"
+        },
+        {
+          "candidate_id": "CAND_9566603bdf77",
+          "probe_effect_element": 3,
+          "recovery_effect_element": 0,
+          "primitive_transitions": [
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "4d352ddf8289ff02e419fe310cd0a562ef5bde05c9abdf5a9ecc7e2a20a8a1cc"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 2,
+              "raw_action_exported": false,
+              "transition_sha256": "891b0ff38fbfc2711674a9909293c50a17bff6246236a5e538d05c061e4c3056"
+            },
+            {
+              "state_element": 2,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 3,
+              "raw_action_exported": false,
+              "transition_sha256": "4a1252111ce9caa115ef74822ac952b251c9294b210a01db577bab8c57cce0c3"
+            },
+            {
+              "state_element": 3,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 0,
+              "next_state_element": 3,
+              "raw_action_exported": false,
+              "transition_sha256": "efae3fe6362b684c852ace6116907498c2ae631f46d8a76b88fc21085a542f5b"
+            }
+          ],
+          "returned_to_identity": false,
+          "raw_strategy_exported": false,
+          "candidate_sha256": "430605f4fe2ee9b21851f8eec3b12462f93b2829b7a0f1ef140c4588bdeb352c"
+        },
+        {
+          "candidate_id": "CAND_9d9bb971d245",
+          "probe_effect_element": 3,
+          "recovery_effect_element": 1,
+          "primitive_transitions": [
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "4d352ddf8289ff02e419fe310cd0a562ef5bde05c9abdf5a9ecc7e2a20a8a1cc"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 2,
+              "raw_action_exported": false,
+              "transition_sha256": "891b0ff38fbfc2711674a9909293c50a17bff6246236a5e538d05c061e4c3056"
+            },
+            {
+              "state_element": 2,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 3,
+              "raw_action_exported": false,
+              "transition_sha256": "4a1252111ce9caa115ef74822ac952b251c9294b210a01db577bab8c57cce0c3"
+            },
+            {
+              "state_element": 3,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 3,
+              "next_state_element": 2,
+              "raw_action_exported": false,
+              "transition_sha256": "aae54e3d6d1eb189ab2f8d14a0420e69dacd5196eedaa6647357b64eee655bef"
+            },
+            {
+              "state_element": 2,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 3,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "05f369fbe79500bd23501919bb3c1160050db2d70aa459ff39752677c1c14ed6"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 3,
+              "next_state_element": 0,
+              "raw_action_exported": false,
+              "transition_sha256": "2b92270cda89ca71355509df19427cd685f1fe3e85e6c471b00ec49211b0de2c"
+            }
+          ],
+          "returned_to_identity": true,
+          "raw_strategy_exported": false,
+          "candidate_sha256": "ef20119c92f2f1bb4443a9a0e7c4edfe7c07c77cf216f0f75d0eb17c199155ee"
+        },
+        {
+          "candidate_id": "CAND_e2ddddf6dc35",
+          "probe_effect_element": 3,
+          "recovery_effect_element": 3,
+          "primitive_transitions": [
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "4d352ddf8289ff02e419fe310cd0a562ef5bde05c9abdf5a9ecc7e2a20a8a1cc"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 2,
+              "raw_action_exported": false,
+              "transition_sha256": "891b0ff38fbfc2711674a9909293c50a17bff6246236a5e538d05c061e4c3056"
+            },
+            {
+              "state_element": 2,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 3,
+              "raw_action_exported": false,
+              "transition_sha256": "4a1252111ce9caa115ef74822ac952b251c9294b210a01db577bab8c57cce0c3"
+            },
+            {
+              "state_element": 3,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 1,
+              "next_state_element": 0,
+              "raw_action_exported": false,
+              "transition_sha256": "8bdbb3267079cb5110e5ec21e390807d2ebcee11fe3489232b302b307140bfda"
+            },
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "70ac42dde7dcacf387f1a9908ffdc9718f02171d5d962441d3c25bdac9721558"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 1,
+              "next_state_element": 2,
+              "raw_action_exported": false,
+              "transition_sha256": "5c1a7fa43200c0dd72adfd4754891a4343037bf1c73a76eacd8aaeb30eabebca"
+            }
+          ],
+          "returned_to_identity": false,
+          "raw_strategy_exported": false,
+          "candidate_sha256": "dab40722ceb10ea21a78dce623209fbe2d9825365c8299fc1efe23d13ed9e1b9"
+        }
+      ],
+      "episode_sha256": "1f3cde80eabf756c3fa5dfa28a838592f52dc9c4055392d98e55503c485f0de1"
+    },
+    {
+      "episode_id": "tetris-source-e1c830def4e66ac6",
+      "seed_commitment": "e1c830def4e66ac6a8d6f00302d3e86457660561008bf5529c395e2adfa2dceb",
+      "group_order": 4,
+      "probe_primitive_steps": 1,
+      "candidates": [
+        {
+          "candidate_id": "CAND_286f85846d0d",
+          "probe_effect_element": 1,
+          "recovery_effect_element": 2,
+          "primitive_transitions": [
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "4d352ddf8289ff02e419fe310cd0a562ef5bde05c9abdf5a9ecc7e2a20a8a1cc"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 1,
+              "next_state_element": 2,
+              "raw_action_exported": false,
+              "transition_sha256": "5c1a7fa43200c0dd72adfd4754891a4343037bf1c73a76eacd8aaeb30eabebca"
+            },
+            {
+              "state_element": 2,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 1,
+              "next_state_element": 3,
+              "raw_action_exported": false,
+              "transition_sha256": "5b9701331e6b998e981c8418ade720eec0b5329ccd83f80a07a9d795b9ea9322"
+            }
+          ],
+          "returned_to_identity": false,
+          "raw_strategy_exported": false,
+          "candidate_sha256": "a513d6bb5acdd5edb3d176967c4af9fbb35fb07b35ddd10b6a580c40ac4abae9"
+        },
+        {
+          "candidate_id": "CAND_9566603bdf77",
+          "probe_effect_element": 1,
+          "recovery_effect_element": 0,
+          "primitive_transitions": [
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "4d352ddf8289ff02e419fe310cd0a562ef5bde05c9abdf5a9ecc7e2a20a8a1cc"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 0,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "5641efed3344cdbd25f392eb7cfaef3df95cfb251115b1de29d46bbffcc849de"
+            }
+          ],
+          "returned_to_identity": false,
+          "raw_strategy_exported": false,
+          "candidate_sha256": "367d81c218e9ebe301883562221016ef0c5428a663d33b577fc813c4f9597547"
+        },
+        {
+          "candidate_id": "CAND_9d9bb971d245",
+          "probe_effect_element": 1,
+          "recovery_effect_element": 1,
+          "primitive_transitions": [
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "4d352ddf8289ff02e419fe310cd0a562ef5bde05c9abdf5a9ecc7e2a20a8a1cc"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 1,
+              "next_state_element": 2,
+              "raw_action_exported": false,
+              "transition_sha256": "5c1a7fa43200c0dd72adfd4754891a4343037bf1c73a76eacd8aaeb30eabebca"
+            }
+          ],
+          "returned_to_identity": false,
+          "raw_strategy_exported": false,
+          "candidate_sha256": "a780219f8ecb47a65b0419ff7f5c62202bd19776eb1ef471d78b2378e79e80cc"
+        },
+        {
+          "candidate_id": "CAND_e2ddddf6dc35",
+          "probe_effect_element": 1,
+          "recovery_effect_element": 3,
+          "primitive_transitions": [
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "4d352ddf8289ff02e419fe310cd0a562ef5bde05c9abdf5a9ecc7e2a20a8a1cc"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 3,
+              "next_state_element": 0,
+              "raw_action_exported": false,
+              "transition_sha256": "2b92270cda89ca71355509df19427cd685f1fe3e85e6c471b00ec49211b0de2c"
+            }
+          ],
+          "returned_to_identity": true,
+          "raw_strategy_exported": false,
+          "candidate_sha256": "82fe0735a36027d1693977163f2731b80198536de7a65e6932ba837c3d8cfd5f"
+        }
+      ],
+      "episode_sha256": "9f8e500e53ba35f27ddea8e2ec84754a89d8d5b7c3f90e6023205caa2adfe168"
+    },
+    {
+      "episode_id": "tetris-source-8d7d7b9a42a2e888",
+      "seed_commitment": "8d7d7b9a42a2e888a15c31f689f240475035d3142f72cce029e7f7cc8e5f5d0d",
+      "group_order": 4,
+      "probe_primitive_steps": 1,
+      "candidates": [
+        {
+          "candidate_id": "CAND_286f85846d0d",
+          "probe_effect_element": 1,
+          "recovery_effect_element": 2,
+          "primitive_transitions": [
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "4d352ddf8289ff02e419fe310cd0a562ef5bde05c9abdf5a9ecc7e2a20a8a1cc"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 1,
+              "next_state_element": 2,
+              "raw_action_exported": false,
+              "transition_sha256": "5c1a7fa43200c0dd72adfd4754891a4343037bf1c73a76eacd8aaeb30eabebca"
+            },
+            {
+              "state_element": 2,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 1,
+              "next_state_element": 3,
+              "raw_action_exported": false,
+              "transition_sha256": "5b9701331e6b998e981c8418ade720eec0b5329ccd83f80a07a9d795b9ea9322"
+            }
+          ],
+          "returned_to_identity": false,
+          "raw_strategy_exported": false,
+          "candidate_sha256": "a513d6bb5acdd5edb3d176967c4af9fbb35fb07b35ddd10b6a580c40ac4abae9"
+        },
+        {
+          "candidate_id": "CAND_9566603bdf77",
+          "probe_effect_element": 1,
+          "recovery_effect_element": 0,
+          "primitive_transitions": [
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "4d352ddf8289ff02e419fe310cd0a562ef5bde05c9abdf5a9ecc7e2a20a8a1cc"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 0,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "5641efed3344cdbd25f392eb7cfaef3df95cfb251115b1de29d46bbffcc849de"
+            }
+          ],
+          "returned_to_identity": false,
+          "raw_strategy_exported": false,
+          "candidate_sha256": "367d81c218e9ebe301883562221016ef0c5428a663d33b577fc813c4f9597547"
+        },
+        {
+          "candidate_id": "CAND_9d9bb971d245",
+          "probe_effect_element": 1,
+          "recovery_effect_element": 1,
+          "primitive_transitions": [
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "4d352ddf8289ff02e419fe310cd0a562ef5bde05c9abdf5a9ecc7e2a20a8a1cc"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 1,
+              "next_state_element": 2,
+              "raw_action_exported": false,
+              "transition_sha256": "5c1a7fa43200c0dd72adfd4754891a4343037bf1c73a76eacd8aaeb30eabebca"
+            }
+          ],
+          "returned_to_identity": false,
+          "raw_strategy_exported": false,
+          "candidate_sha256": "a780219f8ecb47a65b0419ff7f5c62202bd19776eb1ef471d78b2378e79e80cc"
+        },
+        {
+          "candidate_id": "CAND_e2ddddf6dc35",
+          "probe_effect_element": 1,
+          "recovery_effect_element": 3,
+          "primitive_transitions": [
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "4d352ddf8289ff02e419fe310cd0a562ef5bde05c9abdf5a9ecc7e2a20a8a1cc"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 3,
+              "next_state_element": 0,
+              "raw_action_exported": false,
+              "transition_sha256": "2b92270cda89ca71355509df19427cd685f1fe3e85e6c471b00ec49211b0de2c"
+            }
+          ],
+          "returned_to_identity": true,
+          "raw_strategy_exported": false,
+          "candidate_sha256": "82fe0735a36027d1693977163f2731b80198536de7a65e6932ba837c3d8cfd5f"
+        }
+      ],
+      "episode_sha256": "1666afca14089c63aec7ef1b6013aba1e07d2727e3ec7431e5e5364d3ef07fc6"
+    },
+    {
+      "episode_id": "tetris-source-0d27cc204a3a1135",
+      "seed_commitment": "0d27cc204a3a1135867fbeb7f404184c37725b187193c9b3d3c1ab181c8313cd",
+      "group_order": 4,
+      "probe_primitive_steps": 1,
+      "candidates": [
+        {
+          "candidate_id": "CAND_286f85846d0d",
+          "probe_effect_element": 1,
+          "recovery_effect_element": 2,
+          "primitive_transitions": [
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "4d352ddf8289ff02e419fe310cd0a562ef5bde05c9abdf5a9ecc7e2a20a8a1cc"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 1,
+              "next_state_element": 2,
+              "raw_action_exported": false,
+              "transition_sha256": "5c1a7fa43200c0dd72adfd4754891a4343037bf1c73a76eacd8aaeb30eabebca"
+            },
+            {
+              "state_element": 2,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 1,
+              "next_state_element": 3,
+              "raw_action_exported": false,
+              "transition_sha256": "5b9701331e6b998e981c8418ade720eec0b5329ccd83f80a07a9d795b9ea9322"
+            }
+          ],
+          "returned_to_identity": false,
+          "raw_strategy_exported": false,
+          "candidate_sha256": "a513d6bb5acdd5edb3d176967c4af9fbb35fb07b35ddd10b6a580c40ac4abae9"
+        },
+        {
+          "candidate_id": "CAND_9566603bdf77",
+          "probe_effect_element": 1,
+          "recovery_effect_element": 0,
+          "primitive_transitions": [
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "4d352ddf8289ff02e419fe310cd0a562ef5bde05c9abdf5a9ecc7e2a20a8a1cc"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 0,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "5641efed3344cdbd25f392eb7cfaef3df95cfb251115b1de29d46bbffcc849de"
+            }
+          ],
+          "returned_to_identity": false,
+          "raw_strategy_exported": false,
+          "candidate_sha256": "367d81c218e9ebe301883562221016ef0c5428a663d33b577fc813c4f9597547"
+        },
+        {
+          "candidate_id": "CAND_9d9bb971d245",
+          "probe_effect_element": 1,
+          "recovery_effect_element": 1,
+          "primitive_transitions": [
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "4d352ddf8289ff02e419fe310cd0a562ef5bde05c9abdf5a9ecc7e2a20a8a1cc"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 1,
+              "next_state_element": 2,
+              "raw_action_exported": false,
+              "transition_sha256": "5c1a7fa43200c0dd72adfd4754891a4343037bf1c73a76eacd8aaeb30eabebca"
+            }
+          ],
+          "returned_to_identity": false,
+          "raw_strategy_exported": false,
+          "candidate_sha256": "a780219f8ecb47a65b0419ff7f5c62202bd19776eb1ef471d78b2378e79e80cc"
+        },
+        {
+          "candidate_id": "CAND_e2ddddf6dc35",
+          "probe_effect_element": 1,
+          "recovery_effect_element": 3,
+          "primitive_transitions": [
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "4d352ddf8289ff02e419fe310cd0a562ef5bde05c9abdf5a9ecc7e2a20a8a1cc"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 3,
+              "next_state_element": 0,
+              "raw_action_exported": false,
+              "transition_sha256": "2b92270cda89ca71355509df19427cd685f1fe3e85e6c471b00ec49211b0de2c"
+            }
+          ],
+          "returned_to_identity": true,
+          "raw_strategy_exported": false,
+          "candidate_sha256": "82fe0735a36027d1693977163f2731b80198536de7a65e6932ba837c3d8cfd5f"
+        }
+      ],
+      "episode_sha256": "075389a3bdee615779012b24baf406f08cfcac23838da031a82954c27032fe89"
+    },
+    {
+      "episode_id": "tetris-source-217aef6902c4b1db",
+      "seed_commitment": "217aef6902c4b1db541ba8a19a1066cdeb80dd8de1512586d69fb6ba94bed7cd",
+      "group_order": 4,
+      "probe_primitive_steps": 3,
+      "candidates": [
+        {
+          "candidate_id": "CAND_286f85846d0d",
+          "probe_effect_element": 3,
+          "recovery_effect_element": 2,
+          "primitive_transitions": [
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "4d352ddf8289ff02e419fe310cd0a562ef5bde05c9abdf5a9ecc7e2a20a8a1cc"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 2,
+              "raw_action_exported": false,
+              "transition_sha256": "891b0ff38fbfc2711674a9909293c50a17bff6246236a5e538d05c061e4c3056"
+            },
+            {
+              "state_element": 2,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 3,
+              "raw_action_exported": false,
+              "transition_sha256": "4a1252111ce9caa115ef74822ac952b251c9294b210a01db577bab8c57cce0c3"
+            },
+            {
+              "state_element": 3,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 1,
+              "next_state_element": 0,
+              "raw_action_exported": false,
+              "transition_sha256": "8bdbb3267079cb5110e5ec21e390807d2ebcee11fe3489232b302b307140bfda"
+            },
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "70ac42dde7dcacf387f1a9908ffdc9718f02171d5d962441d3c25bdac9721558"
+            }
+          ],
+          "returned_to_identity": false,
+          "raw_strategy_exported": false,
+          "candidate_sha256": "2fa93de2af9f6b0b5f7937b12a507d097de884495dfe0903b4445ee3adfdfa58"
+        },
+        {
+          "candidate_id": "CAND_9566603bdf77",
+          "probe_effect_element": 3,
+          "recovery_effect_element": 0,
+          "primitive_transitions": [
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "4d352ddf8289ff02e419fe310cd0a562ef5bde05c9abdf5a9ecc7e2a20a8a1cc"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 2,
+              "raw_action_exported": false,
+              "transition_sha256": "891b0ff38fbfc2711674a9909293c50a17bff6246236a5e538d05c061e4c3056"
+            },
+            {
+              "state_element": 2,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 3,
+              "raw_action_exported": false,
+              "transition_sha256": "4a1252111ce9caa115ef74822ac952b251c9294b210a01db577bab8c57cce0c3"
+            },
+            {
+              "state_element": 3,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 0,
+              "next_state_element": 3,
+              "raw_action_exported": false,
+              "transition_sha256": "efae3fe6362b684c852ace6116907498c2ae631f46d8a76b88fc21085a542f5b"
+            }
+          ],
+          "returned_to_identity": false,
+          "raw_strategy_exported": false,
+          "candidate_sha256": "430605f4fe2ee9b21851f8eec3b12462f93b2829b7a0f1ef140c4588bdeb352c"
+        },
+        {
+          "candidate_id": "CAND_9d9bb971d245",
+          "probe_effect_element": 3,
+          "recovery_effect_element": 1,
+          "primitive_transitions": [
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "4d352ddf8289ff02e419fe310cd0a562ef5bde05c9abdf5a9ecc7e2a20a8a1cc"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 2,
+              "raw_action_exported": false,
+              "transition_sha256": "891b0ff38fbfc2711674a9909293c50a17bff6246236a5e538d05c061e4c3056"
+            },
+            {
+              "state_element": 2,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 3,
+              "raw_action_exported": false,
+              "transition_sha256": "4a1252111ce9caa115ef74822ac952b251c9294b210a01db577bab8c57cce0c3"
+            },
+            {
+              "state_element": 3,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 3,
+              "next_state_element": 2,
+              "raw_action_exported": false,
+              "transition_sha256": "aae54e3d6d1eb189ab2f8d14a0420e69dacd5196eedaa6647357b64eee655bef"
+            },
+            {
+              "state_element": 2,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 3,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "05f369fbe79500bd23501919bb3c1160050db2d70aa459ff39752677c1c14ed6"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 3,
+              "next_state_element": 0,
+              "raw_action_exported": false,
+              "transition_sha256": "2b92270cda89ca71355509df19427cd685f1fe3e85e6c471b00ec49211b0de2c"
+            }
+          ],
+          "returned_to_identity": true,
+          "raw_strategy_exported": false,
+          "candidate_sha256": "ef20119c92f2f1bb4443a9a0e7c4edfe7c07c77cf216f0f75d0eb17c199155ee"
+        },
+        {
+          "candidate_id": "CAND_e2ddddf6dc35",
+          "probe_effect_element": 3,
+          "recovery_effect_element": 3,
+          "primitive_transitions": [
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "4d352ddf8289ff02e419fe310cd0a562ef5bde05c9abdf5a9ecc7e2a20a8a1cc"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 2,
+              "raw_action_exported": false,
+              "transition_sha256": "891b0ff38fbfc2711674a9909293c50a17bff6246236a5e538d05c061e4c3056"
+            },
+            {
+              "state_element": 2,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 3,
+              "raw_action_exported": false,
+              "transition_sha256": "4a1252111ce9caa115ef74822ac952b251c9294b210a01db577bab8c57cce0c3"
+            },
+            {
+              "state_element": 3,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 1,
+              "next_state_element": 0,
+              "raw_action_exported": false,
+              "transition_sha256": "8bdbb3267079cb5110e5ec21e390807d2ebcee11fe3489232b302b307140bfda"
+            },
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "70ac42dde7dcacf387f1a9908ffdc9718f02171d5d962441d3c25bdac9721558"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 1,
+              "next_state_element": 2,
+              "raw_action_exported": false,
+              "transition_sha256": "5c1a7fa43200c0dd72adfd4754891a4343037bf1c73a76eacd8aaeb30eabebca"
+            }
+          ],
+          "returned_to_identity": false,
+          "raw_strategy_exported": false,
+          "candidate_sha256": "dab40722ceb10ea21a78dce623209fbe2d9825365c8299fc1efe23d13ed9e1b9"
+        }
+      ],
+      "episode_sha256": "c170731ed0a6f077aeeac13ce94df5937582a29b92aaabe94269c545a9fb7740"
+    },
+    {
+      "episode_id": "tetris-source-871eee1f72251109",
+      "seed_commitment": "871eee1f7225110950562ef5e1e4260877297bec940525ef777074dd1677813a",
+      "group_order": 4,
+      "probe_primitive_steps": 3,
+      "candidates": [
+        {
+          "candidate_id": "CAND_286f85846d0d",
+          "probe_effect_element": 3,
+          "recovery_effect_element": 2,
+          "primitive_transitions": [
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "4d352ddf8289ff02e419fe310cd0a562ef5bde05c9abdf5a9ecc7e2a20a8a1cc"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 2,
+              "raw_action_exported": false,
+              "transition_sha256": "891b0ff38fbfc2711674a9909293c50a17bff6246236a5e538d05c061e4c3056"
+            },
+            {
+              "state_element": 2,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 3,
+              "raw_action_exported": false,
+              "transition_sha256": "4a1252111ce9caa115ef74822ac952b251c9294b210a01db577bab8c57cce0c3"
+            },
+            {
+              "state_element": 3,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 1,
+              "next_state_element": 0,
+              "raw_action_exported": false,
+              "transition_sha256": "8bdbb3267079cb5110e5ec21e390807d2ebcee11fe3489232b302b307140bfda"
+            },
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "70ac42dde7dcacf387f1a9908ffdc9718f02171d5d962441d3c25bdac9721558"
+            }
+          ],
+          "returned_to_identity": false,
+          "raw_strategy_exported": false,
+          "candidate_sha256": "2fa93de2af9f6b0b5f7937b12a507d097de884495dfe0903b4445ee3adfdfa58"
+        },
+        {
+          "candidate_id": "CAND_9566603bdf77",
+          "probe_effect_element": 3,
+          "recovery_effect_element": 0,
+          "primitive_transitions": [
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "4d352ddf8289ff02e419fe310cd0a562ef5bde05c9abdf5a9ecc7e2a20a8a1cc"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 2,
+              "raw_action_exported": false,
+              "transition_sha256": "891b0ff38fbfc2711674a9909293c50a17bff6246236a5e538d05c061e4c3056"
+            },
+            {
+              "state_element": 2,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 3,
+              "raw_action_exported": false,
+              "transition_sha256": "4a1252111ce9caa115ef74822ac952b251c9294b210a01db577bab8c57cce0c3"
+            },
+            {
+              "state_element": 3,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 0,
+              "next_state_element": 3,
+              "raw_action_exported": false,
+              "transition_sha256": "efae3fe6362b684c852ace6116907498c2ae631f46d8a76b88fc21085a542f5b"
+            }
+          ],
+          "returned_to_identity": false,
+          "raw_strategy_exported": false,
+          "candidate_sha256": "430605f4fe2ee9b21851f8eec3b12462f93b2829b7a0f1ef140c4588bdeb352c"
+        },
+        {
+          "candidate_id": "CAND_9d9bb971d245",
+          "probe_effect_element": 3,
+          "recovery_effect_element": 1,
+          "primitive_transitions": [
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "4d352ddf8289ff02e419fe310cd0a562ef5bde05c9abdf5a9ecc7e2a20a8a1cc"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 2,
+              "raw_action_exported": false,
+              "transition_sha256": "891b0ff38fbfc2711674a9909293c50a17bff6246236a5e538d05c061e4c3056"
+            },
+            {
+              "state_element": 2,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 3,
+              "raw_action_exported": false,
+              "transition_sha256": "4a1252111ce9caa115ef74822ac952b251c9294b210a01db577bab8c57cce0c3"
+            },
+            {
+              "state_element": 3,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 3,
+              "next_state_element": 2,
+              "raw_action_exported": false,
+              "transition_sha256": "aae54e3d6d1eb189ab2f8d14a0420e69dacd5196eedaa6647357b64eee655bef"
+            },
+            {
+              "state_element": 2,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 3,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "05f369fbe79500bd23501919bb3c1160050db2d70aa459ff39752677c1c14ed6"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 3,
+              "next_state_element": 0,
+              "raw_action_exported": false,
+              "transition_sha256": "2b92270cda89ca71355509df19427cd685f1fe3e85e6c471b00ec49211b0de2c"
+            }
+          ],
+          "returned_to_identity": true,
+          "raw_strategy_exported": false,
+          "candidate_sha256": "ef20119c92f2f1bb4443a9a0e7c4edfe7c07c77cf216f0f75d0eb17c199155ee"
+        },
+        {
+          "candidate_id": "CAND_e2ddddf6dc35",
+          "probe_effect_element": 3,
+          "recovery_effect_element": 3,
+          "primitive_transitions": [
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "4d352ddf8289ff02e419fe310cd0a562ef5bde05c9abdf5a9ecc7e2a20a8a1cc"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 2,
+              "raw_action_exported": false,
+              "transition_sha256": "891b0ff38fbfc2711674a9909293c50a17bff6246236a5e538d05c061e4c3056"
+            },
+            {
+              "state_element": 2,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 3,
+              "raw_action_exported": false,
+              "transition_sha256": "4a1252111ce9caa115ef74822ac952b251c9294b210a01db577bab8c57cce0c3"
+            },
+            {
+              "state_element": 3,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 1,
+              "next_state_element": 0,
+              "raw_action_exported": false,
+              "transition_sha256": "8bdbb3267079cb5110e5ec21e390807d2ebcee11fe3489232b302b307140bfda"
+            },
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "70ac42dde7dcacf387f1a9908ffdc9718f02171d5d962441d3c25bdac9721558"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 1,
+              "next_state_element": 2,
+              "raw_action_exported": false,
+              "transition_sha256": "5c1a7fa43200c0dd72adfd4754891a4343037bf1c73a76eacd8aaeb30eabebca"
+            }
+          ],
+          "returned_to_identity": false,
+          "raw_strategy_exported": false,
+          "candidate_sha256": "dab40722ceb10ea21a78dce623209fbe2d9825365c8299fc1efe23d13ed9e1b9"
+        }
+      ],
+      "episode_sha256": "c16928c311cb14c9fe8e91bc37a20d098cfca8a931d2921dadca55dfb4c7e3be"
+    },
+    {
+      "episode_id": "tetris-source-775e0bcb858b919f",
+      "seed_commitment": "775e0bcb858b919f3b432382d999fa62f0ce361cca7653453f453bdd0f43b0a3",
+      "group_order": 4,
+      "probe_primitive_steps": 3,
+      "candidates": [
+        {
+          "candidate_id": "CAND_286f85846d0d",
+          "probe_effect_element": 3,
+          "recovery_effect_element": 2,
+          "primitive_transitions": [
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "4d352ddf8289ff02e419fe310cd0a562ef5bde05c9abdf5a9ecc7e2a20a8a1cc"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 2,
+              "raw_action_exported": false,
+              "transition_sha256": "891b0ff38fbfc2711674a9909293c50a17bff6246236a5e538d05c061e4c3056"
+            },
+            {
+              "state_element": 2,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 3,
+              "raw_action_exported": false,
+              "transition_sha256": "4a1252111ce9caa115ef74822ac952b251c9294b210a01db577bab8c57cce0c3"
+            },
+            {
+              "state_element": 3,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 1,
+              "next_state_element": 0,
+              "raw_action_exported": false,
+              "transition_sha256": "8bdbb3267079cb5110e5ec21e390807d2ebcee11fe3489232b302b307140bfda"
+            },
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "70ac42dde7dcacf387f1a9908ffdc9718f02171d5d962441d3c25bdac9721558"
+            }
+          ],
+          "returned_to_identity": false,
+          "raw_strategy_exported": false,
+          "candidate_sha256": "2fa93de2af9f6b0b5f7937b12a507d097de884495dfe0903b4445ee3adfdfa58"
+        },
+        {
+          "candidate_id": "CAND_9566603bdf77",
+          "probe_effect_element": 3,
+          "recovery_effect_element": 0,
+          "primitive_transitions": [
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "4d352ddf8289ff02e419fe310cd0a562ef5bde05c9abdf5a9ecc7e2a20a8a1cc"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 2,
+              "raw_action_exported": false,
+              "transition_sha256": "891b0ff38fbfc2711674a9909293c50a17bff6246236a5e538d05c061e4c3056"
+            },
+            {
+              "state_element": 2,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 3,
+              "raw_action_exported": false,
+              "transition_sha256": "4a1252111ce9caa115ef74822ac952b251c9294b210a01db577bab8c57cce0c3"
+            },
+            {
+              "state_element": 3,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 0,
+              "next_state_element": 3,
+              "raw_action_exported": false,
+              "transition_sha256": "efae3fe6362b684c852ace6116907498c2ae631f46d8a76b88fc21085a542f5b"
+            }
+          ],
+          "returned_to_identity": false,
+          "raw_strategy_exported": false,
+          "candidate_sha256": "430605f4fe2ee9b21851f8eec3b12462f93b2829b7a0f1ef140c4588bdeb352c"
+        },
+        {
+          "candidate_id": "CAND_9d9bb971d245",
+          "probe_effect_element": 3,
+          "recovery_effect_element": 1,
+          "primitive_transitions": [
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "4d352ddf8289ff02e419fe310cd0a562ef5bde05c9abdf5a9ecc7e2a20a8a1cc"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 2,
+              "raw_action_exported": false,
+              "transition_sha256": "891b0ff38fbfc2711674a9909293c50a17bff6246236a5e538d05c061e4c3056"
+            },
+            {
+              "state_element": 2,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 3,
+              "raw_action_exported": false,
+              "transition_sha256": "4a1252111ce9caa115ef74822ac952b251c9294b210a01db577bab8c57cce0c3"
+            },
+            {
+              "state_element": 3,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 3,
+              "next_state_element": 2,
+              "raw_action_exported": false,
+              "transition_sha256": "aae54e3d6d1eb189ab2f8d14a0420e69dacd5196eedaa6647357b64eee655bef"
+            },
+            {
+              "state_element": 2,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 3,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "05f369fbe79500bd23501919bb3c1160050db2d70aa459ff39752677c1c14ed6"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 3,
+              "next_state_element": 0,
+              "raw_action_exported": false,
+              "transition_sha256": "2b92270cda89ca71355509df19427cd685f1fe3e85e6c471b00ec49211b0de2c"
+            }
+          ],
+          "returned_to_identity": true,
+          "raw_strategy_exported": false,
+          "candidate_sha256": "ef20119c92f2f1bb4443a9a0e7c4edfe7c07c77cf216f0f75d0eb17c199155ee"
+        },
+        {
+          "candidate_id": "CAND_e2ddddf6dc35",
+          "probe_effect_element": 3,
+          "recovery_effect_element": 3,
+          "primitive_transitions": [
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "4d352ddf8289ff02e419fe310cd0a562ef5bde05c9abdf5a9ecc7e2a20a8a1cc"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 2,
+              "raw_action_exported": false,
+              "transition_sha256": "891b0ff38fbfc2711674a9909293c50a17bff6246236a5e538d05c061e4c3056"
+            },
+            {
+              "state_element": 2,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 3,
+              "raw_action_exported": false,
+              "transition_sha256": "4a1252111ce9caa115ef74822ac952b251c9294b210a01db577bab8c57cce0c3"
+            },
+            {
+              "state_element": 3,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 1,
+              "next_state_element": 0,
+              "raw_action_exported": false,
+              "transition_sha256": "8bdbb3267079cb5110e5ec21e390807d2ebcee11fe3489232b302b307140bfda"
+            },
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "70ac42dde7dcacf387f1a9908ffdc9718f02171d5d962441d3c25bdac9721558"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 1,
+              "next_state_element": 2,
+              "raw_action_exported": false,
+              "transition_sha256": "5c1a7fa43200c0dd72adfd4754891a4343037bf1c73a76eacd8aaeb30eabebca"
+            }
+          ],
+          "returned_to_identity": false,
+          "raw_strategy_exported": false,
+          "candidate_sha256": "dab40722ceb10ea21a78dce623209fbe2d9825365c8299fc1efe23d13ed9e1b9"
+        }
+      ],
+      "episode_sha256": "75c8e8cfa659f674d8c74d7f6862776e33d141ddac93128de1e94f9631432043"
+    },
+    {
+      "episode_id": "tetris-source-743ae73e8edb875e",
+      "seed_commitment": "743ae73e8edb875eb843a4e1241c37a046648ff270ee040000b08ca8fe1e4998",
+      "group_order": 4,
+      "probe_primitive_steps": 1,
+      "candidates": [
+        {
+          "candidate_id": "CAND_286f85846d0d",
+          "probe_effect_element": 1,
+          "recovery_effect_element": 2,
+          "primitive_transitions": [
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "4d352ddf8289ff02e419fe310cd0a562ef5bde05c9abdf5a9ecc7e2a20a8a1cc"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 1,
+              "next_state_element": 2,
+              "raw_action_exported": false,
+              "transition_sha256": "5c1a7fa43200c0dd72adfd4754891a4343037bf1c73a76eacd8aaeb30eabebca"
+            },
+            {
+              "state_element": 2,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 1,
+              "next_state_element": 3,
+              "raw_action_exported": false,
+              "transition_sha256": "5b9701331e6b998e981c8418ade720eec0b5329ccd83f80a07a9d795b9ea9322"
+            }
+          ],
+          "returned_to_identity": false,
+          "raw_strategy_exported": false,
+          "candidate_sha256": "a513d6bb5acdd5edb3d176967c4af9fbb35fb07b35ddd10b6a580c40ac4abae9"
+        },
+        {
+          "candidate_id": "CAND_9566603bdf77",
+          "probe_effect_element": 1,
+          "recovery_effect_element": 0,
+          "primitive_transitions": [
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "4d352ddf8289ff02e419fe310cd0a562ef5bde05c9abdf5a9ecc7e2a20a8a1cc"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 0,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "5641efed3344cdbd25f392eb7cfaef3df95cfb251115b1de29d46bbffcc849de"
+            }
+          ],
+          "returned_to_identity": false,
+          "raw_strategy_exported": false,
+          "candidate_sha256": "367d81c218e9ebe301883562221016ef0c5428a663d33b577fc813c4f9597547"
+        },
+        {
+          "candidate_id": "CAND_9d9bb971d245",
+          "probe_effect_element": 1,
+          "recovery_effect_element": 1,
+          "primitive_transitions": [
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "4d352ddf8289ff02e419fe310cd0a562ef5bde05c9abdf5a9ecc7e2a20a8a1cc"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 1,
+              "next_state_element": 2,
+              "raw_action_exported": false,
+              "transition_sha256": "5c1a7fa43200c0dd72adfd4754891a4343037bf1c73a76eacd8aaeb30eabebca"
+            }
+          ],
+          "returned_to_identity": false,
+          "raw_strategy_exported": false,
+          "candidate_sha256": "a780219f8ecb47a65b0419ff7f5c62202bd19776eb1ef471d78b2378e79e80cc"
+        },
+        {
+          "candidate_id": "CAND_e2ddddf6dc35",
+          "probe_effect_element": 1,
+          "recovery_effect_element": 3,
+          "primitive_transitions": [
+            {
+              "state_element": 0,
+              "anonymous_intervention_phase": "PROBE",
+              "effect_element": 1,
+              "next_state_element": 1,
+              "raw_action_exported": false,
+              "transition_sha256": "4d352ddf8289ff02e419fe310cd0a562ef5bde05c9abdf5a9ecc7e2a20a8a1cc"
+            },
+            {
+              "state_element": 1,
+              "anonymous_intervention_phase": "RECOVERY",
+              "effect_element": 3,
+              "next_state_element": 0,
+              "raw_action_exported": false,
+              "transition_sha256": "2b92270cda89ca71355509df19427cd685f1fe3e85e6c471b00ec49211b0de2c"
+            }
+          ],
+          "returned_to_identity": true,
+          "raw_strategy_exported": false,
+          "candidate_sha256": "82fe0735a36027d1693977163f2731b80198536de7a65e6932ba837c3d8cfd5f"
+        }
+      ],
+      "episode_sha256": "42c3b9f850fd6a1ddfb32ea48a0f457483af8ad6bf7a0190987b9783a78cc621"
+    }
+  ],
+  "attempted_seeds": 24,
+  "retained_order_four_episodes": 18,
+  "raw_source_action_tokens_exported": false,
+  "target_data_read": false,
+  "dataset_sha256": "59f10bfcb7904c6f4e302585a2d9dd7a9792b2415d7a5286312ef71bbc59d44f"
+}

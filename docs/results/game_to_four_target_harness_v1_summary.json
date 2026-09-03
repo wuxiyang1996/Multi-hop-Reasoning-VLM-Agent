@@ -1,0 +1,139 @@
+{
+  "all_four_mechanisms_validated": false,
+  "all_four_share_one_source_artifact": true,
+  "audit_sha256": "5d399c8275018cddb733591ed921cfaf4d5d5db90c2bd1b6ae4c3aab97bd5e03",
+  "cells": {
+    "alfworld": {
+      "authentic_successes": 13,
+      "evidence_tier": "CONSUMED_QUALIFICATION_DIAGNOSTIC",
+      "heldout_generalization_validated": false,
+      "mechanism_positive": false,
+      "negative_transfer_count": 4,
+      "source_lineage_matches_shared_sokoban": true,
+      "status": "CONSUMED_MECHANISM_GATE_FAILED",
+      "success_delta": -3,
+      "target_successes": 16,
+      "tasks": 24
+    },
+    "discoveryworld": {
+      "authentic_successes": 4,
+      "evidence_tier": "CONSUMED_ADAPTATION_MECHANISM",
+      "heldout_failure_kind": "APPLICABILITY_COVERAGE_FAILURE",
+      "heldout_generalization_validated": false,
+      "heldout_status": "FORMAL_VALIDATION_FAILED_COVERAGE_IMPOSSIBLE",
+      "mechanism_positive": true,
+      "negative_transfer_count": 0,
+      "source_lineage_matches_shared_sokoban": true,
+      "status": "CONSUMED_ADAPTATION_GATE_PASSED",
+      "success_delta": 1,
+      "target_successes": 3,
+      "tasks": 4
+    },
+    "tir": {
+      "authentic_successes": 5,
+      "different_source_formal_diagnosis": {
+        "authentic_successes": 2,
+        "heldout_consumed": false,
+        "source_lineage": "CONTROLLED_SYNTHETIC_GAME_VALUE_ENSEMBLE",
+        "status": "FORMAL_FAIL",
+        "target_successes": 2
+      },
+      "evidence_tier": "CONSUMED_DEVELOPMENT_MECHANISM",
+      "heldout_consumed": false,
+      "heldout_generalization_validated": false,
+      "mechanism_positive": false,
+      "negative_transfer_count": 1,
+      "source_lineage": "SHARED_REAL_SOKOBAN_EFFECT_PROGRAM",
+      "source_lineage_matches_shared_sokoban": true,
+      "status": "CONSUMED_MECHANISM_GATE_FAILED",
+      "stronger_target_model_diagnosis": {
+        "authentic_accuracy": 0.5,
+        "baseline_accuracy": 0.5,
+        "oracle_candidate_accuracy": 0.75,
+        "shuffled_accuracy": 0.75,
+        "status": "ADAPTATION_PREFLIGHT_FAIL",
+        "target_only_accuracy": 0.625
+      },
+      "success_delta": 0,
+      "target_successes": 5,
+      "tasks": 8
+    },
+    "webshop": {
+      "authentic_successes": 18,
+      "evidence_tier": "FRESH_FORMAL_VALIDATION",
+      "heldout_generalization_validated": true,
+      "mechanism_positive": true,
+      "negative_transfer_count": 0,
+      "source_lineage_matches_shared_sokoban": true,
+      "status": "REAL_SOKOBAN_TO_WEBSHOP_NEURAL_SYMBOLIC_TRANSFER_VALIDATED",
+      "success_delta": 7,
+      "target_successes": 11,
+      "tasks": 32
+    }
+  },
+  "claim": "Shared real-Sokoban neural-symbolic transfer is formally validated on WebShop and mechanism-positive on consumed DiscoveryWorld Easy forks. It is not validated on ALFWorld or TIR, and DiscoveryWorld Normal held-out coverage failed.",
+  "common_source_lineage": {
+    "alfworld": true,
+    "discoveryworld": true,
+    "tir": true,
+    "webshop": true
+  },
+  "input_report_hashes": {
+    "alfworld": "9e8b10af03334616d48921c677d6cf28eee0149af576be41a303e193145a590d",
+    "discoveryworld_adaptation": "d608015ffa17cbeb8cbd038e44c5582743b03383b08633690c62121a06713edc",
+    "discoveryworld_formal": "2bc6181e30e45e888734fb0c69f97976cc2e50ef656ec90767523888cb25cb92",
+    "source_compact_receipt": "86898bf50e77eca037213656f1fa1578ececfc938df79ca8eb99b7da11bc0a85",
+    "tir_other_source_formal": "0a8b155cfd6822b9bcbd3fa6ce9cb0aabc7601459521337a8d0d738bf5955df5",
+    "tir_shared_source": "49b746dcbbc118ba0c197890e9502ee5d84310d8b691ce3e822ab8e501891ac4",
+    "webshop": "2bde00ae5b1bd8c99f416a55551ade0e78c39023ffb0db0d1fbd3eae0c6ab86a"
+  },
+  "schema_version": "game-to-four-target-transfer-audit-v1",
+  "selective_harness": {
+    "cells": {
+      "alfworld": {
+        "decision": "ABSTAIN_TO_TARGET",
+        "selected_successes": 16,
+        "success_delta": 0,
+        "target_successes": 16
+      },
+      "discoveryworld": {
+        "decision": "ENABLE_SOURCE",
+        "selected_successes": 4,
+        "success_delta": 1,
+        "target_successes": 3
+      },
+      "tir": {
+        "decision": "ABSTAIN_TO_TARGET",
+        "selected_successes": 5,
+        "success_delta": 0,
+        "target_successes": 5
+      },
+      "webshop": {
+        "decision": "ENABLE_SOURCE",
+        "selected_successes": 18,
+        "success_delta": 7,
+        "target_successes": 11
+      }
+    },
+    "claim_boundary": "Descriptive projection over heterogeneous existing target splits, not a pooled statistical estimand or new held-out result.",
+    "observed_negative_transfer_after_gating": 0,
+    "policy": "ENABLE_SOURCE_ONLY_AFTER_TARGET_ADAPTATION_MECHANISM_GATE; OTHERWISE_ABSTAIN_TO_MATCHED_TARGET_POLICY",
+    "total_selected_successes": 43,
+    "total_success_delta": 8,
+    "total_target_successes": 35
+  },
+  "shared_source": {
+    "artifact": "SOKOBAN_EFFECT_PROGRAM_V2",
+    "artifact_sha256": "6b02dc1d7271bbd435e90539cedd7d56d04fcc1ad03798dd6dd06146d67f1fcd",
+    "fresh_confirmation_sha256": "d64606c916ce6e812ae1b920771d5175cb48983a2f141b2dab6f43d491a6c1ed",
+    "source_gate_passed": true
+  },
+  "status": "PARTIAL_TRANSFER_ONLY",
+  "validated_heldout_cells": [
+    "webshop"
+  ],
+  "validated_mechanism_cells": [
+    "webshop",
+    "discoveryworld"
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "schema_version": "discoveryworld-preformal-freeze-v22",
+  "status": "FROZEN_BEFORE_NORMAL_RESERVE_OPEN",
+  "candidate_commit": "eac08378344b1f8cb2b295b3d4820a1ae4f03fa8",
+  "normal_rollout_started": false,
+  "normal_outcome_read": false,
+  "task_set": [
+    "space_sick.normal.seed2",
+    "proteomics.normal.seed2",
+    "space_sick.normal.seed3",
+    "proteomics.normal.seed3",
+    "space_sick.normal.seed4",
+    "proteomics.normal.seed4"
+  ],
+  "frozen_hashes": {
+    "target_baseline_config": "6f359b4ce9cafb98f111249f3c6f89695a1e27bed314f0f02fb55ab0658b996a",
+    "formal_protocol": "d67751d6ead8d1f1cd4e83d92e900a9eff59f65d28b613f15cec8ad04aa71cee",
+    "task_manifest": "641a25392da012507987733d2d1f725cd5aaa7f42f88bd88d79b957781c3400a",
+    "source_receipt_file": "8f175c0edda951eba2064e9c53a8db6a25cdfa9fb0de8049d371dbf5335c9e80",
+    "target_baseline_runner": "8c908e84e7da5b27474cbc14da7164b3d46c32bc0b406938179cff5d42466377",
+    "outcome_blind_freezer": "14348733b8752388087aa64e97f3cd574c3819aaf82331d078078322956c7613",
+    "matched_runner": "14a768760c4a327c2486a3400310a771f9074ebe69ead83c848c425b2d54527d",
+    "environment_wrapper": "4bace77f80ca7710b7107b8bbc896d8f12649a3725d38c6071c446d7184e2cb8",
+    "target_policy": "7d054c6ffe8dac48283f4f99be067ffe9a1be9eb985419c3fa78ebdeef54857d",
+    "qualification_logic": "2bc54e9a76ee016261aa32b3ce324874618bdf41d83bd0b8670df53d52387a48",
+    "transfer_selector_and_realizer": "8d50120bacf89ceca5a6884f6ba90f55a9147a945f5008c9fbbf25ac260af2b7"
+  },
+  "frozen_design": {
+    "target_acquisition_horizon": 96,
+    "fork_rule": "FIRST_PREDECLARED_NATIVE_COMMIT_PROPOSAL",
+    "allowed_commit_actions": ["DROP", "PUT"],
+    "fork_rule_reads_outcomes": false,
+    "matched_recovery_horizon": 8,
+    "conditions": [
+      "target_native_myopic",
+      "authentic_sokoban_effect_plus_target",
+      "commit_availability_control_plus_target",
+      "inverted_effect_control_plus_target",
+      "position_prior_control_plus_target"
+    ],
+    "minimum_eligible_forks": 4,
+    "both_target_themes_required": true,
+    "minimum_authentic_success_gain_vs_target_native": 1,
+    "zero_authentic_negative_transfer_required": true,
+    "authentic_must_beat_availability_and_position_controls": true,
+    "integrity_gates_required": true
+  },
+  "claim_boundary": "No V22 Normal task has been reset, observed, or scored at freeze time. Any protocol gate failure is a held-out failure; the opened instances cannot be used for another formal claim after adaptation.",
+  "receipt_sha256": "4c4ee380cc75e92c6488535b26809b08b3bfb78f48d098abce26aeed3bb2880f"
+}

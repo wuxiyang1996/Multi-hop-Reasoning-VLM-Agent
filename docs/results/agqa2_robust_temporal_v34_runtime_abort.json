@@ -1,0 +1,27 @@
+{
+  "base_report_created": false,
+  "claim_boundary": "FORMAL_RUNTIME_ABORTED_BEFORE_EVALUATOR_LOOP;NO_SUCCESS_OR_FAILURE_ENDPOINT",
+  "completed_runtime_receipt_set_sha256": "0384e1fa094fc9ae3127002dc46a8b4103753f332aa0c26877dc9dc030aed6cf",
+  "completed_runtime_receipts": 98,
+  "config_file_sha256": "b5c6779121cffb6085ab899d457e1ef0d66b367c9151090a674360ff4c2274d7",
+  "evaluator_loop_entered": false,
+  "failed_runtime_rows": 2,
+  "formal_claim_allowed": false,
+  "formal_manifest_file_sha256": "3e98b08a992468ba0607dbf7dc840c3bb262b556efb950069befe00360043cb2",
+  "formal_outcome_used_for_authorization": false,
+  "frozen_sample_count": 100,
+  "next_authorized_use": "DEVELOPMENT_ONLY_RUNTIME_COMPLETION_WITH_FROZEN_OUTCOME_BLIND_SYNTAX_NORMALIZATION;THEN_NEW_VIDEO_DISJOINT_FORMAL_POOL",
+  "official_answer_field_accessed": false,
+  "postground_report_created": false,
+  "preregistration_file_sha256": "28e1218906bca999c8ad00a38e7ba538798d1460f1034adf97cd9205becb3062",
+  "provider_call_receipts": 575,
+  "reported_provider_cost_usd_before_abort": 0.6870982040000004,
+  "result_sha256": "4d6eff23ff97d1bb385c61f2280c50e0f23a2d3244004ff199a9add5f575f414",
+  "schema_version": "agqa2-robust-temporal-v34-runtime-abort-v1",
+  "status": "AGQA2_ROBUST_TEMPORAL_V34_RUNTIME_INCOMPLETE",
+  "worker_errors": {
+    "3W1GP-100934": "ValueError: operand schema retries exhausted: operand interval endpoints must be chronological",
+    "E5ZF5-56181": "JSONDecodeError: Expecting ',' delimiter: line 22 column 6 (char 439)"
+  },
+  "worker_errors_file_sha256": "60db634873e8467ee5f092951b0a5b898f4d954bd4a001ae13405ab503898c3d"
+}

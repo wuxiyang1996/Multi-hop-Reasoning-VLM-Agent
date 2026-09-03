@@ -1,0 +1,19 @@
+{
+  "schema_version": "phase3-alfworld-option-binding-qualification-v8",
+  "status": "ADAPTATION_ONLY_DENOMINATOR_FIX_FORMAL_UNOPENED",
+  "claim_boundary": "V8 changes no model, threshold, source program, or action. It fixes V7 applicability to condition on states with at least two target-native options; singleton-option states are mandatory source abstentions, not failed bindings.",
+  "frozen_validation_thresholds": {
+    "minimum_each_head_auc": 0.65,
+    "minimum_applicability_rate": 0.95,
+    "maximum_source_option_accuracy_drop": 0.01,
+    "minimum_source_neural_option_change_rate": 0.02,
+    "minimum_source_permuted_option_contrast_rate": 0.30,
+    "minimum_selected_effect_types": 2
+  },
+  "forbidden": [
+    "SOURCE_SELECTS_CONCRETE_ALFWORLD_ACTION",
+    "SOURCE_OR_TARGET_GROUNDER_READS_FORMAL_SUCCESS",
+    "CHANGE_SOURCE_TYPED_PROGRAM_OR_ANONYMOUS_OPERATORS",
+    "OPEN_FORMAL_RESERVE_BEFORE_ONLINE_QUALIFICATION"
+  ]
+}

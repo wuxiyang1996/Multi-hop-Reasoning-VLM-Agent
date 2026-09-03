@@ -1,0 +1,84 @@
+{
+  "schema_version": "agqa-query-grounder-v5-question-blind-event-development-protocol-v1b",
+  "status": "FROZEN_AFTER_OUTCOME_BLIND_EMPTY_EVENT_PREFLIGHT_BEFORE_V1B_CALLS_OR_STAGE_C_OUTCOMES",
+  "claim_boundary": "Consumed AGQA balanced-train grounder development only; never transfer evidence.",
+  "parent_protocol": {
+    "path": "configs/agqa2_query_grounder_v5_question_blind_event_development.json",
+    "file_sha256": "86c7d5f0ac1775a4a477743ca8671425dafdc68cf51aff57a0b6a294bf954051",
+    "preflight_artifact": "runs/agqa2_query_grounder_v5_question_blind_event_development/preflight_one.json",
+    "preflight_calls": 4,
+    "preflight_cost_usd": 0.00188998,
+    "outcomes_read": false,
+    "observed_failure": "All four calls were schema-valid but returned no events; uncertainty text explicitly described a visible carrying state while rejecting it because transition onset was absent."
+  },
+  "amendment": {
+    "changed": "Clarify that a directly visible persistent interaction or spatial state is valid evidence without observing transition onset.",
+    "unchanged": [
+      "model",
+      "clip and frame budget",
+      "public ontology",
+      "exact native frames and hashes",
+      "stable track overlays",
+      "question-blind acquisition",
+      "authority boundary",
+      "global-threshold-only development gates"
+    ],
+    "scientific_basis": "Provider behavior and uncertainty text only; no task answers, official STSG, functional program, source controller, or target outcomes were opened."
+  },
+  "development_cohort": {
+    "split": "AGQA balanced train / Action Genome train",
+    "video_count": 120,
+    "task_count": 240,
+    "now_consumed_for_grounder_development": true
+  },
+  "immutable_inputs": {
+    "cohort_sha256": "25aa6ef42d69c2063915559c9d3cc8b917cf33307b3c571fd4b087905b8d55a2",
+    "sgdet_file_sha256": "37d59769f73087f3a7d295db2622e1aa86ea2e44be4f5391f037972d00561813",
+    "public_ontology_file_sha256": "3459d6bdeb642e8b6d49a80fcb020d751a1079c5042ed0fee7369206cff186de",
+    "event_grounder_module_sha256": "1590b5bba00341f10e1be414a9197e2dc5e97a80778b0f1e5ceb82e0b61aa9b2",
+    "event_collector_sha256": "2feef7dbc0e06e37a6ab2b04a719974a78971bbbf1ba4f78adc974ffd6d1c331"
+  },
+  "question_blind_event_acquisition": {
+    "model": "qwen/qwen3-vl-235b-a22b-instruct",
+    "clip_count": 4,
+    "frames_per_clip": 6,
+    "maximum_unique_vlm_frames_per_video": 24,
+    "minimum_object_score": 0.05,
+    "max_tokens": 1400,
+    "temperature": 0,
+    "thinking": false,
+    "coordinate_mode": "native_exact",
+    "stable_track_boxes": true,
+    "question_context": null,
+    "subtitle_context": null,
+    "cross_clip_deduplication": {
+      "predicate_and_typed_tracks_exact": true,
+      "minimum_interval_iou": 0.5
+    }
+  },
+  "grounding_gates": {
+    "unique_supported_count_minimum": 40,
+    "unique_supported_precision_wilson_95_lower_bound_minimum": 0.6,
+    "unique_supported_coverage_minimum": 0.2,
+    "entity_candidate_pool_recall_minimum": 0.75,
+    "typed_role_fidelity_minimum": 0.8,
+    "cross_frame_dedup_fidelity_minimum": 0.9,
+    "provider_and_contract_success_fraction_minimum": 0.99,
+    "authority_safe_receipt_fraction": 1.0,
+    "one_global_threshold_required": true
+  },
+  "authority": {
+    "question_read_during_event_acquisition": false,
+    "answer_read": false,
+    "official_stsg_read": false,
+    "functional_program_read": false,
+    "per_video_action_genome_annotation_read": false,
+    "source_controller_read": false,
+    "target_outcome_read": false
+  },
+  "post_development": {
+    "fresh_video_disjoint_qualification_required": true,
+    "freeze_prompt_model_frame_budget_ontology_threshold_and_query_adapter": true,
+    "formal_broad_reserve_forbidden_until_qualification_passes": true
+  }
+}

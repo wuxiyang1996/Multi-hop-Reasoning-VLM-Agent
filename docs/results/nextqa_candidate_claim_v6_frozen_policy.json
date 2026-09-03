@@ -1,0 +1,135 @@
+{
+  "schema_version": 1,
+  "status": "FROZEN_BEFORE_QUALIFICATION_COLLECTION",
+  "benchmark": "nextqa",
+  "rule": "USE_CONDITION_IFF_ALL_ADAPTATION_ROWS_IN_SAME_FAMILY_HAVE_MEAN_SUCCESS_DELTA_STRICTLY_ABOVE_ZERO_ELSE_BASELINE",
+  "threshold": 0.0,
+  "conditions": {
+    "target_unbound_claim_verification": {
+      "Causal": {
+        "adaptation_samples": 4,
+        "mean_success_delta": 0.25,
+        "use_intervention": true
+      },
+      "Descriptive": {
+        "adaptation_samples": 4,
+        "mean_success_delta": -0.5,
+        "use_intervention": false
+      },
+      "Temporal": {
+        "adaptation_samples": 4,
+        "mean_success_delta": 0.0,
+        "use_intervention": false
+      }
+    },
+    "authentic_bound_claim_program": {
+      "Causal": {
+        "adaptation_samples": 4,
+        "mean_success_delta": 0.5,
+        "use_intervention": true
+      },
+      "Descriptive": {
+        "adaptation_samples": 4,
+        "mean_success_delta": -0.5,
+        "use_intervention": false
+      },
+      "Temporal": {
+        "adaptation_samples": 4,
+        "mean_success_delta": 0.0,
+        "use_intervention": false
+      }
+    },
+    "reversed_claim_then_bind": {
+      "Causal": {
+        "adaptation_samples": 4,
+        "mean_success_delta": 0.25,
+        "use_intervention": true
+      },
+      "Descriptive": {
+        "adaptation_samples": 4,
+        "mean_success_delta": -0.5,
+        "use_intervention": false
+      },
+      "Temporal": {
+        "adaptation_samples": 4,
+        "mean_success_delta": 0.0,
+        "use_intervention": false
+      }
+    },
+    "wrong_guard_bound_claim": {
+      "Causal": {
+        "adaptation_samples": 4,
+        "mean_success_delta": 0.25,
+        "use_intervention": true
+      },
+      "Descriptive": {
+        "adaptation_samples": 4,
+        "mean_success_delta": -0.5,
+        "use_intervention": false
+      },
+      "Temporal": {
+        "adaptation_samples": 4,
+        "mean_success_delta": 0.0,
+        "use_intervention": false
+      }
+    },
+    "node_only_bind": {
+      "Causal": {
+        "adaptation_samples": 4,
+        "mean_success_delta": -0.25,
+        "use_intervention": false
+      },
+      "Descriptive": {
+        "adaptation_samples": 4,
+        "mean_success_delta": -1.0,
+        "use_intervention": false
+      },
+      "Temporal": {
+        "adaptation_samples": 4,
+        "mean_success_delta": -0.25,
+        "use_intervention": false
+      }
+    },
+    "source_marginal_bind": {
+      "Causal": {
+        "adaptation_samples": 4,
+        "mean_success_delta": 0.25,
+        "use_intervention": true
+      },
+      "Descriptive": {
+        "adaptation_samples": 4,
+        "mean_success_delta": -0.5,
+        "use_intervention": false
+      },
+      "Temporal": {
+        "adaptation_samples": 4,
+        "mean_success_delta": 0.0,
+        "use_intervention": false
+      }
+    },
+    "shuffled_bind_correspondence": {
+      "Causal": {
+        "adaptation_samples": 4,
+        "mean_success_delta": 0.25,
+        "use_intervention": true
+      },
+      "Descriptive": {
+        "adaptation_samples": 4,
+        "mean_success_delta": -0.5,
+        "use_intervention": false
+      },
+      "Temporal": {
+        "adaptation_samples": 4,
+        "mean_success_delta": 0.0,
+        "use_intervention": false
+      }
+    }
+  },
+  "lineage": {
+    "adaptation_report": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/typed_nextqa_v4b_gpt54/candidate_claim_v6_dual_view_forks_adaptation_report.json",
+    "adaptation_report_sha256": "b4526eb2e4d2d435280f150e3b6beef35d95aa824ba9e5d1bbd5f44f06f22b37",
+    "selective_report": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/typed_nextqa_v4b_gpt54/candidate_claim_v6_dual_view_forks_adaptation_report_selective_report.json",
+    "selective_report_sha256": "e77d74b3ac8791c8f350e09d6870e5e1d27e74fc23b4cda384ac3091b0aa845a"
+  },
+  "qualification_outcomes_touched": false
+}

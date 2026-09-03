@@ -1,0 +1,83 @@
+{
+  "schema_version": "harness-9b-six-benchmark-substitution-freeze-config-v1",
+  "status": "FREEZE_REQUESTED_BEFORE_ANY_FIVE_SCHEMA_9B_SUBSTITUTION_INFERENCE_OR_WEIGHT_UPDATE",
+  "source_catalog_config": "configs/harness_multi_ir_selector_sft_v2.json",
+  "benchmarks": {
+    "webshop": {
+      "task_authority": "configs/webshop_structural_v21_formal_frozen.json",
+      "formal_evidence": [
+        "runs/webshop_structural_transfer_v21_formal/report.json"
+      ],
+      "expected_tasks": 32,
+      "route_id": "sokoban-relational-to-webshop-v21",
+      "source_program_sha256": "8e751718cd5df14141a8dce0b10f4c57eb4d676a9ff3d125e3f293fdbe9c83ce",
+      "replay_granularity": "STEP_AUTHORITY_AND_EPISODE_TRACE"
+    },
+    "discoveryworld": {
+      "task_authority": "configs/discoveryworld_structural_transfer_v1/manifest.json",
+      "formal_evidence": [
+        "runs/discoveryworld_structural_transfer_v1_matched/report.json"
+      ],
+      "expected_tasks": 12,
+      "route_id": "minigrid-put-near-to-discoveryworld-easy-v1",
+      "source_program_sha256": "b0d3b7cd706f8c18f35217a30d72e2f5d88b60f437f8c9980d9dbbf7478ee2c0",
+      "replay_granularity": "TASK_LEVEL_FORK_AND_NATIVE_ACTION_TRACE"
+    },
+    "tirbench": {
+      "task_authority": "configs/tir_maze_structural_transfer_v3_frozen.json",
+      "formal_evidence": [
+        "runs/tir_maze_structural_transfer_v3/heldout_report.json"
+      ],
+      "expected_tasks": 18,
+      "route_id": "sokoban-relational-to-tir-maze-v3",
+      "source_program_sha256": "8e751718cd5df14141a8dce0b10f4c57eb4d676a9ff3d125e3f293fdbe9c83ce",
+      "replay_granularity": "TASK_LEVEL_ANSWER_AND_NATIVE_RECEIPT"
+    },
+    "alfworld": {
+      "task_authority": "configs/alfworld_unified_goal_acquisition_v13_formal.json",
+      "formal_evidence": [
+        "runs/alfworld_unified_goal_acquisition_v13_formal/report.json.gz"
+      ],
+      "expected_tasks": 24,
+      "route_id": "sokoban-goal-acquisition-to-alfworld-multiplicity-v11",
+      "source_program_sha256": "7ff3e950f3eebaf75cca015df88ab6a01f2f364fe246102984a3cb4ee095f0d7",
+      "replay_granularity": "STEP_LEVEL_AUTHORITY_RECEIPT"
+    },
+    "clevrer": {
+      "task_authority": "configs/clevrer_sokoban_proof_v14_splits.json",
+      "route_authority": "configs/clevrer_unified_goal_relation_v15_reserve.json",
+      "formal_evidence": [
+        "runs/clevrer_unified_goal_relation_v15_reserve/formal_report.json"
+      ],
+      "expected_tasks": 360,
+      "route_id": "sokoban-goal-relation-to-clevrer-v15",
+      "source_program_sha256": "ed31de8757a12b57ea6d9a711a9b646646be5ebd0f1176b07320ef601f5fcb35",
+      "replay_granularity": "QUESTION_LEVEL_REPRESENTATION_SWITCH_RECEIPT"
+    },
+    "agqa2": {
+      "task_authority": "configs/agqa2_full_distribution_v62_selection.json",
+      "route_authority": "configs/agqa2_full_distribution_v62_preregistration.json",
+      "formal_evidence": [
+        "runs/agqa2_full_distribution_v62/base_report.json",
+        "runs/agqa2_full_distribution_v62/report.json"
+      ],
+      "expected_tasks": 900,
+      "route_id": "candy-temporal-plus-sokoban-goal-relation-to-agqa2-v62",
+      "source_program_sha256": [
+        "cc5f177fd54a2f17ccaa688ea1ecf6d0ae2395554a97a921563e70c32721601d",
+        "ed31de8757a12b57ea6d9a711a9b646646be5ebd0f1176b07320ef601f5fcb35"
+      ],
+      "target_native_composition": "TEMPORAL_WINDOW_THEN_RELATION_SCAN",
+      "replay_granularity": "QUESTION_LEVEL_COMPOSITE_AUTHORIZATION_RECEIPT"
+    }
+  },
+  "preregistered_gates": {
+    "exact_route_selection_accuracy": 1.0,
+    "success_critical_action_equivalence": 1.0,
+    "maximum_false_positive_source_authorizations": 0,
+    "maximum_missing_or_invalid_receipts": 0,
+    "all_six_benchmark_groups_required": true,
+    "agqa_both_source_primitives_required": true
+  },
+  "claim_boundary": "LOCKED_NEURAL_CONTROLLER_SUBSTITUTION_OVER_SIX_PREVIOUSLY_VALIDATED_TARGET_BENCHMARKS_ACROSS_FIVE_TARGET_DOMAINS;TASK_IDENTITIES_ARE_ALL_ROWS_FROM_PREOUTCOME_MANIFESTS;RETROSPECTIVE_TO_EXISTING_TARGET_OUTCOMES_BUT_FROZEN_BEFORE_FIVE_SCHEMA_ADAPTER_WEIGHT_UPDATE_OR_INFERENCE;NO_RERUN_OF_SIX_ARMS;NO_NEW_VIDEO_SAMPLING;TARGET_NATIVE_GROUNDERS_COMPOSITION_UTILITY_ROUTER_VERIFIER_AND_EXECUTORS_REMAIN_FROZEN"
+}

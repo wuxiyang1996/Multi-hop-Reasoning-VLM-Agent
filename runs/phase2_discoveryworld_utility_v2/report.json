@@ -1,0 +1,845 @@
+{
+  "schema_version": "phase2-discoveryworld-selective-utility-report-v2",
+  "status": "PHASE2_DISCOVERYWORLD_SELECTIVE_CAUSAL_UTILITY_VALIDATED",
+  "claim_boundary": "Selective causal utility on all 35 outcome-blind eligible first-commit forks from the fixed 36-task V1 cohort, with the sole inapplicable task failing closed.",
+  "manifest_sha256": "36e9fbb35836bd1e4a0d51fa3a305b598534c617b6d53a74671f8bbb2c779afa",
+  "tasks": 36,
+  "eligible_matched_tasks": 35,
+  "fail_closed_abstentions": 1,
+  "condition_successes": {
+    "target_native_myopic": 12,
+    "authentic_sokoban_effect_plus_target": 27,
+    "commit_availability_control_plus_target": 6,
+    "inverted_effect_control_plus_target": 3,
+    "position_prior_control_plus_target": 3
+  },
+  "condition_success_rates": {
+    "target_native_myopic": 0.3333333333333333,
+    "authentic_sokoban_effect_plus_target": 0.75,
+    "commit_availability_control_plus_target": 0.16666666666666666,
+    "inverted_effect_control_plus_target": 0.08333333333333333,
+    "position_prior_control_plus_target": 0.08333333333333333
+  },
+  "authentic_vs_raw": {
+    "wins": 17,
+    "losses": 2,
+    "ties": 17,
+    "success_gain": 15,
+    "percentage_point_gain": 41.666666666666664,
+    "exact_two_sided_sign_test_p": 0.000728607177734375,
+    "discordant_negative_transfer_rate": 0.10526315789473684
+  },
+  "source_route_count": 114,
+  "v1_coverage_status": "FAILED_35_OF_36_ELIGIBLE_NO_MATCHED_ARMS_RUN",
+  "matched_outcomes_visible_at_v2_freeze": false,
+  "gates": {
+    "exact_36_cell_receipts_valid": true,
+    "exact_35_eligible_matched_arms_complete": true,
+    "one_inapplicable_task_failed_closed": true,
+    "all_authentic_routes_valid_and_source_bound": true,
+    "all_six_source_lineages_represented": true,
+    "authentic_success_strictly_improves_raw": true,
+    "authentic_vs_raw_significant": true,
+    "negative_transfer_rate_within_bound": true,
+    "authentic_strictly_beats_ledger_blind": true,
+    "authentic_strictly_beats_wrong_controller": true,
+    "authentic_strictly_beats_position_control": true
+  },
+  "passed_gates": 11,
+  "required_gates": 11,
+  "per_task": [
+    {
+      "task_id": "proteomics.easy.seed45",
+      "source_game": "tetris",
+      "applicable": true,
+      "outcomes": {
+        "target_native_myopic": true,
+        "authentic_sokoban_effect_plus_target": true,
+        "commit_availability_control_plus_target": false,
+        "inverted_effect_control_plus_target": false,
+        "position_prior_control_plus_target": false
+      },
+      "recovery_steps": {
+        "target_native_myopic": 2,
+        "authentic_sokoban_effect_plus_target": 2,
+        "commit_availability_control_plus_target": 8,
+        "inverted_effect_control_plus_target": 8,
+        "position_prior_control_plus_target": 8
+      },
+      "cell_sha256": "c464f15cee4c02b664d3c95d5fe3e61da986fb695fb574b0cc12e60bf9f87bff",
+      "strict_win": false,
+      "strict_loss": false
+    },
+    {
+      "task_id": "proteomics.easy.seed46",
+      "source_game": "candy_crush",
+      "applicable": true,
+      "outcomes": {
+        "target_native_myopic": true,
+        "authentic_sokoban_effect_plus_target": true,
+        "commit_availability_control_plus_target": true,
+        "inverted_effect_control_plus_target": false,
+        "position_prior_control_plus_target": false
+      },
+      "recovery_steps": {
+        "target_native_myopic": 1,
+        "authentic_sokoban_effect_plus_target": 1,
+        "commit_availability_control_plus_target": 1,
+        "inverted_effect_control_plus_target": 8,
+        "position_prior_control_plus_target": 8
+      },
+      "cell_sha256": "050eec988988b8612fe375418da42ecb1b2d925d4d2797864bb33cfe7d4e4d65",
+      "strict_win": false,
+      "strict_loss": false
+    },
+    {
+      "task_id": "proteomics.easy.seed47",
+      "source_game": "gymv_columns",
+      "applicable": true,
+      "outcomes": {
+        "target_native_myopic": false,
+        "authentic_sokoban_effect_plus_target": true,
+        "commit_availability_control_plus_target": false,
+        "inverted_effect_control_plus_target": false,
+        "position_prior_control_plus_target": false
+      },
+      "recovery_steps": {
+        "target_native_myopic": 8,
+        "authentic_sokoban_effect_plus_target": 6,
+        "commit_availability_control_plus_target": 8,
+        "inverted_effect_control_plus_target": 8,
+        "position_prior_control_plus_target": 8
+      },
+      "cell_sha256": "3c46080b500d38b771603de8d0bb09d19af4e7d6f0741c187cc809c51e0b74e8",
+      "strict_win": true,
+      "strict_loss": false
+    },
+    {
+      "task_id": "proteomics.easy.seed48",
+      "source_game": "gymv_streets_of_rage_2",
+      "applicable": true,
+      "outcomes": {
+        "target_native_myopic": true,
+        "authentic_sokoban_effect_plus_target": false,
+        "commit_availability_control_plus_target": false,
+        "inverted_effect_control_plus_target": false,
+        "position_prior_control_plus_target": true
+      },
+      "recovery_steps": {
+        "target_native_myopic": 2,
+        "authentic_sokoban_effect_plus_target": 8,
+        "commit_availability_control_plus_target": 8,
+        "inverted_effect_control_plus_target": 8,
+        "position_prior_control_plus_target": 2
+      },
+      "cell_sha256": "6513e823833b5831b09ea12279847ec2bc1d67de4dddcbe37f4b29bc0b4db1ec",
+      "strict_win": false,
+      "strict_loss": true
+    },
+    {
+      "task_id": "proteomics.easy.seed49",
+      "source_game": "gymv_thunder_force_iii",
+      "applicable": true,
+      "outcomes": {
+        "target_native_myopic": false,
+        "authentic_sokoban_effect_plus_target": false,
+        "commit_availability_control_plus_target": false,
+        "inverted_effect_control_plus_target": false,
+        "position_prior_control_plus_target": false
+      },
+      "recovery_steps": {
+        "target_native_myopic": 8,
+        "authentic_sokoban_effect_plus_target": 8,
+        "commit_availability_control_plus_target": 8,
+        "inverted_effect_control_plus_target": 8,
+        "position_prior_control_plus_target": 8
+      },
+      "cell_sha256": "f975c06dfc27e2a3048d8473d8949636afde294623671a34e6ccd9f8cf8c4d48",
+      "strict_win": false,
+      "strict_loss": false
+    },
+    {
+      "task_id": "proteomics.easy.seed50",
+      "source_game": "gymv_strider",
+      "applicable": true,
+      "outcomes": {
+        "target_native_myopic": false,
+        "authentic_sokoban_effect_plus_target": true,
+        "commit_availability_control_plus_target": false,
+        "inverted_effect_control_plus_target": false,
+        "position_prior_control_plus_target": false
+      },
+      "recovery_steps": {
+        "target_native_myopic": 8,
+        "authentic_sokoban_effect_plus_target": 2,
+        "commit_availability_control_plus_target": 8,
+        "inverted_effect_control_plus_target": 8,
+        "position_prior_control_plus_target": 8
+      },
+      "cell_sha256": "b0dae5e8fe1534a00bbcf63c576c9681dee1be3a17505366f9abcaf73407dd5a",
+      "strict_win": true,
+      "strict_loss": false
+    },
+    {
+      "task_id": "proteomics.easy.seed51",
+      "source_game": "tetris",
+      "applicable": true,
+      "outcomes": {
+        "target_native_myopic": true,
+        "authentic_sokoban_effect_plus_target": true,
+        "commit_availability_control_plus_target": false,
+        "inverted_effect_control_plus_target": false,
+        "position_prior_control_plus_target": false
+      },
+      "recovery_steps": {
+        "target_native_myopic": 2,
+        "authentic_sokoban_effect_plus_target": 2,
+        "commit_availability_control_plus_target": 8,
+        "inverted_effect_control_plus_target": 8,
+        "position_prior_control_plus_target": 8
+      },
+      "cell_sha256": "637ef4f5e1efa26e3d163802cd382dac39f6d41c8e875a16b8eaa8fae0edd08e",
+      "strict_win": false,
+      "strict_loss": false
+    },
+    {
+      "task_id": "proteomics.easy.seed52",
+      "source_game": "candy_crush",
+      "applicable": true,
+      "outcomes": {
+        "target_native_myopic": false,
+        "authentic_sokoban_effect_plus_target": true,
+        "commit_availability_control_plus_target": false,
+        "inverted_effect_control_plus_target": false,
+        "position_prior_control_plus_target": false
+      },
+      "recovery_steps": {
+        "target_native_myopic": 8,
+        "authentic_sokoban_effect_plus_target": 4,
+        "commit_availability_control_plus_target": 8,
+        "inverted_effect_control_plus_target": 8,
+        "position_prior_control_plus_target": 8
+      },
+      "cell_sha256": "4840b3afc81fb87dcbaa87727ced0027e1e40462f92e40aa2630219a4466a561",
+      "strict_win": true,
+      "strict_loss": false
+    },
+    {
+      "task_id": "proteomics.easy.seed53",
+      "source_game": "gymv_columns",
+      "applicable": true,
+      "outcomes": {
+        "target_native_myopic": false,
+        "authentic_sokoban_effect_plus_target": true,
+        "commit_availability_control_plus_target": false,
+        "inverted_effect_control_plus_target": false,
+        "position_prior_control_plus_target": false
+      },
+      "recovery_steps": {
+        "target_native_myopic": 8,
+        "authentic_sokoban_effect_plus_target": 2,
+        "commit_availability_control_plus_target": 8,
+        "inverted_effect_control_plus_target": 8,
+        "position_prior_control_plus_target": 8
+      },
+      "cell_sha256": "c31685f8542b8ac5084d90e31c3d098d7dafa1c825c4e738af3f1092ef372a58",
+      "strict_win": true,
+      "strict_loss": false
+    },
+    {
+      "task_id": "proteomics.easy.seed54",
+      "source_game": "gymv_streets_of_rage_2",
+      "applicable": true,
+      "outcomes": {
+        "target_native_myopic": false,
+        "authentic_sokoban_effect_plus_target": true,
+        "commit_availability_control_plus_target": false,
+        "inverted_effect_control_plus_target": false,
+        "position_prior_control_plus_target": false
+      },
+      "recovery_steps": {
+        "target_native_myopic": 8,
+        "authentic_sokoban_effect_plus_target": 4,
+        "commit_availability_control_plus_target": 8,
+        "inverted_effect_control_plus_target": 8,
+        "position_prior_control_plus_target": 8
+      },
+      "cell_sha256": "c53dd4f6bcfb940a6f814ee674001cb421e4e9c13ec01a88e8ea7ca9b7c84c73",
+      "strict_win": true,
+      "strict_loss": false
+    },
+    {
+      "task_id": "proteomics.easy.seed55",
+      "source_game": "gymv_thunder_force_iii",
+      "applicable": true,
+      "outcomes": {
+        "target_native_myopic": false,
+        "authentic_sokoban_effect_plus_target": true,
+        "commit_availability_control_plus_target": false,
+        "inverted_effect_control_plus_target": false,
+        "position_prior_control_plus_target": false
+      },
+      "recovery_steps": {
+        "target_native_myopic": 8,
+        "authentic_sokoban_effect_plus_target": 2,
+        "commit_availability_control_plus_target": 8,
+        "inverted_effect_control_plus_target": 8,
+        "position_prior_control_plus_target": 8
+      },
+      "cell_sha256": "72d826b6e5b677d6e0b7e6e3328761e1d909b57f6b1529f0760d7406018c32f1",
+      "strict_win": true,
+      "strict_loss": false
+    },
+    {
+      "task_id": "proteomics.easy.seed56",
+      "source_game": "gymv_strider",
+      "applicable": true,
+      "outcomes": {
+        "target_native_myopic": true,
+        "authentic_sokoban_effect_plus_target": true,
+        "commit_availability_control_plus_target": false,
+        "inverted_effect_control_plus_target": false,
+        "position_prior_control_plus_target": false
+      },
+      "recovery_steps": {
+        "target_native_myopic": 2,
+        "authentic_sokoban_effect_plus_target": 2,
+        "commit_availability_control_plus_target": 8,
+        "inverted_effect_control_plus_target": 8,
+        "position_prior_control_plus_target": 8
+      },
+      "cell_sha256": "f49bc58cf905085eb4571066432214f7ea671960dddc07bcfd0605436680949f",
+      "strict_win": false,
+      "strict_loss": false
+    },
+    {
+      "task_id": "proteomics.easy.seed57",
+      "source_game": "tetris",
+      "applicable": true,
+      "outcomes": {
+        "target_native_myopic": false,
+        "authentic_sokoban_effect_plus_target": true,
+        "commit_availability_control_plus_target": false,
+        "inverted_effect_control_plus_target": false,
+        "position_prior_control_plus_target": false
+      },
+      "recovery_steps": {
+        "target_native_myopic": 8,
+        "authentic_sokoban_effect_plus_target": 4,
+        "commit_availability_control_plus_target": 8,
+        "inverted_effect_control_plus_target": 8,
+        "position_prior_control_plus_target": 8
+      },
+      "cell_sha256": "4f22064241c4dcec6435b1eeb203d0455d8926b8d6808d1d12ff6b105962a565",
+      "strict_win": true,
+      "strict_loss": false
+    },
+    {
+      "task_id": "proteomics.easy.seed58",
+      "source_game": "candy_crush",
+      "applicable": true,
+      "outcomes": {
+        "target_native_myopic": false,
+        "authentic_sokoban_effect_plus_target": false,
+        "commit_availability_control_plus_target": false,
+        "inverted_effect_control_plus_target": false,
+        "position_prior_control_plus_target": false
+      },
+      "recovery_steps": {
+        "target_native_myopic": 8,
+        "authentic_sokoban_effect_plus_target": 8,
+        "commit_availability_control_plus_target": 8,
+        "inverted_effect_control_plus_target": 8,
+        "position_prior_control_plus_target": 2
+      },
+      "cell_sha256": "ad3bac1b8f12c0f61851ee64da34a37390439f59bb72771437343d685130da76",
+      "strict_win": false,
+      "strict_loss": false
+    },
+    {
+      "task_id": "proteomics.easy.seed59",
+      "source_game": "gymv_columns",
+      "applicable": true,
+      "outcomes": {
+        "target_native_myopic": false,
+        "authentic_sokoban_effect_plus_target": true,
+        "commit_availability_control_plus_target": false,
+        "inverted_effect_control_plus_target": false,
+        "position_prior_control_plus_target": false
+      },
+      "recovery_steps": {
+        "target_native_myopic": 8,
+        "authentic_sokoban_effect_plus_target": 2,
+        "commit_availability_control_plus_target": 1,
+        "inverted_effect_control_plus_target": 1,
+        "position_prior_control_plus_target": 8
+      },
+      "cell_sha256": "f442db77b41d58cb7b550b2d29145efb9526d665e85df6f891867da5c2f25591",
+      "strict_win": true,
+      "strict_loss": false
+    },
+    {
+      "task_id": "proteomics.easy.seed60",
+      "source_game": "gymv_streets_of_rage_2",
+      "applicable": true,
+      "outcomes": {
+        "target_native_myopic": false,
+        "authentic_sokoban_effect_plus_target": true,
+        "commit_availability_control_plus_target": false,
+        "inverted_effect_control_plus_target": false,
+        "position_prior_control_plus_target": false
+      },
+      "recovery_steps": {
+        "target_native_myopic": 2,
+        "authentic_sokoban_effect_plus_target": 2,
+        "commit_availability_control_plus_target": 8,
+        "inverted_effect_control_plus_target": 8,
+        "position_prior_control_plus_target": 8
+      },
+      "cell_sha256": "aea0f1c473058987dcd33fdebba69328be7a2c92b2f4b76645e362080d9eb027",
+      "strict_win": true,
+      "strict_loss": false
+    },
+    {
+      "task_id": "proteomics.easy.seed61",
+      "source_game": "gymv_thunder_force_iii",
+      "applicable": true,
+      "outcomes": {
+        "target_native_myopic": false,
+        "authentic_sokoban_effect_plus_target": false,
+        "commit_availability_control_plus_target": false,
+        "inverted_effect_control_plus_target": false,
+        "position_prior_control_plus_target": false
+      },
+      "recovery_steps": {
+        "target_native_myopic": 8,
+        "authentic_sokoban_effect_plus_target": 2,
+        "commit_availability_control_plus_target": 8,
+        "inverted_effect_control_plus_target": 8,
+        "position_prior_control_plus_target": 8
+      },
+      "cell_sha256": "ab0d17dd27d42bb046bb1cff15f105a20b14e3a1978e487597a29a6f4f5cf462",
+      "strict_win": false,
+      "strict_loss": false
+    },
+    {
+      "task_id": "proteomics.easy.seed62",
+      "source_game": "gymv_strider",
+      "applicable": true,
+      "outcomes": {
+        "target_native_myopic": false,
+        "authentic_sokoban_effect_plus_target": true,
+        "commit_availability_control_plus_target": false,
+        "inverted_effect_control_plus_target": false,
+        "position_prior_control_plus_target": false
+      },
+      "recovery_steps": {
+        "target_native_myopic": 8,
+        "authentic_sokoban_effect_plus_target": 2,
+        "commit_availability_control_plus_target": 8,
+        "inverted_effect_control_plus_target": 8,
+        "position_prior_control_plus_target": 8
+      },
+      "cell_sha256": "3e207d394ef414b5bb9ad315657c95ab79d4749f5715f766f25e87194178a6d4",
+      "strict_win": true,
+      "strict_loss": false
+    },
+    {
+      "task_id": "proteomics.easy.seed63",
+      "source_game": "tetris",
+      "applicable": true,
+      "outcomes": {
+        "target_native_myopic": false,
+        "authentic_sokoban_effect_plus_target": true,
+        "commit_availability_control_plus_target": false,
+        "inverted_effect_control_plus_target": false,
+        "position_prior_control_plus_target": false
+      },
+      "recovery_steps": {
+        "target_native_myopic": 8,
+        "authentic_sokoban_effect_plus_target": 2,
+        "commit_availability_control_plus_target": 8,
+        "inverted_effect_control_plus_target": 8,
+        "position_prior_control_plus_target": 8
+      },
+      "cell_sha256": "a867641d407c9426d65be061b0022b7337fbcb44cc59b003eccee0df063228a3",
+      "strict_win": true,
+      "strict_loss": false
+    },
+    {
+      "task_id": "proteomics.easy.seed64",
+      "source_game": "candy_crush",
+      "applicable": true,
+      "outcomes": {
+        "target_native_myopic": false,
+        "authentic_sokoban_effect_plus_target": false,
+        "commit_availability_control_plus_target": false,
+        "inverted_effect_control_plus_target": false,
+        "position_prior_control_plus_target": false
+      },
+      "recovery_steps": {
+        "target_native_myopic": 8,
+        "authentic_sokoban_effect_plus_target": 8,
+        "commit_availability_control_plus_target": 8,
+        "inverted_effect_control_plus_target": 8,
+        "position_prior_control_plus_target": 8
+      },
+      "cell_sha256": "efdeaf55a1b9eb854b05cc9bbff3b849f56cf79f5a370fd80bb20b660607ae01",
+      "strict_win": false,
+      "strict_loss": false
+    },
+    {
+      "task_id": "proteomics.easy.seed65",
+      "source_game": "gymv_columns",
+      "applicable": true,
+      "outcomes": {
+        "target_native_myopic": true,
+        "authentic_sokoban_effect_plus_target": true,
+        "commit_availability_control_plus_target": true,
+        "inverted_effect_control_plus_target": false,
+        "position_prior_control_plus_target": false
+      },
+      "recovery_steps": {
+        "target_native_myopic": 1,
+        "authentic_sokoban_effect_plus_target": 1,
+        "commit_availability_control_plus_target": 1,
+        "inverted_effect_control_plus_target": 8,
+        "position_prior_control_plus_target": 8
+      },
+      "cell_sha256": "964783e7765d1b9d5760effe61046d742e91fe9c58b433696266755e103bcb34",
+      "strict_win": false,
+      "strict_loss": false
+    },
+    {
+      "task_id": "proteomics.easy.seed66",
+      "source_game": "gymv_streets_of_rage_2",
+      "applicable": true,
+      "outcomes": {
+        "target_native_myopic": false,
+        "authentic_sokoban_effect_plus_target": false,
+        "commit_availability_control_plus_target": false,
+        "inverted_effect_control_plus_target": false,
+        "position_prior_control_plus_target": false
+      },
+      "recovery_steps": {
+        "target_native_myopic": 8,
+        "authentic_sokoban_effect_plus_target": 8,
+        "commit_availability_control_plus_target": 8,
+        "inverted_effect_control_plus_target": 8,
+        "position_prior_control_plus_target": 8
+      },
+      "cell_sha256": "64053b3999fb9a58222f324a332508f538ee46dfdb1378dd569fb1b6d2540029",
+      "strict_win": false,
+      "strict_loss": false
+    },
+    {
+      "task_id": "proteomics.easy.seed67",
+      "source_game": "gymv_thunder_force_iii",
+      "applicable": true,
+      "outcomes": {
+        "target_native_myopic": true,
+        "authentic_sokoban_effect_plus_target": true,
+        "commit_availability_control_plus_target": false,
+        "inverted_effect_control_plus_target": false,
+        "position_prior_control_plus_target": false
+      },
+      "recovery_steps": {
+        "target_native_myopic": 2,
+        "authentic_sokoban_effect_plus_target": 2,
+        "commit_availability_control_plus_target": 8,
+        "inverted_effect_control_plus_target": 8,
+        "position_prior_control_plus_target": 8
+      },
+      "cell_sha256": "d4671cfa4cab6c15c20740bbe0667faa5ba284027c181c6fe47d1f545eefa2bf",
+      "strict_win": false,
+      "strict_loss": false
+    },
+    {
+      "task_id": "proteomics.easy.seed68",
+      "source_game": "gymv_strider",
+      "applicable": true,
+      "outcomes": {
+        "target_native_myopic": false,
+        "authentic_sokoban_effect_plus_target": false,
+        "commit_availability_control_plus_target": false,
+        "inverted_effect_control_plus_target": false,
+        "position_prior_control_plus_target": false
+      },
+      "recovery_steps": {
+        "target_native_myopic": 1,
+        "authentic_sokoban_effect_plus_target": 1,
+        "commit_availability_control_plus_target": 1,
+        "inverted_effect_control_plus_target": 8,
+        "position_prior_control_plus_target": 8
+      },
+      "cell_sha256": "2ea43a25721521ed847cd50e5677ebe337cfb5a3e1e506dd2538de0d6d967021",
+      "strict_win": false,
+      "strict_loss": false
+    },
+    {
+      "task_id": "proteomics.easy.seed69",
+      "source_game": "tetris",
+      "applicable": true,
+      "outcomes": {
+        "target_native_myopic": true,
+        "authentic_sokoban_effect_plus_target": true,
+        "commit_availability_control_plus_target": true,
+        "inverted_effect_control_plus_target": false,
+        "position_prior_control_plus_target": false
+      },
+      "recovery_steps": {
+        "target_native_myopic": 1,
+        "authentic_sokoban_effect_plus_target": 1,
+        "commit_availability_control_plus_target": 1,
+        "inverted_effect_control_plus_target": 8,
+        "position_prior_control_plus_target": 8
+      },
+      "cell_sha256": "cd43c51acd1e0ec939052fbd4d862267f7707d485aa5b93703c3e58cf6c4c85d",
+      "strict_win": false,
+      "strict_loss": false
+    },
+    {
+      "task_id": "proteomics.easy.seed70",
+      "source_game": "candy_crush",
+      "applicable": false,
+      "outcomes": {
+        "target_native_myopic": false,
+        "authentic_sokoban_effect_plus_target": false,
+        "commit_availability_control_plus_target": false,
+        "inverted_effect_control_plus_target": false,
+        "position_prior_control_plus_target": false
+      },
+      "recovery_steps": {
+        "target_native_myopic": 0,
+        "authentic_sokoban_effect_plus_target": 0,
+        "commit_availability_control_plus_target": 0,
+        "inverted_effect_control_plus_target": 0,
+        "position_prior_control_plus_target": 0
+      },
+      "cell_sha256": "7b7d8f948a7b319afa3ab519dca555be8abf2a83873fd919229275305f02adbe",
+      "strict_win": false,
+      "strict_loss": false
+    },
+    {
+      "task_id": "proteomics.easy.seed71",
+      "source_game": "gymv_columns",
+      "applicable": true,
+      "outcomes": {
+        "target_native_myopic": false,
+        "authentic_sokoban_effect_plus_target": true,
+        "commit_availability_control_plus_target": false,
+        "inverted_effect_control_plus_target": false,
+        "position_prior_control_plus_target": false
+      },
+      "recovery_steps": {
+        "target_native_myopic": 8,
+        "authentic_sokoban_effect_plus_target": 4,
+        "commit_availability_control_plus_target": 8,
+        "inverted_effect_control_plus_target": 8,
+        "position_prior_control_plus_target": 8
+      },
+      "cell_sha256": "c8e4e0110c5f7aa88accfa4230f8e8d152f714df842708b1915315c29c51d430",
+      "strict_win": true,
+      "strict_loss": false
+    },
+    {
+      "task_id": "proteomics.easy.seed72",
+      "source_game": "gymv_streets_of_rage_2",
+      "applicable": true,
+      "outcomes": {
+        "target_native_myopic": false,
+        "authentic_sokoban_effect_plus_target": true,
+        "commit_availability_control_plus_target": false,
+        "inverted_effect_control_plus_target": false,
+        "position_prior_control_plus_target": false
+      },
+      "recovery_steps": {
+        "target_native_myopic": 8,
+        "authentic_sokoban_effect_plus_target": 2,
+        "commit_availability_control_plus_target": 8,
+        "inverted_effect_control_plus_target": 8,
+        "position_prior_control_plus_target": 8
+      },
+      "cell_sha256": "15afbcf9adec67d8a94a71f9141b885aadfcffa0f40df7a2df56973beada9040",
+      "strict_win": true,
+      "strict_loss": false
+    },
+    {
+      "task_id": "proteomics.easy.seed73",
+      "source_game": "gymv_thunder_force_iii",
+      "applicable": true,
+      "outcomes": {
+        "target_native_myopic": true,
+        "authentic_sokoban_effect_plus_target": false,
+        "commit_availability_control_plus_target": true,
+        "inverted_effect_control_plus_target": true,
+        "position_prior_control_plus_target": false
+      },
+      "recovery_steps": {
+        "target_native_myopic": 1,
+        "authentic_sokoban_effect_plus_target": 8,
+        "commit_availability_control_plus_target": 1,
+        "inverted_effect_control_plus_target": 1,
+        "position_prior_control_plus_target": 2
+      },
+      "cell_sha256": "176456577c4340dd94937fd983689b2ea451562b3ff8a7796044e7fea96a0358",
+      "strict_win": false,
+      "strict_loss": true
+    },
+    {
+      "task_id": "proteomics.easy.seed74",
+      "source_game": "gymv_strider",
+      "applicable": true,
+      "outcomes": {
+        "target_native_myopic": true,
+        "authentic_sokoban_effect_plus_target": true,
+        "commit_availability_control_plus_target": false,
+        "inverted_effect_control_plus_target": false,
+        "position_prior_control_plus_target": false
+      },
+      "recovery_steps": {
+        "target_native_myopic": 2,
+        "authentic_sokoban_effect_plus_target": 2,
+        "commit_availability_control_plus_target": 8,
+        "inverted_effect_control_plus_target": 8,
+        "position_prior_control_plus_target": 2
+      },
+      "cell_sha256": "716c02e4a60c33ef8a5aab33b3d031d278846f3b31a26568143bca2acc4717a6",
+      "strict_win": false,
+      "strict_loss": false
+    },
+    {
+      "task_id": "proteomics.easy.seed75",
+      "source_game": "tetris",
+      "applicable": true,
+      "outcomes": {
+        "target_native_myopic": false,
+        "authentic_sokoban_effect_plus_target": true,
+        "commit_availability_control_plus_target": false,
+        "inverted_effect_control_plus_target": false,
+        "position_prior_control_plus_target": false
+      },
+      "recovery_steps": {
+        "target_native_myopic": 8,
+        "authentic_sokoban_effect_plus_target": 2,
+        "commit_availability_control_plus_target": 8,
+        "inverted_effect_control_plus_target": 8,
+        "position_prior_control_plus_target": 8
+      },
+      "cell_sha256": "013f1f036bb7b2d8434f3f535ef5593d770564c19baa5532fcc1cea45c24725e",
+      "strict_win": true,
+      "strict_loss": false
+    },
+    {
+      "task_id": "proteomics.easy.seed76",
+      "source_game": "candy_crush",
+      "applicable": true,
+      "outcomes": {
+        "target_native_myopic": true,
+        "authentic_sokoban_effect_plus_target": true,
+        "commit_availability_control_plus_target": true,
+        "inverted_effect_control_plus_target": true,
+        "position_prior_control_plus_target": true
+      },
+      "recovery_steps": {
+        "target_native_myopic": 1,
+        "authentic_sokoban_effect_plus_target": 1,
+        "commit_availability_control_plus_target": 1,
+        "inverted_effect_control_plus_target": 1,
+        "position_prior_control_plus_target": 1
+      },
+      "cell_sha256": "254356a21470bbc67e3b084b80266f9f623afa6a413e3427d69ca2f6e43e6567",
+      "strict_win": false,
+      "strict_loss": false
+    },
+    {
+      "task_id": "proteomics.easy.seed77",
+      "source_game": "gymv_columns",
+      "applicable": true,
+      "outcomes": {
+        "target_native_myopic": true,
+        "authentic_sokoban_effect_plus_target": true,
+        "commit_availability_control_plus_target": true,
+        "inverted_effect_control_plus_target": true,
+        "position_prior_control_plus_target": true
+      },
+      "recovery_steps": {
+        "target_native_myopic": 1,
+        "authentic_sokoban_effect_plus_target": 1,
+        "commit_availability_control_plus_target": 1,
+        "inverted_effect_control_plus_target": 2,
+        "position_prior_control_plus_target": 2
+      },
+      "cell_sha256": "93557290c88fdfa5078290b06384e5e50727d9a433db0ba48f686b5a8aa37761",
+      "strict_win": false,
+      "strict_loss": false
+    },
+    {
+      "task_id": "proteomics.easy.seed78",
+      "source_game": "gymv_streets_of_rage_2",
+      "applicable": true,
+      "outcomes": {
+        "target_native_myopic": false,
+        "authentic_sokoban_effect_plus_target": true,
+        "commit_availability_control_plus_target": false,
+        "inverted_effect_control_plus_target": false,
+        "position_prior_control_plus_target": false
+      },
+      "recovery_steps": {
+        "target_native_myopic": 8,
+        "authentic_sokoban_effect_plus_target": 2,
+        "commit_availability_control_plus_target": 8,
+        "inverted_effect_control_plus_target": 8,
+        "position_prior_control_plus_target": 8
+      },
+      "cell_sha256": "78b909fa33e79586ee2360ee8bb39443321b6a6a50a6e7277584929242ffeaf9",
+      "strict_win": true,
+      "strict_loss": false
+    },
+    {
+      "task_id": "proteomics.easy.seed79",
+      "source_game": "gymv_thunder_force_iii",
+      "applicable": true,
+      "outcomes": {
+        "target_native_myopic": false,
+        "authentic_sokoban_effect_plus_target": true,
+        "commit_availability_control_plus_target": false,
+        "inverted_effect_control_plus_target": false,
+        "position_prior_control_plus_target": false
+      },
+      "recovery_steps": {
+        "target_native_myopic": 8,
+        "authentic_sokoban_effect_plus_target": 4,
+        "commit_availability_control_plus_target": 8,
+        "inverted_effect_control_plus_target": 8,
+        "position_prior_control_plus_target": 8
+      },
+      "cell_sha256": "ba340f28b6e0766d1fdc60925427d3ee2b3e7fb0a10df4d71f321918ee74503f",
+      "strict_win": true,
+      "strict_loss": false
+    },
+    {
+      "task_id": "proteomics.easy.seed80",
+      "source_game": "gymv_strider",
+      "applicable": true,
+      "outcomes": {
+        "target_native_myopic": false,
+        "authentic_sokoban_effect_plus_target": true,
+        "commit_availability_control_plus_target": false,
+        "inverted_effect_control_plus_target": false,
+        "position_prior_control_plus_target": false
+      },
+      "recovery_steps": {
+        "target_native_myopic": 8,
+        "authentic_sokoban_effect_plus_target": 2,
+        "commit_availability_control_plus_target": 8,
+        "inverted_effect_control_plus_target": 8,
+        "position_prior_control_plus_target": 8
+      },
+      "cell_sha256": "22141607b8257061c0ba714337441dddefcd6e119ed5caec8b584c34ce427176",
+      "strict_win": true,
+      "strict_loss": false
+    }
+  ],
+  "report_sha256": "9ff0c6cb0eb9e31c11c793695f12e46457df244980f41f96c6362fa560cc9a4b"
+}

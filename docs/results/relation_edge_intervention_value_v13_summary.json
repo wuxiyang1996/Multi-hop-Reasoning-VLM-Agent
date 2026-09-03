@@ -1,0 +1,77 @@
+{
+  "confirmation_authorized": false,
+  "existing_valid_unseen_heldout_read": false,
+  "fork_collection": {
+    "all_matched_invariants_passed": true,
+    "fork_count": 62,
+    "informative_fork_count": 10,
+    "matched_cell_count": 124,
+    "report_sha256": "9fe79c9f0f7dda9cb6cb2d6d19a32785ac25d061adf940a5864b04a3cb5534cf",
+    "status": "CONSUMED_MATCHED_FORKS_COMPLETE",
+    "versions": {
+      "v10": {
+        "forks": 16,
+        "informative": 3
+      },
+      "v11": {
+        "forks": 16,
+        "informative": 2
+      },
+      "v12": {
+        "forks": 16,
+        "informative": 2
+      },
+      "v9": {
+        "forks": 14,
+        "informative": 3
+      }
+    }
+  },
+  "frozen_plan": {
+    "file_sha256": "ab830df8ec01e1893b7f64c9742b6f15d1f1d71d299f0754668475c785318ac0",
+    "opportunity_count": 62,
+    "plan_sha256": "1abe65c97ae3d566e3913e4dadafab10fc96168247f6df415bdf774c6ab3013c",
+    "status": "FROZEN_BEFORE_ANY_V13_FORK_OUTCOME"
+  },
+  "schema_version": "relation-edge-intervention-value-v13-result-summary",
+  "value_audit": {
+    "aggregate": {
+      "admit_all": {
+        "selected_tasks": 10,
+        "success_delta": 0,
+        "success_losses": 2,
+        "success_wins": 2,
+        "utility": -0.011666666666666744
+      },
+      "crossfit_value_head": {
+        "selected_tasks": 6,
+        "success_delta": 1,
+        "success_losses": 1,
+        "success_wins": 2,
+        "utility": 1.0199999999999998
+      },
+      "v12_step_nine": {
+        "selected_tasks": 8,
+        "success_delta": 1,
+        "success_losses": 1,
+        "success_wins": 2,
+        "utility": 1.0133333333333332
+      }
+    },
+    "audit_sha256": "bff0740617592bfbf3bf9dc35b22392fc4da522863706c1c080c23a859a2344b",
+    "failed_gates": [
+      "aggregate_selected_success_delta",
+      "heldout_selected_success_delta_nonnegative_each_fold",
+      "heldout_selected_utility_nonnegative_each_fold",
+      "minimum_informative_task_forks",
+      "minimum_positive_utility_tasks",
+      "minimum_selected_tasks",
+      "zero_selected_success_losses"
+    ],
+    "informative_task_fork_count": 10,
+    "negative_utility_task_count": 5,
+    "positive_utility_task_count": 3,
+    "status": "CONSUMED_GROUPED_VALUE_AUDIT_FAILED_STOP"
+  },
+  "verdict": "INSUFFICIENT_ACTION_CONTRAST_AND_UNSAFE_CROSS_VERSION_VALUE_STOP_WITHOUT_FRESH_V13"
+}

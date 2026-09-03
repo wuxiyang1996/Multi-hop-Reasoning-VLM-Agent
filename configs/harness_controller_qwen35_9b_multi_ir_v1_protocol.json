@@ -1,0 +1,61 @@
+{
+  "schema_version": "harness-controller-qwen35-9b-multi-ir-protocol-v1",
+  "status": "FROZEN_BEFORE_MULTI_IR_SELECTOR_WEIGHT_UPDATES",
+  "model": "Qwen/Qwen3.5-9B",
+  "source_only_dataset": {
+    "manifest": {
+      "path": "runs/harness_multi_ir_selector_sft_v1c/manifest.json",
+      "sha256": "ca3173ec0a418e85ae9bfd733ca5ea18e5606a22a75d7abdf8656ba0368ac877"
+    },
+    "train": {
+      "path": "runs/harness_multi_ir_selector_sft_v1c/train.jsonl",
+      "sha256": "7a1e4a6dd267d8dbd5a95b741d7d98cd21644fcb0f05fdc75aa1e98ab23df305",
+      "examples": 4992
+    },
+    "validation": {
+      "path": "runs/harness_multi_ir_selector_sft_v1c/validation.jsonl",
+      "sha256": "52a787de0500f1b2d99a5406a49017fe9dd728adab65ac1f89f8136b28bb10d5",
+      "examples": 1248
+    },
+    "source_held_out": {
+      "path": "runs/harness_multi_ir_selector_sft_v1c/source_held_out.jsonl",
+      "sha256": "7d5e4c037de0ec6a3e073905e5385feba9af51d3cf5523e087a44810b65ec87d",
+      "examples": 1248
+    },
+    "target_examples": 0
+  },
+  "initial_adapter": {
+    "role": "SOURCE_ONLY_V4_CARDINALITY_CONTROLLER",
+    "path": "runs/harness_controller_qwen35_9b_v4/cardinality_sft_v1/adapter",
+    "adapter_model_sha256": "9ded4fdf20e8b954d8be1f1af419bb922aefd9af5ce9346909eadbf96e442961",
+    "adapter_config_sha256": "87a7e84cedee48deab7d202ef8a1282ba9cd7e77343688b60356cf8654e8c4ea",
+    "source_qualification": "runs/harness_controller_qwen35_9b_v4/cardinality_sft_v1/source_cardinality_qualification.json",
+    "source_qualification_status": "SOURCE_CARDINALITY_GATE_PASSED"
+  },
+  "source_held_out_qualification": {
+    "required_ir_kinds": [
+      "FINITE_STRUCTURAL_DELTA_SEQUENCE",
+      "RECURRENT_GOAL_ACQUISITION_RELATION_PROGRAM",
+      "RECURRENT_GOAL_RELATION_PROGRAM",
+      "RECURRENT_RELATIONAL_TRANSITION_PROGRAM"
+    ],
+    "strict_json_accuracy_minimum": 0.98,
+    "overall_decision_accuracy_minimum": 0.95,
+    "overall_exact_accuracy_minimum": 0.90,
+    "select_skill_decision_recall_minimum": 0.95,
+    "abstain_decision_recall_minimum": 0.95,
+    "every_ir_decision_accuracy_minimum": 0.95,
+    "every_ir_exact_accuracy_minimum": 0.90,
+    "every_control_decision_accuracy_minimum": 0.95,
+    "every_control_exact_accuracy_minimum": 0.85,
+    "exact_minus_base_minimum": 0.20
+  },
+  "training": {
+    "max_steps": 400,
+    "learning_rate": 0.00002,
+    "gradient_accumulation": 8,
+    "max_length": 2048,
+    "seed": 20260830
+  },
+  "claim_boundary": "The 9B adapter is trained only to select or abstain over source-induced anonymous structural contracts, including the goal-relation IR used by CLEVRER/AGQA. No video, question, answer, target task, or target-domain example is used. Target actors, target-native grounders, utility calibration, and native action execution remain frozen and outside this SFT. Passing the source-held-out gate does not by itself prove downstream target success."
+}

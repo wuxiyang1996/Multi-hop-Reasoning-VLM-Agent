@@ -1,0 +1,76 @@
+{
+  "artifact_sha256": "ef0f931a931c3a0c42e5393b8ea7511af493309e2b8da857195244517c1ae4a4",
+  "claim_boundary": "FAILED_SOURCE_QUALIFICATION_NO_HELD_OUT_SOURCE_OR_TARGET_RUN",
+  "condition_summaries": {
+    "ALL_ACTION_HASH_RANDOM": {
+      "h8_mean_reward": 0.0,
+      "h8_positive_rate": 0.0,
+      "life_loss_rate": 0.0
+    },
+    "AUTHENTIC_EFFECT_STRUCTURE": {
+      "h8_mean_reward": 0.0,
+      "h8_positive_rate": 0.0,
+      "life_loss_rate": 0.25
+    },
+    "DISCOVERY_ACTION_MARGINAL": {
+      "h8_mean_reward": 0.0,
+      "h8_positive_rate": 0.0,
+      "life_loss_rate": 0.125
+    },
+    "REPEAT_SOURCE_ACTION": {
+      "h8_mean_reward": 12.5,
+      "h8_positive_rate": 0.125,
+      "life_loss_rate": 0.125
+    },
+    "SHUFFLED_EFFECT_STRUCTURE": {
+      "h8_mean_reward": 50.0,
+      "h8_positive_rate": 0.375,
+      "life_loss_rate": 0.0
+    }
+  },
+  "control_gates": {
+    "ALL_ACTION_HASH_RANDOM": {
+      "mean_h8_margin": 0.0,
+      "paired_losses": 0,
+      "paired_n": 4,
+      "paired_ties": 4,
+      "paired_unit": "SOURCE_EPISODE",
+      "paired_wins": 0,
+      "passed": false
+    },
+    "DISCOVERY_ACTION_MARGINAL": {
+      "mean_h8_margin": 0.0,
+      "paired_losses": 0,
+      "paired_n": 4,
+      "paired_ties": 4,
+      "paired_unit": "SOURCE_EPISODE",
+      "paired_wins": 0,
+      "passed": false
+    },
+    "SHUFFLED_EFFECT_STRUCTURE": {
+      "mean_h8_margin": -50.0,
+      "paired_losses": 3,
+      "paired_n": 4,
+      "paired_ties": 1,
+      "paired_unit": "SOURCE_EPISODE",
+      "paired_wins": 0,
+      "passed": false
+    }
+  },
+  "diagnosis": "VISUAL_EFFECT_EXISTENCE_IS_NOT_DELAYED_VALUE_OR_SAFE_COMPOSITION",
+  "discovery_manifest_sha256": "1d69ab0b0d00b717b5aa2cfafbc54fa8c0831613558a1f3a2ed8ec80a72215f7",
+  "formal_qualification_job_id": "7237914",
+  "formal_qualification_manifest_sha256": "b3065dce6e19de5cf999b73c0c03b22352e01bfd515b42ca4398f92c0a9554e0",
+  "formal_runtime_commit": "ee6891848e3b98eeb0171fafd180a85999b1ad06",
+  "next_step": "STOP_BEFORE_HELD_OUT_AND_TARGET",
+  "plan_sha256": "1030426f92ff7a103981b71c734c25da27c3fc09fa228a0202020f47a050e2dd",
+  "qualification_passed": false,
+  "qualification_receipts_byte_identical_to_initial_execution": true,
+  "qualification_receipts_sha256": "814ddcb8c6857ca0630c5b4a15992e759c6fdcbd694de34c472db441e0027cb6",
+  "qualification_trajectories": 80,
+  "source_runtime_commit": "db1a5ac41c9150df1352490c0e477a0f7a89369e",
+  "status_counts": {
+    "INTERVENTION_OBSERVED": 80
+  },
+  "verdict": "REJECTED_FOR_TRANSFER_V1"
+}

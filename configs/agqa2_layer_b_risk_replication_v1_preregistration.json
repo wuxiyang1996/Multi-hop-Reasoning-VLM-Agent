@@ -1,0 +1,100 @@
+{
+  "schema_version": "agqa2-layer-b-risk-constrained-raw-video-replication-v1-preregistration",
+  "status": "FROZEN_BEFORE_ANY_REPLICATION_RUNTIME_OR_OUTCOME",
+  "claim": "Under identical raw-video perception and a preregistered five-percent negative-transfer budget, game-acquired symbolic structure improves final AGQA2 answer accuracy over the shared neural actor and a matched source-lineage permutation.",
+  "claim_scope": "RISK_CONSTRAINED_RAW_VIDEO_GAME_TO_VIDEO_TRANSFER",
+  "protocol_change_timing": "Preregistered after qualification_v4 was consumed and before any runtime or outcome on this fully history-disjoint replication cohort.",
+  "consumed_qualification_v4": {
+    "status": "FAILED_ORIGINAL_ALL_GATES_BUT_POSITIVE_SAFE_SOURCE_SIGNAL",
+    "neural_only_correct": 238,
+    "generic_correct": 264,
+    "source_induced_correct": 258,
+    "source_vs_neural": "44W/24L; exact p=0.0205269",
+    "source_negative_transfer_fraction": 0.046875,
+    "generic_negative_transfer_fraction": 0.080078125,
+    "reason_for_replication": "V4 established a safe source-vs-neural signal but used an all-fallback source-permuted control and an all-gates rule that did not distinguish safe from unsafe symbolic policies."
+  },
+  "cohort": {
+    "rows": 384,
+    "videos": 384,
+    "per_semantic_root": 48,
+    "public_cohort_sha256": "8b5fa41462fa2080916ac7f3eabe36e90830533c7eb4acfe2baff3a711e7dbc2",
+    "public_cohort_file_sha256": "c364b17484f0bd9c64af82973ba8de728e9f158110baf12d22b69a1779f38245",
+    "manifest_sha256": "2b0ba0cc6dc694e5bcd60ef4d7f7fa15c12585ce293ebf2096bb6bdc7f557023",
+    "manifest_file_sha256": "97ed944a4c5d4fa0f3b3982fb761d1ec7ef0cbed4182a22c6e9abb73881e5572",
+    "selection_algorithm": "DETERMINISTIC_BIPARTITE_CAPACITY_MATCHING_V1",
+    "parser_supervision_task_overlap": 0,
+    "prior_layer_b_task_overlap": 0,
+    "prior_layer_b_video_overlap": 0,
+    "excluded_prior_layer_b_tasks_and_videos": 1024,
+    "answers_read": false,
+    "scene_graphs_read": false,
+    "provider_calls_before_freeze": 0
+  },
+  "shared_pipeline": {
+    "semantic_parser": "frozen target-native Flan-T5-small question-to-operator-free-semantics parser",
+    "positive_event_grounders": [
+      "frozen Qwen3-VL-32B uniform 48 proxy frames",
+      "frozen Qwen3-VL-32B uniform 96 proxy frames"
+    ],
+    "action_tool": "frozen SlowFast-R50 Charades dense10x32 at threshold 0.1",
+    "positive_event_merge": "FILL_MISSING_ONLY",
+    "source_blind_router": "FIRST_GENERIC_COMMIT_ELSE_FIRST_CANDIDATE",
+    "atomic_claim_grounder": "frozen Qwen3-VL-32B, 96 uniform full-video frames, one scoped operator-free proposition per call",
+    "atomic_claim_states": ["SUPPORTED", "REFUTED", "UNKNOWN"],
+    "absence_implies_refuted": false,
+    "maximum_actual_frame_presentations_per_task": 560,
+    "fallback_actor": "frozen Qwen3.5-9B",
+    "all_runtime_receipts_shared_across_five_arms": true
+  },
+  "arms": {
+    "neural_only": "shared frozen fallback only",
+    "generic_scaffold": "all shared VM primitives with eager execution and no intervention-derived abstention",
+    "source_permuted": "exact source operator inventory and exact edge count with a fixed one-step operator-label derangement applied to composition lineage; same root-aware guard",
+    "source_induced": "source-induced operators, authentic source composition lineage, and source-induced root-aware three-valued abstention",
+    "target_written_isomorphic": "exact source-induced policy clone used only as an action-equivalence ceiling"
+  },
+  "risk_constraint": {
+    "definition": "For each symbolic arm, losses are tasks neural-only gets correct and that arm gets wrong.",
+    "negative_transfer_fraction_at_most": 0.05,
+    "best_feasible_rule": "Source-induced accuracy must be at least that of every symbolic arm whose losses relative to neural-only are within the same five-percent budget.",
+    "generic_interpretation": "Generic remains an unrestricted non-crippled control. Higher raw accuracy does not satisfy the safe-transfer claim if its negative-transfer losses exceed the preregistered budget."
+  },
+  "gates": {
+    "outcome_blind_source_execution_coverage_at_least": 0.4,
+    "source_accuracy_strictly_above_neural_only": true,
+    "source_vs_neural_exact_mcnemar_p_below": 0.05,
+    "negative_transfer_fraction_at_most": 0.05,
+    "source_accuracy_strictly_above_source_permuted": true,
+    "source_vs_source_permuted_exact_mcnemar_p_below": 0.05,
+    "source_is_best_feasible_symbolic_arm": true,
+    "permuted_preserves_source_operator_inventory_and_edge_count": true,
+    "permuted_changes_source_composition_lineage": true,
+    "target_written_isomorphic_action_equivalence": 1.0,
+    "semantic_parser_supervision_overlap": 0,
+    "all_prior_layer_b_task_and_video_overlap": 0
+  },
+  "source_capability_artifact_sha256": "8db5041579e8d5a69c5612247d62803ada2d98e745734fd9fac8cc3d7ca7902d",
+  "source_capability_file_sha256": "2f11b31b41a8ca72ee7c889d4fba00b8103599ce885269eb845ae89c0e78d31c",
+  "implementation_file_sha256s": {
+    "src/motif_transfer/agqa_layer_b_epistemic.py": "86a97579146c660042e30d2b30dff4ad7ffc29cfd3e260406cb7a39adccd2b67",
+    "src/motif_transfer/agqa_layer_b_harness.py": "7f3c42233b332905246ff3632378b943fafedb1d518c9411cb121d021ccb3974",
+    "scripts/freeze_agqa_layer_b_development.py": "3125b82bbd804fc2de0010981159175cfd74b8f15874dd468bbdbaeb09b65595",
+    "scripts/run_agqa_layer_b_semantic_parser.py": "8ab7857087565be37c1fe7e0fdeb2c5900295aefa1bee5d34699a822336cc0ec",
+    "scripts/collect_agqa_layer_b_qwen235_grounding.py": "480608348a85e7b7c139dea0b5c6952ce366582322329aa8390f9eb66d4aefc7",
+    "scripts/probe_agqa_layer_b_charades_action_model.py": "1b7fa6c1540a00ab7e31c21b9854a7e507d9e09a9df84960f18dd68c888448f8",
+    "scripts/merge_agqa_layer_b_grounding_shards.py": "c850530a996ec32d2b7e97520bc9dae14c3f350fab78e4b455f81205ce316631",
+    "scripts/route_agqa_layer_b_shared_grounding.py": "6429fa0e37ab4df8c5b57cbe57f5bbf0607095861888012cd13a664ec5602220",
+    "scripts/collect_agqa_layer_b_atomic_claims.py": "db67d398982494c19f34769e273ddb57fed450e437828776ddc3f0bf3daa89a2",
+    "scripts/collect_agqa_layer_b_shared_fallback.py": "dda4fba97fe6a5da0af9a9d8f2156d82f6e8cab82cb0f7cbdb08de3edd0ee330",
+    "scripts/freeze_agqa_layer_b_risk_preoutcome.py": "26ae87f213afc453dbdb6e601039e20ac62cd6e013f1a72da5e700767dd644dc",
+    "scripts/evaluate_agqa_layer_b_risk_five_arm.py": "694fbd2e10c0073c95a7b6d3e6426faee1dee63aa6af6c96eb333585cbcf53ae"
+  },
+  "decision_rule": "The replication passes only if every gate passes in one immutable outcome evaluation after all shared runtime artifacts and source/permuted coverage are frozen. Failure consumes this cohort and forbids same-cohort tuning.",
+  "layer_boundary": {
+    "official_stsg_runtime_allowed": false,
+    "official_functional_program_runtime_allowed": false,
+    "official_answer_allowed_before_final_evaluator": false,
+    "layer_a_oracle_stsg_results_are_not_layer_b_evidence": true
+  }
+}

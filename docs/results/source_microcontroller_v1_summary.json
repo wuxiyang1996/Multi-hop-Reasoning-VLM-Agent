@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "status": "SOURCE_CANDIDATE_REJECTED_BY_MATCHED_SMOKE",
+  "claim_boundary": "The experiment validates the receipt-grounded micro-controller apparatus but does not support source controller value or target transfer.",
+  "skill_semantics_used": false,
+  "observational_discovery": {
+    "decision_points": 963,
+    "branch_map": {
+      "PROGRESS": "SWITCH",
+      "STALL": "PERSIST"
+    },
+    "game_balanced_h8_positive_rate": {
+      "PROGRESS": {
+        "PERSIST": 0.5925925925925926,
+        "SWITCH": 0.9166666666666666
+      },
+      "STALL": {
+        "PERSIST": 0.5854700854700855,
+        "SWITCH": 0.513851029030939
+      }
+    },
+    "authority": "CANDIDATE_GENERATION_ONLY_NOT_CAUSAL"
+  },
+  "matched_replay": {
+    "games": [
+      "gymv_columns",
+      "gymv_streets_of_rage_2",
+      "gymv_strider",
+      "gymv_thunder_force_iii"
+    ],
+    "snapshots": 16,
+    "qualification_snapshots": 8,
+    "held_out_snapshots": 8,
+    "complete_cells": 32,
+    "intervention_trajectories": 160,
+    "status_counts": {
+      "INTERVENTION_OBSERVED": 160
+    },
+    "plan_content_sha256": "08774ffdfc1ff8a8fcbabad312033d1645181cb836b2873e3c02953745728cd3",
+    "rows_sha256": "fb24b4543dcd73a5fe8ec6fd53d1d065b61faf224856d896ada201ac4b9d8b7c",
+    "primary_report_sha256": "57a5d5609222b6cfee4a2c61da6f9da601adbe1c4c8c9b821090eba12d2661c9",
+    "scale_robustness_diagnostic_sha256": "a2910f2250e88b6556b5ebccdeec5cb78d33ca9551d7e81e7e068217461fea95"
+  },
+  "h8_mean_return": {
+    "qualification_common": {
+      "EVENT_CONTROLLER": 10.5,
+      "SHUFFLED_EVENT_CONTROLLER": 15.875,
+      "ALWAYS_PERSIST": 23.125,
+      "ALWAYS_SWITCH": 3.25,
+      "HASH_RANDOM": 0.75
+    },
+    "qualification_full": {
+      "EVENT_CONTROLLER": 0.625,
+      "SHUFFLED_EVENT_CONTROLLER": 13.375,
+      "ALWAYS_PERSIST": 18.125,
+      "ALWAYS_SWITCH": 3.25,
+      "HASH_RANDOM": 0.75
+    },
+    "held_out_common": {
+      "EVENT_CONTROLLER": 131.25,
+      "SHUFFLED_EVENT_CONTROLLER": 131.25,
+      "ALWAYS_PERSIST": 131.25,
+      "ALWAYS_SWITCH": 131.25,
+      "HASH_RANDOM": 131.875
+    },
+    "held_out_full": {
+      "EVENT_CONTROLLER": 131.875,
+      "SHUFFLED_EVENT_CONTROLLER": 131.25,
+      "ALWAYS_PERSIST": 144.875,
+      "ALWAYS_SWITCH": 131.25,
+      "HASH_RANDOM": 131.875
+    }
+  },
+  "gates": {
+    "BLIND_CELLS_COMPLETE": true,
+    "SOURCE_MICROCONTROLLER_SUPPORTED": false
+  },
+  "diagnosis": [
+    "The discovery branch map reverses under matched qualification interventions.",
+    "Delayed game reward frequently does not distinguish the first-action treatments.",
+    "The event controller never beats the best static control in both blind splits and both estimands.",
+    "Absolute PROGRESS/STALL events remain confounded by source reward cadence."
+  ],
+  "next_candidate": "RELATIVE_INTERVENTION_EFFECT_CONTROLLER"
+}

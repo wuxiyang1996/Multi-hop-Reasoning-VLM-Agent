@@ -1,0 +1,67 @@
+{
+  "schema_version": "phase3-discoveryworld-formal-fork-config-v1",
+  "status": "FORMAL_RESERVE_FROZEN_STRUCTURAL_FORK",
+  "claim_boundary": "Untouched seeds97-120. Source programs, target grounding, fork selection, endpoints, applicability, negative-transfer, and failure gates were frozen before any formal target reset.",
+  "formal_manifest_sha256": "02afda1f76266a6e30c2262c08677247a32984a3337af88c3ca047f594e27574",
+  "reference_episode": "runs/phase3_discoveryworld_formal_v1_acquisition/proteomics.easy.seed97.json",
+  "reference_episode_sha256": "a0798187cb70332619a0dfc5053f2947080ef2c59806f0189840cda106d15f59",
+  "fork_after_episode_step": 43,
+  "recovery_horizon": 8,
+  "conditions": [
+    "source_induced",
+    "source_permuted",
+    "generic_scaffold",
+    "target_native_ceiling"
+  ],
+  "source_contract": {
+    "compact_receipt": "docs/results/sokoban_effect_program_v2_compact_receipt.json",
+    "require_source_gate_passed": true,
+    "source_confirmation_sha256": "d64606c916ce6e812ae1b920771d5175cb48983a2f141b2dab6f43d491a6c1ed",
+    "source_program_sha256": "6b02dc1d7271bbd435e90539cedd7d56d04fcc1ad03798dd6dd06146d67f1fcd",
+    "transferred_structure": "DIRECT_PROGRESS_AVAILABLE_OR_ASSIGNMENT_IMPROVEMENT_AVAILABLE_THEN_COMMIT_AND_VERIFY_ELSE_POSITION_AND_RECOMPUTE"
+  },
+  "selector": {
+    "positive_effect_threshold": 0.65,
+    "prerequisite_threshold": 0.9
+  },
+  "model": {
+    "api_key_name": "OPENROUTER_API_KEY",
+    "base_url": "https://openrouter.ai/api/v1",
+    "hidden_reasoning_effort": "none",
+    "maximum_output_tokens": 2000,
+    "model": "openai/gpt-4.1-mini",
+    "provider": "openrouter",
+    "schema_attempts": 3,
+    "temperature": 0
+  },
+  "qualification_protocol_sha256": "2f622dc2356a065965ba46ce13c05463b5c290ce25b1fecda045ba468dd7b2e6",
+  "fork_receipt": {
+    "schema_version": "phase3-discoveryworld-outcome-blind-fork-v1",
+    "fork_after_episode_step": 43,
+    "acquisition_evidence_count": 3,
+    "acquisition_evidence_sha256": "b5e9e9de0f02cfe759972b898116a12bfc0ddf96a359180b5dd390ee416e826f",
+    "acquisition_outlier_candidates": [
+      "prismatic beast"
+    ],
+    "held_flag": true,
+    "derived_target_statue_visible": true,
+    "selection_fields": [
+      "policy_visible_instrument_messages",
+      "inventory_names",
+      "visible_object_names"
+    ],
+    "forbidden_fields_read": false,
+    "fork_receipt_sha256": "fed16f8c91ceaa5f701fb87fbde184f28219cae3180c1bd834d2e6fcd4dd43aa"
+  },
+  "fork_receipt_sha256": "fed16f8c91ceaa5f701fb87fbde184f28219cae3180c1bd834d2e6fcd4dd43aa",
+  "target_native_spatial_realizer": {
+    "activation": "AFTER_SUCCESSFUL_TARGET_BOUND_TELEPORT",
+    "enabled": true,
+    "may_select_commit": false,
+    "objective": "STRICT_WORST_CASE_RELATION_ERROR_REDUCTION_OVER_UI_COMPATIBLE_VECTORS",
+    "schema_version": "discoveryworld-local-spatial-realization-v1",
+    "shared_across_all_conditions": true
+  },
+  "formal_target_outcome_read_for_fork_selection": false,
+  "config_sha256": "936f7a0cd9827d80343ab68a40f4173f7354b2a381fbc832ac55a7e8de579fc6"
+}

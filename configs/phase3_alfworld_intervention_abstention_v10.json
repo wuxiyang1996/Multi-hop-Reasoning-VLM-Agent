@@ -1,0 +1,19 @@
+{
+  "schema_version": "phase3-alfworld-intervention-abstention-v10",
+  "status": "FROZEN_AFTER_V9_GROUNDER_BLOCK_BEFORE_V10_VALIDATION_FORMAL_UNOPENED",
+  "blocked_predecessor": "V9 intervention heads passed 6/7 gates but source H8 utility 0.4722 fell below neural 0.5000 by more than the frozen 0.02 tolerance.",
+  "threshold_grid": [0.0, 0.5, 0.8, 0.9, 0.95, 0.98, 0.99, 0.995, 0.999, 0.9999],
+  "train_selection": {
+    "maximum_source_h8_loss_states": 0,
+    "minimum_source_neural_change_rate": 0.02,
+    "minimum_source_permuted_contrast_rate": 0.20
+  },
+  "frozen_validation_thresholds": {
+    "maximum_source_h8_loss_states": 0,
+    "minimum_source_neural_change_rate": 0.02,
+    "minimum_source_permuted_contrast_rate": 0.20,
+    "minimum_admitted_selected_effect_types": 2
+  },
+  "selection_uses_adaptation_validation": false,
+  "formal_resets_before_freeze": 0
+}

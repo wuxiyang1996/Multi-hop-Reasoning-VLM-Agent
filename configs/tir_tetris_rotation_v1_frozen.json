@@ -1,0 +1,114 @@
+{
+  "authority": {
+    "development_report": "runs/tir_tetris_rotation_v1/consumed_development_report.json",
+    "qualification_report": "runs/tir_tetris_rotation_v1/qualification_report.json"
+  },
+  "claim_boundary": "Tetris supplies only an anonymous cyclic-group inverse program. A target-native neural model grounds the current image's counterclockwise displacement without seeing choices; the symbolic executor chooses a native clockwise degree option. This route is specific to TIR rotation_game and includes an extensionally identical target-written control, so it does not establish source provenance necessity.",
+  "dataset": {
+    "family": "rotation_game",
+    "file_sha256": "e764c780c53fdce2e0bb64846a8119b48b731c90c7168c6c202f270062684bc8"
+  },
+  "formal_gates": {
+    "alpha_rename_invariance": true,
+    "authentic_strictly_above_no_inverse_shuffled_and_marginal": true,
+    "authentic_strictly_above_raw": true,
+    "paired_wins_above_losses": true,
+    "target_written_isomorphic_equivalence": true,
+    "thresholds_may_change_after_open": false
+  },
+  "integrity": {
+    "file_sha256": {
+      "scripts/run_tir_rotation_group_v1.py": "9babeabc94f6b3a312dea873321ffe0c8673d8a0ac1c8f04a1a57d4268750313",
+      "src/motif_transfer/tetris_rotation_transfer.py": "50cdc1536421572ceca7465afd8e4213c2d57e57b35832c88f86191d3fa8cf78"
+    }
+  },
+  "media": {
+    "jpeg_quality": 90,
+    "max_side": 1024
+  },
+  "model": {
+    "base_url": "https://openrouter.ai/api/v1",
+    "id": "openai/gpt-4.1-mini",
+    "max_retries": 2,
+    "maximum_output_tokens": 500,
+    "provider": "openrouter",
+    "temperature": 0,
+    "timeout_seconds": 180
+  },
+  "schema_version": "tetris-to-tir-rotation-v1",
+  "selection": {
+    "available_before_selection": 53,
+    "previously_assigned_ids": 22,
+    "prompt_image_answer_or_outcome_read": false,
+    "rule": "Exclude every rotation_game ID already present in a TIR config or an opened V5 target role, then sort by sha256('tetris-to-tir-rotation-v1\\0'+id)."
+  },
+  "source": {
+    "artifact": "docs/results/tetris_rotation_group_v1_compact_receipt.json",
+    "artifact_content_sha256": "22b7d947e95fec0865704dec41d66d3207960b24c7113ed6f86f71fef3d768d7",
+    "artifact_file_sha256": "b787e6ae052af81b23b891a9f97e4f1b3f68fa7606570652a49b5fa472c4a974"
+  },
+  "splits": {
+    "consumed_development": [
+      "388",
+      "951",
+      "96",
+      "57",
+      "1076",
+      "606",
+      "73",
+      "1030",
+      "946",
+      "253",
+      "728",
+      "32"
+    ],
+    "heldout": [
+      "432",
+      "523",
+      "703",
+      "823",
+      "1136",
+      "893",
+      "791",
+      "815",
+      "329",
+      "772",
+      "1082",
+      "1039",
+      "1115",
+      "386",
+      "595",
+      "940",
+      "672",
+      "261",
+      "980",
+      "783",
+      "403",
+      "221",
+      "1087",
+      "1165"
+    ],
+    "qualification": [
+      "115",
+      "931",
+      "468",
+      "797",
+      "274",
+      "320",
+      "308",
+      "425",
+      "124",
+      "1169",
+      "411",
+      "1155"
+    ],
+    "reserve": [
+      "504",
+      "380",
+      "804",
+      "552",
+      "137"
+    ]
+  },
+  "status": "FROZEN_BEFORE_TARGET_ROTATION_CALLS"
+}

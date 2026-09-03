@@ -1,0 +1,54 @@
+{
+  "schema_version": "harness-controller-qwen35-9b-mixed-v3-freeze-request",
+  "status": "REQUEST_FROZEN_BEFORE_SOURCE_ONLY_PERMUTATION_UPDATE",
+  "output_protocol_schema_version": "harness-controller-qwen35-9b-mixed-protocol-v3-permutation-closure",
+  "model": "Qwen/Qwen3.5-9B",
+  "mixed_source_dataset_dir": "runs/harness_mixed_source_sft_v3",
+  "scalar_heldout": "runs/harness_controller_sft_v5_schema_closure/source_held_out.jsonl",
+  "multi_ir_heldout": "runs/harness_multi_ir_permutation_closure_sft_v3/source_held_out.jsonl",
+  "initial_adapter": "runs/harness_controller_qwen35_9b_mixed_v2/source_only_sft_seed20260831/adapter",
+  "initial_adapter_role": "SOURCE_ONLY_FIVE_SCHEMA_MIXED_CONTROLLER_V2",
+  "initial_training_receipt": "runs/harness_controller_qwen35_9b_mixed_v2/source_only_sft_seed20260831/training_receipt.json",
+  "initial_source_qualification": "runs/harness_controller_qwen35_9b_mixed_v2/source_only_sft_seed20260831/source_mixed_qualification.json",
+  "initial_source_qualification_status": "SOURCE_MIXED_HARNESS_GATE_PASSED",
+  "substitution_preregistration": "runs/harness_9b_six_benchmark_substitution_fresh_v2/preregistration.json",
+  "expected_substitution_status": "FROZEN_FRESH_PRESENTATION_BEFORE_SOURCE_ONLY_PERMUTATION_UPDATE",
+  "source_held_out_gates": {
+    "scalar_executor": {
+      "strict_json_accuracy_minimum": 0.98,
+      "overall_decision_accuracy_minimum": 0.95,
+      "overall_exact_accuracy_minimum": 0.9,
+      "every_arity_decision_accuracy_minimum": 0.95,
+      "every_arity_exact_accuracy_minimum": 0.85,
+      "missing_schema_every_arity_decision_accuracy_minimum": 0.98,
+      "exact_minus_base_minimum": 0.2
+    },
+    "multi_ir_selector": {
+      "required_ir_kinds": [
+        "FINITE_STRUCTURAL_DELTA_SEQUENCE",
+        "RECURRENT_GOAL_ACQUISITION_RELATION_PROGRAM",
+        "RECURRENT_GOAL_RELATION_PROGRAM",
+        "RECURRENT_RELATIONAL_TRANSITION_PROGRAM",
+        "SPARSE_TEMPORAL_EFFECT_FUNCTION"
+      ],
+      "strict_json_accuracy_minimum": 0.98,
+      "overall_decision_accuracy_minimum": 0.98,
+      "overall_exact_accuracy_minimum": 0.98,
+      "select_skill_decision_recall_minimum": 0.99,
+      "abstain_decision_recall_minimum": 0.99,
+      "every_ir_decision_accuracy_minimum": 0.98,
+      "every_ir_exact_accuracy_minimum": 0.98,
+      "every_control_decision_accuracy_minimum": 0.98,
+      "every_control_exact_accuracy_minimum": 0.98,
+      "exact_minus_base_minimum": 0.2
+    }
+  },
+  "training": {
+    "max_steps": 800,
+    "learning_rate": 0.000005,
+    "gradient_accumulation": 8,
+    "max_length": 2048,
+    "seed": 20260901
+  },
+  "claim_boundary": "SOURCE_ONLY_CONTINUED_LORA_FROM_THE_FROZEN_V2_FIVE_SCHEMA_ADAPTER;BALANCED_CATALOG_PERMUTATION_AND_ALIAS_CLOSURE_FOR_ALL_SEVEN_SOURCE_PROGRAMS;NO_TARGET_PROMPT_ERROR_IDENTITY_OUTCOME_OR_NATIVE_ACTION_USED_FOR_WEIGHT_UPDATES;FRESH_SIX_BENCHMARK_PRESENTATION_RESERVE_FROZEN_BEFORE_THIS_UPDATE;SAME_PREOUTCOME_NATIVE_TASK_AUTHORITIES_AS_THE_CONSUMED_DIAGNOSTIC"
+}

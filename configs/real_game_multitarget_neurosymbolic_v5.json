@@ -1,0 +1,98 @@
+{
+  "schema_version": 1,
+  "experiment": "real_game_multitarget_neurosymbolic_v5",
+  "claim": "A receipt-grounded option transition/value model induced from real games can improve target-native option selection in semantically distant targets.",
+  "transfer_object": {
+    "kind": "intervention_grounded_option_transition_and_multihorizon_value",
+    "option_identity": "anonymous_latent_symbols_z0_to_zk_minus_1",
+    "latent_option_count_range": [3, 8],
+    "option_count_selected_on_source_qualification_only": true,
+    "human_readable_aliases_are_posthoc_and_non_authoritative": true,
+    "source_observables": [
+      "state_change",
+      "controllable_entity_change",
+      "object_or_relation_change",
+      "available_action_set_change",
+      "reward_change",
+      "termination",
+      "action_repeat",
+      "no_observable_progress",
+      "horizon_return_1_2_4_8"
+    ],
+    "target_native_grounder_outputs": [
+      "latent_option_probability",
+      "state_change_probability",
+      "controllable_entity_change_probability",
+      "object_or_relation_change_probability",
+      "available_action_set_change_probability",
+      "precondition_probability",
+      "immediate_progress_probability",
+      "delayed_progress_probability",
+      "noop_probability",
+      "irreversibility_probability",
+      "termination_probability"
+    ],
+    "forbidden_transfer_inputs": [
+      "source_skill_name",
+      "source_skill_description",
+      "source_intention",
+      "source_reasoning_text",
+      "manual_source_to_target_action_mapping",
+      "target_gold_or_target_test_outcome"
+    ]
+  },
+  "target_cells": {
+    "webshop": {
+      "role": "primary_interventional_target",
+      "authentic_source_games": ["sokoban", "tetris", "twenty_forty_eight"],
+      "other_game_control": ["candy_crush", "super_mario"],
+      "official_outcomes": ["environment_reward", "success", "steps", "invalid_action_rate"],
+      "target_native_actions": true
+    },
+    "tir_bench": {
+      "role": "spatial_relational_visual_target",
+      "authentic_source_games": ["sokoban", "twenty_forty_eight"],
+      "other_game_control": ["candy_crush", "super_mario"],
+      "official_outcomes": ["exact_answer_accuracy", "valid_receipt_chain", "tool_calls"],
+      "scope": "refcoco, maze, jigsaw, visual_search, word_search, spot_difference, and rotation_game; report task-family breakdown",
+      "target_native_tools": true
+    },
+    "video_holmes": {
+      "role": "temporal_evidence_target",
+      "authentic_source_games": ["gymv_thunder_force_iii", "super_mario"],
+      "other_game_control": ["tetris", "twenty_forty_eight"],
+      "official_outcomes": ["exact_answer_accuracy", "valid_receipt_chain", "decoded_frames", "tool_calls"],
+      "target_native_tools": true,
+      "budget_contract": {
+        "interaction_and_finalization_budgets_are_separate": true,
+        "last_round_tool_expansion_forbidden": true
+      }
+    }
+  },
+  "conditions": [
+    "target_only_neural",
+    "authentic_multigame_source",
+    "single_game_source",
+    "leave_one_game_out",
+    "alpha_renamed_source",
+    "phase_permuted_source",
+    "within_state_value_shuffle",
+    "other_game_source",
+    "marginal_source_prior"
+  ],
+  "source_gate": {
+    "episode_disjoint_splits": true,
+    "held_out_multihorizon_prediction_required": true,
+    "authentic_relative_mse_improvement_over_each_destructive_control": 0.1,
+    "thunder_matched_replay_used_for_causal_validation_only": true
+  },
+  "target_gate": {
+    "same_target_grounder_across_conditions": true,
+    "same_decision_model_seed_budget_and_initial_asset": true,
+    "minimum_option_change_rate": 0.08,
+    "authentic_must_beat_target_only_and_destructive_controls": true,
+    "alpha_renamed_is_an_equivalence_test": true,
+    "held_out_not_run_before_artifact_freeze": true
+  },
+  "execution_order": ["webshop", "video_holmes", "tir_bench"]
+}

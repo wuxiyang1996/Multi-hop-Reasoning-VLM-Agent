@@ -1,0 +1,90 @@
+{
+  "schema_version": "phase2-alfworld-cell-receipt-v2",
+  "manifest_sha256": "8e665b51b913d75f2294aa36cd5d201a46a812b27cbea396d71557b1d97ff85a",
+  "target_identity": "look_at_obj_in_light-AlarmClock-None-DeskLamp-323/trial_T20190909_044715_250790/game.tw-pddl",
+  "task_family": "look_at_obj_in_light",
+  "condition": "target_native_search_ceiling",
+  "source_game": "candy_crush",
+  "source_artifact_sha256": "6f80cf4d4a8f4f5d9964680949bd55938d584165aab939b2f028c22649e2ea4d",
+  "initial_state_hash": "8c56b86b395d240f38ea16e4ffed5b683af1ef3dfc92694f0cfc524bce9fe7de",
+  "strict_success": true,
+  "pass_success": true,
+  "official_reward": 1.0,
+  "step_count": 4,
+  "steps": [
+    {
+      "step": 0,
+      "selected_action": "go to sidetable 2",
+      "fallback_action": "go to sidetable 2",
+      "changed_from_target_fallback": false,
+      "target_option": "SEARCH",
+      "target_policy_probability": 0.0018702839272431283,
+      "target_applicability": 0.9999999999953675,
+      "target_outcome": "REFUTED",
+      "reward_diagnostic_only": 0.0,
+      "official_success_after": false,
+      "before_state_sha256": "8c56b86b395d240f38ea16e4ffed5b683af1ef3dfc92694f0cfc524bce9fe7de",
+      "after_state_sha256": "9e184c22e406f9573679b676da4598673c5a0fc9e3deaddc9c9a2804fc0d8c8b",
+      "source_decision_receipt_sha256": null
+    },
+    {
+      "step": 1,
+      "selected_action": "go to desk 1",
+      "fallback_action": "go to desk 1",
+      "changed_from_target_fallback": false,
+      "target_option": "SEARCH",
+      "target_policy_probability": 2.4945187710196893e-07,
+      "target_applicability": 0.9999999999999014,
+      "target_outcome": "NONTERMINAL_EFFECT",
+      "reward_diagnostic_only": 0.0,
+      "official_success_after": false,
+      "before_state_sha256": "9e184c22e406f9573679b676da4598673c5a0fc9e3deaddc9c9a2804fc0d8c8b",
+      "after_state_sha256": "8c6fa27366576b75eae0321813dcb2820b399337d683773d1e39b4e14f539def",
+      "source_decision_receipt_sha256": null
+    },
+    {
+      "step": 2,
+      "selected_action": "take alarmclock 2 from desk 1",
+      "fallback_action": "take alarmclock 2 from desk 1",
+      "changed_from_target_fallback": false,
+      "target_option": "ACQUIRE",
+      "target_policy_probability": 0.9999999600538754,
+      "target_applicability": 0.9999995929183586,
+      "target_outcome": "NONTERMINAL_EFFECT",
+      "reward_diagnostic_only": 0.0,
+      "official_success_after": false,
+      "before_state_sha256": "8c6fa27366576b75eae0321813dcb2820b399337d683773d1e39b4e14f539def",
+      "after_state_sha256": "950fc8631664b1c1ce485137387b19dc261fa0567a617cdb826a1d0680e896d0",
+      "source_decision_receipt_sha256": null
+    },
+    {
+      "step": 3,
+      "selected_action": "use desklamp 1",
+      "fallback_action": "use desklamp 1",
+      "changed_from_target_fallback": false,
+      "target_option": "TRANSFORM",
+      "target_policy_probability": 0.9999414495129584,
+      "target_applicability": 0.9999663373174678,
+      "target_outcome": "TERMINAL_VERIFIED",
+      "reward_diagnostic_only": 1.0,
+      "official_success_after": true,
+      "before_state_sha256": "950fc8631664b1c1ce485137387b19dc261fa0567a617cdb826a1d0680e896d0",
+      "after_state_sha256": "9c800bc82b43ccbac0a50c004553ca7b223d2c8661e9b31829423ed6d2ae9e44",
+      "source_decision_receipt_sha256": null
+    }
+  ],
+  "v16_controller": {
+    "source_decisions": 0,
+    "source_action_counts": {}
+  },
+  "target_outcomes": {
+    "REFUTED": 1,
+    "NONTERMINAL_EFFECT": 2,
+    "TERMINAL_VERIFIED": 1
+  },
+  "failure": null,
+  "unsafe_commits": [],
+  "target_reset_or_sample_open_count": 1,
+  "historical_target_outcome_reused": false,
+  "receipt_sha256": "31373e8c5db6ebc936b6226c70adf1b3a36e5891da632406d0a2343902c07b04"
+}

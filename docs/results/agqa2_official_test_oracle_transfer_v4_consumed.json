@@ -1,0 +1,194 @@
+{
+  "authority": {
+    "matched_max_tool_calls": 5,
+    "official_test_outcomes_historically_consumed": true,
+    "predictions_frozen_before_evaluator_open": true,
+    "runtime_answer_program_or_sg_grounding_reads": 0,
+    "same_official_stsg_backend_for_all_harness_arms": true
+  },
+  "broad_by_comparison": {
+    "BEFORE_AFTER": {
+      "broad_candidate_rows": 0,
+      "generic_vs_actor": {
+        "exact_one_sided_pvalue": 1.0,
+        "losses": 0,
+        "net_wins": 0,
+        "ties": 92,
+        "wins": 0
+      },
+      "rows": 92,
+      "source_vs_actor": {
+        "exact_one_sided_pvalue": 1.0,
+        "losses": 0,
+        "net_wins": 0,
+        "ties": 92,
+        "wins": 0
+      }
+    },
+    "CHOOSE_OBJECT": {
+      "broad_candidate_rows": 0,
+      "generic_vs_actor": {
+        "exact_one_sided_pvalue": 1.0,
+        "losses": 0,
+        "net_wins": 0,
+        "ties": 15,
+        "wins": 0
+      },
+      "rows": 15,
+      "source_vs_actor": {
+        "exact_one_sided_pvalue": 1.0,
+        "losses": 0,
+        "net_wins": 0,
+        "ties": 15,
+        "wins": 0
+      }
+    },
+    "EXISTS": {
+      "broad_candidate_rows": 0,
+      "generic_vs_actor": {
+        "exact_one_sided_pvalue": 1.0,
+        "losses": 0,
+        "net_wins": 0,
+        "ties": 270,
+        "wins": 0
+      },
+      "rows": 270,
+      "source_vs_actor": {
+        "exact_one_sided_pvalue": 1.0,
+        "losses": 0,
+        "net_wins": 0,
+        "ties": 270,
+        "wins": 0
+      }
+    },
+    "QUERY_OBJECT": {
+      "broad_candidate_rows": 57,
+      "generic_vs_actor": {
+        "exact_one_sided_pvalue": 1.305060893599705e-54,
+        "losses": 0,
+        "net_wins": 179,
+        "ties": 99,
+        "wins": 179
+      },
+      "rows": 278,
+      "source_vs_actor": {
+        "exact_one_sided_pvalue": 9.956824444577827e-60,
+        "losses": 0,
+        "net_wins": 196,
+        "ties": 82,
+        "wins": 196
+      }
+    },
+    "SELECT_LONGER": {
+      "broad_candidate_rows": 0,
+      "generic_vs_actor": {
+        "exact_one_sided_pvalue": 1.0,
+        "losses": 0,
+        "net_wins": 0,
+        "ties": 1,
+        "wins": 0
+      },
+      "rows": 1,
+      "source_vs_actor": {
+        "exact_one_sided_pvalue": 1.0,
+        "losses": 0,
+        "net_wins": 0,
+        "ties": 1,
+        "wins": 0
+      }
+    },
+    "VERIFY_A_SHORTER": {
+      "broad_candidate_rows": 0,
+      "generic_vs_actor": {
+        "exact_one_sided_pvalue": 1.0,
+        "losses": 0,
+        "net_wins": 0,
+        "ties": 1,
+        "wins": 0
+      },
+      "rows": 1,
+      "source_vs_actor": {
+        "exact_one_sided_pvalue": 1.0,
+        "losses": 0,
+        "net_wins": 0,
+        "ties": 1,
+        "wins": 0
+      }
+    }
+  },
+  "broad_compiler_applicable": 657,
+  "claim_boundary": "Retrospective official-test diagnostic on previously consumed V61 identities. Uses official answer-blind test STSG and frozen Qwen3-VL-32B actor receipts; not comparable to raw-video AGQA SOTA and not a fresh confirmatory result.",
+  "lineage": {
+    "broad_authorization_sha256": "0f964662dab77b65f392fa857df6b2a0370ea11cad4f2a5c1b7507f7ca94389a",
+    "official_ontology_sha256": "d35dbc5edfa1f9839e77070160db7d23d19d6c4bfe248b638fd1fce3bbd01b07",
+    "official_test_stsg_sha256": "b6881052b040b401034824d937c21e1f6d338015c58977e01520db30db37fa95",
+    "runtime_artifact_sha256": "c4a4ec9029ae838b702cf889149281a36a0245351991fd838e363a5cc5f8576a",
+    "source_artifact_sha256": "7ff3e950f3eebaf75cca015df88ab6a01f2f364fe246102984a3cb4ee095f0d7",
+    "v61_base_report_sha256": "13557a61663ea00e650aa4c0086fb80e45493c4e980090fdb7989c1fbf6a32bd",
+    "v61_manifest_sha256": "a2c457aab60f93befbdef91b64cc8200f559a32881f8213bd083328a5d4c99d5"
+  },
+  "localized_compiler_applicable": 760,
+  "metrics": {
+    "frozen_actor": {
+      "accuracy": 0.2769926512153759,
+      "correct": 490
+    },
+    "generic_scaffold": {
+      "accuracy": 0.600904465799887,
+      "correct": 1063
+    },
+    "isomorphic_target_controller": {
+      "accuracy": 0.6529112492933861,
+      "correct": 1155
+    },
+    "source_induced": {
+      "accuracy": 0.6529112492933861,
+      "correct": 1155
+    },
+    "source_permuted": {
+      "accuracy": 0.607687959299039,
+      "correct": 1075
+    }
+  },
+  "public_compiler_applicable": 1228,
+  "report_sha256": "f80dbd1109c1b1844655e4b27601d8b78222b00929a6fc63a4f11f1ea00cb7cd",
+  "schema_version": "agqa2-official-test-oracle-transfer-v4-consumed",
+  "source_paired": {
+    "frozen_actor": {
+      "exact_one_sided_pvalue": 6.532100883151302e-201,
+      "losses": 0,
+      "net_wins": 665,
+      "ties": 1104,
+      "wins": 665
+    },
+    "generic_scaffold": {
+      "exact_one_sided_pvalue": 2.0194839173657902e-28,
+      "losses": 0,
+      "net_wins": 92,
+      "ties": 1677,
+      "wins": 92
+    },
+    "isomorphic_target_controller": {
+      "exact_one_sided_pvalue": 1.0,
+      "losses": 0,
+      "net_wins": 0,
+      "ties": 1769,
+      "wins": 0
+    },
+    "source_permuted": {
+      "exact_one_sided_pvalue": 1.7163997710475324e-23,
+      "losses": 1,
+      "net_wins": 80,
+      "ties": 1687,
+      "wins": 81
+    }
+  },
+  "source_vs_actor_video_clusters": {
+    "negative": 0,
+    "positive": 434,
+    "tied": 156
+  },
+  "status": "PASSED_DIAGNOSTIC",
+  "tasks": 1769,
+  "unique_videos": 590
+}

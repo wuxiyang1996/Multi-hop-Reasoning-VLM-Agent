@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "status": "DEVELOPMENT_ON_PREVIOUSLY_CONSUMED_QUALIFICATION",
+  "claim_boundary": "CONSUMED_ALFWORLD_DIAGNOSTIC_ONLY",
+  "harness": "runs/sokoban_alfworld_effect_transfer_v2/frozen_harness.json",
+  "manifest": "configs/sokoban_alfworld_transfer_split_v1.json",
+  "split": "qualification",
+  "task_limit": 24,
+  "effect_threshold": 0.1,
+  "target": {
+    "alfworld_config": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-source-fresh-v1/configs/alfworld_base_config.yaml",
+    "alfworld_data": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-github-main/.cache/alfworld_data",
+    "seed": 96401,
+    "maximum_steps": 70
+  },
+  "gates": {
+    "minimum_changed_option_rate": 0.05,
+    "require_zero_negative_transfer": true,
+    "require_success_gain_over_null": true,
+    "require_strict_source_control_superiority": true
+  }
+}

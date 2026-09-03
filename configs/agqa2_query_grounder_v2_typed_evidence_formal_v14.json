@@ -1,0 +1,170 @@
+{
+  "arms": [
+    "neural_only",
+    "generic_scaffold",
+    "source_permuted",
+    "source_induced",
+    "target_written_isomorphic"
+  ],
+  "claim": "A source-only game-induced symbolic Harness selectively improves final AGQA query-object QA over neural-only and a capacity-matched source-permuted control when all arms share the same answer-blind target-native raw-video runtime.",
+  "claim_boundary": {
+    "candidate_threshold_was_selected_on_consumed_development_only": true,
+    "formal_cohort_must_be_video_and_task_disjoint_from_all_prior_raw_runtime": true,
+    "official_test_claim": false,
+    "qualification_cohort_is_transfer_evidence": false,
+    "sota_claim": false,
+    "split": "official_balanced_train",
+    "target_native_grounder_training_overlap": "TEMPURA SGDET and SlowFast are off-the-shelf components trained on Action Genome/Charades train data; the experiment measures matched-arm mechanism transfer, not held-out perception generalization."
+  },
+  "failure_policy": "Open outcomes once only after the pre-outcome receipt passes. Preserve a failed formal result; do not tune or retry on the same cohort.",
+  "fallback_actor": {
+    "input": "shared question, operator-free semantic slots, and shared pixel-grounded events",
+    "model": "Qwen/Qwen3.5-9B",
+    "provider_calls": 0,
+    "temperature": 0,
+    "thinking": false
+  },
+  "forbidden_runtime_inputs": [
+    "task_answer",
+    "official_stsg",
+    "functional_program",
+    "source_controller_in_grounder",
+    "target_outcome"
+  ],
+  "formal_cohort": {
+    "outcomes_unavailable_until_all_five_arm_predictions_are_immutable": true,
+    "query_object_tasks": 1024,
+    "selection_salt": "agqa-query-grounder-v2-typed-evidence-formal-v14-20260903",
+    "semantic_type": "object",
+    "source_split": "AGQA balanced train / Action Genome train",
+    "structural_type": "query",
+    "tasks_per_video": 2,
+    "videos": 512
+  },
+  "formal_gates": {
+    "maximum_source_permuted_commit_fraction": 0.05,
+    "minimum_source_symbolic_commit_fraction": 0.2,
+    "negative_transfer_loss_fraction_maximum": 0.05,
+    "shared_runtime_receipt_fraction": 1.0,
+    "source_accuracy_strictly_above_matched_permuted": true,
+    "source_accuracy_strictly_above_neural": true,
+    "source_vs_neural_exact_two_sided_p_maximum": 0.05,
+    "source_vs_permuted_exact_two_sided_p_maximum": 0.05,
+    "target_written_isomorphic_prediction_equivalence": 1.0
+  },
+  "implementation_file_sha256s": {
+    "scripts/adapt_agqa_query_grounder_v2_to_layer_b.py": "ae1a0d87a9ba34305246b82efd87fc17a7db159519a3f3165bbe927291b2a683",
+    "scripts/build_agqa_action_genome_sgdet_query_plans.py": "0b660fdba517403398b4aa942c884c75c47fea08d6a554a9d99c42e3cc015418",
+    "scripts/collect_agqa_layer_b_shared_fallback.py": "dda4fba97fe6a5da0af9a9d8f2156d82f6e8cab82cb0f7cbdb08de3edd0ee330",
+    "scripts/compile_agqa_action_genome_query_grounder_v2.py": "c264ad8225326ec5a7e0db4c2bf221a577f7c5b19fe5182a34ce8deee28beb74",
+    "scripts/compile_agqa_action_genome_query_grounder_v2_strict_temporal.py": "0754ec21d23b3c71ffeef970da9789e4d4013cc307eb04270cfc793562660361",
+    "scripts/compile_agqa_slowfast_action_bindings.py": "91368a02efd5a57a26d3d1c485b0de40fa3b0403150045eec01c342d5846504b",
+    "scripts/evaluate_agqa_query_grounder_v2_strict_boundary_formal.py": "e12882dbf1015e7498ab6827beb9f134033bb4577d8e7c0f480e578f1217b6ca",
+    "scripts/freeze_agqa_query_grounder_v2_strict_boundary_formal.py": "f1a6a76f99741b68daf4fad52ea9e8f0d051a970ceb98b869a83aba6552c2da3",
+    "scripts/freeze_agqa_query_grounder_v2_strict_boundary_preoutcome.py": "92fe0a06950cd0eab6bd0a6de327c2720ded35eac294dc8b1882bce4fa89d5b1",
+    "scripts/merge_agqa_layer_b_action_probe_shards.py": "15cdcb2eca3510860782e29ea09b83db95b26514d9ba00586c711f0ea97f2791",
+    "scripts/pilot_agqa_action_genome_sgdet.py": "b0be450129a8562f52388fc3de3956a6496a43777e8124d59af8ffcc33d3055e",
+    "scripts/probe_agqa_layer_b_charades_action_model.py": "083f5e3387c82466f2f2c2fc51d295f0ea314b312e582e13ea8c1eaf58661f14",
+    "scripts/run_agqa_layer_b_semantic_parser.py": "416373363ca8f48ea32f8e686dd8debc99b04e60f5806a483ebdc4f7866b2349",
+    "scripts/verify_agqa_query_candidates_with_stable_tracks.py": "97ac805c9bbdf113e8c5e396d7e5a2c9226cac3e71c599bc5be84414e53c2d92",
+    "scripts/verify_agqa_query_candidates_with_typed_evidence.py": "7c905b9ac275a237a52b1f7ff323ea0d5fc5b3ef23cea29eda6393fffe459926",
+    "src/motif_transfer/agqa_action_genome_grounder.py": "25d76fce28b3463963a18f380efd63ae054dd9a6a412881ec3951645466b8951",
+    "src/motif_transfer/agqa_layer_b_executor_v2.py": "6ce65d9efdc68e0d55e81b46bafa1383f912eccb32251606a585549f42b8679f",
+    "src/motif_transfer/agqa_layer_b_harness.py": "7dea71b47311eb987aa3ef7901c8efc981b242f442797ebae1527954dcb9c2c2",
+    "src/motif_transfer/agqa_query_grounder_v2.py": "f2c158b98e09c1a19aeeef2e305d7098e366995fe710c29b57e0d5cd2eef92a5",
+    "src/motif_transfer/agqa_strict_temporal_projection.py": "fefc382bc845eb240e8f51d2f7a53197db3250d74fa7a15019ea1f5f5483d4bc",
+    "src/motif_transfer/agqa_track_verified_candidate.py": "c145b6efeac874601eb13cd72e7e8928ef8d0b39bf229b9676852fe74ed6e24d",
+    "src/motif_transfer/agqa_typed_evidence_contract.py": "7c88beb18afe0dfe89a5919ed8d07aae0831278b74ca44e63416aafec726338f",
+    "src/motif_transfer/anonymous_video_harness.py": "e4c58bbfb48debd5600552f491e64a8ead86e65505f2fd83359910ee3751187b"
+  },
+  "qualified_grounder": {
+    "action_event_temporal_representation": "BOUNDARY_DEGENERACY_CENTER_POINT",
+    "boundary_degeneracy_rule": "BEFORE_AND_CLIP_START_ZERO_OR_AFTER_AND_CLIP_END_LAST",
+    "candidate_generation_threshold": 0.0,
+    "candidate_support_required_for_symbolic_commit": true,
+    "candidate_support_threshold": 0.76,
+    "candidate_verifier": {
+      "component_paths": {
+        "receipt_compiler": "scripts/verify_agqa_query_candidates_with_typed_evidence.py",
+        "score": "src/motif_transfer/agqa_track_verified_candidate.py",
+        "typed_evidence": "src/motif_transfer/agqa_typed_evidence_contract.py"
+      },
+      "component_sha256s": {
+        "receipt_compiler": "7c905b9ac275a237a52b1f7ff323ea0d5fc5b3ef23cea29eda6393fffe459926",
+        "score": "c145b6efeac874601eb13cd72e7e8928ef8d0b39bf229b9676852fe74ed6e24d",
+        "typed_evidence": "7c88beb18afe0dfe89a5919ed8d07aae0831278b74ca44e63416aafec726338f"
+      },
+      "fitted_weights": false,
+      "formula": "stable_track_score if native_relation or (action_proxy and same_entity_in_sgdet_and_slowfast) else 0",
+      "grounding_schema_version": "agqa-query-grounder-v2-typed-evidence-verified-v1",
+      "semantic_evidence_contract": "NATIVE_RELATION_OR_SAME_ENTITY_SGDET_SLOWFAST_EXACT_ACTION_AGREEMENT",
+      "sgdet_frame_budget": 64,
+      "stable_track_formula": "(relation_action_support * track_detection_confidence * log1p(track_frames)/log1p(sgdet_frame_budget)) ** (1/3)",
+      "weights": "UNWEIGHTED_GEOMETRIC_MEAN_THEN_TYPED_BOOLEAN_AUTHORIZATION"
+    },
+    "component_sha256s": {
+      "preoutcome_coverage_audit": "0c7e727e4be8fa04a88c833aeb5e30f3fcdea695e39581e32d0fe454b886b924",
+      "query_grounder_compiler_parent": "c264ad8225326ec5a7e0db4c2bf221a577f7c5b19fe5182a34ce8deee28beb74",
+      "sgdet_collector": "b0be450129a8562f52388fc3de3956a6496a43777e8124d59af8ffcc33d3055e",
+      "slowfast_probe": "083f5e3387c82466f2f2c2fc51d295f0ea314b312e582e13ea8c1eaf58661f14",
+      "strict_temporal_compiler": "0754ec21d23b3c71ffeef970da9789e4d4013cc307eb04270cfc793562660361",
+      "strict_temporal_projection": "fefc382bc845eb240e8f51d2f7a53197db3250d74fa7a15019ea1f5f5483d4bc",
+      "typed_executor_v2": "6ce65d9efdc68e0d55e81b46bafa1383f912eccb32251606a585549f42b8679f"
+    },
+    "detector_checkpoint_sha256": "41584fb2e53013cc68db617333efcf4bb4e18d812f71670516414b14002e6222",
+    "direct_action_lexicalization": "PARSER_PREDICATE_EXACT",
+    "frame_budget_sgdet": 64,
+    "frame_budget_slowfast_presentations": 96,
+    "frame_budget_slowfast_unique": 48,
+    "minimum_object_score": 0.05,
+    "native_window_projection": "LOWER_CEIL_UPPER_FLOOR_FAIL_CLOSED",
+    "nested_action_patient_coreference": true,
+    "public_ontology": "configs/agqa2_action_genome_sgdet_ontology_v1.json",
+    "public_ontology_sha256": "3459d6bdeb642e8b6d49a80fcb020d751a1079c5042ed0fee7369206cff186de",
+    "qualification_file": "runs/agqa2_query_grounder_v2_typed_evidence_qualification_v13/qualification_evaluation.json",
+    "qualification_file_sha256": "af5418b42015c1c329fc9896e2a75062813f500c09f0582ff29996a50a622d40",
+    "qualification_protocol_file": "configs/agqa2_query_grounder_v2_typed_evidence_qualification_v13.json",
+    "qualification_protocol_file_sha256": "460c11d272f08c9087d81f215ce6d9eddd10668cb30ca0cc2de84d42f1ff192e",
+    "qualification_report_sha256": "bb7e94f6a7a332bb1bbcbea1c749e2312f21724f8fcfda5e080618094cf9ae7d",
+    "relation_checkpoint_sha256": "81b8b19d88f2b73ca03549cb4febb0fc511cd0deca2750caf83aceaddbe5d7ee",
+    "sgdet_rank_weight": 0.6,
+    "slowfast_checkpoint_sha256": "7bc14aea79ce29e5292c412fac729aef4e7d0f20ea93e559392861d0ad8754b0",
+    "slowfast_sampling": "uniform48",
+    "track_evidence_policy": "IN_WINDOW_REQUIRED",
+    "typed_event_dedup_minimum_interval_iou": 0.5
+  },
+  "schema_version": "agqa-query-grounder-v2-typed-evidence-formal-protocol-v1",
+  "secondary_target": {
+    "is_formal_pass_gate": false,
+    "overall_source_accuracy_strictly_above": 0.55
+  },
+  "semantic_parser": {
+    "formal_answers_or_functional_programs_visible": false,
+    "model": "target-native Flan-T5-small question-to-operator-free-semantics",
+    "model_weights_sha256": "80bfb6921705ad61f852db4452669c6c55d4de4dc99e7b7db5103da1c8527964",
+    "qualification_file_sha256": "0d04d4bafbae118172cd57cc4cb150be136fbc123d70fea3016648a063d662d0",
+    "qualification_report_sha256": "dbb95ee168af674190d818ceefb24ca5a69a367576cf43867911c9a8f90a0e31"
+  },
+  "shared_arm_contract": {
+    "fallback_actor": true,
+    "generic_scaffold_is_reported_as_a_ceiling_not_a_pass_gate": true,
+    "grounding_receipts": true,
+    "only_symbolic_harness_varies": true,
+    "question_parser": true,
+    "raw_video_frames": true,
+    "source_permuted_uses_same_operator_inventory_and_permuted_source_composition_edges": true,
+    "typed_executor": true
+  },
+  "source_harness": {
+    "anonymous_controller_file": "runs/anonymous_video_harness_v1/controller.json",
+    "anonymous_controller_file_sha256": "698d3f377366d5cd8ae278461c2a29466d3a6f1af8885aa8fd6373139309a82e",
+    "anonymous_controller_sha256": "cd48690e64392f8702e1a239afa1739c25863ce4bd6ae2efea355ac70467bfe6",
+    "changed_from_v11": false,
+    "source_capability_file": "runs/agqa2_full_operator_transfer_v1/source_capabilities_v2.json",
+    "source_capability_file_sha256": "2f11b31b41a8ca72ee7c889d4fba00b8103599ce885269eb845ae89c0e78d31c",
+    "source_capability_sha256": "8db5041579e8d5a69c5612247d62803ada2d98e745734fd9fac8cc3d7ca7902d",
+    "target_data_read_during_induction": false,
+    "unchanged_from_prior_clevrer_and_agqa_formals": true
+  },
+  "status": "FROZEN_BEFORE_FORMAL_SELECTION_VIDEO_ACQUISITION_GROUNDING_FALLBACK_OR_OUTCOMES"
+}

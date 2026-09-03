@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>24/24 Direct Neural-Symbolic Transfer</title>
+  <style>
+    :root{color-scheme:dark;--bg:#071019;--panel:#0e1b29;--line:#20364a;--ink:#eef6ff;--muted:#9bb0c3;--green:#4ee1a0;--amber:#ffc86b;--blue:#72a8ff;--red:#ff7b85}
+    *{box-sizing:border-box}body{margin:0;font:15.5px/1.55 Inter,ui-sans-serif,system-ui,sans-serif;color:var(--ink);background:radial-gradient(circle at 8% -5%,#174775 0,transparent 34%),radial-gradient(circle at 96% 8%,#173a30 0,transparent 27%),var(--bg)}
+    main{width:min(1180px,92vw);margin:auto;padding:58px 0 80px}h1{max-width:980px;margin:0;font-size:clamp(2.5rem,6.2vw,6rem);line-height:.95;letter-spacing:-.055em}h2{margin:0 0 16px;font-size:1.35rem}h3{margin:0 0 8px;font-size:1rem}p{color:var(--muted)}a{color:#9ac2ff}code{color:#c0d7ff}.tag{display:inline-block;margin-bottom:21px;padding:7px 12px;border:1px solid #318d69;border-radius:999px;color:var(--green);font-size:.77rem;letter-spacing:.08em;text-transform:uppercase}.lead{max-width:900px;font-size:1.12rem}
+    .numbers{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:38px 0 14px}.card,.panel{border:1px solid var(--line);border-radius:18px;background:linear-gradient(155deg,rgba(18,38,56,.96),rgba(10,23,35,.96));box-shadow:0 18px 55px rgba(0,0,0,.2)}.card{padding:21px}.metric{font-size:2.1rem;font-weight:850;letter-spacing:-.05em}.ok{color:var(--green)}.label{color:var(--muted);font-size:.82rem}.boundary{margin:14px 0 34px;padding:15px 18px;border:1px solid #725625;border-radius:14px;background:rgba(98,69,19,.2);color:#ffe1a4}.panel{padding:24px;margin-top:14px;overflow:auto}
+    .flow{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;align-items:stretch;gap:12px}.node{min-height:132px;padding:17px;border:1px solid var(--line);border-radius:14px;background:#0a1724}.arrow{align-self:center;color:var(--amber);font-size:1.6rem}table{width:100%;min-width:760px;border-collapse:collapse}th,td{padding:11px 12px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}th{color:var(--muted);font-size:.75rem;text-transform:uppercase;letter-spacing:.07em}td:first-child{color:var(--blue);font-weight:700}.pass{color:var(--green)}
+    .versions,.lessons{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.version,.lesson{padding:17px;border:1px solid var(--line);border-radius:14px;background:#0a1724}.version.fail{border-top:3px solid var(--red)}.version.final{border-top:3px solid var(--green)}.version small,.lesson{color:var(--muted)}.hash{word-break:break-all;font:12px/1.5 ui-monospace,SFMono-Regular,monospace;color:#b8cae1}footer{margin-top:30px;color:#72899d;font-size:.82rem}
+    @media(max-width:900px){.numbers,.versions,.lessons{grid-template-columns:1fr 1fr}.flow{grid-template-columns:1fr}.arrow{transform:rotate(90deg);text-align:center}}@media(max-width:520px){main{padding-top:34px}.numbers,.versions,.lessons{grid-template-columns:1fr}}
+  </style>
+</head>
+<body><main>
+  <div class="tag">Independent composite audit passed · 2026-08-15</div>
+  <h1>24/24 direct neural-symbolic transfer.</h1>
+  <p class="lead">六个 independently-qualified game lineages，各自在 WebShop、ALFWorld、DiscoveryWorld 与 TIRBench 的 frozen target execution 中实际驱动 online symbolic route；不是历史结果 relineage，也不是复制游戏动作。</p>
+
+  <section class="numbers">
+    <article class="card"><div class="metric ok">24/24</div><div class="label">direct prospective cells</div></article>
+    <article class="card"><div class="metric ok">6 × 4</div><div class="label">exact Cartesian coverage</div></article>
+    <article class="card"><div class="metric ok">3,421</div><div class="label">authentic source decisions</div></article>
+    <article class="card"><div class="metric ok">24/24</div><div class="label">unique execution fingerprints</div></article>
+  </section>
+  <div class="boundary"><strong>Claim boundary：</strong>成立的是 direct operational mechanism transfer。尚未证明 24 个 source-target pair 都提高最终 success rate；每个 cell 仍需扩展为多 task、matched control 的 powered estimate。</div>
+
+  <section class="panel">
+    <h2>迁移链条</h2>
+    <div class="flow">
+      <div class="node"><h3>Independent game evidence</h3><p>同 seed/prefix intervention forks，multi-step outcome，六条 source lineage 独立过 gate。</p></div>
+      <div class="arrow">→</div>
+      <div class="node"><h3>Common symbolic controller</h3><p><code>EXPLORE_UNTRIED</code><br><code>BACKTRACK_REPLAN</code><br><code>COMMIT_VERIFY</code></p></div>
+      <div class="arrow">→</div>
+      <div class="node"><h3>Target-native neural grounding</h3><p>神经模型提出 target objects/actions；symbolic applicability/effect guard 授权；native executor 执行。</p></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Four target domains</h2>
+    <table><thead><tr><th>Target</th><th>Cells</th><th>Source decisions</th><th>Reserve</th><th>Historical outcomes counted</th></tr></thead><tbody>
+      <tr><td>WebShop</td><td class="pass">6/6</td><td>66</td><td>V1 untouched</td><td>0</td></tr>
+      <tr><td>ALFWorld</td><td class="pass">6/6</td><td>324</td><td>V1 untouched</td><td>0</td></tr>
+      <tr><td>DiscoveryWorld</td><td class="pass">6/6</td><td>31</td><td>V4 seeds 39–44</td><td>0</td></tr>
+      <tr><td>TIRBench</td><td class="pass">6/6</td><td>3,000</td><td>V1 untouched</td><td>0</td></tr>
+    </tbody></table>
+  </section>
+
+  <section class="panel">
+    <h2>DiscoveryWorld: failures were consumed, not counted</h2>
+    <div class="versions">
+      <article class="version fail"><h3>V1 · transport</h3><small>Qwen malformed/truncated JSON；并行输出路径竞争。排除。</small></article>
+      <article class="version fail"><h3>V2 · role conflation</h3><small>GPT grounding 稳定，但长程 acquisition 重复 invalid PICKUP。排除。</small></article>
+      <article class="version fail"><h3>V3 · applicability</h3><small>4/6；合法 JSON candidate set 仍可能让旧 selector 选择 unwitnessed COMMIT。排除。</small></article>
+      <article class="version final"><h3>V4 · 6/6</h3><small>Neural-typed-as-reversible、parser-valid POSITION，或 effect-witnessed COMMIT；否则 fail closed/resample。</small></article>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Why the V4 fix remains neural-symbolic</h2>
+    <div class="lessons">
+      <div class="lesson"><strong>No invented action.</strong><br>修复只能从同一 neural candidate set 选 target-native action。</div>
+      <div class="lesson"><strong>Typed applicability.</strong><br>Neural schema 将 POSITION 标成可逆；native action 另须通过 target API parser/precondition。</div>
+      <div class="lesson"><strong>Evidence-gated commit.</strong><br>COMMIT 必须有精确 positive-effect witness。</div>
+      <div class="lesson"><strong>Fresh after diagnosis.</strong><br>先在 consumed seed 35 诊断，再冻结未执行的 seeds 39–44。</div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Audit identity</h2>
+    <p>V1 manifest</p><div class="hash">7a0d600bc3c9c3ec5ff4c7bb2384e5740cbbb5b6aba8918962faa57b5468f5a1</div>
+    <p>DiscoveryWorld V4 manifest</p><div class="hash">a37256458e4ac07da5b2ae761395c70ac0841436998165745ca918bc5241b2f1</div>
+    <p>Composite audit</p><div class="hash">9df87079672378370ae2db3a2acdcd817a220cb07d0465fe0a9c68bfb518bba7</div>
+  </section>
+
+  <footer>Method and limitations: <a href="PHASE1_DIRECT_PROSPECTIVE_24_OF_24_V4.md">PHASE1_DIRECT_PROSPECTIVE_24_OF_24_V4.md</a> · Machine audit: <a href="results/phase1_direct_prospective_24_of_24_v4.json">phase1_direct_prospective_24_of_24_v4.json</a></footer>
+</main></body></html>

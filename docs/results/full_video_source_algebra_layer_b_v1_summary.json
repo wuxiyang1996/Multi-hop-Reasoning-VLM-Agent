@@ -1,0 +1,104 @@
+{
+  "schema_version": "full-video-source-algebra-layer-b-paper-summary-v1",
+  "status": "TWO_VIDEO_SELECTIVE_EVIDENCE_VALIDATED;CLEVRER_FRESH_FORMAL;AGQA_EXISTING_INDEPENDENT_REPLICATIONS;NO_FRESH_AGQA_VIDEO_RESERVE",
+  "anonymous_source_controller": {
+    "artifact_sha256": "cd48690e64392f8702e1a239afa1739c25863ce4bd6ae2efea355ac70467bfe6",
+    "source_lineages": 6,
+    "anonymous_operators": 3,
+    "observed_transitions": 3,
+    "heldout_authentic_successes": 58,
+    "heldout_effect_shuffled_successes": 0,
+    "alpha_renaming_invariant": true,
+    "target_data_read": false,
+    "designer_specified_boundary": "UNIVERSAL_TYPED_VM_AND_TARGET_NATIVE_GROUNDING_BINDING"
+  },
+  "source_algebra": {
+    "artifact_sha256": "c442412f9e4739bfb885d33337e0c8c31ab4bfe94ed495e7ec830d821d2246c3",
+    "authority": "SOURCE_ARTIFACTS_AND_HELDOUT_SOURCE_CONTROLS_ONLY",
+    "canonical_ir_ontology_designer_specified": true,
+    "composition_edges": 73,
+    "evidence_families": 6,
+    "primitive_instances": 29,
+    "source_programs_support_and_abstention_induced": true,
+    "target_data_read": false,
+    "target_dsl_tokens_used_for_induction": false
+  },
+  "clevrer_fresh_layer_b": {
+    "status": "CLEVRER_FULL_BENCHMARK_SELECTIVE_LAYER_B_TRANSFER_VALIDATED",
+    "videos": 400,
+    "tasks": 1600,
+    "accuracy": {
+      "neural_only": 0.3475,
+      "generic_symbolic_ceiling": 0.701875,
+      "source_permuted": 0.3475,
+      "source_induced": 0.623125,
+      "target_written_isomorphic": 0.623125
+    },
+    "source_vs_neural": {
+      "wins": 464,
+      "losses": 23,
+      "ties": 1113,
+      "net_wins": 441,
+      "one_sided_exact_p": 3.907193862591056e-108,
+      "absolute_gain_percentage_points": 27.5625
+    },
+    "negative_transfer_loss_fraction": 0.014375,
+    "source_commits": 800,
+    "source_commit_families": ["descriptive", "explanatory"],
+    "source_abstain_families": ["predictive", "counterfactual"],
+    "isomorphic_prediction_equivalence": 1.0,
+    "provider_calls": 1600,
+    "prompt_tokens": 2345134,
+    "completion_tokens": 34643,
+    "total_tokens": 2379777,
+    "receipt_backed_usd": null,
+    "historical_cost_estimate_usd": 0.24,
+    "anonymous_controller_substitution_equivalence": 1.0,
+    "anonymous_controller_substitution_report_sha256": "b859bc17c26d04668d8914f235d2035e7eac866e3ec78b95c7a3c10ae5d3a937",
+    "failure_taxonomy": {
+      "symbolic_recovery": 464,
+      "negative_transfer": 23,
+      "committed_both_correct": 215,
+      "committed_residual_error": 98,
+      "abstained_fallback_correct": 318,
+      "abstained_generic_headroom": 209,
+      "abstained_shared_failure": 273
+    },
+    "formal_report_sha256": "30ddf5d1a2031b5ed3d7349768b585688bc8c2a1e743ce407a0d550088dbeeed"
+  },
+  "agqa_raw_video_existing_evidence": {
+    "anonymous_controller_substitution_report_sha256": "bd4e607b226f0569e5aff3d598b4383a5063a2f35f8e22a9af4a6a3dba2c076e",
+    "anonymous_controller_substitution_equivalence": 1.0,
+    "broad_512": {
+      "neural_correct": 238,
+      "source_correct": 258,
+      "generic_ceiling_correct": 264,
+      "source_vs_neural_wins": 44,
+      "source_vs_neural_losses": 24,
+      "exact_two_sided_p": 0.02052693371370707,
+      "raw_video_report_sha256": "c030229390ea080e7b4b803853ef454c261fe53f1071242ce7700d81385864cd",
+      "full_algebra_compatibility_sha256": "1d83a025dc8e57a0ef18a16b3ffda7dbf4cbcd2e1060860c9e8cfbd24ddb5928"
+    },
+    "temporal_256": {
+      "neural_correct": 106,
+      "source_correct": 135,
+      "generic_ceiling_correct": 149,
+      "source_vs_neural_wins": 34,
+      "source_vs_neural_losses": 5,
+      "exact_two_sided_p": 2.4299079086631536e-06,
+      "raw_video_report_sha256": "9b2e955a5daed242dc8077dfb60adf448de15ae92f8b50b939414dc83d02e6b3",
+      "full_algebra_compatibility_sha256": "5bac5dce52bbb95bf0d8433f07efcf42f598909ac46ad014a46956d849ae1e51"
+    },
+    "fresh_reserve_blocker": {
+      "official_test_total_videos": 1814,
+      "official_test_untouched_videos": 0,
+      "train_formal_total_videos": 777,
+      "train_formal_untouched_videos": 2,
+      "remaining_video_ids": ["99XHN", "EYABM"],
+      "remaining_raw_mp4_available": 0,
+      "inventory_report_sha256": "3229163ba7cdc0bd021ec6002831bc77ef3ddb4454930af62938fe2ca9a6b76c"
+    }
+  },
+  "paper_bundle_sha256": "f86998c288a487af83454ee4f551f91fbe24e76d12313ef8dd56ba51294ffc38",
+  "claim_boundary": "The same anonymous source-induced controller is validated by substitution on CLEVRER and two existing AGQA raw-video replications. CLEVRER is a fresh full-benchmark selective raw-video-grounded formal. AGQA efficacy is prior independent raw-video evidence; no new video-disjoint AGQA efficacy claim is made. The universal VM and target-native grounding/binding are designer-specified. Generic symbolic is a ceiling, and target-written isomorphic equality prevents a source-provenance-necessity claim."
+}

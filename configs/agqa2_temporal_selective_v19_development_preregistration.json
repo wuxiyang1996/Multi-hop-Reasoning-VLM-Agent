@@ -1,0 +1,77 @@
+{
+  "accepted_call_replay": {
+    "policy": "REUSE_ONLY_EXACT_INPUT_HASH_MATCHES;NO_NEW_PROVIDER_CALL_EXPECTED",
+    "source": "runs/agqa2_active_grounding_v17_powered_reserve/call_cache"
+  },
+  "claim_boundary": "EXACT_CONSUMED_V17_54_CANDIDATE_POOL;LEARN_OPERATOR_LEVEL_ABSTENTION_FOR_TARGET_ONTOLOGY_AND_RECURRENT_ORDER_AMBIGUITY;NO_NEW_NEURAL_ACQUISITION",
+  "claim_scope_if_qualified": "TEMPORAL_OPERATOR_TRANSFER_ONLY;RELATION_ACQUISITION_MAY_RUN_BUT_RELATION_SOURCE_OVERRIDE_IS_OUT_OF_SCOPE_AND_MUST_ABSTAIN",
+  "development_gates": {
+    "maximum_reported_provider_cost_usd": 0.45,
+    "maximum_typed_vs_direct_losses": 0,
+    "minimum_decisive_accuracy": 0.6666666666666666,
+    "minimum_decisive_executions": 22,
+    "minimum_route_correct": 45,
+    "minimum_typed_vs_direct_wins": 2,
+    "required_source_permuted_abstentions": 45,
+    "required_target_written_equivalent_matches": 45,
+    "required_valid_runtime_rows": 45
+  },
+  "development_manifest": "configs/agqa2_temporal_selective_v19_development_manifest.json",
+  "development_manifest_sha256": "7a7a4b0b68fdc8e7938340862ae749724c6a59ffb6776f31dc1318fe37f913b5",
+  "evaluation_protocol_sha256": "5cf2a76d45375e0642a3fcdea940ab1cd973963a5e40db2839f10a1bb2b5d551",
+  "execution_calibration": {
+    "agreement_authorizes_without_claiming_gain": true,
+    "allow_exists_source_override": false,
+    "direct_corroboration_cannot_change_direct_prediction": true,
+    "forbidden_fields": [
+      "official_answer",
+      "functional_program",
+      "scene_graph_grounding",
+      "source_identity"
+    ],
+    "maximum_order_override_events_per_operand": 1,
+    "minimum_duration_margin_frames": 3,
+    "minimum_exists_override_confidence": 0.8,
+    "minimum_repeated_interval_dominance_margin_frames": 2,
+    "minimum_single_interval_nesting_margin_frames": 6,
+    "mode": "INDEPENDENT_TARGET_EVIDENCE_V1",
+    "new_v10_topologies": [
+      "BOUNDARY_ALIGNED_SINGLE_INTERVAL_NESTING",
+      "ALIGNED_REPEATED_INTERVAL_DOMINANCE"
+    ],
+    "new_v16_soundness_conditions": [
+      "EXISTS_OVERRIDE_MINIMUM_SUPPORTED_EVENT_CONFIDENCE",
+      "ORDER_OVERRIDE_GLOBAL_INTERVAL_SEPARATION"
+    ],
+    "new_v19_typed_applicability_rules": [
+      "RELATION_EXISTS_TARGET_ONTOLOGY_UNQUALIFIED_ABSTAIN",
+      "TEMPORAL_PAIR_REQUIRES_SINGLE_EVENT_PER_OPERAND",
+      "TEMPORAL_SINGLE_REUSES_QUALIFIED_DURATION_TOPOLOGY"
+    ],
+    "require_globally_separated_order_override": true,
+    "typed_override_requires_independent_symbolic_topology": true
+  },
+  "failure_policy": {
+    "development": "MUST_PASS_BEFORE_ANY_NEW_VIDEO_SELECTION",
+    "fresh": "ONE_FINAL_VIDEO_DISJOINT_TEMPORAL_SELECTIVE_CONFIRMATION"
+  },
+  "grounder_sha256": "b7b9c21142a91582edc67a31e87f8e96e7ec407d4a8ebc2334434626b09ef40a",
+  "runtime_selection": {
+    "candidate_count": 54,
+    "forbidden": [
+      "answer",
+      "program",
+      "scene_graph",
+      "source_identity"
+    ],
+    "mode": "OUTCOME_BLIND_CALIBRATED_EVIDENCE_RANK_V1",
+    "per_predicted_route": 15,
+    "reads_direct_response_only_inside_frozen_calibration": true
+  },
+  "schema_version": "agqa2-temporal-selective-preregistration-v19-development",
+  "status": "FROZEN_BEFORE_ANY_V19_DEVELOPMENT_RECEIPT",
+  "v17_failed_powered_result": "docs/results/agqa2_active_grounding_v17_powered_result.json",
+  "v17_failed_powered_result_file_sha256": "d8fd5f78c93cf3bec0284100aaf9236aa3dd262794efd938b3b21d74391d4169",
+  "v18_failed_adjudicator_result": "docs/results/agqa2_override_adjudicator_v18_development_result.json",
+  "v18_failed_adjudicator_result_file_sha256": "7efc8702c8b46a716ef572a1a98a2a915fb6309ca044245f7f45772772f92566"
+}

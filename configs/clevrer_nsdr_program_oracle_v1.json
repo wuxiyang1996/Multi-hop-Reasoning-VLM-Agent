@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "status": "ADAPTATION_PROGRAM_ORACLE_DIAGNOSTIC",
+  "claim_boundary": "Official CLEVRER functional programs are runtime program-oracle inputs; official answer labels are evaluator-only. Neural dynamics predictions and the official symbolic executor diagnose target grounding/execution headroom, not standalone cross-domain transfer.",
+  "source": {
+    "typed_summary": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/docs/results/typed_multisource_v4_summary.json",
+    "typed_summary_sha256": "1386d2023dbf1ebac88992dd49cad1aa1e323299a0937c4e2dd3bf4505613969",
+    "transferred_structure": "BIND--CARRIER_BOUND-->RELATE"
+  },
+  "split_manifest": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/configs/three_video_benchmark_splits_v1.json",
+  "official_root": "/fs/gamma-projects/vlm-robot/datasets/CLEVRER-official",
+  "structured_receipts": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/typed_clevrer_v4b_gpt54/receipts.json",
+  "split": "adaptation",
+  "conditions": {
+    "target_native_without_edge": {
+      "prediction_directory": "without_edge_supervision",
+      "use_predicted_collision_edges": false
+    },
+    "target_native_with_edge": {
+      "prediction_directory": "with_edge_supervision_old",
+      "use_predicted_collision_edges": true
+    }
+  }
+}

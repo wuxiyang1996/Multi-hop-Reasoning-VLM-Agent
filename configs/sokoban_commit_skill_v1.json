@@ -1,0 +1,18 @@
+{
+  "schema_version": "sokoban-commit-source-v1",
+  "status": "FROZEN_BEFORE_SOLVER_LABELS_OR_SPLIT_METRICS",
+  "source_dir": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-github-main/labeling/gpt54_skill_labeled/sokoban",
+  "snapshots_per_episode": 4,
+  "maximum_source_step": 120,
+  "maximum_solver_nodes": 100000,
+  "ridge_alpha": 0.5,
+  "qualification_gate": {
+    "minimum_eligible_snapshots": 12,
+    "minimum_examples_per_option": 6,
+    "minimum_transition_validation_rate": 0.98,
+    "minimum_authentic_accuracy": 0.6,
+    "strict_accuracy_superiority_to_every_control": true,
+    "strict_brier_superiority_to_every_control": true
+  },
+  "claim_boundary": "Source qualification precedes held-out and every target run. Raw Sokoban coordinates, action names, skill labels, intentions, and reasoning are not transferable fields."
+}

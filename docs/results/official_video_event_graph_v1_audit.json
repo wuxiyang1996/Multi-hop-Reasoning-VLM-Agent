@@ -1,0 +1,38 @@
+{
+  "agqa2": {
+    "official_stsg_sha256": "9273ec6055df1c4730b9ea971994ae6f552a14620711273da81eab9d11d85061",
+    "receipt_set_sha256": "f44493985f777e9e4ad957b83246044da39b1e562023699334da9d54dc3c2017",
+    "schemas": [
+      "AGQA_OFFICIAL_STSG_ID_GRAPH_V1"
+    ],
+    "tasks": 900,
+    "unique_videos": 300,
+    "version_note": "AGQA 2.0 QA manifest joined to the official supporting AGQA STSG release, as specified by the benchmark and STAIR setup."
+  },
+  "claim": "Grounding availability and authority-boundary audit only; no QA answer or transferred-controller success is measured here.",
+  "clevrer": {
+    "official_archive_sha256": "d89e74714dff7a1117fd113b54af99fbbc51583ebd742c788c484d708eb426d2",
+    "receipt_set_sha256": "a38a7fc2a13a945a3a757ae57ed9401df5db45744020dea2cc9c67e75ed11460",
+    "schemas": [
+      "CLEVRER_OFFICIAL_SIMULATION_EVENT_GRAPH_V1"
+    ],
+    "tasks": 360,
+    "unique_scenes": 353
+  },
+  "fresh_success_evidence": false,
+  "gates": {
+    "all_frozen_tasks_have_official_event_graph": true,
+    "all_receipts_are_answer_program_outcome_blind": true,
+    "all_receipts_disclose_oracle_graph_access": true,
+    "task_receipts_are_unique": true,
+    "zero_tool_budget_in_static_oracle_track": true
+  },
+  "report_sha256": "9818d4f4ba8a7a25ba3aa9824ab48f85f296de346d3e75fc6a69c57159be9885",
+  "runtime_authority": {
+    "functional_program_opened": false,
+    "program_derived_sg_grounding_opened": false,
+    "qa_answer_file_opened": false
+  },
+  "schema_version": "official-video-event-graph-audit-v1",
+  "status": "PASSED"
+}

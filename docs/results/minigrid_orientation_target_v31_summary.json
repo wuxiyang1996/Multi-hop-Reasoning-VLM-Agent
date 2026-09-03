@@ -1,0 +1,114 @@
+{
+  "claim_boundary": "Prospective transfer of the exact V28 source-induced anonymous COMPOSE(PROBE_EFFECT, RECOVERY_EFFECT)==IDENTITY program to a new MiniGrid oriented-navigation recovery MDP. A development-only target MLP grounds rendered agent directions; the source program sees only anonymous order-four effects. Native success requires the recovered heading to let a pre-intervention BFS suffix reach the official environment goal. A separately trained neural-only target policy receives 64 recovery labels, while source transfer receives zero complete target trajectories. The target-written isomorphic ceiling is expected to match source execution, so this tests transferable program content, not provenance necessity. The custom recovery protocol is built on MiniGrid-Empty-Random; it is not claimed as an official MiniGrid benchmark task.",
+  "config_file_sha256": "338663f54e16da2e5356432218db96f81100ad8910b1dcf56171ac5fb18015aa",
+  "config_sha256": "4dfb39e44baa8eaa2ca0fcde278664da4a69a8862ec862d1a1ec7a50d4343a77",
+  "excluded_pilot_boundary": "Only 740xxx/750xxx/751xxx pilot namespaces informed design. No 760xxx protocol seed was rendered before config freeze. The two OpenRouter visual pilots were excluded from every result and cost approximately $0.0068624 in total.",
+  "gates": {
+    "all_stage_frozen_gates_pass": true,
+    "development_passed_before_qualification": true,
+    "formal_grounding_exact": true,
+    "formal_reserve_passed": true,
+    "formal_source_above_neural_only": true,
+    "formal_source_native_success_complete": true,
+    "formal_source_strictly_above_destructive_controls": true,
+    "grounder_acquisition_read_zero_success_and_source": true,
+    "qualification_passed_before_formal_reserve": true,
+    "target_written_isomorphic_matches_source": true
+  },
+  "grounder_artifact_file_sha256": "c779696b16836a2ba50341e451f0cde861e41324c7377ec51a63553db404f331",
+  "grounder_artifact_sha256": "7c5197fff53ae9be1442816cc1f2d1764b6a0aba998b814402c89ff039a995df",
+  "interpretation": "The exact V28 source-induced identity-recovery content transfers prospectively through a target-native neural grounder and improves native formal success over a target-only MLP trained on 64 recovery labels. Destructive relation/binding controls fail. An independently written isomorphic target executor matches source exactly, confirming that content rather than source provenance causes execution success.",
+  "program_family": "ALGEBRAIC_CYCLIC_IDENTITY_RECOVERY",
+  "resource_accounting": {
+    "complete_target_trajectories_for_source_program": 0,
+    "formal_provider_cost_usd": 0.0,
+    "provider_calls": 0,
+    "target_development_orientation_labels": 448,
+    "target_development_recovery_labels_for_neural_only": 64,
+    "target_development_tasks": 64
+  },
+  "schema_version": "minigrid-orientation-target-summary-v31",
+  "source_program_sha256": "2f9f480ef4909e7276f5f1668b5fd995391bbbd865fae96128303bec6e8e529f",
+  "splits": {
+    "development": 64,
+    "formal_reserve": 48,
+    "qualification": 24
+  },
+  "stages": {
+    "development": {
+      "all_frozen_gates_pass": true,
+      "destructive_control_success": {
+        "copy_effect_control": 26,
+        "fixed_token_control": 19,
+        "shuffled_binding_control": 14
+      },
+      "exact_effect_binding_tasks": 64,
+      "grounder_panel_correct": 448,
+      "grounder_panel_total": 448,
+      "neural_only_success": 64,
+      "report_sha256": "48abdb592c245e8527d318b463b607e81216912a4faaa596443f66d20f994fec",
+      "source_induced_success": 64,
+      "source_vs_neural_only": {
+        "exact_two_sided_p": 1.0,
+        "losses": 0,
+        "net_wins": 0,
+        "ties": 64,
+        "wins": 0
+      },
+      "status": "CONSUMED_DEVELOPMENT_MINIGRID_CYCLIC_TRANSFER_PASSED",
+      "target_written_isomorphic_success": 64,
+      "tasks": 64
+    },
+    "formal_reserve": {
+      "all_frozen_gates_pass": true,
+      "destructive_control_success": {
+        "copy_effect_control": 26,
+        "fixed_token_control": 12,
+        "shuffled_binding_control": 13
+      },
+      "exact_effect_binding_tasks": 48,
+      "grounder_panel_correct": 336,
+      "grounder_panel_total": 336,
+      "neural_only_success": 16,
+      "report_sha256": "491b513aabc5ff6f7e15954288e0b0eea498fe76a2ad0b727d8ddafbb5b08d99",
+      "source_induced_success": 48,
+      "source_vs_neural_only": {
+        "exact_two_sided_p": 4.656612873077393e-10,
+        "losses": 0,
+        "net_wins": 32,
+        "ties": 16,
+        "wins": 32
+      },
+      "status": "UNTOUCHED_FORMAL_RESERVE_MINIGRID_CYCLIC_TRANSFER_PASSED",
+      "target_written_isomorphic_success": 48,
+      "tasks": 48
+    },
+    "qualification": {
+      "all_frozen_gates_pass": true,
+      "destructive_control_success": {
+        "copy_effect_control": 9,
+        "fixed_token_control": 4,
+        "shuffled_binding_control": 9
+      },
+      "exact_effect_binding_tasks": 24,
+      "grounder_panel_correct": 168,
+      "grounder_panel_total": 168,
+      "neural_only_success": 5,
+      "report_sha256": "58577598778de5706131f91c0e76bed7a948b33c1177aab22cdb1ea63902719b",
+      "source_induced_success": 24,
+      "source_vs_neural_only": {
+        "exact_two_sided_p": 3.814697265625e-06,
+        "losses": 0,
+        "net_wins": 19,
+        "ties": 5,
+        "wins": 19
+      },
+      "status": "FRESH_QUALIFICATION_MINIGRID_CYCLIC_TRANSFER_PASSED",
+      "target_written_isomorphic_success": 24,
+      "tasks": 24
+    }
+  },
+  "status": "PROSPECTIVE_V28_TARGET_RESERVE_VALIDATED",
+  "summary_sha256": "d8ab6da49195b8c6b0f61208180f555de53d8f28ded0bad95c0c3bc53200c517",
+  "target": "MiniGrid-Empty-Random-6x6-v0 custom orientation-recovery MDP"
+}

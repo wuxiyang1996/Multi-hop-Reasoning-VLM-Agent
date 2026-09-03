@@ -1,0 +1,104 @@
+{
+  "schema_version": 5,
+  "status": "DEVELOPMENT_ADAPTATION_ONLY",
+  "claim_boundary": "Video-Holmes audio-scouted aligned multimodal wrapper intervention adaptation only; no test outcome may be consumed.",
+  "source": {
+    "controlled_v3_config": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/configs/controlled_neural_symbolic_transfer_v3_formal.json",
+    "controlled_v3_config_content_sha256": "d5fb9c1976c1ac735d7efa4b0d8291dfc603b32f47a3ac6cf045519e3888d940",
+    "transferred_structure": "STATE_DEPENDENT_PARAMETERIZED_TEST_CANDIDATE_VS_COMMIT_MATCHED_INTERVENTION_VALUES",
+    "target_objective_test_cost": 0.0,
+    "model_seed": 2026081351
+  },
+  "target": {
+    "benchmark": "Video-Holmes",
+    "official_evaluator": "exact_answer_letter",
+    "target_native_actions": [
+      "inspect_multimodal_window(start_sec,end_sec,n)",
+      "commit_answer_slot"
+    ]
+  },
+  "wrapper": {
+    "root": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent",
+    "package": "visual_reasoning_wrapper",
+    "execution_authority": "WRAPPER_TOOL_REGISTRY_AND_QUESTION_ROUTER"
+  },
+  "model": {
+    "provider": "openai",
+    "api_key_name": "OPENAI_API_KEY",
+    "id": "gpt-5.4",
+    "base_url": "https://us.api.openai.com/v1",
+    "timeout_seconds": 240,
+    "max_retries": 2,
+    "temperature": 0
+  },
+  "audio": {
+    "provider": "openai",
+    "model": "gpt-audio",
+    "base_url": "https://us.api.openai.com/v1",
+    "timeout_seconds": 180,
+    "max_retries": 2,
+    "overview_segment_count": 6,
+    "mp3_bitrate": "48k",
+    "max_tokens": 350,
+    "grounding_contract": "QUESTION_INDEPENDENT_AUDIO_SCOUT_FOR_LOCALIZATION_PLUS_SELECTED_WINDOW_EVENTS"
+  },
+  "media": {
+    "proxy_frame_count": 48,
+    "proxy_frame_max_side": 640,
+    "overview_panel_count": 6,
+    "overview_frame_width": 160,
+    "frames_per_candidate": 8,
+    "evidence_frame_width": 320,
+    "jpeg_quality": 84
+  },
+  "interventions": {
+    "candidate_count": 4,
+    "maximum_window_fraction": 0.18,
+    "matched_fork_contract": "LOW_BANDWIDTH_VISUAL_OVERVIEW_AND_QUESTION_INDEPENDENT_AUDIO_SCOUT_PLUS_EXACTLY_ONE_ALIGNED_WRAPPER_VISUAL_AUDIO_WINDOW"
+  },
+  "target_grounder": {
+    "kind": "target_native_candidate_intervention_uplift_mlp",
+    "belief_seed": 2026081350,
+    "candidate_seed": 2026081352,
+    "candidate_hidden_units": 16,
+    "candidate_epochs": 600,
+    "training_authority": "VIDEO_HOLMES_OFFICIAL_TRAIN_ADAPTATION_MATCHED_FORKS_ONLY"
+  },
+  "policy": {
+    "uncertainty_scale": 0.5,
+    "decision_margin": 0.0025,
+    "fallback_commit_threshold": 0.72,
+    "target_quality_threshold": 0.0,
+    "information_gain_threshold": 0.025
+  },
+  "conditions": [
+    "target_only",
+    "authentic_source_plus_target",
+    "shuffled_source_plus_target",
+    "source_marginal_plus_target",
+    "target_native_information_gain",
+    "target_native_candidate_uplift"
+  ],
+  "splits": {
+    "adaptation": [
+      "ng9BW-vQ_2k.Q17",
+      "fqo8YyqJZ98.Q423",
+      "45pI9jQCcbo.Q783",
+      "Kwlv2mNFJlA.Q1327",
+      "jCQnUuq-TEE.Q430",
+      "63gIW3pe3hs.Q1515",
+      "wcee0enepVI.Q1378",
+      "3xF8zUIGBbA.Q401"
+    ],
+    "qualification": [],
+    "held_out": []
+  },
+  "development_preflight": {
+    "minimum_samples_with_candidate_effect_variation": 2,
+    "minimum_authentic_action_contrasts": 1,
+    "require_oracle_candidate_headroom": true,
+    "require_cross_fitted_positive_response": true,
+    "require_source_control_contrast": true,
+    "require_authentic_source_accuracy_superiority": true
+  }
+}

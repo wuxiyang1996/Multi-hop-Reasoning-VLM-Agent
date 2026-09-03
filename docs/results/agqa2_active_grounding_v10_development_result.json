@@ -1,0 +1,20 @@
+{
+  "schema_version": "agqa2-active-grounding-v10-development-result-v1",
+  "status": "AGQA2_ACTIVE_GROUNDER_V10_DEVELOPMENT_NOT_QUALIFIED",
+  "grounder_qualified": false,
+  "grounder_sha256": "fd7eba664dd7a11394e98c6e10f1957764b743e58d56fc3f64a1d523e9e52d1b",
+  "metrics": {
+    "valid_runtime_rows": 9,
+    "decisive_executions": 7,
+    "decisive_correct": 7,
+    "direct_correct": 4,
+    "typed_fallback_correct": 7,
+    "typed_vs_direct_wins": 3,
+    "typed_vs_direct_losses": 0,
+    "consensus_tiebreaks_triggered": 5
+  },
+  "failed_gates": ["provider_cost_within_cap"],
+  "failure_cause": "RESCAN_AND_TIEBREAK_MODELS_WERE_SWAPPED_IN_THE_COLLECTOR",
+  "reported_provider_cost_usd": 0.107763544,
+  "report_sha256": "a6df56db0ff8349991e0a312ea7124b0e493b654173237fc8a7c3337622043f9"
+}

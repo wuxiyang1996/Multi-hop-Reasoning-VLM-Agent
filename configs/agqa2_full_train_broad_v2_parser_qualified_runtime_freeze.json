@@ -1,0 +1,36 @@
+{
+  "schema_version": "agqa-full-train-broad-parser-qualified-runtime-freeze-v2",
+  "status": "FROZEN_BEFORE_ANY_RAW_VIDEO_GROUNDER_FALLBACK_OR_OUTCOME_RUNTIME",
+  "parent_preregistration_sha256": "81163627aa431d2ae0afbce4f6822d1b75fb11280e5368e3239f76d9536d8d1f",
+  "parser_qualified_preregistration_sha256": "df71d5e1877f0b86c596cda9a57c033f78af7d76a00d6790c4a49e14077a8f2a",
+  "parser_qualification_rule": "Remove the entire 15-task video block if any question-only semantic parse is invalid; never select using pixels or target outcome.",
+  "selection": {
+    "base_videos": 27,
+    "base_tasks": 405,
+    "excluded_video_ids": ["S3TZ1"],
+    "qualified_videos": 26,
+    "qualified_tasks": 390,
+    "tasks_per_video_per_structural_stratum": 3,
+    "structural_strata": ["choose", "compare", "logic", "query", "verify"]
+  },
+  "frozen_file_sha256s": {
+    "public_cohort": "83aa04179a3814ec9b9fd69b0f52699061409f36ff660c982d3d629e225ec640",
+    "manifest": "15bbcbce1c2f252b1bfecde2845f1e41d63d082d710aba0fa6b425af29120b5d",
+    "semantic_runtime": "ab37170240e512bea88163e70fd1a01b62bf1e0e058df6d1b08e4d2c06e28028",
+    "preregistration": "1dde00e968abc125e85f2e7819d740d55fa751bf9e6c5c4c7a216928c962875e",
+    "preoutcome_freezer": "efb86ef1b36c9051dd40b259b992a95a3e65012a69f3b6e9f901c389768a3de9",
+    "raw_grounder_cluster_protocol": "771939ca4d7217462fa588d282e79f0479aee3d7d3958a778695382373d674ff",
+    "raw_grounder_merge_protocol": "cd42de2cac0ada21ad4647014e4e7bed591f225648fa476f1d617d997b9885b2"
+  },
+  "authority": {
+    "raw_video_grounder_calls_before_freeze": 0,
+    "atomic_claim_grounder_calls_before_freeze": 0,
+    "fallback_calls_before_freeze": 0,
+    "reserve_answers_read": false,
+    "reserve_functional_programs_read": false,
+    "reserve_scene_graphs_read": false,
+    "formal_outcomes_read": false,
+    "source_or_threshold_changed": false,
+    "formal_gates_changed": false
+  }
+}

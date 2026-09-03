@@ -1,0 +1,19 @@
+{
+  "schema_version": "discoveryworld-target-only-v23-fresh-easy-formal",
+  "manifest": "configs/discoveryworld_v23_fresh_easy_manifest.json",
+  "manifest_role": "formal_reserve",
+  "claim_boundary": "Frozen target-only acquisition on 12 previously unrun Easy instances from Space Sick and Proteomics seeds5-10. The policy receives no source program or evaluator scorecard. The rollouts may be used only by the frozen V23 outcome-blind first-native-commit matched evaluation; no code, prompt, model, horizon, task, fork rule, arm, or gate may change after collection begins.",
+  "model": {
+    "provider": "openrouter",
+    "base_url": "https://openrouter.ai/api/v1",
+    "model": "qwen/qwen3.5-35b-a3b",
+    "api_key_name": "OPENROUTER_API_KEY",
+    "temperature": 0,
+    "maximum_output_tokens": 1200,
+    "schema_attempts": 3
+  },
+  "runtime": {
+    "maximum_steps": 96,
+    "include_vision": false
+  }
+}

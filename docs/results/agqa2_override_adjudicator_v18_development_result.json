@@ -1,0 +1,30 @@
+{
+  "grounder_qualified": false,
+  "interpretation": "INDEPENDENT_STRONG_VLM_DID_NOT_ALIGN_WITH_AGQA_TARGET_ONTOLOGY;DO_NOT_INTEGRATE_OR_USE_FOR_FRESH",
+  "metrics": {
+    "adjudicator_correct": 0,
+    "authorized_typed_vs_direct_losses": 2,
+    "direct_correct": 3,
+    "final_correct": 1,
+    "final_vs_direct_delta": -2,
+    "retained_typed_vs_direct_wins": 0,
+    "typed_overrides_authorized": 2
+  },
+  "model": "anthropic/claude-sonnet-4.6",
+  "qualification_gates": {
+    "maximum_authorized_typed_vs_direct_losses": false,
+    "minimum_adjudicator_correct": false,
+    "minimum_final_vs_direct_delta": false,
+    "minimum_retained_typed_vs_direct_wins": false,
+    "provider_cost_within_cap": true,
+    "required_rows": true,
+    "runtime_candidate_and_evaluator_fields_hidden": true
+  },
+  "report_file_sha256": "088089f9774c4602fae6b6f1fc67e1c7ef2f97066ee5e4ed66e4dba301ddbd5a",
+  "report_sha256": "cdb5666ade64f3107f8eabc9ac6065be542b0cfbbe06988f2bf0c89669ad3245",
+  "reported_provider_cost_usd": 0.072858,
+  "result_sha256": "9939c7a899c169ad1afbf9b945b6ee4f135b39ae766535cd931479490d73c092",
+  "sample_count": 7,
+  "schema_version": "agqa2-override-adjudicator-v18-development-result",
+  "status": "AGQA2_OVERRIDE_ADJUDICATOR_V18_DEVELOPMENT_NOT_QUALIFIED"
+}

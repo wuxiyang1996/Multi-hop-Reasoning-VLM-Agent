@@ -1,0 +1,64 @@
+{
+  "schema_version": 2,
+  "status": "FROZEN_BEFORE_FRESH_QUALIFICATION",
+  "claim_boundary": {
+    "consumed_development": "NOT_RUN_BY_THIS_CONFIG",
+    "qualification": "ONE_SHOT_FRESH_TIR_MAZE_QUALIFICATION_OF_A_FRESH_CONFIRMED_REAL_SOKOBAN_ANONYMOUS_TOPOLOGY_EXECUTOR_WITH_TARGET_NATIVE_NEURAL_INTERFACE_BINDING_AND_PIXEL_GRAPH_GROUNDING",
+    "heldout": "ONE_SHOT_FORMAL_GAME_TO_TIR_MAZE_NEURAL_SYMBOLIC_TRANSFER_CONFIRMATION; CLAIM_IS_LIMITED_TO_SINGLE_IMAGE_MAZE_ACTION_SEQUENCE_TASKS_AND_DOES_NOT_COVER_REFCOCO_ROTATION_OR_VISUAL_SEARCH"
+  },
+  "source": {
+    "artifact_path": "runs/sokoban_topology_skill_v1/discovery_artifact.json",
+    "artifact_file_sha256": "12da519aa68896a501834915f1eea5c600cc3c45c6b8a9296714a8daee656963",
+    "artifact_sha256": "bdbfd067f77a75ed87a815050e52556aad509812270b1d9e214476f4382525a9",
+    "confirmation_path": "runs/sokoban_topology_skill_v1/fresh_confirmation_report.json",
+    "confirmation_file_sha256": "d3c69a4ccce16b4e344eafefd0d8ade7145692aa44ecb9e491ece5b144330ee7",
+    "confirmation_sha256": "87e69e67da6b45feb983e3244e6c5da05b5a293244edc1b670b6aeb274bcef7d"
+  },
+  "development_authority": {
+    "report_path": "runs/tir_maze_topology_v2_consumed_development/consumed_development_report.json",
+    "report_file_sha256": "baf80c68d2084eab0e9a020c078f9895e391a493324672943975ae216a4e0da6",
+    "required_status": "CONSUMED_DEVELOPMENT_GATE_PASSED"
+  },
+  "qualification_authority": {
+    "report_path": "runs/tir_maze_topology_v2_frozen/qualification_report.json",
+    "required_status": "FRESH_QUALIFICATION_GATE_PASSED"
+  },
+  "dataset": {
+    "file_sha256": "e764c780c53fdce2e0bb64846a8119b48b731c90c7168c6c202f270062684bc8",
+    "selection_contract": "Single-image native A-E maze rows only. Exclude all previously consumed rows and the six legacy V3 heldout maze IDs. Qualification takes first 12 by sha256('tir-maze-v2-qualification|' + id). Formal contains the six legacy unread IDs plus first 18 remaining by sha256('tir-maze-v2-formal|' + id). Selection reads IDs and schema only, never prompt, image, answer value, or model outcome."
+  },
+  "model": {
+    "provider": "openrouter",
+    "id": "openai/gpt-4.1-mini",
+    "base_url": "https://openrouter.ai/api/v1",
+    "timeout_seconds": 180,
+    "max_retries": 2,
+    "maximum_output_tokens": 1200,
+    "temperature": 0,
+    "authority": "BIND_R_L_U_D_DELTAS_AND_START_GOAL_COLORS_ONLY; NO_GOLD_OR_CORRECT_OPTION"
+  },
+  "media": {"max_side": 768, "jpeg_quality": 90},
+  "splits": {
+    "consumed_development": [],
+    "qualification": [
+      "156", "908", "1194", "120", "502", "521",
+      "10", "437", "464", "956", "391", "744"
+    ],
+    "heldout": [
+      "1162", "911", "808", "1009", "1103", "751",
+      "560", "536", "201", "681", "465", "250", "1214", "688", "693",
+      "987", "518", "1138", "13", "812", "125", "244", "1062", "136"
+    ]
+  },
+  "integrity": {
+    "file_sha256": {
+      "src/motif_transfer/sokoban_topology_skill.py": "b11a91ec9a0f719caaa41a69b2c1481058012b360f7a90687dcc74bef0a13347",
+      "src/motif_transfer/tir_maze_topology.py": "1196b6cb569d27d1b8174c5d43130ed9ffe020d824b7a48e7940b72de9d3620c",
+      "scripts/run_tir_maze_topology_v2.py": "8d7c32221f5273970ebecf03049b649f071dc38a82aa0ebdbbc4e1afdf98c31d",
+      "scripts/run_sokoban_topology_skill_v1.py": "547b56cc4b372c9c9c35202024d56e1e11064466441141cbd477e17a4ba3bde3",
+      "runs/sokoban_topology_skill_v1/discovery_artifact.json": "12da519aa68896a501834915f1eea5c600cc3c45c6b8a9296714a8daee656963",
+      "runs/sokoban_topology_skill_v1/fresh_confirmation_report.json": "d3c69a4ccce16b4e344eafefd0d8ade7145692aa44ecb9e491ece5b144330ee7",
+      "runs/tir_maze_topology_v2_consumed_development/consumed_development_report.json": "baf80c68d2084eab0e9a020c078f9895e391a493324672943975ae216a4e0da6"
+    }
+  }
+}

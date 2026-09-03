@@ -1,0 +1,1173 @@
+{
+  "schema_version": "phase2-webshop-six-source-utility-v1",
+  "status": "FROZEN_BEFORE_ANY_PHASE2_TARGET_RESET_PROVIDER_CALL_OR_OUTCOME",
+  "claim_boundary": "One-shot aggregate causal utility test of the common policy supported by six independent game lineages on 32 new, product-disjoint WebShop goals. Per-game task counts are replication strata, not powered per-game studies.",
+  "selection_read_target_outcome": false,
+  "historical_target_outcome_reuse_allowed": false,
+  "source_assignment_read_target_semantics": false,
+  "source_assignment_rule": "SOURCE_GAMES manifest order round-robin before outcomes",
+  "seed_derivation": {
+    "label": "phase2-webshop-six-source-utility-v1",
+    "phase1_audit_sha256": "9df87079672378370ae2db3a2acdcd817a220cb07d0465fe0a9c68bfb518bba7",
+    "seed_hash": "ca987ff97e56394a1bbdacef76e21087d02b751c31fbc73dea1d865e2f79ac51",
+    "rule": "int(first eight hex digits, base16)"
+  },
+  "goal_seed": 3398991865,
+  "server_goal_count": 6910,
+  "number_of_registered_tasks_required": 159,
+  "prior_consumed_goal_manifest": "configs/webshop_synthetic_unique_v14_frozen.json",
+  "prior_consumed_goal_manifest_file_sha256": "fc5d8a8ea2c5b9cfe6296fab6d36d623bdf8c539e31b45cd3c0bc7e2601705ee",
+  "prior_target_adapter_qualification": "runs/webshop_search_automaton_v16_formal/report.json",
+  "prior_target_adapter_qualification_file_sha256": "6d2c7c20fdf091013eb8dce9c769795ca02e34b55a70ca160836df3be44b0a51",
+  "parent_phase1_manifest": "configs/phase1_direct_prospective_v1/manifest.json",
+  "parent_phase1_manifest_sha256": "7a0d600bc3c9c3ec5ff4c7bb2384e5740cbbb5b6aba8918962faa57b5468f5a1",
+  "parent_phase1_manifest_file_sha256": "c2045baf6ff66f1062a88812a48dcd70bbf7f479e21993b2cd1bac7ce2787cb5",
+  "parent_phase1_audit": "docs/results/phase1_direct_prospective_24_of_24_v4.json",
+  "parent_phase1_audit_sha256": "9df87079672378370ae2db3a2acdcd817a220cb07d0465fe0a9c68bfb518bba7",
+  "semantic_independence_audit": {
+    "tasks": 32,
+    "unique_goal_semantics": 32,
+    "required_unique_goal_semantics": 32,
+    "duplicate_goal_semantics": [],
+    "duplicate_multiplicities": {},
+    "consumed_instruction_overlap": [],
+    "candidate_unique_asins": 32,
+    "consumed_asin_overlap": [],
+    "gates": {
+      "enough_unique_goal_semantics": true,
+      "one_task_per_goal_semantics": true,
+      "instruction_disjoint_from_consumed": true,
+      "asin_disjoint_from_consumed": true,
+      "one_task_per_asin": true
+    },
+    "passed": true
+  },
+  "sources": {
+    "tetris": {
+      "artifact": "runs/phase1_direct_prospective_v1/source_artifacts/tetris.json",
+      "artifact_sha256": "585e5b29303fcbe23e8f8b5414ea389ea6257c96f55fa64897661fe2e2b306e7",
+      "artifact_file_sha256": "7c40f5baab7926435b58d2992ae20ca4eb07e1c72a4b59d9e1e377cde3b8e576"
+    },
+    "candy_crush": {
+      "artifact": "runs/phase1_direct_prospective_v1/source_artifacts/candy_crush.json",
+      "artifact_sha256": "6f80cf4d4a8f4f5d9964680949bd55938d584165aab939b2f028c22649e2ea4d",
+      "artifact_file_sha256": "ebab70c63ade7ab5c888630cddb4c395f9f14eed5b460bf958de5095946369f2"
+    },
+    "gymv_columns": {
+      "artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_columns.json",
+      "artifact_sha256": "39c5194016c037072aaa4a82137a8d242ceda17ed7ccd72caf16b495784000d0",
+      "artifact_file_sha256": "0a47aa22c60266226132e667dbfaf16c03382ca03fd730d95afc751be878255e"
+    },
+    "gymv_streets_of_rage_2": {
+      "artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_streets_of_rage_2.json",
+      "artifact_sha256": "0811312fd98f697b572a72e5c1d2da4417ec6ec35c9db00e51d8f1bb4d1123d6",
+      "artifact_file_sha256": "a66acf806e6188a22782054520f00a1a8142e79874fef5b7f8cc42b9f82dbc54"
+    },
+    "gymv_thunder_force_iii": {
+      "artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_thunder_force_iii.json",
+      "artifact_sha256": "78ccd564e5453fa33a2b34eb2edf46263f025ec45eae2c1bbdf3017cc7d695d8",
+      "artifact_file_sha256": "0b52167b9259d6304950766e94d7e1a3d764ad241af1dfbff658fccc7cebb070"
+    },
+    "gymv_strider": {
+      "artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_strider.json",
+      "artifact_sha256": "9993c7b0d04d2e090f1b20f89b6c4b90f697a8b36f598869e45141a9b5b00ccf",
+      "artifact_file_sha256": "4d6aa2ce61c70c3023c41435d337925289cc9c0e179381e6285492f33a095c5e"
+    }
+  },
+  "target_grounder": "docs/results/webshop_neural_symbolic_v9_frozen_grounder.json",
+  "target_grounder_file_sha256": "bbf8a22ebec8e7ab6d55e570f230ba4fcb2b8630d1dc81bd24ba103f68701782",
+  "conditions": [
+    "raw_target_only",
+    "authentic_search_automaton_plus_target",
+    "event_binding_permuted_control",
+    "ledger_blind_control",
+    "target_native_search_ceiling"
+  ],
+  "tasks": [
+    {
+      "task_id": "webshop.1",
+      "target_identity": "webshop.synthetic.phase2.seed3398991865.index1.c8d323462b94cd14",
+      "server_goal_index": 1,
+      "asin": "B07FD13LP1",
+      "instruction_text": "Find me machine wash men's shorts with drawstring closure for tumble dry with color: wine, and size: x-large, and price lower than 40.00 dollars",
+      "goal": {
+        "asin": "B07FD13LP1",
+        "category": "fashion",
+        "query": "men's shorts",
+        "name": "The Establishment Men's Organic Cotton Fleece Short with Pocket(S to XXL)",
+        "product_category": "",
+        "instruction_text": "Find me machine wash men's shorts with drawstring closure for tumble dry with color: wine, and size: x-large, and price lower than 40.00 dollars",
+        "attributes": [
+          "machine wash",
+          "drawstring closure",
+          "tumble dry"
+        ],
+        "price_upper": 40.0,
+        "goal_options": {
+          "color": "wine",
+          "size": "x-large"
+        },
+        "weight": 0.004585396389618382
+      },
+      "goal_sha256": "c8d323462b94cd1479d6d14093f9fe7179207be8a2fe59b0d8560e89f34fc0c8",
+      "selected_target_previously_executed": false,
+      "source_game": "tetris",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/tetris.json",
+      "source_artifact_sha256": "585e5b29303fcbe23e8f8b5414ea389ea6257c96f55fa64897661fe2e2b306e7",
+      "source_artifact_file_sha256": "7c40f5baab7926435b58d2992ae20ca4eb07e1c72a4b59d9e1e377cde3b8e576"
+    },
+    {
+      "task_id": "webshop.4",
+      "target_identity": "webshop.synthetic.phase2.seed3398991865.index4.4d56c7a5307099b7",
+      "server_goal_index": 4,
+      "asin": "B004HO58MA",
+      "instruction_text": "Find me high speed digital cameras with optical zoom with color: red, and price lower than 140.00 dollars",
+      "goal": {
+        "asin": "B004HO58MA",
+        "category": "electronics",
+        "query": "digital cameras",
+        "name": "Fujifilm FinePix Z90 14 MP Digital Camera with Fujinon 5x Wide Angle Optical Zoom Lens and 3-Inch Touch-Screen LCD (Purple)",
+        "product_category": "Electronics › Camera & Photo › Digital Cameras › DSLR Cameras",
+        "instruction_text": "Find me high speed digital cameras with optical zoom with color: red, and price lower than 140.00 dollars",
+        "attributes": [
+          "high speed",
+          "optical zoom"
+        ],
+        "price_upper": 140.0,
+        "goal_options": {
+          "color": "red"
+        },
+        "weight": 0.17424242424242423
+      },
+      "goal_sha256": "4d56c7a5307099b713d7133b414d6526b9ae27fb4c333f300f7149d99afbc759",
+      "selected_target_previously_executed": false,
+      "source_game": "candy_crush",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/candy_crush.json",
+      "source_artifact_sha256": "6f80cf4d4a8f4f5d9964680949bd55938d584165aab939b2f028c22649e2ea4d",
+      "source_artifact_file_sha256": "ebab70c63ade7ab5c888630cddb4c395f9f14eed5b460bf958de5095946369f2"
+    },
+    {
+      "task_id": "webshop.6",
+      "target_identity": "webshop.synthetic.phase2.seed3398991865.index6.bfb9bcac224ac108",
+      "server_goal_index": 6,
+      "asin": "B09D42HCTN",
+      "instruction_text": "Find me 1080p hd, high definition projectors, and price lower than 170.00 dollars",
+      "goal": {
+        "asin": "B09D42HCTN",
+        "category": "electronics",
+        "query": "projectors",
+        "name": "01 Video Projector, LED Projector Outdoor 1080P HD White Multipurpose with Speaker for Home Theater for Movie for Game(U.S. regulations, Transl)",
+        "product_category": "Electronics › Video Projectors",
+        "instruction_text": "Find me 1080p hd, high definition projectors, and price lower than 170.00 dollars",
+        "attributes": [
+          "1080p hd",
+          "high definition"
+        ],
+        "price_upper": 170.0,
+        "goal_options": {},
+        "weight": 0.19642857142857142
+      },
+      "goal_sha256": "bfb9bcac224ac10832c9a8af003aba5f17f4507d90c61d29b8a7ac9826838d54",
+      "selected_target_previously_executed": false,
+      "source_game": "gymv_columns",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_columns.json",
+      "source_artifact_sha256": "39c5194016c037072aaa4a82137a8d242ceda17ed7ccd72caf16b495784000d0",
+      "source_artifact_file_sha256": "0a47aa22c60266226132e667dbfaf16c03382ca03fd730d95afc751be878255e"
+    },
+    {
+      "task_id": "webshop.9",
+      "target_identity": "webshop.synthetic.phase2.seed3398991865.index9.0df03cacd01ec4d5",
+      "server_goal_index": 9,
+      "asin": "B09B7ZKMVY",
+      "instruction_text": "Find me queen size, spot clean, easy clean mattresses with color: icey blue, and size: full, and style: contemporary, and price lower than 310.00 dollars",
+      "goal": {
+        "asin": "B09B7ZKMVY",
+        "category": "garden",
+        "query": "mattresses",
+        "name": "Trupedic x Mozaic - 10 inch Queen Size Standard Futon Mattress (Frame Not Included) | Basic Midnight Black | Great for Kid's Rooms or Guest Areas - Many Color Options",
+        "product_category": "Home & Kitchen › Furniture › Living Room Furniture › Futons › Futon Mattresses",
+        "instruction_text": "Find me queen size, spot clean, easy clean mattresses with color: icey blue, and size: full, and style: contemporary, and price lower than 310.00 dollars",
+        "attributes": [
+          "queen size",
+          "spot clean",
+          "easy clean"
+        ],
+        "price_upper": 310.0,
+        "goal_options": {
+          "color": "icey blue",
+          "size": "full",
+          "style": "contemporary"
+        },
+        "weight": 0.04196142237313714
+      },
+      "goal_sha256": "0df03cacd01ec4d5e171d9c9a93bf57dec6f82b326130e7c70422b80d6f5a0f7",
+      "selected_target_previously_executed": false,
+      "source_game": "gymv_streets_of_rage_2",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_streets_of_rage_2.json",
+      "source_artifact_sha256": "0811312fd98f697b572a72e5c1d2da4417ec6ec35c9db00e51d8f1bb4d1123d6",
+      "source_artifact_file_sha256": "a66acf806e6188a22782054520f00a1a8142e79874fef5b7f8cc42b9f82dbc54"
+    },
+    {
+      "task_id": "webshop.12",
+      "target_identity": "webshop.synthetic.phase2.seed3398991865.index12.185f62c19a8edf4c",
+      "server_goal_index": 12,
+      "asin": "B09RPRRNVP",
+      "instruction_text": "Find me open toe, slip resistant women's work & safety footwear with arch support, high heel, ankle strap, memory foam with color: grey, and size: 9, and price lower than 40.00 dollars",
+      "goal": {
+        "asin": "B09RPRRNVP",
+        "category": "fashion",
+        "query": "women's work & safety footwear",
+        "name": "ZSWWang Slip On Sneakers Flats Shoes for Women Walking Sock Shoes Lightweight Breathable Mesh Knit Yoga Sneakers Fashion Casual Comfortable Platform Wedge Work Outdoor Walking Sports Shoes",
+        "product_category": "Clothing, Shoes & Jewelry › Women › Shoes › Athletic › Walking",
+        "instruction_text": "Find me open toe, slip resistant women's work & safety footwear with arch support, high heel, ankle strap, memory foam with color: grey, and size: 9, and price lower than 40.00 dollars",
+        "attributes": [
+          "open toe",
+          "slip resistant",
+          "arch support",
+          "high heel",
+          "ankle strap",
+          "memory foam"
+        ],
+        "price_upper": 40.0,
+        "goal_options": {
+          "color": "grey",
+          "size": "9"
+        },
+        "weight": 0.010234892080811731
+      },
+      "goal_sha256": "185f62c19a8edf4c5aaf1817a0ffd2685118f257b13f4adf62e881afd92cf02c",
+      "selected_target_previously_executed": false,
+      "source_game": "gymv_thunder_force_iii",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_thunder_force_iii.json",
+      "source_artifact_sha256": "78ccd564e5453fa33a2b34eb2edf46263f025ec45eae2c1bbdf3017cc7d695d8",
+      "source_artifact_file_sha256": "0b52167b9259d6304950766e94d7e1a3d764ad241af1dfbff658fccc7cebb070"
+    },
+    {
+      "task_id": "webshop.16",
+      "target_identity": "webshop.synthetic.phase2.seed3398991865.index16.6e293fb850100832",
+      "server_goal_index": 16,
+      "asin": "B095KCTB3Y",
+      "instruction_text": "Find me non slip, easy clean computer armoires with pu leather with color: white, and size: 60x40cm, and price lower than 70.00 dollars",
+      "goal": {
+        "asin": "B095KCTB3Y",
+        "category": "garden",
+        "query": "computer armoires",
+        "name": "Office Desk Pad, Writing Mat with Full Grip Fixation Lip, Non-Slip PU Leather Table Blotter Desk Protector Gaming Mat Laptop Keyboard Working Mat, Waterproof Table Protective Pad",
+        "product_category": "Office Products › Office & School Supplies › Desk Accessories & Workspace Organizers › Desk Pads & Blotters",
+        "instruction_text": "Find me non slip, easy clean computer armoires with pu leather with color: white, and size: 60x40cm, and price lower than 70.00 dollars",
+        "attributes": [
+          "non slip",
+          "easy clean",
+          "pu leather"
+        ],
+        "price_upper": 70.0,
+        "goal_options": {
+          "color": "white",
+          "size": "60x40cm"
+        },
+        "weight": 0.012524727265605108
+      },
+      "goal_sha256": "6e293fb850100832740832623706a5bb1279e983e0241dae9e07460ec84f57fd",
+      "selected_target_previously_executed": false,
+      "source_game": "gymv_strider",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_strider.json",
+      "source_artifact_sha256": "9993c7b0d04d2e090f1b20f89b6c4b90f697a8b36f598869e45141a9b5b00ccf",
+      "source_artifact_file_sha256": "4d6aa2ce61c70c3023c41435d337925289cc9c0e179381e6285492f33a095c5e"
+    },
+    {
+      "task_id": "webshop.21",
+      "target_identity": "webshop.synthetic.phase2.seed3398991865.index21.55ebdd3a811f5ef3",
+      "server_goal_index": 21,
+      "asin": "B099WX3CV5",
+      "instruction_text": "Find me slim fit, machine wash women's jumpsuits, rompers & overalls with short sleeve, high waist, polyester spandex for daily wear with color: tie dye pink, and size: medium, and price lower than 50.00 dollars",
+      "goal": {
+        "asin": "B099WX3CV5",
+        "category": "fashion",
+        "query": "women's jumpsuits, rompers & overalls",
+        "name": "Women Aesthetic Short Sleeve Jumpsuit Bodycon Sexy V Neck Button Shorts Rompers Knitted One Piece Bodysuit Overall",
+        "product_category": "Clothing, Shoes & Jewelry › Women › Clothing › Jumpsuits, Rompers & Overalls › Jumpsuits",
+        "instruction_text": "Find me slim fit, machine wash women's jumpsuits, rompers & overalls with short sleeve, high waist, polyester spandex for daily wear with color: tie dye pink, and size: medium, and price lower than 50.00 dollars",
+        "attributes": [
+          "slim fit",
+          "machine wash",
+          "short sleeve",
+          "high waist",
+          "polyester spandex",
+          "daily wear"
+        ],
+        "price_upper": 50.0,
+        "goal_options": {
+          "color": "tie dye pink",
+          "size": "medium"
+        },
+        "weight": 0.0019367444148733742
+      },
+      "goal_sha256": "55ebdd3a811f5ef3da624da9dd96e5b792e313a0dee1f2da0cb08d87f4692182",
+      "selected_target_previously_executed": false,
+      "source_game": "tetris",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/tetris.json",
+      "source_artifact_sha256": "585e5b29303fcbe23e8f8b5414ea389ea6257c96f55fa64897661fe2e2b306e7",
+      "source_artifact_file_sha256": "7c40f5baab7926435b58d2992ae20ca4eb07e1c72a4b59d9e1e377cde3b8e576"
+    },
+    {
+      "task_id": "webshop.32",
+      "target_identity": "webshop.synthetic.phase2.seed3398991865.index32.24883c6b159de659",
+      "server_goal_index": 32,
+      "asin": "B07F2G93BJ",
+      "instruction_text": "Find me slim fit, machine wash men's casual button-down shirts with button closure, long sleeve with color: blue, and size: small, and price lower than 50.00 dollars",
+      "goal": {
+        "asin": "B07F2G93BJ",
+        "category": "fashion",
+        "query": "men's casual button-down shirts",
+        "name": "Amazon Essentials Men's Slim-fit Long-Sleeve Solid Pocket Oxford Shirt",
+        "product_category": "Clothing, Shoes & Jewelry › Men › Clothing › Shirts › Casual Button-Down Shirts",
+        "instruction_text": "Find me slim fit, machine wash men's casual button-down shirts with button closure, long sleeve with color: blue, and size: small, and price lower than 50.00 dollars",
+        "attributes": [
+          "slim fit",
+          "machine wash",
+          "button closure",
+          "long sleeve"
+        ],
+        "price_upper": 50.0,
+        "goal_options": {
+          "color": "blue",
+          "size": "small"
+        },
+        "weight": 0.001377917922010289
+      },
+      "goal_sha256": "24883c6b159de6598cb6cc2dce76f35ab86a712db7841206de0f0494443287f2",
+      "selected_target_previously_executed": false,
+      "source_game": "candy_crush",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/candy_crush.json",
+      "source_artifact_sha256": "6f80cf4d4a8f4f5d9964680949bd55938d584165aab939b2f028c22649e2ea4d",
+      "source_artifact_file_sha256": "ebab70c63ade7ab5c888630cddb4c395f9f14eed5b460bf958de5095946369f2"
+    },
+    {
+      "task_id": "webshop.39",
+      "target_identity": "webshop.synthetic.phase2.seed3398991865.index39.3e1a4148f4dbe713",
+      "server_goal_index": 39,
+      "asin": "B07XDRVVYM",
+      "instruction_text": "Find me women's sandals with arch support, rubber outsole, rubber sole with color: navy combi, and size: 8.5, and price lower than 110.00 dollars",
+      "goal": {
+        "asin": "B07XDRVVYM",
+        "category": "fashion",
+        "query": "women's sandals",
+        "name": "Clarks Women's Un Adorn Sling Sandal",
+        "product_category": "Clothing, Shoes & Jewelry › Women › Shoes › Sandals › Platforms & Wedges",
+        "instruction_text": "Find me women's sandals with arch support, rubber outsole, rubber sole with color: navy combi, and size: 8.5, and price lower than 110.00 dollars",
+        "attributes": [
+          "arch support",
+          "rubber outsole",
+          "rubber sole"
+        ],
+        "price_upper": 110.0,
+        "goal_options": {
+          "color": "navy combi",
+          "size": "8.5"
+        },
+        "weight": 0.003853628237984253
+      },
+      "goal_sha256": "3e1a4148f4dbe713a5829e9d351316ca6bfcb41585893f74adecb1be9c3fce96",
+      "selected_target_previously_executed": false,
+      "source_game": "gymv_columns",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_columns.json",
+      "source_artifact_sha256": "39c5194016c037072aaa4a82137a8d242ceda17ed7ccd72caf16b495784000d0",
+      "source_artifact_file_sha256": "0a47aa22c60266226132e667dbfaf16c03382ca03fd730d95afc751be878255e"
+    },
+    {
+      "task_id": "webshop.44",
+      "target_identity": "webshop.synthetic.phase2.seed3398991865.index44.d12a40dd0bcf096d",
+      "server_goal_index": 44,
+      "asin": "B09QQP3356",
+      "instruction_text": "Find me slim fit, hand wash, machine wash men's tuxedo shirts with short sleeve, regular fit, long sleeve, polyester cotton for gym workout with color: light blue, and size: xx-large, and price lower than 50.00 dollars",
+      "goal": {
+        "asin": "B09QQP3356",
+        "category": "fashion",
+        "query": "men's tuxedo shirts",
+        "name": "HAUKLIE Men's Sports Waffle Ribbed Polo Shirts Summer Short Sleeve Cotton Muscle Quarter-Zip Henley T-Shirt Tunics Tops",
+        "product_category": "Clothing, Shoes & Jewelry › Men › Clothing › Shirts › Henleys",
+        "instruction_text": "Find me slim fit, hand wash, machine wash men's tuxedo shirts with short sleeve, regular fit, long sleeve, polyester cotton for gym workout with color: light blue, and size: xx-large, and price lower than 50.00 dollars",
+        "attributes": [
+          "slim fit",
+          "hand wash",
+          "machine wash",
+          "short sleeve",
+          "regular fit",
+          "long sleeve",
+          "polyester cotton",
+          "gym workout"
+        ],
+        "price_upper": 50.0,
+        "goal_options": {
+          "color": "light blue",
+          "size": "xx-large"
+        },
+        "weight": 0.004104005286605479
+      },
+      "goal_sha256": "d12a40dd0bcf096db78a58ada8227a66f193f9151cb5ad5a3a9c4beec6a6b50b",
+      "selected_target_previously_executed": false,
+      "source_game": "gymv_streets_of_rage_2",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_streets_of_rage_2.json",
+      "source_artifact_sha256": "0811312fd98f697b572a72e5c1d2da4417ec6ec35c9db00e51d8f1bb4d1123d6",
+      "source_artifact_file_sha256": "a66acf806e6188a22782054520f00a1a8142e79874fef5b7f8cc42b9f82dbc54"
+    },
+    {
+      "task_id": "webshop.53",
+      "target_identity": "webshop.synthetic.phase2.seed3398991865.index53.f89fb43cd3ea741e",
+      "server_goal_index": 53,
+      "asin": "B08ZB1MN8D",
+      "instruction_text": "Find me long lasting, easy care, machine washable men's pants with elastic waistband with color: black-eclipse, and size: small, and price lower than 60.00 dollars",
+      "goal": {
+        "asin": "B08ZB1MN8D",
+        "category": "fashion",
+        "query": "men's pants",
+        "name": "Unipro Mens Jogger Pants 2 Pack Tech Fleece Sweatpants Lightweight Running Pant for Men",
+        "product_category": "Clothing, Shoes & Jewelry › Men › Clothing › Active › Active Pants › Sweatpants",
+        "instruction_text": "Find me long lasting, easy care, machine washable men's pants with elastic waistband with color: black-eclipse, and size: small, and price lower than 60.00 dollars",
+        "attributes": [
+          "long lasting",
+          "easy care",
+          "machine washable",
+          "elastic waistband"
+        ],
+        "price_upper": 60.0,
+        "goal_options": {
+          "color": "black-eclipse",
+          "size": "small"
+        },
+        "weight": 0.027791258437922343
+      },
+      "goal_sha256": "f89fb43cd3ea741ee4aa10893190d927cb805985f864b887873b4be9c60c8cc6",
+      "selected_target_previously_executed": false,
+      "source_game": "gymv_thunder_force_iii",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_thunder_force_iii.json",
+      "source_artifact_sha256": "78ccd564e5453fa33a2b34eb2edf46263f025ec45eae2c1bbdf3017cc7d695d8",
+      "source_artifact_file_sha256": "0b52167b9259d6304950766e94d7e1a3d764ad241af1dfbff658fccc7cebb070"
+    },
+    {
+      "task_id": "webshop.56",
+      "target_identity": "webshop.synthetic.phase2.seed3398991865.index56.b233345515d34e3a",
+      "server_goal_index": 56,
+      "asin": "B08QSNM69H",
+      "instruction_text": "Find me blu ray, gold plated, high speed, heavy duty hdmi cables with color: green braided, and size: 10-pack, and price lower than 50.00 dollars",
+      "goal": {
+        "asin": "B08QSNM69H",
+        "category": "electronics",
+        "query": "hdmi cables",
+        "name": "4K HDMI Cables, Short Cord, 1ft [3 Pack] Braided Cord & Gold Connectors, 1ft High-Speed HDMI 2.0 with Ethernet, for Playstation PS5, PS4, PS3, Xbox, Roku, Apple TV, HDTV, Blu-ray, Laptop, PC, Monitor",
+        "product_category": "Electronics › Accessories & Supplies › Audio & Video Accessories › Cables & Interconnects › Video Cables › HDMI Cables",
+        "instruction_text": "Find me blu ray, gold plated, high speed, heavy duty hdmi cables with color: green braided, and size: 10-pack, and price lower than 50.00 dollars",
+        "attributes": [
+          "blu ray",
+          "gold plated",
+          "high speed",
+          "heavy duty"
+        ],
+        "price_upper": 50.0,
+        "goal_options": {
+          "color": "green braided",
+          "size": "10-pack"
+        },
+        "weight": 0.029619107744107743
+      },
+      "goal_sha256": "b233345515d34e3a3f58bd85d7f9aa17e9f4922f6f663972e1e2ece8a2426469",
+      "selected_target_previously_executed": false,
+      "source_game": "gymv_strider",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_strider.json",
+      "source_artifact_sha256": "9993c7b0d04d2e090f1b20f89b6c4b90f697a8b36f598869e45141a9b5b00ccf",
+      "source_artifact_file_sha256": "4d6aa2ce61c70c3023c41435d337925289cc9c0e179381e6285492f33a095c5e"
+    },
+    {
+      "task_id": "webshop.58",
+      "target_identity": "webshop.synthetic.phase2.seed3398991865.index58.51208a8d0828cf1e",
+      "server_goal_index": 58,
+      "asin": "B07XPR3R7N",
+      "instruction_text": "Find me officially licensed men's t-shirts & tanks with needle sleeve, classic fit with color: heather grey, and fit type: women, and size: small, and price lower than 60.00 dollars",
+      "goal": {
+        "asin": "B07XPR3R7N",
+        "category": "fashion",
+        "query": "men's t-shirts & tanks",
+        "name": "Marvel Avengers: Endgame Captain America America's Language T-Shirt",
+        "product_category": "Clothing, Shoes & Jewelry › Novelty & More › Clothing › Novelty › Women › Tops & Tees › T-Shirts",
+        "instruction_text": "Find me officially licensed men's t-shirts & tanks with needle sleeve, classic fit with color: heather grey, and fit type: women, and size: small, and price lower than 60.00 dollars",
+        "attributes": [
+          "officially licensed",
+          "needle sleeve",
+          "classic fit"
+        ],
+        "price_upper": 60.0,
+        "goal_options": {
+          "color": "heather grey",
+          "fit type": "women",
+          "size": "small"
+        },
+        "weight": 0.0017142308285165641
+      },
+      "goal_sha256": "51208a8d0828cf1ecc65292f430a3d6223b4165433b05906f88200597f46d81e",
+      "selected_target_previously_executed": false,
+      "source_game": "tetris",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/tetris.json",
+      "source_artifact_sha256": "585e5b29303fcbe23e8f8b5414ea389ea6257c96f55fa64897661fe2e2b306e7",
+      "source_artifact_file_sha256": "7c40f5baab7926435b58d2992ae20ca4eb07e1c72a4b59d9e1e377cde3b8e576"
+    },
+    {
+      "task_id": "webshop.62",
+      "target_identity": "webshop.synthetic.phase2.seed3398991865.index62.6be41292238313a2",
+      "server_goal_index": 62,
+      "asin": "B085WQKRRJ",
+      "instruction_text": "Find me slim fit, wash cold, hand wash, machine wash men's henleys with short sleeve, regular fit with color: red, and size: medium, and price lower than 40.00 dollars",
+      "goal": {
+        "asin": "B085WQKRRJ",
+        "category": "fashion",
+        "query": "men's henleys",
+        "name": "CLANMILUMS Men's Classic Comfort Soft Regular Fit Short Sleeve Henley T-Shirt Tee",
+        "product_category": "Clothing, Shoes & Jewelry › Men › Clothing › Shirts › Henleys",
+        "instruction_text": "Find me slim fit, wash cold, hand wash, machine wash men's henleys with short sleeve, regular fit with color: red, and size: medium, and price lower than 40.00 dollars",
+        "attributes": [
+          "slim fit",
+          "wash cold",
+          "hand wash",
+          "machine wash",
+          "short sleeve",
+          "regular fit"
+        ],
+        "price_upper": 40.0,
+        "goal_options": {
+          "color": "red",
+          "size": "medium"
+        },
+        "weight": 0.002628963959903525
+      },
+      "goal_sha256": "6be41292238313a2e0ca685dd12d7611dc79759b8fcb2b39b37cb9bf4dca67a6",
+      "selected_target_previously_executed": false,
+      "source_game": "candy_crush",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/candy_crush.json",
+      "source_artifact_sha256": "6f80cf4d4a8f4f5d9964680949bd55938d584165aab939b2f028c22649e2ea4d",
+      "source_artifact_file_sha256": "ebab70c63ade7ab5c888630cddb4c395f9f14eed5b460bf958de5095946369f2"
+    },
+    {
+      "task_id": "webshop.64",
+      "target_identity": "webshop.synthetic.phase2.seed3398991865.index64.fae3beabbca19697",
+      "server_goal_index": 64,
+      "asin": "B08FQTMCNM",
+      "instruction_text": "Find me height adjustable, assembly required bases with pu leather, faux leather with color: white, and style: pu leather, and price lower than 120.00 dollars",
+      "goal": {
+        "asin": "B08FQTMCNM",
+        "category": "garden",
+        "query": "bases",
+        "name": "Yaheetech Swivel Accent Chair Height Adjustable Modern Round Back Tilt Chair with Chrome Frame for Lounge, Pub, Bar - Dark Grey",
+        "product_category": "Home & Kitchen › Furniture › Living Room Furniture › Chairs",
+        "instruction_text": "Find me height adjustable, assembly required bases with pu leather, faux leather with color: white, and style: pu leather, and price lower than 120.00 dollars",
+        "attributes": [
+          "height adjustable",
+          "assembly required",
+          "pu leather",
+          "faux leather"
+        ],
+        "price_upper": 120.0,
+        "goal_options": {
+          "color": "white",
+          "style": "pu leather"
+        },
+        "weight": 0.03154264214046823
+      },
+      "goal_sha256": "fae3beabbca19697f282100c3b83079f41f45e4c6d894e93e25f0ac8adfb90ba",
+      "selected_target_previously_executed": false,
+      "source_game": "gymv_columns",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_columns.json",
+      "source_artifact_sha256": "39c5194016c037072aaa4a82137a8d242ceda17ed7ccd72caf16b495784000d0",
+      "source_artifact_file_sha256": "0a47aa22c60266226132e667dbfaf16c03382ca03fd730d95afc751be878255e"
+    },
+    {
+      "task_id": "webshop.73",
+      "target_identity": "webshop.synthetic.phase2.seed3398991865.index73.bf70814b7938180b",
+      "server_goal_index": 73,
+      "asin": "B07MGB73NJ",
+      "instruction_text": "Find me machine wash women's tops, tees & blouses with short sleeve, unique design, relaxed fit, button closure, polyester spandex with color: black, and size: xx-large, and price lower than 40.00 dollars",
+      "goal": {
+        "asin": "B07MGB73NJ",
+        "category": "fashion",
+        "query": "women's tops, tees & blouses",
+        "name": "Viracy Women's Short Sleeve V-Neck Casual Flowy Tunic Shirt (M-3XL)",
+        "product_category": "",
+        "instruction_text": "Find me machine wash women's tops, tees & blouses with short sleeve, unique design, relaxed fit, button closure, polyester spandex with color: black, and size: xx-large, and price lower than 40.00 dollars",
+        "attributes": [
+          "machine wash",
+          "short sleeve",
+          "unique design",
+          "relaxed fit",
+          "button closure",
+          "polyester spandex"
+        ],
+        "price_upper": 40.0,
+        "goal_options": {
+          "color": "black",
+          "size": "xx-large"
+        },
+        "weight": 0.0033373485494731267
+      },
+      "goal_sha256": "bf70814b7938180b54817ff8da422556b05da882df505188b147c265f2fe38b2",
+      "selected_target_previously_executed": false,
+      "source_game": "gymv_streets_of_rage_2",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_streets_of_rage_2.json",
+      "source_artifact_sha256": "0811312fd98f697b572a72e5c1d2da4417ec6ec35c9db00e51d8f1bb4d1123d6",
+      "source_artifact_file_sha256": "a66acf806e6188a22782054520f00a1a8142e79874fef5b7f8cc42b9f82dbc54"
+    },
+    {
+      "task_id": "webshop.78",
+      "target_identity": "webshop.synthetic.phase2.seed3398991865.index78.e2f093c8dea1907f",
+      "server_goal_index": 78,
+      "asin": "B09QGK5XHZ",
+      "instruction_text": "Find me slim fit men's tuxedo shirts with long sleeve, and price lower than 30.00 dollars",
+      "goal": {
+        "asin": "B09QGK5XHZ",
+        "category": "fashion",
+        "query": "men's tuxedo shirts",
+        "name": "WENKOMG1 Men's Long Sleeve Undershirt with Mask Turtleneck Hooded T-Shirt Solid Color Workout Tops Zipper Side Slit Shirts Slim Fit Sweatshirt Spring/Summer Tee Shirts(Gray,)",
+        "product_category": "Clothing, Shoes & Jewelry › Men › Clothing › Active › Active Shirts & Tees",
+        "instruction_text": "Find me slim fit men's tuxedo shirts with long sleeve, and price lower than 30.00 dollars",
+        "attributes": [
+          "slim fit",
+          "long sleeve"
+        ],
+        "price_upper": 30.0,
+        "goal_options": {},
+        "weight": 0.0011762417635911612
+      },
+      "goal_sha256": "e2f093c8dea1907f5750ebb6b2b443804f99aa13b6acc5e91f63dde7956df502",
+      "selected_target_previously_executed": false,
+      "source_game": "gymv_thunder_force_iii",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_thunder_force_iii.json",
+      "source_artifact_sha256": "78ccd564e5453fa33a2b34eb2edf46263f025ec45eae2c1bbdf3017cc7d695d8",
+      "source_artifact_file_sha256": "0b52167b9259d6304950766e94d7e1a3d764ad241af1dfbff658fccc7cebb070"
+    },
+    {
+      "task_id": "webshop.99",
+      "target_identity": "webshop.synthetic.phase2.seed3398991865.index99.ee16b89e01f089aa",
+      "server_goal_index": 99,
+      "asin": "B07N7TDKXQ",
+      "instruction_text": "Find me machine washable men's t-shirts with short sleeve for tumble dry with color: 36 pack mix, and size: x-large, and price lower than 150.00 dollars",
+      "goal": {
+        "asin": "B07N7TDKXQ",
+        "category": "fashion",
+        "query": "men's t-shirts",
+        "name": "SOCKS'NBULK Mens Cotton Crew Neck Short Sleeve T-Shirts Mix Colors Bulk",
+        "product_category": "Clothing, Shoes & Jewelry › Men › Clothing › Underwear › Undershirts",
+        "instruction_text": "Find me machine washable men's t-shirts with short sleeve for tumble dry with color: 36 pack mix, and size: x-large, and price lower than 150.00 dollars",
+        "attributes": [
+          "machine washable",
+          "short sleeve",
+          "tumble dry"
+        ],
+        "price_upper": 150.0,
+        "goal_options": {
+          "color": "36 pack mix",
+          "size": "x-large"
+        },
+        "weight": 0.0036512437007267975
+      },
+      "goal_sha256": "ee16b89e01f089aa245bcf6e18a97399ca2b5fc153a29ca08274c15ae79784c3",
+      "selected_target_previously_executed": false,
+      "source_game": "gymv_strider",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_strider.json",
+      "source_artifact_sha256": "9993c7b0d04d2e090f1b20f89b6c4b90f697a8b36f598869e45141a9b5b00ccf",
+      "source_artifact_file_sha256": "4d6aa2ce61c70c3023c41435d337925289cc9c0e179381e6285492f33a095c5e"
+    },
+    {
+      "task_id": "webshop.110",
+      "target_identity": "webshop.synthetic.phase2.seed3398991865.index110.8c2688511bc3d022",
+      "server_goal_index": 110,
+      "asin": "B09JT3Z6JV",
+      "instruction_text": "Find me high quality, teeth whitening children's dental care with quality materials for sensitive teeth with color: blue-donut, and price lower than 40.00 dollars",
+      "goal": {
+        "asin": "B09JT3Z6JV",
+        "category": "beauty",
+        "query": "children's dental care",
+        "name": "Hoomall Kids U-Shaped Toothbrush, Manual Toothbrush with U-Shaped Bristles Food Grade Silicone Toothbrush Head, 360° Oral Teeth Cleaning Design for Toddlers and Children(Blue-Dinosaur，9545mm)",
+        "product_category": "Beauty & Personal Care › Oral Care › Toothbrushes & Accessories › Manual Toothbrushes",
+        "instruction_text": "Find me high quality, teeth whitening children's dental care with quality materials for sensitive teeth with color: blue-donut, and price lower than 40.00 dollars",
+        "attributes": [
+          "high quality",
+          "teeth whitening",
+          "quality materials",
+          "sensitive teeth"
+        ],
+        "price_upper": 40.0,
+        "goal_options": {
+          "color": "blue-donut"
+        },
+        "weight": 0.059624868623170825
+      },
+      "goal_sha256": "8c2688511bc3d02223dad294ee5256c01bd92137bd507a10c47ec5ba141c057e",
+      "selected_target_previously_executed": false,
+      "source_game": "tetris",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/tetris.json",
+      "source_artifact_sha256": "585e5b29303fcbe23e8f8b5414ea389ea6257c96f55fa64897661fe2e2b306e7",
+      "source_artifact_file_sha256": "7c40f5baab7926435b58d2992ae20ca4eb07e1c72a4b59d9e1e377cde3b8e576"
+    },
+    {
+      "task_id": "webshop.111",
+      "target_identity": "webshop.synthetic.phase2.seed3398991865.index111.09ed677f3a91fc46",
+      "server_goal_index": 111,
+      "asin": "B07DKGJR74",
+      "instruction_text": "Find me women's sweaters with relaxed fit, long sleeve with color: burgundy, and size: large, and price lower than 50.00 dollars",
+      "goal": {
+        "asin": "B07DKGJR74",
+        "category": "fashion",
+        "query": "women's sweaters",
+        "name": "Amazon Brand - Daily Ritual Women's 100% Cotton Oversized Fit V-Neck Pullover Sweater",
+        "product_category": "Clothing, Shoes & Jewelry › Women › Clothing › Sweaters › Pullovers",
+        "instruction_text": "Find me women's sweaters with relaxed fit, long sleeve with color: burgundy, and size: large, and price lower than 50.00 dollars",
+        "attributes": [
+          "relaxed fit",
+          "long sleeve"
+        ],
+        "price_upper": 50.0,
+        "goal_options": {
+          "color": "burgundy",
+          "size": "large"
+        },
+        "weight": 0.002224053512221451
+      },
+      "goal_sha256": "09ed677f3a91fc468c79ba9b9c50d429c0f10c9591c120c1dcb05b8867dbdc92",
+      "selected_target_previously_executed": false,
+      "source_game": "candy_crush",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/candy_crush.json",
+      "source_artifact_sha256": "6f80cf4d4a8f4f5d9964680949bd55938d584165aab939b2f028c22649e2ea4d",
+      "source_artifact_file_sha256": "ebab70c63ade7ab5c888630cddb4c395f9f14eed5b460bf958de5095946369f2"
+    },
+    {
+      "task_id": "webshop.115",
+      "target_identity": "webshop.synthetic.phase2.seed3398991865.index115.cbe2cbf2692c669e",
+      "server_goal_index": 115,
+      "asin": "B09B2HN6NN",
+      "instruction_text": "Find me machine wash men's pants with drawstring closure, elastic waist, polyester spandex with color: gray, and size: 3x-large, and price lower than 20.00 dollars",
+      "goal": {
+        "asin": "B09B2HN6NN",
+        "category": "fashion",
+        "query": "men's pants",
+        "name": "Men's 3/4 Workout Training Jogger Capri Pants Running Track Sweatpants Shorts with Pockets Summer Casual Sports Pants",
+        "product_category": "Clothing, Shoes & Jewelry › Men › Clothing › Active › Active Pants",
+        "instruction_text": "Find me machine wash men's pants with drawstring closure, elastic waist, polyester spandex with color: gray, and size: 3x-large, and price lower than 20.00 dollars",
+        "attributes": [
+          "machine wash",
+          "drawstring closure",
+          "elastic waist",
+          "polyester spandex"
+        ],
+        "price_upper": 20.0,
+        "goal_options": {
+          "color": "gray",
+          "size": "3x-large"
+        },
+        "weight": 0.0034358886190823824
+      },
+      "goal_sha256": "cbe2cbf2692c669e1347683af023a3d2525eb20ba846f3b6294eb1ef4488f5da",
+      "selected_target_previously_executed": false,
+      "source_game": "gymv_columns",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_columns.json",
+      "source_artifact_sha256": "39c5194016c037072aaa4a82137a8d242ceda17ed7ccd72caf16b495784000d0",
+      "source_artifact_file_sha256": "0a47aa22c60266226132e667dbfaf16c03382ca03fd730d95afc751be878255e"
+    },
+    {
+      "task_id": "webshop.117",
+      "target_identity": "webshop.synthetic.phase2.seed3398991865.index117.f9bc3ca6ed149297",
+      "server_goal_index": 117,
+      "asin": "B09RK77R3V",
+      "instruction_text": "Find me butt lifting, machine washable, hand wash men's shorts with short sleeve, elastic waistband with color: black, and size: 4x, and price lower than 40.00 dollars",
+      "goal": {
+        "asin": "B09RK77R3V",
+        "category": "fashion",
+        "query": "men's shorts",
+        "name": "Gym Shorts For Men Quick Dry Lightweight Training Running Jogger Drawstring Pockets Solid Zipper Shorts",
+        "product_category": "",
+        "instruction_text": "Find me butt lifting, machine washable, hand wash men's shorts with short sleeve, elastic waistband with color: black, and size: 4x, and price lower than 40.00 dollars",
+        "attributes": [
+          "butt lifting",
+          "machine washable",
+          "hand wash",
+          "short sleeve",
+          "elastic waistband"
+        ],
+        "price_upper": 40.0,
+        "goal_options": {
+          "color": "black",
+          "size": "4x"
+        },
+        "weight": 0.005032334491579875
+      },
+      "goal_sha256": "f9bc3ca6ed1492979db550b531974860ac78f335a38c3ef67429c8ef52b9cded",
+      "selected_target_previously_executed": false,
+      "source_game": "gymv_streets_of_rage_2",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_streets_of_rage_2.json",
+      "source_artifact_sha256": "0811312fd98f697b572a72e5c1d2da4417ec6ec35c9db00e51d8f1bb4d1123d6",
+      "source_artifact_file_sha256": "a66acf806e6188a22782054520f00a1a8142e79874fef5b7f8cc42b9f82dbc54"
+    },
+    {
+      "task_id": "webshop.121",
+      "target_identity": "webshop.synthetic.phase2.seed3398991865.index121.671f04d615f8c5ec",
+      "server_goal_index": 121,
+      "asin": "B08G8DXR5N",
+      "instruction_text": "Find me hand wash, machine wash women's activewear with nylon spandex with color: pink, and size: medium, and price lower than 30.00 dollars",
+      "goal": {
+        "asin": "B08G8DXR5N",
+        "category": "fashion",
+        "query": "women's activewear",
+        "name": "Beninos Sports Bras for Women - Activewear Tops for Yoga Running Fitness",
+        "product_category": "Clothing, Shoes & Jewelry › Women › Clothing › Lingerie, Sleep & Lounge › Lingerie › Bras › Sports Bras",
+        "instruction_text": "Find me hand wash, machine wash women's activewear with nylon spandex with color: pink, and size: medium, and price lower than 30.00 dollars",
+        "attributes": [
+          "hand wash",
+          "machine wash",
+          "nylon spandex"
+        ],
+        "price_upper": 30.0,
+        "goal_options": {
+          "color": "pink",
+          "size": "medium"
+        },
+        "weight": 0.009004160560580794
+      },
+      "goal_sha256": "671f04d615f8c5ec9456f41271ea6c0506e98f0f662b4ee32c162c01058d8c7a",
+      "selected_target_previously_executed": false,
+      "source_game": "gymv_thunder_force_iii",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_thunder_force_iii.json",
+      "source_artifact_sha256": "78ccd564e5453fa33a2b34eb2edf46263f025ec45eae2c1bbdf3017cc7d695d8",
+      "source_artifact_file_sha256": "0b52167b9259d6304950766e94d7e1a3d764ad241af1dfbff658fccc7cebb070"
+    },
+    {
+      "task_id": "webshop.124",
+      "target_identity": "webshop.synthetic.phase2.seed3398991865.index124.9e8212d6fc99813c",
+      "server_goal_index": 124,
+      "asin": "B096P77XMD",
+      "instruction_text": "Find me men's shorts with comfortable fit, elastic waistband for gym workout, daily wear with color: blue, and size: xx-large, and price lower than 40.00 dollars",
+      "goal": {
+        "asin": "B096P77XMD",
+        "category": "fashion",
+        "query": "men's shorts",
+        "name": "Runhit 2 in 1 Men’s Running Shorts 5\" Quick Dry Workout Shorts for Men with Pockets Gym Athletic Shorts",
+        "product_category": "Clothing, Shoes & Jewelry › Men › Clothing › Active › Active Shorts",
+        "instruction_text": "Find me men's shorts with comfortable fit, elastic waistband for gym workout, daily wear with color: blue, and size: xx-large, and price lower than 40.00 dollars",
+        "attributes": [
+          "comfortable fit",
+          "elastic waistband",
+          "gym workout",
+          "daily wear"
+        ],
+        "price_upper": 40.0,
+        "goal_options": {
+          "color": "blue",
+          "size": "xx-large"
+        },
+        "weight": 0.012052128692907506
+      },
+      "goal_sha256": "9e8212d6fc99813c4f22eaae8b46fb892b7370fdd4f7a02a679eef4cf38d6c4d",
+      "selected_target_previously_executed": false,
+      "source_game": "gymv_strider",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_strider.json",
+      "source_artifact_sha256": "9993c7b0d04d2e090f1b20f89b6c4b90f697a8b36f598869e45141a9b5b00ccf",
+      "source_artifact_file_sha256": "4d6aa2ce61c70c3023c41435d337925289cc9c0e179381e6285492f33a095c5e"
+    },
+    {
+      "task_id": "webshop.129",
+      "target_identity": "webshop.synthetic.phase2.seed3398991865.index129.49ce75e0c67c7dd4",
+      "server_goal_index": 129,
+      "asin": "B0851Y9BDC",
+      "instruction_text": "Find me heavy duty china cabinets with stainless steel with size: 23'' x 5'' set, and price lower than 90.00 dollars",
+      "goal": {
+        "asin": "B0851Y9BDC",
+        "category": "garden",
+        "query": "china cabinets",
+        "name": "ARC 575, 23\" Heavy Duty Stainless Steel Concave Comal Discada Disc Cooker Cazo Griddle Fryer Cookware, Great Comal para Tacos Tortillas Maker, Griddle Cooking Camping (Comal)",
+        "product_category": "Home & Kitchen › Kitchen & Dining › Cookware › Griddles",
+        "instruction_text": "Find me heavy duty china cabinets with stainless steel with size: 23'' x 5'' set, and price lower than 90.00 dollars",
+        "attributes": [
+          "heavy duty",
+          "stainless steel"
+        ],
+        "price_upper": 90.0,
+        "goal_options": {
+          "size": "23'' x 5'' set"
+        },
+        "weight": 0.02393018018018018
+      },
+      "goal_sha256": "49ce75e0c67c7dd4143a7f3d5bf0f0c7b2bf2c4beeebcea36df777d129f66065",
+      "selected_target_previously_executed": false,
+      "source_game": "tetris",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/tetris.json",
+      "source_artifact_sha256": "585e5b29303fcbe23e8f8b5414ea389ea6257c96f55fa64897661fe2e2b306e7",
+      "source_artifact_file_sha256": "7c40f5baab7926435b58d2992ae20ca4eb07e1c72a4b59d9e1e377cde3b8e576"
+    },
+    {
+      "task_id": "webshop.132",
+      "target_identity": "webshop.synthetic.phase2.seed3398991865.index132.5da339bd44ea5ce7",
+      "server_goal_index": 132,
+      "asin": "B07RPMCNKD",
+      "instruction_text": "Find me light weight, non slip women's outdoor shoes with rubber sole, soft material, memory foam with color: grey, and size: 8-9, and price lower than 50.00 dollars",
+      "goal": {
+        "asin": "B07RPMCNKD",
+        "category": "fashion",
+        "query": "women's outdoor shoes",
+        "name": "ULTRAIDEAS Women's Comfy Lightweight Slippers Non-Slip House Shoes for Indoor & Outdoor",
+        "product_category": "Clothing, Shoes & Jewelry › Women › Shoes › Slippers",
+        "instruction_text": "Find me light weight, non slip women's outdoor shoes with rubber sole, soft material, memory foam with color: grey, and size: 8-9, and price lower than 50.00 dollars",
+        "attributes": [
+          "light weight",
+          "non slip",
+          "rubber sole",
+          "soft material",
+          "memory foam"
+        ],
+        "price_upper": 50.0,
+        "goal_options": {
+          "color": "grey",
+          "size": "8-9"
+        },
+        "weight": 0.018539755410083944
+      },
+      "goal_sha256": "5da339bd44ea5ce7a0fd6d153d46a69e019c8f293a0b9236f65c698483dba6f0",
+      "selected_target_previously_executed": false,
+      "source_game": "candy_crush",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/candy_crush.json",
+      "source_artifact_sha256": "6f80cf4d4a8f4f5d9964680949bd55938d584165aab939b2f028c22649e2ea4d",
+      "source_artifact_file_sha256": "ebab70c63ade7ab5c888630cddb4c395f9f14eed5b460bf958de5095946369f2"
+    },
+    {
+      "task_id": "webshop.133",
+      "target_identity": "webshop.synthetic.phase2.seed3398991865.index133.0dfe4a615efacacf",
+      "server_goal_index": 133,
+      "asin": "B09688C4XM",
+      "instruction_text": "Find me high density, space saving sofa tables for living room with color: gs2900b, and size: 3psc",
+      "goal": {
+        "asin": "B09688C4XM",
+        "category": "garden",
+        "query": "sofa tables",
+        "name": "Lifestyle Furniture Sectional Recliner Sofa Set Living Room Reclining Couch with Drop Down Table (Single Piece or Combination) (GS2900, 3PCS)",
+        "product_category": "Home & Kitchen › Furniture › Living Room Furniture › Living Room Sets",
+        "instruction_text": "Find me high density, space saving sofa tables for living room with color: gs2900b, and size: 3psc",
+        "attributes": [
+          "high density",
+          "space saving",
+          "living room"
+        ],
+        "price_upper": 1000000,
+        "goal_options": {
+          "color": "gs2900b",
+          "size": "3psc"
+        },
+        "weight": 0.01739587195649487
+      },
+      "goal_sha256": "0dfe4a615efacacfbcef06e5f06d4e581029af0ec5f2c3390d00d513992b555d",
+      "selected_target_previously_executed": false,
+      "source_game": "gymv_columns",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_columns.json",
+      "source_artifact_sha256": "39c5194016c037072aaa4a82137a8d242ceda17ed7ccd72caf16b495784000d0",
+      "source_artifact_file_sha256": "0a47aa22c60266226132e667dbfaf16c03382ca03fd730d95afc751be878255e"
+    },
+    {
+      "task_id": "webshop.136",
+      "target_identity": "webshop.synthetic.phase2.seed3398991865.index136.c1a5f5125034fc22",
+      "server_goal_index": 136,
+      "asin": "B07H5GWRL4",
+      "instruction_text": "Find me fast charging, high speed virtual reality, and price lower than 50.00 dollars",
+      "goal": {
+        "asin": "B07H5GWRL4",
+        "category": "electronics",
+        "query": "virtual reality",
+        "name": "Oculus Link Cable 16ft(5m), Recuown Oculus Quest 2 Link Cable, USB 3.2 Gen 1 Type A to C Cable, High Speed Data Transfer & Fast Charging Compatible with Oculus Quest / Quest 2 VR Headset and Gaming PC",
+        "product_category": "Video Games › PC › Virtual Reality › Headsets",
+        "instruction_text": "Find me fast charging, high speed virtual reality, and price lower than 50.00 dollars",
+        "attributes": [
+          "fast charging",
+          "high speed"
+        ],
+        "price_upper": 50.0,
+        "goal_options": {},
+        "weight": 0.5075757575757576
+      },
+      "goal_sha256": "c1a5f5125034fc222ee3682d41fbd2854b7efb9d61984f143f5116d916b443e3",
+      "selected_target_previously_executed": false,
+      "source_game": "gymv_streets_of_rage_2",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_streets_of_rage_2.json",
+      "source_artifact_sha256": "0811312fd98f697b572a72e5c1d2da4417ec6ec35c9db00e51d8f1bb4d1123d6",
+      "source_artifact_file_sha256": "a66acf806e6188a22782054520f00a1a8142e79874fef5b7f8cc42b9f82dbc54"
+    },
+    {
+      "task_id": "webshop.142",
+      "target_identity": "webshop.synthetic.phase2.seed3398991865.index142.5b59a18441fb194f",
+      "server_goal_index": 142,
+      "asin": "B09B7G7P58",
+      "instruction_text": "Find me space saving, easy assemble living room sets for dining room with color: espresso, and price lower than 350.00 dollars",
+      "goal": {
+        "asin": "B09B7G7P58",
+        "category": "garden",
+        "query": "living room sets",
+        "name": "3-Piece Dining Table Set, Farmhouse Counter Height Dining Table Set, Wood Dining Table Set with Drop Leaf Table/2 Cross Back Padded Chairs/One Shelf",
+        "product_category": "Home & Kitchen › Furniture › Dining Room Furniture › Table & Chair Sets",
+        "instruction_text": "Find me space saving, easy assemble living room sets for dining room with color: espresso, and price lower than 350.00 dollars",
+        "attributes": [
+          "space saving",
+          "easy assemble",
+          "dining room"
+        ],
+        "price_upper": 350.0,
+        "goal_options": {
+          "color": "espresso"
+        },
+        "weight": 0.01780904665458551
+      },
+      "goal_sha256": "5b59a18441fb194ff3307ff170e9e5992e5a11994759205e2ffd5f9623293533",
+      "selected_target_previously_executed": false,
+      "source_game": "gymv_thunder_force_iii",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_thunder_force_iii.json",
+      "source_artifact_sha256": "78ccd564e5453fa33a2b34eb2edf46263f025ec45eae2c1bbdf3017cc7d695d8",
+      "source_artifact_file_sha256": "0b52167b9259d6304950766e94d7e1a3d764ad241af1dfbff658fccc7cebb070"
+    },
+    {
+      "task_id": "webshop.146",
+      "target_identity": "webshop.synthetic.phase2.seed3398991865.index146.261e909c6c71bb40",
+      "server_goal_index": 146,
+      "asin": "B09S632DT3",
+      "instruction_text": "Find me hand wash women's lingerie, sleep & lounge for laundry bag with size: large, and price lower than 30.00 dollars",
+      "goal": {
+        "asin": "B09S632DT3",
+        "category": "fashion",
+        "query": "women's lingerie, sleep & lounge",
+        "name": "Sleepwear Womens Chemise Nightgown Full Slip Lace Lounge Dress with Briefs Mesh Chemise V Neck Soft Pajama Dress Nightdress",
+        "product_category": "Clothing, Shoes & Jewelry › Women › Clothing › Lingerie, Sleep & Lounge › Sleep & Lounge › Sets",
+        "instruction_text": "Find me hand wash women's lingerie, sleep & lounge for laundry bag with size: large, and price lower than 30.00 dollars",
+        "attributes": [
+          "hand wash",
+          "laundry bag"
+        ],
+        "price_upper": 30.0,
+        "goal_options": {
+          "size": "large"
+        },
+        "weight": 0.07224025974025973
+      },
+      "goal_sha256": "261e909c6c71bb404abf7cadf951f555ba0e59f36903f3de97043d0c92076024",
+      "selected_target_previously_executed": false,
+      "source_game": "gymv_strider",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/gymv_strider.json",
+      "source_artifact_sha256": "9993c7b0d04d2e090f1b20f89b6c4b90f697a8b36f598869e45141a9b5b00ccf",
+      "source_artifact_file_sha256": "4d6aa2ce61c70c3023c41435d337925289cc9c0e179381e6285492f33a095c5e"
+    },
+    {
+      "task_id": "webshop.154",
+      "target_identity": "webshop.synthetic.phase2.seed3398991865.index154.5170138abb19595a",
+      "server_goal_index": 154,
+      "asin": "B09P7H5YK7",
+      "instruction_text": "Find me machine wash men's dress shirts with polyester heathers, heathers cotton, cotton heather, needle sleeve, classic fit with color: purple, and fit type: men, and size: xx-large, and price lower than 50.00 dollars",
+      "goal": {
+        "asin": "B09P7H5YK7",
+        "category": "fashion",
+        "query": "men's dress shirts",
+        "name": "It's In My DNA Palestinian Shirt Arabic Gifts Palestine Flag Tank Top",
+        "product_category": "Clothing, Shoes & Jewelry › Novelty & More › Clothing › Novelty › Women › Tops & Tees › Tanks & Camis",
+        "instruction_text": "Find me machine wash men's dress shirts with polyester heathers, heathers cotton, cotton heather, needle sleeve, classic fit with color: purple, and fit type: men, and size: xx-large, and price lower than 50.00 dollars",
+        "attributes": [
+          "machine wash",
+          "polyester heathers",
+          "heathers cotton",
+          "cotton heather",
+          "needle sleeve",
+          "classic fit"
+        ],
+        "price_upper": 50.0,
+        "goal_options": {
+          "color": "purple",
+          "fit type": "men",
+          "size": "xx-large"
+        },
+        "weight": 0.0007773492690577492
+      },
+      "goal_sha256": "5170138abb19595a46f7e9c568b85e39368097a3a07bde7c88366957fd41736d",
+      "selected_target_previously_executed": false,
+      "source_game": "tetris",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/tetris.json",
+      "source_artifact_sha256": "585e5b29303fcbe23e8f8b5414ea389ea6257c96f55fa64897661fe2e2b306e7",
+      "source_artifact_file_sha256": "7c40f5baab7926435b58d2992ae20ca4eb07e1c72a4b59d9e1e377cde3b8e576"
+    },
+    {
+      "task_id": "webshop.158",
+      "target_identity": "webshop.synthetic.phase2.seed3398991865.index158.910950e55952d576",
+      "server_goal_index": 158,
+      "asin": "B084Q7C6TX",
+      "instruction_text": "Find me long lasting, white item table lamps for living room with color: white, and price lower than 40.00 dollars",
+      "goal": {
+        "asin": "B084Q7C6TX",
+        "category": "garden",
+        "query": "table lamps",
+        "name": "Aultra LED Desk LAMP Light - Touch Control Desk Lamp with Multiple Brightness Level - Lights for Bedroom, The Office Desk, Reading Lamps, Bedside Table and Standing Desk (White)",
+        "product_category": "Tools & Home Improvement › Lighting & Ceiling Fans › Lamps & Shades › Desk Lamps",
+        "instruction_text": "Find me long lasting, white item table lamps for living room with color: white, and price lower than 40.00 dollars",
+        "attributes": [
+          "long lasting",
+          "white item",
+          "living room"
+        ],
+        "price_upper": 40.0,
+        "goal_options": {
+          "color": "white"
+        },
+        "weight": 0.02996653883750658
+      },
+      "goal_sha256": "910950e55952d576a59d4ddb1827300c0e1c390929349c4efbfbcce16b46af10",
+      "selected_target_previously_executed": false,
+      "source_game": "candy_crush",
+      "source_artifact": "runs/phase1_direct_prospective_v1/source_artifacts/candy_crush.json",
+      "source_artifact_sha256": "6f80cf4d4a8f4f5d9964680949bd55938d584165aab939b2f028c22649e2ea4d",
+      "source_artifact_file_sha256": "ebab70c63ade7ab5c888630cddb4c395f9f14eed5b460bf958de5095946369f2"
+    }
+  ],
+  "parameters": {
+    "model": "openai/gpt-4.1-mini",
+    "base_url": "https://openrouter.ai/api/v1",
+    "maximum_output_tokens": 1200,
+    "maximum_steps": 12,
+    "candidate_count": 5,
+    "schema_retries": 3,
+    "timeout_seconds": 180
+  },
+  "one_shot_execution_rule": "Each target-condition cell may be reset/executed once. Existing valid receipts may be resumed; a start marker without a receipt is consumed incomplete and must not be rerun.",
+  "success_gates": {
+    "exact_32x5_receipt_matrix": true,
+    "all_receipt_hashes_valid": true,
+    "all_receipts_complete": true,
+    "matched_initial_state_hashes": true,
+    "all_six_source_lineages_exercised": true,
+    "all_three_symbolic_actions_exercised": true,
+    "zero_authentic_unsafe_commits": true,
+    "authentic_strict_success_gain_over_raw": true,
+    "authentic_vs_raw_significant": "paired exact two-sided p <= .05",
+    "zero_strict_negative_transfer_vs_raw": true,
+    "authentic_pass_success_not_below_raw": true,
+    "authentic_mean_reward_not_below_raw": true,
+    "authentic_reward_pairing_net_nonnegative": true,
+    "authentic_significantly_beats_event_permuted": true,
+    "authentic_significantly_beats_ledger_blind": true,
+    "authentic_matches_target_native_ceiling_exactly": true,
+    "every_lineage_has_zero_strict_losses_vs_raw": true
+  },
+  "runtime_file_sha256": {
+    "src/motif_transfer/phase2_webshop_utility_v1.py": "7b30994bd6b293af713e4b6ab414e16adc94ae02fdc943f4106f514668bfda85",
+    "src/motif_transfer/webshop_search_automaton_v16.py": "478994c5da56ee783e59823a79f026dfa2f7185d0f733a835bfe11e5cdd46c38",
+    "src/motif_transfer/webshop_coverage_transfer_v14.py": "56d28e46d073a0563d3e13884c7ad1dc70491259af61bdea24329b41d97580fe",
+    "src/motif_transfer/webshop_constraint_coverage_v14.py": "4d743c512f5508ffdb3a8ecf11aba27ad6dc55e724d3e050b7b92daed35ed384",
+    "src/motif_transfer/webshop_unique_goal_server_v14.py": "dfa7aefa70584ba1d0cb3c82aedb7c48939ba1b5eb8609c5a86abb75eee8cf25",
+    "scripts/freeze_phase2_webshop_utility_v1.py": "27a8ce836dfe450cdff2ae79493bb3cddc07cb4295389fc439dafb8e309839fc",
+    "scripts/run_phase2_webshop_utility_v1.py": "0cf4f0c993f7b13915df4c5acf3455e1a5fd6b4d8db561972b4f7575536ccd81",
+    "scripts/run_webshop_direct_server_v1.py": "4c6cc5787fcfd32448073ce06de5db4daa9a7feaad995afdd7a775370e18279b",
+    "scripts/run_webshop_search_automaton_v16.py": "b21567e4b02937d84283eb3b0d821443507f048ff945aa29fd9f3294541768ed",
+    "scripts/run_webshop_neural_symbolic_v9.py": "a07a1dd48b7ae69149d47f228ab4985cfe11e1b17ed5c3843f22bf302330757e"
+  },
+  "vendor_runtime_file_sha256": {
+    "/fs/gamma-projects/vlm-robot/emnlp2026_download/workspace/vendor/WebShop/data/items_shuffle_1000.json": "30a4765c3a327af72d9a9a95a6b2486d516f0fa1d3ecd83681901ce82a21b269",
+    "/fs/gamma-projects/vlm-robot/emnlp2026_download/workspace/vendor/WebShop/data/items_human_ins.json": "cf78667548a71786e1d9049c24b802e48e1084ad4bb021cae56ce1f6d96954a3",
+    "/fs/gamma-projects/vlm-robot/emnlp2026_download/workspace/vendor/WebShop/web_agent_site/engine/engine.py": "4af84efef1401c3735296201afc397be54015ff9b169c2c6bfe5f5bc90dc31e6",
+    "/fs/gamma-projects/vlm-robot/emnlp2026_download/workspace/vendor/WebShop/web_agent_site/engine/goal.py": "9703c8583244e2041182eb14856186b998145ab16ce2ba9aef8cb680877c8ed5",
+    "/fs/gamma-projects/vlm-robot/emnlp2026_download/workspace/vendor/WebShop/web_agent_site/app.py": "2161ee48cea38a8d8e0dfa2e386f059bd006af47e5549ea41051e26f3d553d24"
+  },
+  "manifest_sha256": "8a229d879dcc1bacb3a98f7418c59c7e3f7f7ae8e835dc6ab54e3a4e18b0ae35"
+}

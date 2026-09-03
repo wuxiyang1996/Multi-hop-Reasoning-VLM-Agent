@@ -1,0 +1,59 @@
+{
+  "schema_version": 3,
+  "status": "POST_QUALIFICATION_DIAGNOSTIC_ONLY",
+  "claim_boundary": "Post-V2 diagnostic on the already-read qualification split. It may diagnose controller factorization but cannot establish final transfer or authorize held-out evaluation by itself.",
+  "source": {
+    "surfaces": ["game", "software", "science", "forensics", "network", "logistics", "medicine", "maintenance"],
+    "train_domains_per_surface": 32,
+    "evaluation_domains_per_surface": 8,
+    "states_per_domain": 32,
+    "ensemble_size": 11,
+    "ridge_alpha": 0.35,
+    "model_seed": 88501,
+    "control_seed": 88502,
+    "workflow": {
+      "minimum_stages": 3,
+      "maximum_stages": 6,
+      "minimum_budget": 7,
+      "maximum_budget": 16,
+      "completion_probability_range": [0.35, 0.95],
+      "failure_cost_range": [0.01, 0.18],
+      "progress_reward": 0.15,
+      "invalid_option_cost": 0.18
+    },
+    "minimum_relative_mse_improvement_over_each_control": 0.10
+  },
+  "target": {
+    "pool_manifest": "configs/alfworld_v2_outcome_blind_pool.json",
+    "alfworld_config": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-source-fresh-v1/configs/alfworld_base_config.yaml",
+    "alfworld_data": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-github-main/.cache/alfworld_data",
+    "adaptation_split": "train",
+    "seed": 88601,
+    "adaptation_max_steps": 180,
+    "adaptation_receipts": "runs/multisource_alfworld_neurosymbolic_v2/adaptation_expert_receipts.json",
+    "artifact": "runs/multisource_alfworld_neurosymbolic_v3_diagnostic/frozen_candidate_artifact.json",
+    "qualification_manifest": "configs/target_rollout_collection_v1.json",
+    "qualification_split": "eval_out_of_distribution",
+    "qualification_manifest_split": "qualification",
+    "qualification_max_steps": 70,
+    "qualification_report": "runs/multisource_alfworld_neurosymbolic_v3_diagnostic/qualification_report.json"
+  },
+  "grounder": {
+    "feature_bins": 192,
+    "hidden_units": 48,
+    "random_seed": 88701,
+    "maximum_iterations": 800,
+    "maximum_transitions_per_episode": 48,
+    "negative_candidates_per_positive": 5,
+    "minimum_goal_binding_recall_at_3": 0.75,
+    "minimum_macro_role_auc": 0.70,
+    "minimum_effect_balanced_accuracy": 0.65,
+    "minimum_validation_episodes": 4
+  },
+  "policy": {
+    "controller": "SOURCE_OPTION_ONLY_V3_DIAGNOSTIC",
+    "uncertainty_scale": 0.4,
+    "decision_margin": 0.01,
+    "minimum_authentic_option_change_rate": 0.08
+  }
+}

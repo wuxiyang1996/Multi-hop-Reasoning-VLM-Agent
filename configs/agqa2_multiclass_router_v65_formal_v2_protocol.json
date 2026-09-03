@@ -1,0 +1,69 @@
+{
+  "claim_boundary": "91_VIDEO_DISJOINT_AGQA_TRAIN_FORMAL_QUESTIONS;TRAIN_DEV_ONLY_MULTICLASS_PROGRAM_ROUTER;UNCHANGED_V65_QWEN235_VISUAL_GROUNDER;RELATION_TEMPORAL_PAIR_TEMPORAL_SINGLE;FOUR_ARM_CONFIRMATORY_TRANSFER",
+  "cohort": {
+    "one_question_per_video": true,
+    "prior_v1_selection_file_sha256": "b14932550111858726a5b9c0fb7451aab73b5a065980bdc4e7d4e1b53f965f8c",
+    "prior_v1_selection_manifest_sha256": "519145971f1642673151fb0473ce7b274979a103072584131af50aeec661b67f",
+    "route_counts": {
+      "RELATION_RECURRENT": 86,
+      "TEMPORAL_PAIR_RECURRENT": 4,
+      "TEMPORAL_SINGLE_NONRECURRENT": 1
+    },
+    "sample_count": 91,
+    "selection_file_sha256": "c529b956d592f5c2c13cf2d037993f8ce601e495ffbb45c4a36cc27ff9d00aad",
+    "selection_manifest_sha256": "fd98f0c2ad727f0a0717c788df62b85ad9132a7d6ef404594e5b08572fcb1462",
+    "selection_status": "FROZEN_V78_SELECTION_BEFORE_VIDEO_DOWNLOAD_PROVIDER_OR_FORMAL_LABEL_ACCESS",
+    "video_disjoint_from_v1_and_all_prior_runtime": true
+  },
+  "controls": {
+    "neural_only": "QWEN235_MATCHED_DIRECT_RESPONSE",
+    "source_induced": "V65_TYPED_GROUNDING_PLUS_SOURCE_INDUCED_IR_WITH_DIRECT_FAIL_CLOSED_FALLBACK",
+    "source_permuted": "DETERMINISTIC_WRONG_PROGRAM_TYPE_MUST_ABSTAIN_TO_MATCHED_DIRECT",
+    "target_written_equivalent": "SOURCE_BLIND_EXTENSIONALLY_IDENTICAL_TARGET_CONTROLLER"
+  },
+  "evaluator": {
+    "file": "scripts/evaluate_agqa2_multiclass_router_v65_formal_v2.py",
+    "file_sha256": "f45c0c77bd93b63f19c3fe30c94ca900eceedae8d6967e5115e3f101285122c3",
+    "gold_access": "ONLY_AFTER_ALL_PROVIDER_RUNTIME_RECEIPTS_FREEZE",
+    "paired_test": "ONE_SIDED_EXACT_BINOMIAL_ON_SOURCE_VS_NEURAL_DISCORDANT_PAIRS"
+  },
+  "gates": {
+    "maximum_losses": 9,
+    "maximum_one_sided_exact_pvalue": 0.05,
+    "maximum_reported_provider_cost_usd": 0.75,
+    "minimum_net_gain": 6,
+    "minimum_source_authorizations": 70,
+    "minimum_wins": 10,
+    "required_route_correct": 91,
+    "required_source_permuted_abstentions": 91,
+    "required_target_written_equivalent_matches": 91,
+    "required_valid_runtime_rows": 91
+  },
+  "lineage": {
+    "dependency_overlay_sha256": {
+      "src/motif_transfer/phase3_source_function_induction.py": "5bd04fa4b0d9b3a90b61d9108e19b8366080b167a63e5ac2556d351356fdcd6d"
+    },
+    "expected_grounder_sha256": "f8e3e500c273858b5cb70a2ae3e0551e51be8dff4d76e33c6144a578209cbed1",
+    "frozen_runtime_git_commit": "ded7448839183851aa10c3cd3e12d253f04e1ceb",
+    "program_router_model_sha256": "e79f932a66bb8dbaae7addc254f023cf6cacbb58d02e679348e33d5b80ba9584",
+    "program_router_qualification_file_sha256": "953deb80a31f3f6cc27e7453c9827c328c2288a39ac3754a09a142e3e9819c8f",
+    "program_router_qualification_report_sha256": "e2f478c1d1ae877fc9c1b5f692d31a907ed66215047fb6f4cc24aabe4ea042d1",
+    "program_router_training_scope": "AGQA_OFFICIAL_TRAIN_DEVELOPMENT_PARTITIONS_ONLY",
+    "v65_collector_sha256": "c845a0446fe5edc60f29dedbbb8eca3527a1f0c087f130924529a64cb8cdd5f1",
+    "v65_grounder_module_sha256": "87a41b64a77aae9cd8899f714061276fd3fcee05e8950a050fffb8849b81761c"
+  },
+  "prohibited_adaptation": [
+    "NO_V65_GROUNDER_PARAMETER_PROMPT_MODEL_OR_THRESHOLD_CHANGE",
+    "NO_FORMAL_VIDEO_PROGRAM_ANSWER_OR_SCENE_GRAPH_USED_FOR_ROUTER_TRAINING",
+    "NO_V1_OR_V2_FORMAL_RESULT_DRIVEN_THRESHOLD_OR_GATE_CHANGE",
+    "NO_RETRY_ON_THE_SAME_V2_COHORT_AFTER_GATE_FAILURE"
+  ],
+  "prospective_context": {
+    "v1_outcomes_used_for_router_training_thresholds_or_selection": false,
+    "v1_result_status": "KNOWN_FAILED_BEFORE_V2_PROTOCOL_FREEZE",
+    "v2_is_new_multiroute_replication_not_v1_gate_revision": true
+  },
+  "protocol_sha256": "a90e5e582dfb2af3e75d5c8fe85da7592c19735e4e7d75c291373f20465bce39",
+  "schema_version": "agqa2-multiclass-router-v65-formal-protocol-v2",
+  "status": "FROZEN_BEFORE_VIDEO_DOWNLOAD_PROVIDER_OR_FORMAL_LABEL_ACCESS"
+}

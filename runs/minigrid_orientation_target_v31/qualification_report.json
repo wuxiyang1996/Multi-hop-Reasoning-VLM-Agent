@@ -1,0 +1,4643 @@
+{
+  "claim_boundary": "Prospective transfer of the exact V28 source-induced anonymous COMPOSE(PROBE_EFFECT, RECOVERY_EFFECT)==IDENTITY program to a new MiniGrid oriented-navigation recovery MDP. A development-only target MLP grounds rendered agent directions; the source program sees only anonymous order-four effects. Native success requires the recovered heading to let a pre-intervention BFS suffix reach the official environment goal. A separately trained neural-only target policy receives 64 recovery labels, while source transfer receives zero complete target trajectories. The target-written isomorphic ceiling is expected to match source execution, so this tests transferable program content, not provenance necessity. The custom recovery protocol is built on MiniGrid-Empty-Random; it is not claimed as an official MiniGrid benchmark task.",
+  "gates": {
+    "alpha_rename_invariance": true,
+    "exact_frozen_task_count": true,
+    "grounder_panel_accuracy": true,
+    "grounder_task_coverage": true,
+    "paired_neural_only_significance_when_required": true,
+    "source_above_neural_only_when_required": true,
+    "source_minimum_success": true,
+    "source_not_below_neural_only": true,
+    "source_program_is_v28_source_only": true,
+    "source_strictly_above_each_destructive_control": true,
+    "target_grounder_used_only_development_labels": true,
+    "target_written_isomorphic_equivalence": true,
+    "wrong_program_negative_transfer_bounded": true,
+    "zero_source_or_goal_leak_to_neural_inference": true
+  },
+  "grounder_artifact_sha256": "7c5197fff53ae9be1442816cc1f2d1764b6a0aba998b814402c89ff039a995df",
+  "grounding": {
+    "effect_binding_exact_tasks": 24,
+    "panel_accuracy": 1.0,
+    "panel_correct": 168,
+    "panel_total": 168,
+    "qualified_tasks": 24,
+    "task_coverage": 1.0
+  },
+  "metrics": {
+    "alpha_renamed_source": {
+      "executed": 24,
+      "native_success": 24,
+      "success_rate": 1.0,
+      "tasks": 24
+    },
+    "copy_effect_control": {
+      "executed": 24,
+      "native_success": 9,
+      "success_rate": 0.375,
+      "tasks": 24
+    },
+    "fixed_token_control": {
+      "executed": 24,
+      "native_success": 4,
+      "success_rate": 0.16666666666666666,
+      "tasks": 24
+    },
+    "neural_only_direct": {
+      "executed": 24,
+      "native_success": 5,
+      "success_rate": 0.20833333333333334,
+      "tasks": 24
+    },
+    "shuffled_binding_control": {
+      "executed": 24,
+      "native_success": 9,
+      "success_rate": 0.375,
+      "tasks": 24
+    },
+    "source_induced": {
+      "executed": 24,
+      "native_success": 24,
+      "success_rate": 1.0,
+      "tasks": 24
+    },
+    "target_written_isomorphic": {
+      "executed": 24,
+      "native_success": 24,
+      "success_rate": 1.0,
+      "tasks": 24
+    }
+  },
+  "paired_source": {
+    "alpha_renamed_source": {
+      "exact_two_sided_p": 1.0,
+      "losses": 0,
+      "net_wins": 0,
+      "ties": 24,
+      "wins": 0
+    },
+    "copy_effect_control": {
+      "exact_two_sided_p": 6.103515625e-05,
+      "losses": 0,
+      "net_wins": 15,
+      "ties": 9,
+      "wins": 15
+    },
+    "fixed_token_control": {
+      "exact_two_sided_p": 1.9073486328125e-06,
+      "losses": 0,
+      "net_wins": 20,
+      "ties": 4,
+      "wins": 20
+    },
+    "neural_only_direct": {
+      "exact_two_sided_p": 3.814697265625e-06,
+      "losses": 0,
+      "net_wins": 19,
+      "ties": 5,
+      "wins": 19
+    },
+    "shuffled_binding_control": {
+      "exact_two_sided_p": 6.103515625e-05,
+      "losses": 0,
+      "net_wins": 15,
+      "ties": 9,
+      "wins": 15
+    },
+    "target_written_isomorphic": {
+      "exact_two_sided_p": 1.0,
+      "losses": 0,
+      "net_wins": 0,
+      "ties": 24,
+      "wins": 0
+    }
+  },
+  "program_sha256": "2f9f480ef4909e7276f5f1668b5fd995391bbbd865fae96128303bec6e8e529f",
+  "report_sha256": "58577598778de5706131f91c0e76bed7a948b33c1177aab22cdb1ea63902719b",
+  "resource_accounting": {
+    "complete_target_trajectories_used_to_acquire_source_program": 0,
+    "provider_calls": 0,
+    "reported_cost_usd": 0.0,
+    "target_development_recovery_labels_for_neural_only_baseline": 64,
+    "target_development_tasks_for_grounder": 64,
+    "target_rendered_grounding_panels_per_task": 7
+  },
+  "rows": [
+    {
+      "binding": {
+        "confidences": {
+          "A": 0.9999999999265605,
+          "B": 0.9999999999913103,
+          "C": 0.9997872143909645,
+          "C0": 0.9999999999265605,
+          "D": 1.0,
+          "I": 0.999999999999716,
+          "P": 1.0
+        },
+        "direct_confidence": 0.9981800710914583,
+        "direct_probabilities": [
+          0.9981800710914583,
+          9.940890684159219e-17,
+          0.001560397078423004,
+          0.0002595318301186981
+        ],
+        "direct_recovery": "A",
+        "directions": {
+          "A": "right",
+          "B": "up",
+          "C": "down",
+          "C0": "right",
+          "D": "left",
+          "I": "down",
+          "P": "left"
+        },
+        "errors": [],
+        "grounder_artifact_sha256": "7c5197fff53ae9be1442816cc1f2d1764b6a0aba998b814402c89ff039a995df",
+        "minimum_confidence": 0.9,
+        "panel_probabilities": {
+          "A": [
+            4.232210222577043e-15,
+            1.23088735440816e-12,
+            0.9999999999265605,
+            7.220442674792812e-11
+          ],
+          "B": [
+            1.8037955445570638e-16,
+            6.3505488468288985e-12,
+            2.3389223685605484e-12,
+            0.9999999999913103
+          ],
+          "C": [
+            0.9997872143909645,
+            4.236213953494704e-10,
+            9.427445044421974e-05,
+            0.0001185107349699701
+          ],
+          "C0": [
+            4.232210222577043e-15,
+            1.23088735440816e-12,
+            0.9999999999265605,
+            7.220442674792812e-11
+          ],
+          "D": [
+            7.31335337336847e-25,
+            1.0,
+            3.3775403077510616e-17,
+            6.27267674468104e-17
+          ],
+          "I": [
+            0.999999999999716,
+            2.511748393380129e-20,
+            3.71152699481815e-16,
+            2.834522278544812e-13
+          ],
+          "P": [
+            6.0410970545333775e-21,
+            1.0,
+            2.6862329816942556e-21,
+            1.4690503564598649e-18
+          ]
+        },
+        "probe_effect": 1,
+        "qualified": true,
+        "token_effects": {
+          "A": 0,
+          "B": 3,
+          "C": 1,
+          "D": 2
+        }
+      },
+      "evaluator_only": {
+        "direct_recovery": "B",
+        "directions": {
+          "A": "right",
+          "B": "up",
+          "C": "down",
+          "C0": "right",
+          "D": "left",
+          "I": "down",
+          "P": "left"
+        },
+        "panel_correct": {
+          "A": true,
+          "B": true,
+          "C": true,
+          "C0": true,
+          "D": true,
+          "I": true,
+          "P": true
+        },
+        "probe_effect": 1,
+        "token_effects": {
+          "A": 0,
+          "B": 3,
+          "C": 1,
+          "D": 2
+        }
+      },
+      "goal_or_native_success_exposed_to_neural_inference": false,
+      "outcomes": {
+        "alpha_renamed_source": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 16,
+          "selected_token": "B",
+          "suffix_length": 6,
+          "suffix_sha256": "a29fceb0e572e3b9d5f87aa15ef3dff2c845a9027f89c03cb8f294601a1d1c6a",
+          "terminated": true,
+          "truncated": false
+        },
+        "copy_effect_control": {
+          "executed": true,
+          "native_success": false,
+          "primitive_transitions": 16,
+          "selected_token": "C",
+          "suffix_length": 6,
+          "suffix_sha256": "a29fceb0e572e3b9d5f87aa15ef3dff2c845a9027f89c03cb8f294601a1d1c6a",
+          "terminated": false,
+          "truncated": false
+        },
+        "fixed_token_control": {
+          "executed": true,
+          "native_success": false,
+          "primitive_transitions": 15,
+          "selected_token": "A",
+          "suffix_length": 6,
+          "suffix_sha256": "a29fceb0e572e3b9d5f87aa15ef3dff2c845a9027f89c03cb8f294601a1d1c6a",
+          "terminated": false,
+          "truncated": false
+        },
+        "neural_only_direct": {
+          "executed": true,
+          "native_success": false,
+          "primitive_transitions": 15,
+          "selected_token": "A",
+          "suffix_length": 6,
+          "suffix_sha256": "a29fceb0e572e3b9d5f87aa15ef3dff2c845a9027f89c03cb8f294601a1d1c6a",
+          "terminated": false,
+          "truncated": false
+        },
+        "shuffled_binding_control": {
+          "executed": true,
+          "native_success": false,
+          "primitive_transitions": 16,
+          "selected_token": "C",
+          "suffix_length": 6,
+          "suffix_sha256": "a29fceb0e572e3b9d5f87aa15ef3dff2c845a9027f89c03cb8f294601a1d1c6a",
+          "terminated": false,
+          "truncated": false
+        },
+        "source_induced": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 16,
+          "selected_token": "B",
+          "suffix_length": 6,
+          "suffix_sha256": "a29fceb0e572e3b9d5f87aa15ef3dff2c845a9027f89c03cb8f294601a1d1c6a",
+          "terminated": true,
+          "truncated": false
+        },
+        "target_written_isomorphic": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 16,
+          "selected_token": "B",
+          "suffix_length": 6,
+          "suffix_sha256": "a29fceb0e572e3b9d5f87aa15ef3dff2c845a9027f89c03cb8f294601a1d1c6a",
+          "terminated": true,
+          "truncated": false
+        }
+      },
+      "seed": 760101,
+      "source_program_or_identity_exposed_to_neural_inference": false
+    },
+    {
+      "binding": {
+        "confidences": {
+          "A": 0.9999999999407221,
+          "B": 0.999999999999029,
+          "C": 0.9998815683920647,
+          "C0": 0.9999999999999822,
+          "D": 0.9999999999999822,
+          "I": 0.9997387127782955,
+          "P": 0.9999999999997677
+        },
+        "direct_confidence": 0.9999998605898471,
+        "direct_probabilities": [
+          3.017794550821621e-11,
+          1.391285871224063e-07,
+          0.9999998605898471,
+          2.513878718154176e-10
+        ],
+        "direct_recovery": "C",
+        "directions": {
+          "A": "right",
+          "B": "down",
+          "C": "up",
+          "C0": "left",
+          "D": "left",
+          "I": "up",
+          "P": "down"
+        },
+        "errors": [],
+        "grounder_artifact_sha256": "7c5197fff53ae9be1442816cc1f2d1764b6a0aba998b814402c89ff039a995df",
+        "minimum_confidence": 0.9,
+        "panel_probabilities": {
+          "A": [
+            5.927586011880985e-11,
+            2.0589457005777985e-15,
+            0.9999999999407221,
+            9.70786747204234e-17
+          ],
+          "B": [
+            0.999999999999029,
+            2.3995106082912405e-22,
+            9.709298634634894e-13,
+            3.2824182923556314e-17
+          ],
+          "C": [
+            0.00011144836393944203,
+            1.826348494885811e-08,
+            6.964980510899348e-06,
+            0.9998815683920647
+          ],
+          "C0": [
+            3.130866541895401e-17,
+            0.9999999999999822,
+            1.7783225343087637e-14,
+            7.043253224794167e-20
+          ],
+          "D": [
+            3.130866541895401e-17,
+            0.9999999999999822,
+            1.7783225343087637e-14,
+            7.043253224794167e-20
+          ],
+          "I": [
+            0.0002574259311237284,
+            6.100830285464856e-12,
+            3.861284479900067e-06,
+            0.9997387127782955
+          ],
+          "P": [
+            0.9999999999997677,
+            3.852613022650301e-26,
+            2.3224647268950974e-13,
+            1.3631413733139154e-17
+          ]
+        },
+        "probe_effect": 2,
+        "qualified": true,
+        "token_effects": {
+          "A": 2,
+          "B": 3,
+          "C": 1,
+          "D": 0
+        }
+      },
+      "evaluator_only": {
+        "direct_recovery": "A",
+        "directions": {
+          "A": "right",
+          "B": "down",
+          "C": "up",
+          "C0": "left",
+          "D": "left",
+          "I": "up",
+          "P": "down"
+        },
+        "panel_correct": {
+          "A": true,
+          "B": true,
+          "C": true,
+          "C0": true,
+          "D": true,
+          "I": true,
+          "P": true
+        },
+        "probe_effect": 2,
+        "token_effects": {
+          "A": 2,
+          "B": 3,
+          "C": 1,
+          "D": 0
+        }
+      },
+      "goal_or_native_success_exposed_to_neural_inference": false,
+      "outcomes": {
+        "alpha_renamed_source": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 14,
+          "selected_token": "A",
+          "suffix_length": 2,
+          "suffix_sha256": "49a64717d5d4cb19952e6eac2946415cf6879adacf9908e7d872332d32c6e684",
+          "terminated": true,
+          "truncated": false
+        },
+        "copy_effect_control": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 14,
+          "selected_token": "A",
+          "suffix_length": 2,
+          "suffix_sha256": "49a64717d5d4cb19952e6eac2946415cf6879adacf9908e7d872332d32c6e684",
+          "terminated": true,
+          "truncated": false
+        },
+        "fixed_token_control": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 14,
+          "selected_token": "A",
+          "suffix_length": 2,
+          "suffix_sha256": "49a64717d5d4cb19952e6eac2946415cf6879adacf9908e7d872332d32c6e684",
+          "terminated": true,
+          "truncated": false
+        },
+        "neural_only_direct": {
+          "executed": true,
+          "native_success": false,
+          "primitive_transitions": 13,
+          "selected_token": "C",
+          "suffix_length": 2,
+          "suffix_sha256": "49a64717d5d4cb19952e6eac2946415cf6879adacf9908e7d872332d32c6e684",
+          "terminated": false,
+          "truncated": false
+        },
+        "shuffled_binding_control": {
+          "executed": true,
+          "native_success": false,
+          "primitive_transitions": 13,
+          "selected_token": "C",
+          "suffix_length": 2,
+          "suffix_sha256": "49a64717d5d4cb19952e6eac2946415cf6879adacf9908e7d872332d32c6e684",
+          "terminated": false,
+          "truncated": false
+        },
+        "source_induced": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 14,
+          "selected_token": "A",
+          "suffix_length": 2,
+          "suffix_sha256": "49a64717d5d4cb19952e6eac2946415cf6879adacf9908e7d872332d32c6e684",
+          "terminated": true,
+          "truncated": false
+        },
+        "target_written_isomorphic": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 14,
+          "selected_token": "A",
+          "suffix_length": 2,
+          "suffix_sha256": "49a64717d5d4cb19952e6eac2946415cf6879adacf9908e7d872332d32c6e684",
+          "terminated": true,
+          "truncated": false
+        }
+      },
+      "seed": 760102,
+      "source_program_or_identity_exposed_to_neural_inference": false
+    },
+    {
+      "binding": {
+        "confidences": {
+          "A": 0.9999999998864109,
+          "B": 0.9999999999999982,
+          "C": 0.9999999999987965,
+          "C0": 0.9999999999930822,
+          "D": 0.9999999999930822,
+          "I": 0.9999999999310965,
+          "P": 0.999999999999716
+        },
+        "direct_confidence": 0.9999999999999973,
+        "direct_probabilities": [
+          2.2479565580949674e-15,
+          0.9999999999999973,
+          1.4673376583399648e-38,
+          5.296718981804734e-16
+        ],
+        "direct_recovery": "B",
+        "directions": {
+          "A": "up",
+          "B": "left",
+          "C": "down",
+          "C0": "right",
+          "D": "right",
+          "I": "up",
+          "P": "down"
+        },
+        "errors": [],
+        "grounder_artifact_sha256": "7c5197fff53ae9be1442816cc1f2d1764b6a0aba998b814402c89ff039a995df",
+        "minimum_confidence": 0.9,
+        "panel_probabilities": {
+          "A": [
+            1.0948994063496565e-10,
+            5.322042567005657e-14,
+            4.045885009690406e-12,
+            0.9999999998864109
+          ],
+          "B": [
+            6.645648369234704e-19,
+            0.9999999999999982,
+            1.6564636544237577e-15,
+            2.451243182912171e-16
+          ],
+          "C": [
+            0.9999999999987965,
+            4.0807884767334704e-22,
+            1.1036841136013207e-12,
+            9.980002652252986e-14
+          ],
+          "C0": [
+            6.3696713060914766e-12,
+            7.78598178785431e-15,
+            0.9999999999930822,
+            5.403321275764016e-13
+          ],
+          "D": [
+            6.3696713060914766e-12,
+            7.78598178785431e-15,
+            0.9999999999930822,
+            5.403321275764016e-13
+          ],
+          "I": [
+            6.876566069886815e-11,
+            1.3779606315211733e-13,
+            6.454979908721127e-17,
+            0.9999999999310965
+          ],
+          "P": [
+            0.999999999999716,
+            2.511748393380129e-20,
+            3.71152699481815e-16,
+            2.834522278544812e-13
+          ]
+        },
+        "probe_effect": 2,
+        "qualified": true,
+        "token_effects": {
+          "A": 3,
+          "B": 2,
+          "C": 1,
+          "D": 0
+        }
+      },
+      "evaluator_only": {
+        "direct_recovery": "B",
+        "directions": {
+          "A": "up",
+          "B": "left",
+          "C": "down",
+          "C0": "right",
+          "D": "right",
+          "I": "up",
+          "P": "down"
+        },
+        "panel_correct": {
+          "A": true,
+          "B": true,
+          "C": true,
+          "C0": true,
+          "D": true,
+          "I": true,
+          "P": true
+        },
+        "probe_effect": 2,
+        "token_effects": {
+          "A": 3,
+          "B": 2,
+          "C": 1,
+          "D": 0
+        }
+      },
+      "goal_or_native_success_exposed_to_neural_inference": false,
+      "outcomes": {
+        "alpha_renamed_source": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 21,
+          "selected_token": "B",
+          "suffix_length": 7,
+          "suffix_sha256": "91d583234cdba9e931fda16d0477153e7c99e19df1e45b9ec24a541073c7431a",
+          "terminated": true,
+          "truncated": false
+        },
+        "copy_effect_control": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 21,
+          "selected_token": "B",
+          "suffix_length": 7,
+          "suffix_sha256": "91d583234cdba9e931fda16d0477153e7c99e19df1e45b9ec24a541073c7431a",
+          "terminated": true,
+          "truncated": false
+        },
+        "fixed_token_control": {
+          "executed": true,
+          "native_success": false,
+          "primitive_transitions": 20,
+          "selected_token": "A",
+          "suffix_length": 7,
+          "suffix_sha256": "91d583234cdba9e931fda16d0477153e7c99e19df1e45b9ec24a541073c7431a",
+          "terminated": false,
+          "truncated": false
+        },
+        "neural_only_direct": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 21,
+          "selected_token": "B",
+          "suffix_length": 7,
+          "suffix_sha256": "91d583234cdba9e931fda16d0477153e7c99e19df1e45b9ec24a541073c7431a",
+          "terminated": true,
+          "truncated": false
+        },
+        "shuffled_binding_control": {
+          "executed": true,
+          "native_success": false,
+          "primitive_transitions": 20,
+          "selected_token": "C",
+          "suffix_length": 7,
+          "suffix_sha256": "91d583234cdba9e931fda16d0477153e7c99e19df1e45b9ec24a541073c7431a",
+          "terminated": false,
+          "truncated": false
+        },
+        "source_induced": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 21,
+          "selected_token": "B",
+          "suffix_length": 7,
+          "suffix_sha256": "91d583234cdba9e931fda16d0477153e7c99e19df1e45b9ec24a541073c7431a",
+          "terminated": true,
+          "truncated": false
+        },
+        "target_written_isomorphic": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 21,
+          "selected_token": "B",
+          "suffix_length": 7,
+          "suffix_sha256": "91d583234cdba9e931fda16d0477153e7c99e19df1e45b9ec24a541073c7431a",
+          "terminated": true,
+          "truncated": false
+        }
+      },
+      "seed": 760103,
+      "source_program_or_identity_exposed_to_neural_inference": false
+    },
+    {
+      "binding": {
+        "confidences": {
+          "A": 0.9999999999913103,
+          "B": 0.9999999999265605,
+          "C": 0.9997872143909645,
+          "C0": 0.9997872143909645,
+          "D": 1.0,
+          "I": 0.9999999999997677,
+          "P": 0.9997387127782955
+        },
+        "direct_confidence": 0.5691692521028717,
+        "direct_probabilities": [
+          0.43082515835404256,
+          1.3189063918346013e-18,
+          5.5895430856798675e-06,
+          0.5691692521028717
+        ],
+        "direct_recovery": "D",
+        "directions": {
+          "A": "up",
+          "B": "right",
+          "C": "down",
+          "C0": "down",
+          "D": "left",
+          "I": "down",
+          "P": "up"
+        },
+        "errors": [],
+        "grounder_artifact_sha256": "7c5197fff53ae9be1442816cc1f2d1764b6a0aba998b814402c89ff039a995df",
+        "minimum_confidence": 0.9,
+        "panel_probabilities": {
+          "A": [
+            1.8037955445570638e-16,
+            6.3505488468288985e-12,
+            2.3389223685605484e-12,
+            0.9999999999913103
+          ],
+          "B": [
+            4.232210222577043e-15,
+            1.23088735440816e-12,
+            0.9999999999265605,
+            7.220442674792812e-11
+          ],
+          "C": [
+            0.9997872143909645,
+            4.236213953494704e-10,
+            9.427445044421974e-05,
+            0.0001185107349699701
+          ],
+          "C0": [
+            0.9997872143909645,
+            4.236213953494704e-10,
+            9.427445044421974e-05,
+            0.0001185107349699701
+          ],
+          "D": [
+            7.31335337336847e-25,
+            1.0,
+            3.3775403077510616e-17,
+            6.27267674468104e-17
+          ],
+          "I": [
+            0.9999999999997677,
+            3.852613022650301e-26,
+            2.3224647268950974e-13,
+            1.3631413733139154e-17
+          ],
+          "P": [
+            0.0002574259311237284,
+            6.100830285464856e-12,
+            3.861284479900067e-06,
+            0.9997387127782955
+          ]
+        },
+        "probe_effect": 2,
+        "qualified": true,
+        "token_effects": {
+          "A": 2,
+          "B": 3,
+          "C": 0,
+          "D": 1
+        }
+      },
+      "evaluator_only": {
+        "direct_recovery": "A",
+        "directions": {
+          "A": "up",
+          "B": "right",
+          "C": "down",
+          "C0": "down",
+          "D": "left",
+          "I": "down",
+          "P": "up"
+        },
+        "panel_correct": {
+          "A": true,
+          "B": true,
+          "C": true,
+          "C0": true,
+          "D": true,
+          "I": true,
+          "P": true
+        },
+        "probe_effect": 2,
+        "token_effects": {
+          "A": 2,
+          "B": 3,
+          "C": 0,
+          "D": 1
+        }
+      },
+      "goal_or_native_success_exposed_to_neural_inference": false,
+      "outcomes": {
+        "alpha_renamed_source": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 14,
+          "selected_token": "A",
+          "suffix_length": 2,
+          "suffix_sha256": "45e1c0b7597006d357bb6b74965c9d19ee076dc5bf7ff45406f375e146f187df",
+          "terminated": true,
+          "truncated": false
+        },
+        "copy_effect_control": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 14,
+          "selected_token": "A",
+          "suffix_length": 2,
+          "suffix_sha256": "45e1c0b7597006d357bb6b74965c9d19ee076dc5bf7ff45406f375e146f187df",
+          "terminated": true,
+          "truncated": false
+        },
+        "fixed_token_control": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 14,
+          "selected_token": "A",
+          "suffix_length": 2,
+          "suffix_sha256": "45e1c0b7597006d357bb6b74965c9d19ee076dc5bf7ff45406f375e146f187df",
+          "terminated": true,
+          "truncated": false
+        },
+        "neural_only_direct": {
+          "executed": true,
+          "native_success": false,
+          "primitive_transitions": 13,
+          "selected_token": "D",
+          "suffix_length": 2,
+          "suffix_sha256": "45e1c0b7597006d357bb6b74965c9d19ee076dc5bf7ff45406f375e146f187df",
+          "terminated": false,
+          "truncated": false
+        },
+        "shuffled_binding_control": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 14,
+          "selected_token": "A",
+          "suffix_length": 2,
+          "suffix_sha256": "45e1c0b7597006d357bb6b74965c9d19ee076dc5bf7ff45406f375e146f187df",
+          "terminated": true,
+          "truncated": false
+        },
+        "source_induced": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 14,
+          "selected_token": "A",
+          "suffix_length": 2,
+          "suffix_sha256": "45e1c0b7597006d357bb6b74965c9d19ee076dc5bf7ff45406f375e146f187df",
+          "terminated": true,
+          "truncated": false
+        },
+        "target_written_isomorphic": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 14,
+          "selected_token": "A",
+          "suffix_length": 2,
+          "suffix_sha256": "45e1c0b7597006d357bb6b74965c9d19ee076dc5bf7ff45406f375e146f187df",
+          "terminated": true,
+          "truncated": false
+        }
+      },
+      "seed": 760104,
+      "source_program_or_identity_exposed_to_neural_inference": false
+    },
+    {
+      "binding": {
+        "confidences": {
+          "A": 0.9999999999999982,
+          "B": 0.9999999998864109,
+          "C": 0.9999999999987965,
+          "C0": 0.9999999999930822,
+          "D": 0.9999999999930822,
+          "I": 0.9998815683920647,
+          "P": 0.9999999999999822
+        },
+        "direct_confidence": 1.0,
+        "direct_probabilities": [
+          8.778822918142877e-34,
+          1.0,
+          8.924317202596314e-41,
+          5.650025225902892e-28
+        ],
+        "direct_recovery": "B",
+        "directions": {
+          "A": "left",
+          "B": "up",
+          "C": "down",
+          "C0": "right",
+          "D": "right",
+          "I": "up",
+          "P": "left"
+        },
+        "errors": [],
+        "grounder_artifact_sha256": "7c5197fff53ae9be1442816cc1f2d1764b6a0aba998b814402c89ff039a995df",
+        "minimum_confidence": 0.9,
+        "panel_probabilities": {
+          "A": [
+            6.645648369234704e-19,
+            0.9999999999999982,
+            1.6564636544237577e-15,
+            2.451243182912171e-16
+          ],
+          "B": [
+            1.0948994063496565e-10,
+            5.322042567005657e-14,
+            4.045885009690406e-12,
+            0.9999999998864109
+          ],
+          "C": [
+            0.9999999999987965,
+            4.0807884767334704e-22,
+            1.1036841136013207e-12,
+            9.980002652252986e-14
+          ],
+          "C0": [
+            6.3696713060914766e-12,
+            7.78598178785431e-15,
+            0.9999999999930822,
+            5.403321275764016e-13
+          ],
+          "D": [
+            6.3696713060914766e-12,
+            7.78598178785431e-15,
+            0.9999999999930822,
+            5.403321275764016e-13
+          ],
+          "I": [
+            0.00011144836393944203,
+            1.826348494885811e-08,
+            6.964980510899348e-06,
+            0.9998815683920647
+          ],
+          "P": [
+            3.130866541895401e-17,
+            0.9999999999999822,
+            1.7783225343087637e-14,
+            7.043253224794167e-20
+          ]
+        },
+        "probe_effect": 3,
+        "qualified": true,
+        "token_effects": {
+          "A": 2,
+          "B": 3,
+          "C": 1,
+          "D": 0
+        }
+      },
+      "evaluator_only": {
+        "direct_recovery": "C",
+        "directions": {
+          "A": "left",
+          "B": "up",
+          "C": "down",
+          "C0": "right",
+          "D": "right",
+          "I": "up",
+          "P": "left"
+        },
+        "panel_correct": {
+          "A": true,
+          "B": true,
+          "C": true,
+          "C0": true,
+          "D": true,
+          "I": true,
+          "P": true
+        },
+        "probe_effect": 3,
+        "token_effects": {
+          "A": 2,
+          "B": 3,
+          "C": 1,
+          "D": 0
+        }
+      },
+      "goal_or_native_success_exposed_to_neural_inference": false,
+      "outcomes": {
+        "alpha_renamed_source": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 17,
+          "selected_token": "C",
+          "suffix_length": 3,
+          "suffix_sha256": "c87a0b507cd70dc26bd56b10f736aea70c0643ffd8067f543b23cd0079f2ece9",
+          "terminated": true,
+          "truncated": false
+        },
+        "copy_effect_control": {
+          "executed": true,
+          "native_success": false,
+          "primitive_transitions": 17,
+          "selected_token": "B",
+          "suffix_length": 3,
+          "suffix_sha256": "c87a0b507cd70dc26bd56b10f736aea70c0643ffd8067f543b23cd0079f2ece9",
+          "terminated": false,
+          "truncated": false
+        },
+        "fixed_token_control": {
+          "executed": true,
+          "native_success": false,
+          "primitive_transitions": 18,
+          "selected_token": "A",
+          "suffix_length": 3,
+          "suffix_sha256": "c87a0b507cd70dc26bd56b10f736aea70c0643ffd8067f543b23cd0079f2ece9",
+          "terminated": false,
+          "truncated": false
+        },
+        "neural_only_direct": {
+          "executed": true,
+          "native_success": false,
+          "primitive_transitions": 17,
+          "selected_token": "B",
+          "suffix_length": 3,
+          "suffix_sha256": "c87a0b507cd70dc26bd56b10f736aea70c0643ffd8067f543b23cd0079f2ece9",
+          "terminated": false,
+          "truncated": false
+        },
+        "shuffled_binding_control": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 17,
+          "selected_token": "C",
+          "suffix_length": 3,
+          "suffix_sha256": "c87a0b507cd70dc26bd56b10f736aea70c0643ffd8067f543b23cd0079f2ece9",
+          "terminated": true,
+          "truncated": false
+        },
+        "source_induced": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 17,
+          "selected_token": "C",
+          "suffix_length": 3,
+          "suffix_sha256": "c87a0b507cd70dc26bd56b10f736aea70c0643ffd8067f543b23cd0079f2ece9",
+          "terminated": true,
+          "truncated": false
+        },
+        "target_written_isomorphic": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 17,
+          "selected_token": "C",
+          "suffix_length": 3,
+          "suffix_sha256": "c87a0b507cd70dc26bd56b10f736aea70c0643ffd8067f543b23cd0079f2ece9",
+          "terminated": true,
+          "truncated": false
+        }
+      },
+      "seed": 760105,
+      "source_program_or_identity_exposed_to_neural_inference": false
+    },
+    {
+      "binding": {
+        "confidences": {
+          "A": 0.9999999999999822,
+          "B": 0.9998815683920647,
+          "C": 0.9999999999407221,
+          "C0": 0.9999999999407221,
+          "D": 0.999999999999029,
+          "I": 0.9999999999397877,
+          "P": 0.9999999988650465
+        },
+        "direct_confidence": 0.9999126072610662,
+        "direct_probabilities": [
+          8.988613453942434e-06,
+          3.869339693769818e-12,
+          7.84041216104202e-05,
+          0.9999126072610662
+        ],
+        "direct_recovery": "D",
+        "directions": {
+          "A": "left",
+          "B": "up",
+          "C": "right",
+          "C0": "right",
+          "D": "down",
+          "I": "right",
+          "P": "left"
+        },
+        "errors": [],
+        "grounder_artifact_sha256": "7c5197fff53ae9be1442816cc1f2d1764b6a0aba998b814402c89ff039a995df",
+        "minimum_confidence": 0.9,
+        "panel_probabilities": {
+          "A": [
+            3.130866541895401e-17,
+            0.9999999999999822,
+            1.7783225343087637e-14,
+            7.043253224794167e-20
+          ],
+          "B": [
+            0.00011144836393944203,
+            1.826348494885811e-08,
+            6.964980510899348e-06,
+            0.9998815683920647
+          ],
+          "C": [
+            5.927586011880985e-11,
+            2.0589457005777985e-15,
+            0.9999999999407221,
+            9.70786747204234e-17
+          ],
+          "C0": [
+            5.927586011880985e-11,
+            2.0589457005777985e-15,
+            0.9999999999407221,
+            9.70786747204234e-17
+          ],
+          "D": [
+            0.999999999999029,
+            2.3995106082912405e-22,
+            9.709298634634894e-13,
+            3.2824182923556314e-17
+          ],
+          "I": [
+            6.021222381386562e-11,
+            1.432429324633794e-17,
+            0.9999999999397877,
+            8.84399989359754e-17
+          ],
+          "P": [
+            3.804280302349704e-12,
+            0.9999999988650465,
+            1.1311102644761234e-09,
+            3.8923097410545105e-14
+          ]
+        },
+        "probe_effect": 2,
+        "qualified": true,
+        "token_effects": {
+          "A": 2,
+          "B": 3,
+          "C": 0,
+          "D": 1
+        }
+      },
+      "evaluator_only": {
+        "direct_recovery": "A",
+        "directions": {
+          "A": "left",
+          "B": "up",
+          "C": "right",
+          "C0": "right",
+          "D": "down",
+          "I": "right",
+          "P": "left"
+        },
+        "panel_correct": {
+          "A": true,
+          "B": true,
+          "C": true,
+          "C0": true,
+          "D": true,
+          "I": true,
+          "P": true
+        },
+        "probe_effect": 2,
+        "token_effects": {
+          "A": 2,
+          "B": 3,
+          "C": 0,
+          "D": 1
+        }
+      },
+      "goal_or_native_success_exposed_to_neural_inference": false,
+      "outcomes": {
+        "alpha_renamed_source": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 11,
+          "selected_token": "A",
+          "suffix_length": 1,
+          "suffix_sha256": "038966de9f6b9a901b20b4c6ca8b2a46009feebe031babc842d43690c0bc222b",
+          "terminated": true,
+          "truncated": false
+        },
+        "copy_effect_control": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 11,
+          "selected_token": "A",
+          "suffix_length": 1,
+          "suffix_sha256": "038966de9f6b9a901b20b4c6ca8b2a46009feebe031babc842d43690c0bc222b",
+          "terminated": true,
+          "truncated": false
+        },
+        "fixed_token_control": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 11,
+          "selected_token": "A",
+          "suffix_length": 1,
+          "suffix_sha256": "038966de9f6b9a901b20b4c6ca8b2a46009feebe031babc842d43690c0bc222b",
+          "terminated": true,
+          "truncated": false
+        },
+        "neural_only_direct": {
+          "executed": true,
+          "native_success": false,
+          "primitive_transitions": 10,
+          "selected_token": "D",
+          "suffix_length": 1,
+          "suffix_sha256": "038966de9f6b9a901b20b4c6ca8b2a46009feebe031babc842d43690c0bc222b",
+          "terminated": false,
+          "truncated": false
+        },
+        "shuffled_binding_control": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 11,
+          "selected_token": "A",
+          "suffix_length": 1,
+          "suffix_sha256": "038966de9f6b9a901b20b4c6ca8b2a46009feebe031babc842d43690c0bc222b",
+          "terminated": true,
+          "truncated": false
+        },
+        "source_induced": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 11,
+          "selected_token": "A",
+          "suffix_length": 1,
+          "suffix_sha256": "038966de9f6b9a901b20b4c6ca8b2a46009feebe031babc842d43690c0bc222b",
+          "terminated": true,
+          "truncated": false
+        },
+        "target_written_isomorphic": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 11,
+          "selected_token": "A",
+          "suffix_length": 1,
+          "suffix_sha256": "038966de9f6b9a901b20b4c6ca8b2a46009feebe031babc842d43690c0bc222b",
+          "terminated": true,
+          "truncated": false
+        }
+      },
+      "seed": 760106,
+      "source_program_or_identity_exposed_to_neural_inference": false
+    },
+    {
+      "binding": {
+        "confidences": {
+          "A": 0.999999873039575,
+          "B": 0.9999914484412499,
+          "C": 0.999999999999063,
+          "C0": 0.9999999999167968,
+          "D": 0.9999999999167968,
+          "I": 0.9999999999999822,
+          "P": 0.999999999999029
+        },
+        "direct_confidence": 1.0,
+        "direct_probabilities": [
+          2.745071796003488e-25,
+          1.0,
+          1.5299309685936679e-53,
+          3.484398400115157e-24
+        ],
+        "direct_recovery": "B",
+        "directions": {
+          "A": "left",
+          "B": "down",
+          "C": "right",
+          "C0": "up",
+          "D": "up",
+          "I": "left",
+          "P": "down"
+        },
+        "errors": [],
+        "grounder_artifact_sha256": "7c5197fff53ae9be1442816cc1f2d1764b6a0aba998b814402c89ff039a995df",
+        "minimum_confidence": 0.9,
+        "panel_probabilities": {
+          "A": [
+            2.5338627183702785e-15,
+            0.999999873039575,
+            1.1260554119908683e-07,
+            1.4354881188797852e-08
+          ],
+          "B": [
+            0.9999914484412499,
+            2.245919552479021e-17,
+            7.883728381640966e-06,
+            6.678303685691402e-07
+          ],
+          "C": [
+            1.4708608468891442e-15,
+            3.1352539812420826e-17,
+            0.999999999999063,
+            9.355680079266184e-13
+          ],
+          "C0": [
+            9.645976335837731e-14,
+            3.568224598601706e-17,
+            8.31066678301652e-11,
+            0.9999999999167968
+          ],
+          "D": [
+            9.645976335837731e-14,
+            3.568224598601706e-17,
+            8.31066678301652e-11,
+            0.9999999999167968
+          ],
+          "I": [
+            3.130866541895401e-17,
+            0.9999999999999822,
+            1.7783225343087637e-14,
+            7.043253224794167e-20
+          ],
+          "P": [
+            0.999999999999029,
+            2.3995106082912405e-22,
+            9.709298634634894e-13,
+            3.2824182923556314e-17
+          ]
+        },
+        "probe_effect": 3,
+        "qualified": true,
+        "token_effects": {
+          "A": 3,
+          "B": 2,
+          "C": 1,
+          "D": 0
+        }
+      },
+      "evaluator_only": {
+        "direct_recovery": "C",
+        "directions": {
+          "A": "left",
+          "B": "down",
+          "C": "right",
+          "C0": "up",
+          "D": "up",
+          "I": "left",
+          "P": "down"
+        },
+        "panel_correct": {
+          "A": true,
+          "B": true,
+          "C": true,
+          "C0": true,
+          "D": true,
+          "I": true,
+          "P": true
+        },
+        "probe_effect": 3,
+        "token_effects": {
+          "A": 3,
+          "B": 2,
+          "C": 1,
+          "D": 0
+        }
+      },
+      "goal_or_native_success_exposed_to_neural_inference": false,
+      "outcomes": {
+        "alpha_renamed_source": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 12,
+          "selected_token": "C",
+          "suffix_length": 4,
+          "suffix_sha256": "ffc4b500286d922b943933f4a6e165f22ba1f07f52628b040abf87aa2ae74905",
+          "terminated": true,
+          "truncated": false
+        },
+        "copy_effect_control": {
+          "executed": true,
+          "native_success": false,
+          "primitive_transitions": 12,
+          "selected_token": "A",
+          "suffix_length": 4,
+          "suffix_sha256": "ffc4b500286d922b943933f4a6e165f22ba1f07f52628b040abf87aa2ae74905",
+          "terminated": false,
+          "truncated": false
+        },
+        "fixed_token_control": {
+          "executed": true,
+          "native_success": false,
+          "primitive_transitions": 12,
+          "selected_token": "A",
+          "suffix_length": 4,
+          "suffix_sha256": "ffc4b500286d922b943933f4a6e165f22ba1f07f52628b040abf87aa2ae74905",
+          "terminated": false,
+          "truncated": false
+        },
+        "neural_only_direct": {
+          "executed": true,
+          "native_success": false,
+          "primitive_transitions": 13,
+          "selected_token": "B",
+          "suffix_length": 4,
+          "suffix_sha256": "ffc4b500286d922b943933f4a6e165f22ba1f07f52628b040abf87aa2ae74905",
+          "terminated": false,
+          "truncated": false
+        },
+        "shuffled_binding_control": {
+          "executed": true,
+          "native_success": false,
+          "primitive_transitions": 12,
+          "selected_token": "A",
+          "suffix_length": 4,
+          "suffix_sha256": "ffc4b500286d922b943933f4a6e165f22ba1f07f52628b040abf87aa2ae74905",
+          "terminated": false,
+          "truncated": false
+        },
+        "source_induced": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 12,
+          "selected_token": "C",
+          "suffix_length": 4,
+          "suffix_sha256": "ffc4b500286d922b943933f4a6e165f22ba1f07f52628b040abf87aa2ae74905",
+          "terminated": true,
+          "truncated": false
+        },
+        "target_written_isomorphic": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 12,
+          "selected_token": "C",
+          "suffix_length": 4,
+          "suffix_sha256": "ffc4b500286d922b943933f4a6e165f22ba1f07f52628b040abf87aa2ae74905",
+          "terminated": true,
+          "truncated": false
+        }
+      },
+      "seed": 760107,
+      "source_program_or_identity_exposed_to_neural_inference": false
+    },
+    {
+      "binding": {
+        "confidences": {
+          "A": 0.9999999999978817,
+          "B": 0.9999999999985401,
+          "C": 0.9999945377796683,
+          "C0": 0.9999992968244966,
+          "D": 0.9999992968244966,
+          "I": 0.9999999999265605,
+          "P": 1.0
+        },
+        "direct_confidence": 0.9999975191273262,
+        "direct_probabilities": [
+          2.448564731812854e-07,
+          8.769051855703375e-21,
+          0.9999975191273262,
+          2.2360162007641725e-06
+        ],
+        "direct_recovery": "C",
+        "directions": {
+          "A": "right",
+          "B": "down",
+          "C": "left",
+          "C0": "up",
+          "D": "up",
+          "I": "right",
+          "P": "left"
+        },
+        "errors": [],
+        "grounder_artifact_sha256": "7c5197fff53ae9be1442816cc1f2d1764b6a0aba998b814402c89ff039a995df",
+        "minimum_confidence": 0.9,
+        "panel_probabilities": {
+          "A": [
+            2.1178947043357292e-12,
+            2.812797809228869e-19,
+            0.9999999999978817,
+            4.952763510013997e-16
+          ],
+          "B": [
+            0.9999999999985401,
+            6.1661071518157005e-28,
+            1.459524136151169e-12,
+            4.263373584855919e-16
+          ],
+          "C": [
+            1.0644701190665679e-09,
+            0.9999945377796683,
+            5.458441024774829e-06,
+            2.7148369284765098e-09
+          ],
+          "C0": [
+            6.247208645633424e-07,
+            1.8107553898509533e-15,
+            7.845463699113512e-08,
+            0.9999992968244966
+          ],
+          "D": [
+            6.247208645633424e-07,
+            1.8107553898509533e-15,
+            7.845463699113512e-08,
+            0.9999992968244966
+          ],
+          "I": [
+            4.232210222577043e-15,
+            1.23088735440816e-12,
+            0.9999999999265605,
+            7.220442674792812e-11
+          ],
+          "P": [
+            7.31335337336847e-25,
+            1.0,
+            3.3775403077510616e-17,
+            6.27267674468104e-17
+          ]
+        },
+        "probe_effect": 2,
+        "qualified": true,
+        "token_effects": {
+          "A": 1,
+          "B": 2,
+          "C": 3,
+          "D": 0
+        }
+      },
+      "evaluator_only": {
+        "direct_recovery": "B",
+        "directions": {
+          "A": "right",
+          "B": "down",
+          "C": "left",
+          "C0": "up",
+          "D": "up",
+          "I": "right",
+          "P": "left"
+        },
+        "panel_correct": {
+          "A": true,
+          "B": true,
+          "C": true,
+          "C0": true,
+          "D": true,
+          "I": true,
+          "P": true
+        },
+        "probe_effect": 2,
+        "token_effects": {
+          "A": 1,
+          "B": 2,
+          "C": 3,
+          "D": 0
+        }
+      },
+      "goal_or_native_success_exposed_to_neural_inference": false,
+      "outcomes": {
+        "alpha_renamed_source": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 15,
+          "selected_token": "B",
+          "suffix_length": 5,
+          "suffix_sha256": "b72ca7c3dca96f93ccb1c5aad0465a9381dfdd73eadd7a075e40173db3f85d10",
+          "terminated": true,
+          "truncated": false
+        },
+        "copy_effect_control": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 15,
+          "selected_token": "B",
+          "suffix_length": 5,
+          "suffix_sha256": "b72ca7c3dca96f93ccb1c5aad0465a9381dfdd73eadd7a075e40173db3f85d10",
+          "terminated": true,
+          "truncated": false
+        },
+        "fixed_token_control": {
+          "executed": true,
+          "native_success": false,
+          "primitive_transitions": 14,
+          "selected_token": "A",
+          "suffix_length": 5,
+          "suffix_sha256": "b72ca7c3dca96f93ccb1c5aad0465a9381dfdd73eadd7a075e40173db3f85d10",
+          "terminated": false,
+          "truncated": false
+        },
+        "neural_only_direct": {
+          "executed": true,
+          "native_success": false,
+          "primitive_transitions": 14,
+          "selected_token": "C",
+          "suffix_length": 5,
+          "suffix_sha256": "b72ca7c3dca96f93ccb1c5aad0465a9381dfdd73eadd7a075e40173db3f85d10",
+          "terminated": false,
+          "truncated": false
+        },
+        "shuffled_binding_control": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 15,
+          "selected_token": "B",
+          "suffix_length": 5,
+          "suffix_sha256": "b72ca7c3dca96f93ccb1c5aad0465a9381dfdd73eadd7a075e40173db3f85d10",
+          "terminated": true,
+          "truncated": false
+        },
+        "source_induced": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 15,
+          "selected_token": "B",
+          "suffix_length": 5,
+          "suffix_sha256": "b72ca7c3dca96f93ccb1c5aad0465a9381dfdd73eadd7a075e40173db3f85d10",
+          "terminated": true,
+          "truncated": false
+        },
+        "target_written_isomorphic": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 15,
+          "selected_token": "B",
+          "suffix_length": 5,
+          "suffix_sha256": "b72ca7c3dca96f93ccb1c5aad0465a9381dfdd73eadd7a075e40173db3f85d10",
+          "terminated": true,
+          "truncated": false
+        }
+      },
+      "seed": 760108,
+      "source_program_or_identity_exposed_to_neural_inference": false
+    },
+    {
+      "binding": {
+        "confidences": {
+          "A": 1.0,
+          "B": 0.9999710836239507,
+          "C": 0.999999999999716,
+          "C0": 0.9999710836239507,
+          "D": 0.9999999999310965,
+          "I": 1.0,
+          "P": 0.9999999999999989
+        },
+        "direct_confidence": 0.8640942156945904,
+        "direct_probabilities": [
+          0.8640942156945904,
+          1.2078037795193651e-05,
+          1.4393841391782063e-12,
+          0.13589370626617492
+        ],
+        "direct_recovery": "A",
+        "directions": {
+          "A": "left",
+          "B": "right",
+          "C": "down",
+          "C0": "right",
+          "D": "up",
+          "I": "left",
+          "P": "down"
+        },
+        "errors": [],
+        "grounder_artifact_sha256": "7c5197fff53ae9be1442816cc1f2d1764b6a0aba998b814402c89ff039a995df",
+        "minimum_confidence": 0.9,
+        "panel_probabilities": {
+          "A": [
+            6.0410970545333775e-21,
+            1.0,
+            2.6862329816942556e-21,
+            1.4690503564598649e-18
+          ],
+          "B": [
+            1.6945595742787202e-05,
+            4.086827400376536e-07,
+            0.9999710836239507,
+            1.1562097566480704e-05
+          ],
+          "C": [
+            0.999999999999716,
+            2.511748393380129e-20,
+            3.71152699481815e-16,
+            2.834522278544812e-13
+          ],
+          "C0": [
+            1.6945595742787202e-05,
+            4.086827400376536e-07,
+            0.9999710836239507,
+            1.1562097566480704e-05
+          ],
+          "D": [
+            6.876566069886815e-11,
+            1.3779606315211733e-13,
+            6.454979908721127e-17,
+            0.9999999999310965
+          ],
+          "I": [
+            1.1352660502167882e-19,
+            1.0,
+            9.493688094187245e-20,
+            1.200158217783041e-21
+          ],
+          "P": [
+            0.9999999999999989,
+            2.1962136657319546e-20,
+            9.640045287379015e-16,
+            1.7175858460892345e-16
+          ]
+        },
+        "probe_effect": 3,
+        "qualified": true,
+        "token_effects": {
+          "A": 2,
+          "B": 0,
+          "C": 1,
+          "D": 3
+        }
+      },
+      "evaluator_only": {
+        "direct_recovery": "C",
+        "directions": {
+          "A": "left",
+          "B": "right",
+          "C": "down",
+          "C0": "right",
+          "D": "up",
+          "I": "left",
+          "P": "down"
+        },
+        "panel_correct": {
+          "A": true,
+          "B": true,
+          "C": true,
+          "C0": true,
+          "D": true,
+          "I": true,
+          "P": true
+        },
+        "probe_effect": 3,
+        "token_effects": {
+          "A": 2,
+          "B": 0,
+          "C": 1,
+          "D": 3
+        }
+      },
+      "goal_or_native_success_exposed_to_neural_inference": false,
+      "outcomes": {
+        "alpha_renamed_source": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 17,
+          "selected_token": "C",
+          "suffix_length": 5,
+          "suffix_sha256": "096bf5f44c9a77bcc476be3a59ddf9e6add8be17ef1ce70a4cb2875904c61fa9",
+          "terminated": true,
+          "truncated": false
+        },
+        "copy_effect_control": {
+          "executed": true,
+          "native_success": false,
+          "primitive_transitions": 17,
+          "selected_token": "D",
+          "suffix_length": 5,
+          "suffix_sha256": "096bf5f44c9a77bcc476be3a59ddf9e6add8be17ef1ce70a4cb2875904c61fa9",
+          "terminated": false,
+          "truncated": false
+        },
+        "fixed_token_control": {
+          "executed": true,
+          "native_success": false,
+          "primitive_transitions": 18,
+          "selected_token": "A",
+          "suffix_length": 5,
+          "suffix_sha256": "096bf5f44c9a77bcc476be3a59ddf9e6add8be17ef1ce70a4cb2875904c61fa9",
+          "terminated": false,
+          "truncated": false
+        },
+        "neural_only_direct": {
+          "executed": true,
+          "native_success": false,
+          "primitive_transitions": 18,
+          "selected_token": "A",
+          "suffix_length": 5,
+          "suffix_sha256": "096bf5f44c9a77bcc476be3a59ddf9e6add8be17ef1ce70a4cb2875904c61fa9",
+          "terminated": false,
+          "truncated": false
+        },
+        "shuffled_binding_control": {
+          "executed": true,
+          "native_success": false,
+          "primitive_transitions": 18,
+          "selected_token": "A",
+          "suffix_length": 5,
+          "suffix_sha256": "096bf5f44c9a77bcc476be3a59ddf9e6add8be17ef1ce70a4cb2875904c61fa9",
+          "terminated": false,
+          "truncated": false
+        },
+        "source_induced": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 17,
+          "selected_token": "C",
+          "suffix_length": 5,
+          "suffix_sha256": "096bf5f44c9a77bcc476be3a59ddf9e6add8be17ef1ce70a4cb2875904c61fa9",
+          "terminated": true,
+          "truncated": false
+        },
+        "target_written_isomorphic": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 17,
+          "selected_token": "C",
+          "suffix_length": 5,
+          "suffix_sha256": "096bf5f44c9a77bcc476be3a59ddf9e6add8be17ef1ce70a4cb2875904c61fa9",
+          "terminated": true,
+          "truncated": false
+        }
+      },
+      "seed": 760109,
+      "source_program_or_identity_exposed_to_neural_inference": false
+    },
+    {
+      "binding": {
+        "confidences": {
+          "A": 0.9998517475412558,
+          "B": 0.9999999999995186,
+          "C": 0.9999999755960832,
+          "C0": 0.9999999999995186,
+          "D": 0.9999999999961124,
+          "I": 0.999999999999716,
+          "P": 0.9999999999310965
+        },
+        "direct_confidence": 1.0,
+        "direct_probabilities": [
+          1.1424177865268433e-23,
+          1.0,
+          9.492399262670297e-33,
+          3.8724553950109584e-21
+        ],
+        "direct_recovery": "B",
+        "directions": {
+          "A": "left",
+          "B": "down",
+          "C": "up",
+          "C0": "down",
+          "D": "right",
+          "I": "down",
+          "P": "up"
+        },
+        "errors": [],
+        "grounder_artifact_sha256": "7c5197fff53ae9be1442816cc1f2d1764b6a0aba998b814402c89ff039a995df",
+        "minimum_confidence": 0.9,
+        "panel_probabilities": {
+          "A": [
+            1.7420070109688653e-07,
+            0.9998517475412558,
+            0.00013946024889901557,
+            8.618009144001741e-06
+          ],
+          "B": [
+            0.9999999999995186,
+            1.8573825958626654e-29,
+            4.788149693158626e-13,
+            2.7382428841296904e-15
+          ],
+          "C": [
+            2.4164057244546762e-08,
+            9.140777183366488e-20,
+            2.3985947980640344e-10,
+            0.9999999755960832
+          ],
+          "C0": [
+            0.9999999999995186,
+            1.8573825958626654e-29,
+            4.788149693158626e-13,
+            2.7382428841296904e-15
+          ],
+          "D": [
+            3.874280979804453e-12,
+            5.018846915746105e-20,
+            0.9999999999961124,
+            1.322207332239426e-14
+          ],
+          "I": [
+            0.999999999999716,
+            2.511748393380129e-20,
+            3.71152699481815e-16,
+            2.834522278544812e-13
+          ],
+          "P": [
+            6.876566069886815e-11,
+            1.3779606315211733e-13,
+            6.454979908721127e-17,
+            0.9999999999310965
+          ]
+        },
+        "probe_effect": 2,
+        "qualified": true,
+        "token_effects": {
+          "A": 1,
+          "B": 0,
+          "C": 2,
+          "D": 3
+        }
+      },
+      "evaluator_only": {
+        "direct_recovery": "C",
+        "directions": {
+          "A": "left",
+          "B": "down",
+          "C": "up",
+          "C0": "down",
+          "D": "right",
+          "I": "down",
+          "P": "up"
+        },
+        "panel_correct": {
+          "A": true,
+          "B": true,
+          "C": true,
+          "C0": true,
+          "D": true,
+          "I": true,
+          "P": true
+        },
+        "probe_effect": 2,
+        "token_effects": {
+          "A": 1,
+          "B": 0,
+          "C": 2,
+          "D": 3
+        }
+      },
+      "goal_or_native_success_exposed_to_neural_inference": false,
+      "outcomes": {
+        "alpha_renamed_source": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 20,
+          "selected_token": "C",
+          "suffix_length": 6,
+          "suffix_sha256": "a29fceb0e572e3b9d5f87aa15ef3dff2c845a9027f89c03cb8f294601a1d1c6a",
+          "terminated": true,
+          "truncated": false
+        },
+        "copy_effect_control": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 20,
+          "selected_token": "C",
+          "suffix_length": 6,
+          "suffix_sha256": "a29fceb0e572e3b9d5f87aa15ef3dff2c845a9027f89c03cb8f294601a1d1c6a",
+          "terminated": true,
+          "truncated": false
+        },
+        "fixed_token_control": {
+          "executed": true,
+          "native_success": false,
+          "primitive_transitions": 19,
+          "selected_token": "A",
+          "suffix_length": 6,
+          "suffix_sha256": "a29fceb0e572e3b9d5f87aa15ef3dff2c845a9027f89c03cb8f294601a1d1c6a",
+          "terminated": false,
+          "truncated": false
+        },
+        "neural_only_direct": {
+          "executed": true,
+          "native_success": false,
+          "primitive_transitions": 18,
+          "selected_token": "B",
+          "suffix_length": 6,
+          "suffix_sha256": "a29fceb0e572e3b9d5f87aa15ef3dff2c845a9027f89c03cb8f294601a1d1c6a",
+          "terminated": false,
+          "truncated": false
+        },
+        "shuffled_binding_control": {
+          "executed": true,
+          "native_success": false,
+          "primitive_transitions": 19,
+          "selected_token": "D",
+          "suffix_length": 6,
+          "suffix_sha256": "a29fceb0e572e3b9d5f87aa15ef3dff2c845a9027f89c03cb8f294601a1d1c6a",
+          "terminated": false,
+          "truncated": false
+        },
+        "source_induced": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 20,
+          "selected_token": "C",
+          "suffix_length": 6,
+          "suffix_sha256": "a29fceb0e572e3b9d5f87aa15ef3dff2c845a9027f89c03cb8f294601a1d1c6a",
+          "terminated": true,
+          "truncated": false
+        },
+        "target_written_isomorphic": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 20,
+          "selected_token": "C",
+          "suffix_length": 6,
+          "suffix_sha256": "a29fceb0e572e3b9d5f87aa15ef3dff2c845a9027f89c03cb8f294601a1d1c6a",
+          "terminated": true,
+          "truncated": false
+        }
+      },
+      "seed": 760110,
+      "source_program_or_identity_exposed_to_neural_inference": false
+    },
+    {
+      "binding": {
+        "confidences": {
+          "A": 0.9999999999265605,
+          "B": 0.9997872143909645,
+          "C": 1.0,
+          "C0": 1.0,
+          "D": 0.9999999999913103,
+          "I": 0.9997387127782955,
+          "P": 0.9999999999397877
+        },
+        "direct_confidence": 0.7462006384607485,
+        "direct_probabilities": [
+          0.7462006384607485,
+          2.6598454831732626e-18,
+          2.6326035771323406e-11,
+          0.2537993615129257
+        ],
+        "direct_recovery": "A",
+        "directions": {
+          "A": "right",
+          "B": "down",
+          "C": "left",
+          "C0": "left",
+          "D": "up",
+          "I": "up",
+          "P": "right"
+        },
+        "errors": [],
+        "grounder_artifact_sha256": "7c5197fff53ae9be1442816cc1f2d1764b6a0aba998b814402c89ff039a995df",
+        "minimum_confidence": 0.9,
+        "panel_probabilities": {
+          "A": [
+            4.232210222577043e-15,
+            1.23088735440816e-12,
+            0.9999999999265605,
+            7.220442674792812e-11
+          ],
+          "B": [
+            0.9997872143909645,
+            4.236213953494704e-10,
+            9.427445044421974e-05,
+            0.0001185107349699701
+          ],
+          "C": [
+            7.31335337336847e-25,
+            1.0,
+            3.3775403077510616e-17,
+            6.27267674468104e-17
+          ],
+          "C0": [
+            7.31335337336847e-25,
+            1.0,
+            3.3775403077510616e-17,
+            6.27267674468104e-17
+          ],
+          "D": [
+            1.8037955445570638e-16,
+            6.3505488468288985e-12,
+            2.3389223685605484e-12,
+            0.9999999999913103
+          ],
+          "I": [
+            0.0002574259311237284,
+            6.100830285464856e-12,
+            3.861284479900067e-06,
+            0.9997387127782955
+          ],
+          "P": [
+            6.021222381386562e-11,
+            1.432429324633794e-17,
+            0.9999999999397877,
+            8.84399989359754e-17
+          ]
+        },
+        "probe_effect": 1,
+        "qualified": true,
+        "token_effects": {
+          "A": 2,
+          "B": 3,
+          "C": 0,
+          "D": 1
+        }
+      },
+      "evaluator_only": {
+        "direct_recovery": "B",
+        "directions": {
+          "A": "right",
+          "B": "down",
+          "C": "left",
+          "C0": "left",
+          "D": "up",
+          "I": "up",
+          "P": "right"
+        },
+        "panel_correct": {
+          "A": true,
+          "B": true,
+          "C": true,
+          "C0": true,
+          "D": true,
+          "I": true,
+          "P": true
+        },
+        "probe_effect": 1,
+        "token_effects": {
+          "A": 2,
+          "B": 3,
+          "C": 0,
+          "D": 1
+        }
+      },
+      "goal_or_native_success_exposed_to_neural_inference": false,
+      "outcomes": {
+        "alpha_renamed_source": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 10,
+          "selected_token": "B",
+          "suffix_length": 2,
+          "suffix_sha256": "49a64717d5d4cb19952e6eac2946415cf6879adacf9908e7d872332d32c6e684",
+          "terminated": true,
+          "truncated": false
+        },
+        "copy_effect_control": {
+          "executed": true,
+          "native_success": false,
+          "primitive_transitions": 10,
+          "selected_token": "D",
+          "suffix_length": 2,
+          "suffix_sha256": "49a64717d5d4cb19952e6eac2946415cf6879adacf9908e7d872332d32c6e684",
+          "terminated": false,
+          "truncated": false
+        },
+        "fixed_token_control": {
+          "executed": true,
+          "native_success": false,
+          "primitive_transitions": 11,
+          "selected_token": "A",
+          "suffix_length": 2,
+          "suffix_sha256": "49a64717d5d4cb19952e6eac2946415cf6879adacf9908e7d872332d32c6e684",
+          "terminated": false,
+          "truncated": false
+        },
+        "neural_only_direct": {
+          "executed": true,
+          "native_success": false,
+          "primitive_transitions": 11,
+          "selected_token": "A",
+          "suffix_length": 2,
+          "suffix_sha256": "49a64717d5d4cb19952e6eac2946415cf6879adacf9908e7d872332d32c6e684",
+          "terminated": false,
+          "truncated": false
+        },
+        "shuffled_binding_control": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 10,
+          "selected_token": "B",
+          "suffix_length": 2,
+          "suffix_sha256": "49a64717d5d4cb19952e6eac2946415cf6879adacf9908e7d872332d32c6e684",
+          "terminated": true,
+          "truncated": false
+        },
+        "source_induced": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 10,
+          "selected_token": "B",
+          "suffix_length": 2,
+          "suffix_sha256": "49a64717d5d4cb19952e6eac2946415cf6879adacf9908e7d872332d32c6e684",
+          "terminated": true,
+          "truncated": false
+        },
+        "target_written_isomorphic": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 10,
+          "selected_token": "B",
+          "suffix_length": 2,
+          "suffix_sha256": "49a64717d5d4cb19952e6eac2946415cf6879adacf9908e7d872332d32c6e684",
+          "terminated": true,
+          "truncated": false
+        }
+      },
+      "seed": 760111,
+      "source_program_or_identity_exposed_to_neural_inference": false
+    },
+    {
+      "binding": {
+        "confidences": {
+          "A": 0.9999999999310965,
+          "B": 0.999999999999716,
+          "C": 0.9999710836239507,
+          "C0": 0.999999999999716,
+          "D": 1.0,
+          "I": 0.9999999999999822,
+          "P": 0.9998815683920647
+        },
+        "direct_confidence": 0.9998454320355149,
+        "direct_probabilities": [
+          0.00015456526557171128,
+          1.3405499168687518e-09,
+          1.35836335979125e-09,
+          0.9998454320355149
+        ],
+        "direct_recovery": "D",
+        "directions": {
+          "A": "up",
+          "B": "down",
+          "C": "right",
+          "C0": "down",
+          "D": "left",
+          "I": "left",
+          "P": "up"
+        },
+        "errors": [],
+        "grounder_artifact_sha256": "7c5197fff53ae9be1442816cc1f2d1764b6a0aba998b814402c89ff039a995df",
+        "minimum_confidence": 0.9,
+        "panel_probabilities": {
+          "A": [
+            6.876566069886815e-11,
+            1.3779606315211733e-13,
+            6.454979908721127e-17,
+            0.9999999999310965
+          ],
+          "B": [
+            0.999999999999716,
+            2.511748393380129e-20,
+            3.71152699481815e-16,
+            2.834522278544812e-13
+          ],
+          "C": [
+            1.6945595742787202e-05,
+            4.086827400376536e-07,
+            0.9999710836239507,
+            1.1562097566480704e-05
+          ],
+          "C0": [
+            0.999999999999716,
+            2.511748393380129e-20,
+            3.71152699481815e-16,
+            2.834522278544812e-13
+          ],
+          "D": [
+            6.0410970545333775e-21,
+            1.0,
+            2.6862329816942556e-21,
+            1.4690503564598649e-18
+          ],
+          "I": [
+            3.130866541895401e-17,
+            0.9999999999999822,
+            1.7783225343087637e-14,
+            7.043253224794167e-20
+          ],
+          "P": [
+            0.00011144836393944203,
+            1.826348494885811e-08,
+            6.964980510899348e-06,
+            0.9998815683920647
+          ]
+        },
+        "probe_effect": 1,
+        "qualified": true,
+        "token_effects": {
+          "A": 2,
+          "B": 0,
+          "C": 3,
+          "D": 1
+        }
+      },
+      "evaluator_only": {
+        "direct_recovery": "C",
+        "directions": {
+          "A": "up",
+          "B": "down",
+          "C": "right",
+          "C0": "down",
+          "D": "left",
+          "I": "left",
+          "P": "up"
+        },
+        "panel_correct": {
+          "A": true,
+          "B": true,
+          "C": true,
+          "C0": true,
+          "D": true,
+          "I": true,
+          "P": true
+        },
+        "probe_effect": 1,
+        "token_effects": {
+          "A": 2,
+          "B": 0,
+          "C": 3,
+          "D": 1
+        }
+      },
+      "goal_or_native_success_exposed_to_neural_inference": false,
+      "outcomes": {
+        "alpha_renamed_source": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 18,
+          "selected_token": "C",
+          "suffix_length": 4,
+          "suffix_sha256": "ffc4b500286d922b943933f4a6e165f22ba1f07f52628b040abf87aa2ae74905",
+          "terminated": true,
+          "truncated": false
+        },
+        "copy_effect_control": {
+          "executed": true,
+          "native_success": false,
+          "primitive_transitions": 18,
+          "selected_token": "D",
+          "suffix_length": 4,
+          "suffix_sha256": "ffc4b500286d922b943933f4a6e165f22ba1f07f52628b040abf87aa2ae74905",
+          "terminated": false,
+          "truncated": false
+        },
+        "fixed_token_control": {
+          "executed": true,
+          "native_success": false,
+          "primitive_transitions": 19,
+          "selected_token": "A",
+          "suffix_length": 4,
+          "suffix_sha256": "ffc4b500286d922b943933f4a6e165f22ba1f07f52628b040abf87aa2ae74905",
+          "terminated": false,
+          "truncated": false
+        },
+        "neural_only_direct": {
+          "executed": true,
+          "native_success": false,
+          "primitive_transitions": 18,
+          "selected_token": "D",
+          "suffix_length": 4,
+          "suffix_sha256": "ffc4b500286d922b943933f4a6e165f22ba1f07f52628b040abf87aa2ae74905",
+          "terminated": false,
+          "truncated": false
+        },
+        "shuffled_binding_control": {
+          "executed": true,
+          "native_success": false,
+          "primitive_transitions": 17,
+          "selected_token": "B",
+          "suffix_length": 4,
+          "suffix_sha256": "ffc4b500286d922b943933f4a6e165f22ba1f07f52628b040abf87aa2ae74905",
+          "terminated": false,
+          "truncated": false
+        },
+        "source_induced": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 18,
+          "selected_token": "C",
+          "suffix_length": 4,
+          "suffix_sha256": "ffc4b500286d922b943933f4a6e165f22ba1f07f52628b040abf87aa2ae74905",
+          "terminated": true,
+          "truncated": false
+        },
+        "target_written_isomorphic": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 18,
+          "selected_token": "C",
+          "suffix_length": 4,
+          "suffix_sha256": "ffc4b500286d922b943933f4a6e165f22ba1f07f52628b040abf87aa2ae74905",
+          "terminated": true,
+          "truncated": false
+        }
+      },
+      "seed": 760112,
+      "source_program_or_identity_exposed_to_neural_inference": false
+    },
+    {
+      "binding": {
+        "confidences": {
+          "A": 0.9999999999913103,
+          "B": 1.0,
+          "C": 0.9997872143909645,
+          "C0": 0.9999999999913103,
+          "D": 0.9999999999265605,
+          "I": 0.9999999999265605,
+          "P": 0.9999999999913103
+        },
+        "direct_confidence": 0.9999999973828051,
+        "direct_probabilities": [
+          0.9999999973828051,
+          7.553307194912444e-38,
+          8.188800396161282e-36,
+          2.617194834861772e-09
+        ],
+        "direct_recovery": "A",
+        "directions": {
+          "A": "up",
+          "B": "left",
+          "C": "down",
+          "C0": "up",
+          "D": "right",
+          "I": "right",
+          "P": "up"
+        },
+        "errors": [],
+        "grounder_artifact_sha256": "7c5197fff53ae9be1442816cc1f2d1764b6a0aba998b814402c89ff039a995df",
+        "minimum_confidence": 0.9,
+        "panel_probabilities": {
+          "A": [
+            1.8037955445570638e-16,
+            6.3505488468288985e-12,
+            2.3389223685605484e-12,
+            0.9999999999913103
+          ],
+          "B": [
+            7.31335337336847e-25,
+            1.0,
+            3.3775403077510616e-17,
+            6.27267674468104e-17
+          ],
+          "C": [
+            0.9997872143909645,
+            4.236213953494704e-10,
+            9.427445044421974e-05,
+            0.0001185107349699701
+          ],
+          "C0": [
+            1.8037955445570638e-16,
+            6.3505488468288985e-12,
+            2.3389223685605484e-12,
+            0.9999999999913103
+          ],
+          "D": [
+            4.232210222577043e-15,
+            1.23088735440816e-12,
+            0.9999999999265605,
+            7.220442674792812e-11
+          ],
+          "I": [
+            4.232210222577043e-15,
+            1.23088735440816e-12,
+            0.9999999999265605,
+            7.220442674792812e-11
+          ],
+          "P": [
+            1.8037955445570638e-16,
+            6.3505488468288985e-12,
+            2.3389223685605484e-12,
+            0.9999999999913103
+          ]
+        },
+        "probe_effect": 3,
+        "qualified": true,
+        "token_effects": {
+          "A": 0,
+          "B": 3,
+          "C": 2,
+          "D": 1
+        }
+      },
+      "evaluator_only": {
+        "direct_recovery": "D",
+        "directions": {
+          "A": "up",
+          "B": "left",
+          "C": "down",
+          "C0": "up",
+          "D": "right",
+          "I": "right",
+          "P": "up"
+        },
+        "panel_correct": {
+          "A": true,
+          "B": true,
+          "C": true,
+          "C0": true,
+          "D": true,
+          "I": true,
+          "P": true
+        },
+        "probe_effect": 3,
+        "token_effects": {
+          "A": 0,
+          "B": 3,
+          "C": 2,
+          "D": 1
+        }
+      },
+      "goal_or_native_success_exposed_to_neural_inference": false,
+      "outcomes": {
+        "alpha_renamed_source": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 13,
+          "selected_token": "D",
+          "suffix_length": 5,
+          "suffix_sha256": "b72ca7c3dca96f93ccb1c5aad0465a9381dfdd73eadd7a075e40173db3f85d10",
+          "terminated": true,
+          "truncated": false
+        },
+        "copy_effect_control": {
+          "executed": true,
+          "native_success": false,
+          "primitive_transitions": 13,
+          "selected_token": "B",
+          "suffix_length": 5,
+          "suffix_sha256": "b72ca7c3dca96f93ccb1c5aad0465a9381dfdd73eadd7a075e40173db3f85d10",
+          "terminated": false,
+          "truncated": false
+        },
+        "fixed_token_control": {
+          "executed": true,
+          "native_success": false,
+          "primitive_transitions": 12,
+          "selected_token": "A",
+          "suffix_length": 5,
+          "suffix_sha256": "b72ca7c3dca96f93ccb1c5aad0465a9381dfdd73eadd7a075e40173db3f85d10",
+          "terminated": false,
+          "truncated": false
+        },
+        "neural_only_direct": {
+          "executed": true,
+          "native_success": false,
+          "primitive_transitions": 12,
+          "selected_token": "A",
+          "suffix_length": 5,
+          "suffix_sha256": "b72ca7c3dca96f93ccb1c5aad0465a9381dfdd73eadd7a075e40173db3f85d10",
+          "terminated": false,
+          "truncated": false
+        },
+        "shuffled_binding_control": {
+          "executed": true,
+          "native_success": false,
+          "primitive_transitions": 13,
+          "selected_token": "B",
+          "suffix_length": 5,
+          "suffix_sha256": "b72ca7c3dca96f93ccb1c5aad0465a9381dfdd73eadd7a075e40173db3f85d10",
+          "terminated": false,
+          "truncated": false
+        },
+        "source_induced": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 13,
+          "selected_token": "D",
+          "suffix_length": 5,
+          "suffix_sha256": "b72ca7c3dca96f93ccb1c5aad0465a9381dfdd73eadd7a075e40173db3f85d10",
+          "terminated": true,
+          "truncated": false
+        },
+        "target_written_isomorphic": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 13,
+          "selected_token": "D",
+          "suffix_length": 5,
+          "suffix_sha256": "b72ca7c3dca96f93ccb1c5aad0465a9381dfdd73eadd7a075e40173db3f85d10",
+          "terminated": true,
+          "truncated": false
+        }
+      },
+      "seed": 760113,
+      "source_program_or_identity_exposed_to_neural_inference": false
+    },
+    {
+      "binding": {
+        "confidences": {
+          "A": 0.9999999998864109,
+          "B": 0.9999999999999982,
+          "C": 0.9999999999987965,
+          "C0": 0.9999999999987965,
+          "D": 0.9999999999930822,
+          "I": 0.9999999999310965,
+          "P": 1.0
+        },
+        "direct_confidence": 0.9260231547608656,
+        "direct_probabilities": [
+          0.02082208909929024,
+          0.9260231547608656,
+          4.854709245211639e-09,
+          0.0531547512851349
+        ],
+        "direct_recovery": "B",
+        "directions": {
+          "A": "up",
+          "B": "left",
+          "C": "down",
+          "C0": "down",
+          "D": "right",
+          "I": "up",
+          "P": "left"
+        },
+        "errors": [],
+        "grounder_artifact_sha256": "7c5197fff53ae9be1442816cc1f2d1764b6a0aba998b814402c89ff039a995df",
+        "minimum_confidence": 0.9,
+        "panel_probabilities": {
+          "A": [
+            1.0948994063496565e-10,
+            5.322042567005657e-14,
+            4.045885009690406e-12,
+            0.9999999998864109
+          ],
+          "B": [
+            6.645648369234704e-19,
+            0.9999999999999982,
+            1.6564636544237577e-15,
+            2.451243182912171e-16
+          ],
+          "C": [
+            0.9999999999987965,
+            4.0807884767334704e-22,
+            1.1036841136013207e-12,
+            9.980002652252986e-14
+          ],
+          "C0": [
+            0.9999999999987965,
+            4.0807884767334704e-22,
+            1.1036841136013207e-12,
+            9.980002652252986e-14
+          ],
+          "D": [
+            6.3696713060914766e-12,
+            7.78598178785431e-15,
+            0.9999999999930822,
+            5.403321275764016e-13
+          ],
+          "I": [
+            6.876566069886815e-11,
+            1.3779606315211733e-13,
+            6.454979908721127e-17,
+            0.9999999999310965
+          ],
+          "P": [
+            6.0410970545333775e-21,
+            1.0,
+            2.6862329816942556e-21,
+            1.4690503564598649e-18
+          ]
+        },
+        "probe_effect": 3,
+        "qualified": true,
+        "token_effects": {
+          "A": 2,
+          "B": 1,
+          "C": 0,
+          "D": 3
+        }
+      },
+      "evaluator_only": {
+        "direct_recovery": "B",
+        "directions": {
+          "A": "up",
+          "B": "left",
+          "C": "down",
+          "C0": "down",
+          "D": "right",
+          "I": "up",
+          "P": "left"
+        },
+        "panel_correct": {
+          "A": true,
+          "B": true,
+          "C": true,
+          "C0": true,
+          "D": true,
+          "I": true,
+          "P": true
+        },
+        "probe_effect": 3,
+        "token_effects": {
+          "A": 2,
+          "B": 1,
+          "C": 0,
+          "D": 3
+        }
+      },
+      "goal_or_native_success_exposed_to_neural_inference": false,
+      "outcomes": {
+        "alpha_renamed_source": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 18,
+          "selected_token": "B",
+          "suffix_length": 6,
+          "suffix_sha256": "367c58a4d3e39188a365e3e6f5be0a1adc0a595587c1a3fd5e261965d3f5f509",
+          "terminated": true,
+          "truncated": false
+        },
+        "copy_effect_control": {
+          "executed": true,
+          "native_success": false,
+          "primitive_transitions": 18,
+          "selected_token": "D",
+          "suffix_length": 6,
+          "suffix_sha256": "367c58a4d3e39188a365e3e6f5be0a1adc0a595587c1a3fd5e261965d3f5f509",
+          "terminated": false,
+          "truncated": false
+        },
+        "fixed_token_control": {
+          "executed": true,
+          "native_success": false,
+          "primitive_transitions": 19,
+          "selected_token": "A",
+          "suffix_length": 6,
+          "suffix_sha256": "367c58a4d3e39188a365e3e6f5be0a1adc0a595587c1a3fd5e261965d3f5f509",
+          "terminated": false,
+          "truncated": false
+        },
+        "neural_only_direct": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 18,
+          "selected_token": "B",
+          "suffix_length": 6,
+          "suffix_sha256": "367c58a4d3e39188a365e3e6f5be0a1adc0a595587c1a3fd5e261965d3f5f509",
+          "terminated": true,
+          "truncated": false
+        },
+        "shuffled_binding_control": {
+          "executed": true,
+          "native_success": false,
+          "primitive_transitions": 17,
+          "selected_token": "C",
+          "suffix_length": 6,
+          "suffix_sha256": "367c58a4d3e39188a365e3e6f5be0a1adc0a595587c1a3fd5e261965d3f5f509",
+          "terminated": false,
+          "truncated": false
+        },
+        "source_induced": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 18,
+          "selected_token": "B",
+          "suffix_length": 6,
+          "suffix_sha256": "367c58a4d3e39188a365e3e6f5be0a1adc0a595587c1a3fd5e261965d3f5f509",
+          "terminated": true,
+          "truncated": false
+        },
+        "target_written_isomorphic": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 18,
+          "selected_token": "B",
+          "suffix_length": 6,
+          "suffix_sha256": "367c58a4d3e39188a365e3e6f5be0a1adc0a595587c1a3fd5e261965d3f5f509",
+          "terminated": true,
+          "truncated": false
+        }
+      },
+      "seed": 760114,
+      "source_program_or_identity_exposed_to_neural_inference": false
+    },
+    {
+      "binding": {
+        "confidences": {
+          "A": 0.9999999998864109,
+          "B": 0.9999999999999982,
+          "C": 0.9999999999987965,
+          "C0": 0.9999999998864109,
+          "D": 0.9999999999930822,
+          "I": 0.9999999999922409,
+          "P": 0.9999999990151287
+        },
+        "direct_confidence": 0.9999999973860341,
+        "direct_probabilities": [
+          0.9999999973860341,
+          7.509287818847956e-38,
+          8.174288667841836e-36,
+          2.613965908915635e-09
+        ],
+        "direct_recovery": "A",
+        "directions": {
+          "A": "up",
+          "B": "left",
+          "C": "down",
+          "C0": "up",
+          "D": "right",
+          "I": "right",
+          "P": "up"
+        },
+        "errors": [],
+        "grounder_artifact_sha256": "7c5197fff53ae9be1442816cc1f2d1764b6a0aba998b814402c89ff039a995df",
+        "minimum_confidence": 0.9,
+        "panel_probabilities": {
+          "A": [
+            1.0948994063496565e-10,
+            5.322042567005657e-14,
+            4.045885009690406e-12,
+            0.9999999998864109
+          ],
+          "B": [
+            6.645648369234704e-19,
+            0.9999999999999982,
+            1.6564636544237577e-15,
+            2.451243182912171e-16
+          ],
+          "C": [
+            0.9999999999987965,
+            4.0807884767334704e-22,
+            1.1036841136013207e-12,
+            9.980002652252986e-14
+          ],
+          "C0": [
+            1.0948994063496565e-10,
+            5.322042567005657e-14,
+            4.045885009690406e-12,
+            0.9999999998864109
+          ],
+          "D": [
+            6.3696713060914766e-12,
+            7.78598178785431e-15,
+            0.9999999999930822,
+            5.403321275764016e-13
+          ],
+          "I": [
+            7.559985641217178e-12,
+            2.233730502629596e-15,
+            0.9999999999922409,
+            1.9697796931393132e-13
+          ],
+          "P": [
+            9.631377473070314e-10,
+            2.679117043802111e-14,
+            2.1706683972532463e-11,
+            0.9999999990151287
+          ]
+        },
+        "probe_effect": 3,
+        "qualified": true,
+        "token_effects": {
+          "A": 0,
+          "B": 3,
+          "C": 2,
+          "D": 1
+        }
+      },
+      "evaluator_only": {
+        "direct_recovery": "D",
+        "directions": {
+          "A": "up",
+          "B": "left",
+          "C": "down",
+          "C0": "up",
+          "D": "right",
+          "I": "right",
+          "P": "up"
+        },
+        "panel_correct": {
+          "A": true,
+          "B": true,
+          "C": true,
+          "C0": true,
+          "D": true,
+          "I": true,
+          "P": true
+        },
+        "probe_effect": 3,
+        "token_effects": {
+          "A": 0,
+          "B": 3,
+          "C": 2,
+          "D": 1
+        }
+      },
+      "goal_or_native_success_exposed_to_neural_inference": false,
+      "outcomes": {
+        "alpha_renamed_source": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 13,
+          "selected_token": "D",
+          "suffix_length": 3,
+          "suffix_sha256": "ecb6bf645604261355ea6636c8f8ab6200ac1610ad7a38320eb8f5691aa80850",
+          "terminated": true,
+          "truncated": false
+        },
+        "copy_effect_control": {
+          "executed": true,
+          "native_success": false,
+          "primitive_transitions": 13,
+          "selected_token": "B",
+          "suffix_length": 3,
+          "suffix_sha256": "ecb6bf645604261355ea6636c8f8ab6200ac1610ad7a38320eb8f5691aa80850",
+          "terminated": false,
+          "truncated": false
+        },
+        "fixed_token_control": {
+          "executed": true,
+          "native_success": false,
+          "primitive_transitions": 12,
+          "selected_token": "A",
+          "suffix_length": 3,
+          "suffix_sha256": "ecb6bf645604261355ea6636c8f8ab6200ac1610ad7a38320eb8f5691aa80850",
+          "terminated": false,
+          "truncated": false
+        },
+        "neural_only_direct": {
+          "executed": true,
+          "native_success": false,
+          "primitive_transitions": 12,
+          "selected_token": "A",
+          "suffix_length": 3,
+          "suffix_sha256": "ecb6bf645604261355ea6636c8f8ab6200ac1610ad7a38320eb8f5691aa80850",
+          "terminated": false,
+          "truncated": false
+        },
+        "shuffled_binding_control": {
+          "executed": true,
+          "native_success": false,
+          "primitive_transitions": 14,
+          "selected_token": "C",
+          "suffix_length": 3,
+          "suffix_sha256": "ecb6bf645604261355ea6636c8f8ab6200ac1610ad7a38320eb8f5691aa80850",
+          "terminated": false,
+          "truncated": false
+        },
+        "source_induced": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 13,
+          "selected_token": "D",
+          "suffix_length": 3,
+          "suffix_sha256": "ecb6bf645604261355ea6636c8f8ab6200ac1610ad7a38320eb8f5691aa80850",
+          "terminated": true,
+          "truncated": false
+        },
+        "target_written_isomorphic": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 13,
+          "selected_token": "D",
+          "suffix_length": 3,
+          "suffix_sha256": "ecb6bf645604261355ea6636c8f8ab6200ac1610ad7a38320eb8f5691aa80850",
+          "terminated": true,
+          "truncated": false
+        }
+      },
+      "seed": 760115,
+      "source_program_or_identity_exposed_to_neural_inference": false
+    },
+    {
+      "binding": {
+        "confidences": {
+          "A": 1.0,
+          "B": 0.9999710836239507,
+          "C": 0.999999999999716,
+          "C0": 0.9999999999310965,
+          "D": 0.9999999999310965,
+          "I": 0.9999999999310965,
+          "P": 1.0
+        },
+        "direct_confidence": 1.0,
+        "direct_probabilities": [
+          1.0,
+          4.1836425090208e-21,
+          8.416872938771446e-27,
+          1.2801680881049429e-20
+        ],
+        "direct_recovery": "A",
+        "directions": {
+          "A": "left",
+          "B": "right",
+          "C": "down",
+          "C0": "up",
+          "D": "up",
+          "I": "up",
+          "P": "left"
+        },
+        "errors": [],
+        "grounder_artifact_sha256": "7c5197fff53ae9be1442816cc1f2d1764b6a0aba998b814402c89ff039a995df",
+        "minimum_confidence": 0.9,
+        "panel_probabilities": {
+          "A": [
+            6.0410970545333775e-21,
+            1.0,
+            2.6862329816942556e-21,
+            1.4690503564598649e-18
+          ],
+          "B": [
+            1.6945595742787202e-05,
+            4.086827400376536e-07,
+            0.9999710836239507,
+            1.1562097566480704e-05
+          ],
+          "C": [
+            0.999999999999716,
+            2.511748393380129e-20,
+            3.71152699481815e-16,
+            2.834522278544812e-13
+          ],
+          "C0": [
+            6.876566069886815e-11,
+            1.3779606315211733e-13,
+            6.454979908721127e-17,
+            0.9999999999310965
+          ],
+          "D": [
+            6.876566069886815e-11,
+            1.3779606315211733e-13,
+            6.454979908721127e-17,
+            0.9999999999310965
+          ],
+          "I": [
+            6.876566069886815e-11,
+            1.3779606315211733e-13,
+            6.454979908721127e-17,
+            0.9999999999310965
+          ],
+          "P": [
+            6.0410970545333775e-21,
+            1.0,
+            2.6862329816942556e-21,
+            1.4690503564598649e-18
+          ]
+        },
+        "probe_effect": 3,
+        "qualified": true,
+        "token_effects": {
+          "A": 3,
+          "B": 1,
+          "C": 2,
+          "D": 0
+        }
+      },
+      "evaluator_only": {
+        "direct_recovery": "B",
+        "directions": {
+          "A": "left",
+          "B": "right",
+          "C": "down",
+          "C0": "up",
+          "D": "up",
+          "I": "up",
+          "P": "left"
+        },
+        "panel_correct": {
+          "A": true,
+          "B": true,
+          "C": true,
+          "C0": true,
+          "D": true,
+          "I": true,
+          "P": true
+        },
+        "probe_effect": 3,
+        "token_effects": {
+          "A": 3,
+          "B": 1,
+          "C": 2,
+          "D": 0
+        }
+      },
+      "goal_or_native_success_exposed_to_neural_inference": false,
+      "outcomes": {
+        "alpha_renamed_source": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 19,
+          "selected_token": "B",
+          "suffix_length": 7,
+          "suffix_sha256": "91d583234cdba9e931fda16d0477153e7c99e19df1e45b9ec24a541073c7431a",
+          "terminated": true,
+          "truncated": false
+        },
+        "copy_effect_control": {
+          "executed": true,
+          "native_success": false,
+          "primitive_transitions": 19,
+          "selected_token": "A",
+          "suffix_length": 7,
+          "suffix_sha256": "91d583234cdba9e931fda16d0477153e7c99e19df1e45b9ec24a541073c7431a",
+          "terminated": false,
+          "truncated": false
+        },
+        "fixed_token_control": {
+          "executed": true,
+          "native_success": false,
+          "primitive_transitions": 19,
+          "selected_token": "A",
+          "suffix_length": 7,
+          "suffix_sha256": "91d583234cdba9e931fda16d0477153e7c99e19df1e45b9ec24a541073c7431a",
+          "terminated": false,
+          "truncated": false
+        },
+        "neural_only_direct": {
+          "executed": true,
+          "native_success": false,
+          "primitive_transitions": 19,
+          "selected_token": "A",
+          "suffix_length": 7,
+          "suffix_sha256": "91d583234cdba9e931fda16d0477153e7c99e19df1e45b9ec24a541073c7431a",
+          "terminated": false,
+          "truncated": false
+        },
+        "shuffled_binding_control": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 19,
+          "selected_token": "B",
+          "suffix_length": 7,
+          "suffix_sha256": "91d583234cdba9e931fda16d0477153e7c99e19df1e45b9ec24a541073c7431a",
+          "terminated": true,
+          "truncated": false
+        },
+        "source_induced": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 19,
+          "selected_token": "B",
+          "suffix_length": 7,
+          "suffix_sha256": "91d583234cdba9e931fda16d0477153e7c99e19df1e45b9ec24a541073c7431a",
+          "terminated": true,
+          "truncated": false
+        },
+        "target_written_isomorphic": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 19,
+          "selected_token": "B",
+          "suffix_length": 7,
+          "suffix_sha256": "91d583234cdba9e931fda16d0477153e7c99e19df1e45b9ec24a541073c7431a",
+          "terminated": true,
+          "truncated": false
+        }
+      },
+      "seed": 760116,
+      "source_program_or_identity_exposed_to_neural_inference": false
+    },
+    {
+      "binding": {
+        "confidences": {
+          "A": 0.9999992968244966,
+          "B": 0.9999999999978817,
+          "C": 0.9999945377796683,
+          "C0": 0.9999999999985401,
+          "D": 0.9999999999985401,
+          "I": 0.9999999999999982,
+          "P": 0.9999999998864109
+        },
+        "direct_confidence": 0.9999805244954963,
+        "direct_probabilities": [
+          1.873447046364484e-05,
+          9.212286032022597e-22,
+          0.9999805244954963,
+          7.410340400650465e-07
+        ],
+        "direct_recovery": "C",
+        "directions": {
+          "A": "up",
+          "B": "right",
+          "C": "left",
+          "C0": "down",
+          "D": "down",
+          "I": "left",
+          "P": "up"
+        },
+        "errors": [],
+        "grounder_artifact_sha256": "7c5197fff53ae9be1442816cc1f2d1764b6a0aba998b814402c89ff039a995df",
+        "minimum_confidence": 0.9,
+        "panel_probabilities": {
+          "A": [
+            6.247208645633424e-07,
+            1.8107553898509533e-15,
+            7.845463699113512e-08,
+            0.9999992968244966
+          ],
+          "B": [
+            2.1178947043357292e-12,
+            2.812797809228869e-19,
+            0.9999999999978817,
+            4.952763510013997e-16
+          ],
+          "C": [
+            1.0644701190665679e-09,
+            0.9999945377796683,
+            5.458441024774829e-06,
+            2.7148369284765098e-09
+          ],
+          "C0": [
+            0.9999999999985401,
+            6.1661071518157005e-28,
+            1.459524136151169e-12,
+            4.263373584855919e-16
+          ],
+          "D": [
+            0.9999999999985401,
+            6.1661071518157005e-28,
+            1.459524136151169e-12,
+            4.263373584855919e-16
+          ],
+          "I": [
+            6.645648369234704e-19,
+            0.9999999999999982,
+            1.6564636544237577e-15,
+            2.451243182912171e-16
+          ],
+          "P": [
+            1.0948994063496565e-10,
+            5.322042567005657e-14,
+            4.045885009690406e-12,
+            0.9999999998864109
+          ]
+        },
+        "probe_effect": 1,
+        "qualified": true,
+        "token_effects": {
+          "A": 2,
+          "B": 3,
+          "C": 1,
+          "D": 0
+        }
+      },
+      "evaluator_only": {
+        "direct_recovery": "B",
+        "directions": {
+          "A": "up",
+          "B": "right",
+          "C": "left",
+          "C0": "down",
+          "D": "down",
+          "I": "left",
+          "P": "up"
+        },
+        "panel_correct": {
+          "A": true,
+          "B": true,
+          "C": true,
+          "C0": true,
+          "D": true,
+          "I": true,
+          "P": true
+        },
+        "probe_effect": 1,
+        "token_effects": {
+          "A": 2,
+          "B": 3,
+          "C": 1,
+          "D": 0
+        }
+      },
+      "goal_or_native_success_exposed_to_neural_inference": false,
+      "outcomes": {
+        "alpha_renamed_source": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 19,
+          "selected_token": "B",
+          "suffix_length": 5,
+          "suffix_sha256": "29ecfaebf5aa467c58da71af7b8591136ce71c5c9475a9b7cfaf42f295a37391",
+          "terminated": true,
+          "truncated": false
+        },
+        "copy_effect_control": {
+          "executed": true,
+          "native_success": false,
+          "primitive_transitions": 19,
+          "selected_token": "C",
+          "suffix_length": 5,
+          "suffix_sha256": "29ecfaebf5aa467c58da71af7b8591136ce71c5c9475a9b7cfaf42f295a37391",
+          "terminated": false,
+          "truncated": false
+        },
+        "fixed_token_control": {
+          "executed": true,
+          "native_success": false,
+          "primitive_transitions": 20,
+          "selected_token": "A",
+          "suffix_length": 5,
+          "suffix_sha256": "29ecfaebf5aa467c58da71af7b8591136ce71c5c9475a9b7cfaf42f295a37391",
+          "terminated": false,
+          "truncated": false
+        },
+        "neural_only_direct": {
+          "executed": true,
+          "native_success": false,
+          "primitive_transitions": 19,
+          "selected_token": "C",
+          "suffix_length": 5,
+          "suffix_sha256": "29ecfaebf5aa467c58da71af7b8591136ce71c5c9475a9b7cfaf42f295a37391",
+          "terminated": false,
+          "truncated": false
+        },
+        "shuffled_binding_control": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 19,
+          "selected_token": "B",
+          "suffix_length": 5,
+          "suffix_sha256": "29ecfaebf5aa467c58da71af7b8591136ce71c5c9475a9b7cfaf42f295a37391",
+          "terminated": true,
+          "truncated": false
+        },
+        "source_induced": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 19,
+          "selected_token": "B",
+          "suffix_length": 5,
+          "suffix_sha256": "29ecfaebf5aa467c58da71af7b8591136ce71c5c9475a9b7cfaf42f295a37391",
+          "terminated": true,
+          "truncated": false
+        },
+        "target_written_isomorphic": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 19,
+          "selected_token": "B",
+          "suffix_length": 5,
+          "suffix_sha256": "29ecfaebf5aa467c58da71af7b8591136ce71c5c9475a9b7cfaf42f295a37391",
+          "terminated": true,
+          "truncated": false
+        }
+      },
+      "seed": 760117,
+      "source_program_or_identity_exposed_to_neural_inference": false
+    },
+    {
+      "binding": {
+        "confidences": {
+          "A": 0.9999999999985401,
+          "B": 0.9999999999978817,
+          "C": 0.9999945377796683,
+          "C0": 0.9999999999985401,
+          "D": 0.9999992968244966,
+          "I": 0.9999999999985401,
+          "P": 0.9999945377796683
+        },
+        "direct_confidence": 0.9999998627244266,
+        "direct_probabilities": [
+          1.316504077310272e-07,
+          7.354373555321397e-21,
+          0.9999998627244266,
+          5.62516559003038e-09
+        ],
+        "direct_recovery": "C",
+        "directions": {
+          "A": "down",
+          "B": "right",
+          "C": "left",
+          "C0": "down",
+          "D": "up",
+          "I": "down",
+          "P": "left"
+        },
+        "errors": [],
+        "grounder_artifact_sha256": "7c5197fff53ae9be1442816cc1f2d1764b6a0aba998b814402c89ff039a995df",
+        "minimum_confidence": 0.9,
+        "panel_probabilities": {
+          "A": [
+            0.9999999999985401,
+            6.1661071518157005e-28,
+            1.459524136151169e-12,
+            4.263373584855919e-16
+          ],
+          "B": [
+            2.1178947043357292e-12,
+            2.812797809228869e-19,
+            0.9999999999978817,
+            4.952763510013997e-16
+          ],
+          "C": [
+            1.0644701190665679e-09,
+            0.9999945377796683,
+            5.458441024774829e-06,
+            2.7148369284765098e-09
+          ],
+          "C0": [
+            0.9999999999985401,
+            6.1661071518157005e-28,
+            1.459524136151169e-12,
+            4.263373584855919e-16
+          ],
+          "D": [
+            6.247208645633424e-07,
+            1.8107553898509533e-15,
+            7.845463699113512e-08,
+            0.9999992968244966
+          ],
+          "I": [
+            0.9999999999985401,
+            6.1661071518157005e-28,
+            1.459524136151169e-12,
+            4.263373584855919e-16
+          ],
+          "P": [
+            1.0644701190665679e-09,
+            0.9999945377796683,
+            5.458441024774829e-06,
+            2.7148369284765098e-09
+          ]
+        },
+        "probe_effect": 1,
+        "qualified": true,
+        "token_effects": {
+          "A": 0,
+          "B": 3,
+          "C": 1,
+          "D": 2
+        }
+      },
+      "evaluator_only": {
+        "direct_recovery": "B",
+        "directions": {
+          "A": "down",
+          "B": "right",
+          "C": "left",
+          "C0": "down",
+          "D": "up",
+          "I": "down",
+          "P": "left"
+        },
+        "panel_correct": {
+          "A": true,
+          "B": true,
+          "C": true,
+          "C0": true,
+          "D": true,
+          "I": true,
+          "P": true
+        },
+        "probe_effect": 1,
+        "token_effects": {
+          "A": 0,
+          "B": 3,
+          "C": 1,
+          "D": 2
+        }
+      },
+      "goal_or_native_success_exposed_to_neural_inference": false,
+      "outcomes": {
+        "alpha_renamed_source": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 11,
+          "selected_token": "B",
+          "suffix_length": 1,
+          "suffix_sha256": "038966de9f6b9a901b20b4c6ca8b2a46009feebe031babc842d43690c0bc222b",
+          "terminated": true,
+          "truncated": false
+        },
+        "copy_effect_control": {
+          "executed": true,
+          "native_success": false,
+          "primitive_transitions": 11,
+          "selected_token": "C",
+          "suffix_length": 1,
+          "suffix_sha256": "038966de9f6b9a901b20b4c6ca8b2a46009feebe031babc842d43690c0bc222b",
+          "terminated": false,
+          "truncated": false
+        },
+        "fixed_token_control": {
+          "executed": true,
+          "native_success": false,
+          "primitive_transitions": 10,
+          "selected_token": "A",
+          "suffix_length": 1,
+          "suffix_sha256": "038966de9f6b9a901b20b4c6ca8b2a46009feebe031babc842d43690c0bc222b",
+          "terminated": false,
+          "truncated": false
+        },
+        "neural_only_direct": {
+          "executed": true,
+          "native_success": false,
+          "primitive_transitions": 11,
+          "selected_token": "C",
+          "suffix_length": 1,
+          "suffix_sha256": "038966de9f6b9a901b20b4c6ca8b2a46009feebe031babc842d43690c0bc222b",
+          "terminated": false,
+          "truncated": false
+        },
+        "shuffled_binding_control": {
+          "executed": true,
+          "native_success": false,
+          "primitive_transitions": 12,
+          "selected_token": "D",
+          "suffix_length": 1,
+          "suffix_sha256": "038966de9f6b9a901b20b4c6ca8b2a46009feebe031babc842d43690c0bc222b",
+          "terminated": false,
+          "truncated": false
+        },
+        "source_induced": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 11,
+          "selected_token": "B",
+          "suffix_length": 1,
+          "suffix_sha256": "038966de9f6b9a901b20b4c6ca8b2a46009feebe031babc842d43690c0bc222b",
+          "terminated": true,
+          "truncated": false
+        },
+        "target_written_isomorphic": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 11,
+          "selected_token": "B",
+          "suffix_length": 1,
+          "suffix_sha256": "038966de9f6b9a901b20b4c6ca8b2a46009feebe031babc842d43690c0bc222b",
+          "terminated": true,
+          "truncated": false
+        }
+      },
+      "seed": 760118,
+      "source_program_or_identity_exposed_to_neural_inference": false
+    },
+    {
+      "binding": {
+        "confidences": {
+          "A": 0.9999999999930822,
+          "B": 0.9999999999987965,
+          "C": 0.9999999999999982,
+          "C0": 0.9999999999999982,
+          "D": 0.9999999998864109,
+          "I": 0.9999999999930822,
+          "P": 0.9999999998864109
+        },
+        "direct_confidence": 0.9999965777079597,
+        "direct_probabilities": [
+          2.460437674741684e-06,
+          3.0061819003578854e-26,
+          9.61854365446424e-07,
+          0.9999965777079597
+        ],
+        "direct_recovery": "D",
+        "directions": {
+          "A": "right",
+          "B": "down",
+          "C": "left",
+          "C0": "left",
+          "D": "up",
+          "I": "right",
+          "P": "up"
+        },
+        "errors": [],
+        "grounder_artifact_sha256": "7c5197fff53ae9be1442816cc1f2d1764b6a0aba998b814402c89ff039a995df",
+        "minimum_confidence": 0.9,
+        "panel_probabilities": {
+          "A": [
+            6.3696713060914766e-12,
+            7.78598178785431e-15,
+            0.9999999999930822,
+            5.403321275764016e-13
+          ],
+          "B": [
+            0.9999999999987965,
+            4.0807884767334704e-22,
+            1.1036841136013207e-12,
+            9.980002652252986e-14
+          ],
+          "C": [
+            6.645648369234704e-19,
+            0.9999999999999982,
+            1.6564636544237577e-15,
+            2.451243182912171e-16
+          ],
+          "C0": [
+            6.645648369234704e-19,
+            0.9999999999999982,
+            1.6564636544237577e-15,
+            2.451243182912171e-16
+          ],
+          "D": [
+            1.0948994063496565e-10,
+            5.322042567005657e-14,
+            4.045885009690406e-12,
+            0.9999999998864109
+          ],
+          "I": [
+            6.3696713060914766e-12,
+            7.78598178785431e-15,
+            0.9999999999930822,
+            5.403321275764016e-13
+          ],
+          "P": [
+            1.0948994063496565e-10,
+            5.322042567005657e-14,
+            4.045885009690406e-12,
+            0.9999999998864109
+          ]
+        },
+        "probe_effect": 3,
+        "qualified": true,
+        "token_effects": {
+          "A": 2,
+          "B": 3,
+          "C": 0,
+          "D": 1
+        }
+      },
+      "evaluator_only": {
+        "direct_recovery": "D",
+        "directions": {
+          "A": "right",
+          "B": "down",
+          "C": "left",
+          "C0": "left",
+          "D": "up",
+          "I": "right",
+          "P": "up"
+        },
+        "panel_correct": {
+          "A": true,
+          "B": true,
+          "C": true,
+          "C0": true,
+          "D": true,
+          "I": true,
+          "P": true
+        },
+        "probe_effect": 3,
+        "token_effects": {
+          "A": 2,
+          "B": 3,
+          "C": 0,
+          "D": 1
+        }
+      },
+      "goal_or_native_success_exposed_to_neural_inference": false,
+      "outcomes": {
+        "alpha_renamed_source": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 16,
+          "selected_token": "D",
+          "suffix_length": 4,
+          "suffix_sha256": "87cc5f53cba98e7026b9414c561d2010c6fd15db24328eeafe64a48c7033a2b5",
+          "terminated": true,
+          "truncated": false
+        },
+        "copy_effect_control": {
+          "executed": true,
+          "native_success": false,
+          "primitive_transitions": 16,
+          "selected_token": "B",
+          "suffix_length": 4,
+          "suffix_sha256": "87cc5f53cba98e7026b9414c561d2010c6fd15db24328eeafe64a48c7033a2b5",
+          "terminated": false,
+          "truncated": false
+        },
+        "fixed_token_control": {
+          "executed": true,
+          "native_success": false,
+          "primitive_transitions": 17,
+          "selected_token": "A",
+          "suffix_length": 4,
+          "suffix_sha256": "87cc5f53cba98e7026b9414c561d2010c6fd15db24328eeafe64a48c7033a2b5",
+          "terminated": false,
+          "truncated": false
+        },
+        "neural_only_direct": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 16,
+          "selected_token": "D",
+          "suffix_length": 4,
+          "suffix_sha256": "87cc5f53cba98e7026b9414c561d2010c6fd15db24328eeafe64a48c7033a2b5",
+          "terminated": true,
+          "truncated": false
+        },
+        "shuffled_binding_control": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 16,
+          "selected_token": "D",
+          "suffix_length": 4,
+          "suffix_sha256": "87cc5f53cba98e7026b9414c561d2010c6fd15db24328eeafe64a48c7033a2b5",
+          "terminated": true,
+          "truncated": false
+        },
+        "source_induced": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 16,
+          "selected_token": "D",
+          "suffix_length": 4,
+          "suffix_sha256": "87cc5f53cba98e7026b9414c561d2010c6fd15db24328eeafe64a48c7033a2b5",
+          "terminated": true,
+          "truncated": false
+        },
+        "target_written_isomorphic": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 16,
+          "selected_token": "D",
+          "suffix_length": 4,
+          "suffix_sha256": "87cc5f53cba98e7026b9414c561d2010c6fd15db24328eeafe64a48c7033a2b5",
+          "terminated": true,
+          "truncated": false
+        }
+      },
+      "seed": 760119,
+      "source_program_or_identity_exposed_to_neural_inference": false
+    },
+    {
+      "binding": {
+        "confidences": {
+          "A": 0.999999999999716,
+          "B": 0.9999710836239507,
+          "C": 1.0,
+          "C0": 0.999999999999716,
+          "D": 0.9999999999310965,
+          "I": 0.9997872143909645,
+          "P": 0.9999999999913103
+        },
+        "direct_confidence": 0.9212081456791404,
+        "direct_probabilities": [
+          0.07871720866992232,
+          4.579679112399784e-07,
+          0.9212081456791404,
+          7.418768302609688e-05
+        ],
+        "direct_recovery": "C",
+        "directions": {
+          "A": "down",
+          "B": "right",
+          "C": "left",
+          "C0": "down",
+          "D": "up",
+          "I": "down",
+          "P": "up"
+        },
+        "errors": [],
+        "grounder_artifact_sha256": "7c5197fff53ae9be1442816cc1f2d1764b6a0aba998b814402c89ff039a995df",
+        "minimum_confidence": 0.9,
+        "panel_probabilities": {
+          "A": [
+            0.999999999999716,
+            2.511748393380129e-20,
+            3.71152699481815e-16,
+            2.834522278544812e-13
+          ],
+          "B": [
+            1.6945595742787202e-05,
+            4.086827400376536e-07,
+            0.9999710836239507,
+            1.1562097566480704e-05
+          ],
+          "C": [
+            6.0410970545333775e-21,
+            1.0,
+            2.6862329816942556e-21,
+            1.4690503564598649e-18
+          ],
+          "C0": [
+            0.999999999999716,
+            2.511748393380129e-20,
+            3.71152699481815e-16,
+            2.834522278544812e-13
+          ],
+          "D": [
+            6.876566069886815e-11,
+            1.3779606315211733e-13,
+            6.454979908721127e-17,
+            0.9999999999310965
+          ],
+          "I": [
+            0.9997872143909645,
+            4.236213953494704e-10,
+            9.427445044421974e-05,
+            0.0001185107349699701
+          ],
+          "P": [
+            1.8037955445570638e-16,
+            6.3505488468288985e-12,
+            2.3389223685605484e-12,
+            0.9999999999913103
+          ]
+        },
+        "probe_effect": 2,
+        "qualified": true,
+        "token_effects": {
+          "A": 0,
+          "B": 3,
+          "C": 1,
+          "D": 2
+        }
+      },
+      "evaluator_only": {
+        "direct_recovery": "D",
+        "directions": {
+          "A": "down",
+          "B": "right",
+          "C": "left",
+          "C0": "down",
+          "D": "up",
+          "I": "down",
+          "P": "up"
+        },
+        "panel_correct": {
+          "A": true,
+          "B": true,
+          "C": true,
+          "C0": true,
+          "D": true,
+          "I": true,
+          "P": true
+        },
+        "probe_effect": 2,
+        "token_effects": {
+          "A": 0,
+          "B": 3,
+          "C": 1,
+          "D": 2
+        }
+      },
+      "goal_or_native_success_exposed_to_neural_inference": false,
+      "outcomes": {
+        "alpha_renamed_source": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 16,
+          "selected_token": "D",
+          "suffix_length": 6,
+          "suffix_sha256": "053f0c074f7096b10b32fd1087f4ec9643246ad1853bac53e98964620bf63bb2",
+          "terminated": true,
+          "truncated": false
+        },
+        "copy_effect_control": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 16,
+          "selected_token": "D",
+          "suffix_length": 6,
+          "suffix_sha256": "053f0c074f7096b10b32fd1087f4ec9643246ad1853bac53e98964620bf63bb2",
+          "terminated": true,
+          "truncated": false
+        },
+        "fixed_token_control": {
+          "executed": true,
+          "native_success": false,
+          "primitive_transitions": 14,
+          "selected_token": "A",
+          "suffix_length": 6,
+          "suffix_sha256": "053f0c074f7096b10b32fd1087f4ec9643246ad1853bac53e98964620bf63bb2",
+          "terminated": false,
+          "truncated": false
+        },
+        "neural_only_direct": {
+          "executed": true,
+          "native_success": false,
+          "primitive_transitions": 15,
+          "selected_token": "C",
+          "suffix_length": 6,
+          "suffix_sha256": "053f0c074f7096b10b32fd1087f4ec9643246ad1853bac53e98964620bf63bb2",
+          "terminated": false,
+          "truncated": false
+        },
+        "shuffled_binding_control": {
+          "executed": true,
+          "native_success": false,
+          "primitive_transitions": 15,
+          "selected_token": "B",
+          "suffix_length": 6,
+          "suffix_sha256": "053f0c074f7096b10b32fd1087f4ec9643246ad1853bac53e98964620bf63bb2",
+          "terminated": false,
+          "truncated": false
+        },
+        "source_induced": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 16,
+          "selected_token": "D",
+          "suffix_length": 6,
+          "suffix_sha256": "053f0c074f7096b10b32fd1087f4ec9643246ad1853bac53e98964620bf63bb2",
+          "terminated": true,
+          "truncated": false
+        },
+        "target_written_isomorphic": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 16,
+          "selected_token": "D",
+          "suffix_length": 6,
+          "suffix_sha256": "053f0c074f7096b10b32fd1087f4ec9643246ad1853bac53e98964620bf63bb2",
+          "terminated": true,
+          "truncated": false
+        }
+      },
+      "seed": 760120,
+      "source_program_or_identity_exposed_to_neural_inference": false
+    },
+    {
+      "binding": {
+        "confidences": {
+          "A": 0.9999999999310965,
+          "B": 1.0,
+          "C": 0.999999999999716,
+          "C0": 0.999999999999716,
+          "D": 0.9999710836239507,
+          "I": 0.9999999999407221,
+          "P": 0.9999999999999822
+        },
+        "direct_confidence": 0.999936492582316,
+        "direct_probabilities": [
+          0.999936492582316,
+          3.0887520072411618e-30,
+          8.252882203277934e-14,
+          6.350741760131814e-05
+        ],
+        "direct_recovery": "A",
+        "directions": {
+          "A": "up",
+          "B": "left",
+          "C": "down",
+          "C0": "down",
+          "D": "right",
+          "I": "right",
+          "P": "left"
+        },
+        "errors": [],
+        "grounder_artifact_sha256": "7c5197fff53ae9be1442816cc1f2d1764b6a0aba998b814402c89ff039a995df",
+        "minimum_confidence": 0.9,
+        "panel_probabilities": {
+          "A": [
+            6.876566069886815e-11,
+            1.3779606315211733e-13,
+            6.454979908721127e-17,
+            0.9999999999310965
+          ],
+          "B": [
+            6.0410970545333775e-21,
+            1.0,
+            2.6862329816942556e-21,
+            1.4690503564598649e-18
+          ],
+          "C": [
+            0.999999999999716,
+            2.511748393380129e-20,
+            3.71152699481815e-16,
+            2.834522278544812e-13
+          ],
+          "C0": [
+            0.999999999999716,
+            2.511748393380129e-20,
+            3.71152699481815e-16,
+            2.834522278544812e-13
+          ],
+          "D": [
+            1.6945595742787202e-05,
+            4.086827400376536e-07,
+            0.9999710836239507,
+            1.1562097566480704e-05
+          ],
+          "I": [
+            5.927586011880985e-11,
+            2.0589457005777985e-15,
+            0.9999999999407221,
+            9.70786747204234e-17
+          ],
+          "P": [
+            3.130866541895401e-17,
+            0.9999999999999822,
+            1.7783225343087637e-14,
+            7.043253224794167e-20
+          ]
+        },
+        "probe_effect": 2,
+        "qualified": true,
+        "token_effects": {
+          "A": 2,
+          "B": 1,
+          "C": 0,
+          "D": 3
+        }
+      },
+      "evaluator_only": {
+        "direct_recovery": "A",
+        "directions": {
+          "A": "up",
+          "B": "left",
+          "C": "down",
+          "C0": "down",
+          "D": "right",
+          "I": "right",
+          "P": "left"
+        },
+        "panel_correct": {
+          "A": true,
+          "B": true,
+          "C": true,
+          "C0": true,
+          "D": true,
+          "I": true,
+          "P": true
+        },
+        "probe_effect": 2,
+        "token_effects": {
+          "A": 2,
+          "B": 1,
+          "C": 0,
+          "D": 3
+        }
+      },
+      "goal_or_native_success_exposed_to_neural_inference": false,
+      "outcomes": {
+        "alpha_renamed_source": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 14,
+          "selected_token": "A",
+          "suffix_length": 2,
+          "suffix_sha256": "1ad6041faf516d0043ca4b91348ab8c8a713496b5b5ce302e0e907e4f7bcbc24",
+          "terminated": true,
+          "truncated": false
+        },
+        "copy_effect_control": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 14,
+          "selected_token": "A",
+          "suffix_length": 2,
+          "suffix_sha256": "1ad6041faf516d0043ca4b91348ab8c8a713496b5b5ce302e0e907e4f7bcbc24",
+          "terminated": true,
+          "truncated": false
+        },
+        "fixed_token_control": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 14,
+          "selected_token": "A",
+          "suffix_length": 2,
+          "suffix_sha256": "1ad6041faf516d0043ca4b91348ab8c8a713496b5b5ce302e0e907e4f7bcbc24",
+          "terminated": true,
+          "truncated": false
+        },
+        "neural_only_direct": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 14,
+          "selected_token": "A",
+          "suffix_length": 2,
+          "suffix_sha256": "1ad6041faf516d0043ca4b91348ab8c8a713496b5b5ce302e0e907e4f7bcbc24",
+          "terminated": true,
+          "truncated": false
+        },
+        "shuffled_binding_control": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 14,
+          "selected_token": "A",
+          "suffix_length": 2,
+          "suffix_sha256": "1ad6041faf516d0043ca4b91348ab8c8a713496b5b5ce302e0e907e4f7bcbc24",
+          "terminated": true,
+          "truncated": false
+        },
+        "source_induced": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 14,
+          "selected_token": "A",
+          "suffix_length": 2,
+          "suffix_sha256": "1ad6041faf516d0043ca4b91348ab8c8a713496b5b5ce302e0e907e4f7bcbc24",
+          "terminated": true,
+          "truncated": false
+        },
+        "target_written_isomorphic": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 14,
+          "selected_token": "A",
+          "suffix_length": 2,
+          "suffix_sha256": "1ad6041faf516d0043ca4b91348ab8c8a713496b5b5ce302e0e907e4f7bcbc24",
+          "terminated": true,
+          "truncated": false
+        }
+      },
+      "seed": 760121,
+      "source_program_or_identity_exposed_to_neural_inference": false
+    },
+    {
+      "binding": {
+        "confidences": {
+          "A": 0.9999999999997677,
+          "B": 0.9997387127782955,
+          "C": 0.9999999988650465,
+          "C0": 0.9999999988650465,
+          "D": 0.9999999999397877,
+          "I": 0.9999999999995186,
+          "P": 0.9999999999961124
+        },
+        "direct_confidence": 0.9794236141270454,
+        "direct_probabilities": [
+          0.9794236141270454,
+          7.399325600117336e-11,
+          6.324148863049904e-29,
+          0.020576385798961244
+        ],
+        "direct_recovery": "A",
+        "directions": {
+          "A": "down",
+          "B": "up",
+          "C": "left",
+          "C0": "left",
+          "D": "right",
+          "I": "down",
+          "P": "right"
+        },
+        "errors": [],
+        "grounder_artifact_sha256": "7c5197fff53ae9be1442816cc1f2d1764b6a0aba998b814402c89ff039a995df",
+        "minimum_confidence": 0.9,
+        "panel_probabilities": {
+          "A": [
+            0.9999999999997677,
+            3.852613022650301e-26,
+            2.3224647268950974e-13,
+            1.3631413733139154e-17
+          ],
+          "B": [
+            0.0002574259311237284,
+            6.100830285464856e-12,
+            3.861284479900067e-06,
+            0.9997387127782955
+          ],
+          "C": [
+            3.804280302349704e-12,
+            0.9999999988650465,
+            1.1311102644761234e-09,
+            3.8923097410545105e-14
+          ],
+          "C0": [
+            3.804280302349704e-12,
+            0.9999999988650465,
+            1.1311102644761234e-09,
+            3.8923097410545105e-14
+          ],
+          "D": [
+            6.021222381386562e-11,
+            1.432429324633794e-17,
+            0.9999999999397877,
+            8.84399989359754e-17
+          ],
+          "I": [
+            0.9999999999995186,
+            1.8573825958626654e-29,
+            4.788149693158626e-13,
+            2.7382428841296904e-15
+          ],
+          "P": [
+            3.874280979804453e-12,
+            5.018846915746105e-20,
+            0.9999999999961124,
+            1.322207332239426e-14
+          ]
+        },
+        "probe_effect": 3,
+        "qualified": true,
+        "token_effects": {
+          "A": 3,
+          "B": 1,
+          "C": 0,
+          "D": 2
+        }
+      },
+      "evaluator_only": {
+        "direct_recovery": "B",
+        "directions": {
+          "A": "down",
+          "B": "up",
+          "C": "left",
+          "C0": "left",
+          "D": "right",
+          "I": "down",
+          "P": "right"
+        },
+        "panel_correct": {
+          "A": true,
+          "B": true,
+          "C": true,
+          "C0": true,
+          "D": true,
+          "I": true,
+          "P": true
+        },
+        "probe_effect": 3,
+        "token_effects": {
+          "A": 3,
+          "B": 1,
+          "C": 0,
+          "D": 2
+        }
+      },
+      "goal_or_native_success_exposed_to_neural_inference": false,
+      "outcomes": {
+        "alpha_renamed_source": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 10,
+          "selected_token": "B",
+          "suffix_length": 2,
+          "suffix_sha256": "1ad6041faf516d0043ca4b91348ab8c8a713496b5b5ce302e0e907e4f7bcbc24",
+          "terminated": true,
+          "truncated": false
+        },
+        "copy_effect_control": {
+          "executed": true,
+          "native_success": false,
+          "primitive_transitions": 10,
+          "selected_token": "A",
+          "suffix_length": 2,
+          "suffix_sha256": "1ad6041faf516d0043ca4b91348ab8c8a713496b5b5ce302e0e907e4f7bcbc24",
+          "terminated": false,
+          "truncated": false
+        },
+        "fixed_token_control": {
+          "executed": true,
+          "native_success": false,
+          "primitive_transitions": 10,
+          "selected_token": "A",
+          "suffix_length": 2,
+          "suffix_sha256": "1ad6041faf516d0043ca4b91348ab8c8a713496b5b5ce302e0e907e4f7bcbc24",
+          "terminated": false,
+          "truncated": false
+        },
+        "neural_only_direct": {
+          "executed": true,
+          "native_success": false,
+          "primitive_transitions": 10,
+          "selected_token": "A",
+          "suffix_length": 2,
+          "suffix_sha256": "1ad6041faf516d0043ca4b91348ab8c8a713496b5b5ce302e0e907e4f7bcbc24",
+          "terminated": false,
+          "truncated": false
+        },
+        "shuffled_binding_control": {
+          "executed": true,
+          "native_success": false,
+          "primitive_transitions": 9,
+          "selected_token": "C",
+          "suffix_length": 2,
+          "suffix_sha256": "1ad6041faf516d0043ca4b91348ab8c8a713496b5b5ce302e0e907e4f7bcbc24",
+          "terminated": false,
+          "truncated": false
+        },
+        "source_induced": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 10,
+          "selected_token": "B",
+          "suffix_length": 2,
+          "suffix_sha256": "1ad6041faf516d0043ca4b91348ab8c8a713496b5b5ce302e0e907e4f7bcbc24",
+          "terminated": true,
+          "truncated": false
+        },
+        "target_written_isomorphic": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 10,
+          "selected_token": "B",
+          "suffix_length": 2,
+          "suffix_sha256": "1ad6041faf516d0043ca4b91348ab8c8a713496b5b5ce302e0e907e4f7bcbc24",
+          "terminated": true,
+          "truncated": false
+        }
+      },
+      "seed": 760122,
+      "source_program_or_identity_exposed_to_neural_inference": false
+    },
+    {
+      "binding": {
+        "confidences": {
+          "A": 0.999987335231608,
+          "B": 0.9999999999926719,
+          "C": 1.0,
+          "C0": 0.9999999999926719,
+          "D": 0.999977035773311,
+          "I": 0.9999999999913103,
+          "P": 0.9999999999265605
+        },
+        "direct_confidence": 0.9999994027500837,
+        "direct_probabilities": [
+          1.390179908951552e-09,
+          5.958597363550746e-07,
+          3.7498338636206944e-27,
+          0.9999994027500837
+        ],
+        "direct_recovery": "D",
+        "directions": {
+          "A": "right",
+          "B": "up",
+          "C": "left",
+          "C0": "up",
+          "D": "down",
+          "I": "up",
+          "P": "right"
+        },
+        "errors": [],
+        "grounder_artifact_sha256": "7c5197fff53ae9be1442816cc1f2d1764b6a0aba998b814402c89ff039a995df",
+        "minimum_confidence": 0.9,
+        "panel_probabilities": {
+          "A": [
+            8.167442485383084e-11,
+            8.274376693962084e-06,
+            0.999987335231608,
+            4.39031002366571e-06
+          ],
+          "B": [
+            6.802339523527368e-16,
+            7.327422006410897e-12,
+            1.183930676397584e-16,
+            0.9999999999926719
+          ],
+          "C": [
+            6.734019303419374e-27,
+            1.0,
+            4.6975421550847e-22,
+            2.1353788621874348e-19
+          ],
+          "C0": [
+            6.802339523527368e-16,
+            7.327422006410897e-12,
+            1.183930676397584e-16,
+            0.9999999999926719
+          ],
+          "D": [
+            0.999977035773311,
+            2.7796555315958577e-10,
+            3.775341114879187e-09,
+            2.2960173382523078e-05
+          ],
+          "I": [
+            1.8037955445570638e-16,
+            6.3505488468288985e-12,
+            2.3389223685605484e-12,
+            0.9999999999913103
+          ],
+          "P": [
+            4.232210222577043e-15,
+            1.23088735440816e-12,
+            0.9999999999265605,
+            7.220442674792812e-11
+          ]
+        },
+        "probe_effect": 1,
+        "qualified": true,
+        "token_effects": {
+          "A": 1,
+          "B": 0,
+          "C": 3,
+          "D": 2
+        }
+      },
+      "evaluator_only": {
+        "direct_recovery": "C",
+        "directions": {
+          "A": "right",
+          "B": "up",
+          "C": "left",
+          "C0": "up",
+          "D": "down",
+          "I": "up",
+          "P": "right"
+        },
+        "panel_correct": {
+          "A": true,
+          "B": true,
+          "C": true,
+          "C0": true,
+          "D": true,
+          "I": true,
+          "P": true
+        },
+        "probe_effect": 1,
+        "token_effects": {
+          "A": 1,
+          "B": 0,
+          "C": 3,
+          "D": 2
+        }
+      },
+      "goal_or_native_success_exposed_to_neural_inference": false,
+      "outcomes": {
+        "alpha_renamed_source": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 21,
+          "selected_token": "C",
+          "suffix_length": 7,
+          "suffix_sha256": "05938b5a139c6bcbd87602bd71f0b2989be64d0620dd84ac9ec735b581119c8e",
+          "terminated": true,
+          "truncated": false
+        },
+        "copy_effect_control": {
+          "executed": true,
+          "native_success": false,
+          "primitive_transitions": 21,
+          "selected_token": "A",
+          "suffix_length": 7,
+          "suffix_sha256": "05938b5a139c6bcbd87602bd71f0b2989be64d0620dd84ac9ec735b581119c8e",
+          "terminated": false,
+          "truncated": false
+        },
+        "fixed_token_control": {
+          "executed": true,
+          "native_success": false,
+          "primitive_transitions": 21,
+          "selected_token": "A",
+          "suffix_length": 7,
+          "suffix_sha256": "05938b5a139c6bcbd87602bd71f0b2989be64d0620dd84ac9ec735b581119c8e",
+          "terminated": false,
+          "truncated": false
+        },
+        "neural_only_direct": {
+          "executed": true,
+          "native_success": false,
+          "primitive_transitions": 22,
+          "selected_token": "D",
+          "suffix_length": 7,
+          "suffix_sha256": "05938b5a139c6bcbd87602bd71f0b2989be64d0620dd84ac9ec735b581119c8e",
+          "terminated": false,
+          "truncated": false
+        },
+        "shuffled_binding_control": {
+          "executed": true,
+          "native_success": false,
+          "primitive_transitions": 21,
+          "selected_token": "A",
+          "suffix_length": 7,
+          "suffix_sha256": "05938b5a139c6bcbd87602bd71f0b2989be64d0620dd84ac9ec735b581119c8e",
+          "terminated": false,
+          "truncated": false
+        },
+        "source_induced": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 21,
+          "selected_token": "C",
+          "suffix_length": 7,
+          "suffix_sha256": "05938b5a139c6bcbd87602bd71f0b2989be64d0620dd84ac9ec735b581119c8e",
+          "terminated": true,
+          "truncated": false
+        },
+        "target_written_isomorphic": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 21,
+          "selected_token": "C",
+          "suffix_length": 7,
+          "suffix_sha256": "05938b5a139c6bcbd87602bd71f0b2989be64d0620dd84ac9ec735b581119c8e",
+          "terminated": true,
+          "truncated": false
+        }
+      },
+      "seed": 760123,
+      "source_program_or_identity_exposed_to_neural_inference": false
+    },
+    {
+      "binding": {
+        "confidences": {
+          "A": 0.999987335231608,
+          "B": 1.0,
+          "C": 0.999977035773311,
+          "C0": 0.999987335231608,
+          "D": 0.9999999999926719,
+          "I": 0.9999999755960832,
+          "P": 0.9999999999995186
+        },
+        "direct_confidence": 0.9999999999935243,
+        "direct_probabilities": [
+          6.473006215594705e-12,
+          0.9999999999935243,
+          6.518648521737173e-21,
+          2.681221272316361e-15
+        ],
+        "direct_recovery": "B",
+        "directions": {
+          "A": "right",
+          "B": "left",
+          "C": "down",
+          "C0": "right",
+          "D": "up",
+          "I": "up",
+          "P": "down"
+        },
+        "errors": [],
+        "grounder_artifact_sha256": "7c5197fff53ae9be1442816cc1f2d1764b6a0aba998b814402c89ff039a995df",
+        "minimum_confidence": 0.9,
+        "panel_probabilities": {
+          "A": [
+            8.167442485383084e-11,
+            8.274376693962084e-06,
+            0.999987335231608,
+            4.39031002366571e-06
+          ],
+          "B": [
+            6.734019303419374e-27,
+            1.0,
+            4.6975421550847e-22,
+            2.1353788621874348e-19
+          ],
+          "C": [
+            0.999977035773311,
+            2.7796555315958577e-10,
+            3.775341114879187e-09,
+            2.2960173382523078e-05
+          ],
+          "C0": [
+            8.167442485383084e-11,
+            8.274376693962084e-06,
+            0.999987335231608,
+            4.39031002366571e-06
+          ],
+          "D": [
+            6.802339523527368e-16,
+            7.327422006410897e-12,
+            1.183930676397584e-16,
+            0.9999999999926719
+          ],
+          "I": [
+            2.4164057244546762e-08,
+            9.140777183366488e-20,
+            2.3985947980640344e-10,
+            0.9999999755960832
+          ],
+          "P": [
+            0.9999999999995186,
+            1.8573825958626654e-29,
+            4.788149693158626e-13,
+            2.7382428841296904e-15
+          ]
+        },
+        "probe_effect": 2,
+        "qualified": true,
+        "token_effects": {
+          "A": 0,
+          "B": 2,
+          "C": 1,
+          "D": 3
+        }
+      },
+      "evaluator_only": {
+        "direct_recovery": "B",
+        "directions": {
+          "A": "right",
+          "B": "left",
+          "C": "down",
+          "C0": "right",
+          "D": "up",
+          "I": "up",
+          "P": "down"
+        },
+        "panel_correct": {
+          "A": true,
+          "B": true,
+          "C": true,
+          "C0": true,
+          "D": true,
+          "I": true,
+          "P": true
+        },
+        "probe_effect": 2,
+        "token_effects": {
+          "A": 0,
+          "B": 2,
+          "C": 1,
+          "D": 3
+        }
+      },
+      "goal_or_native_success_exposed_to_neural_inference": false,
+      "outcomes": {
+        "alpha_renamed_source": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 16,
+          "selected_token": "B",
+          "suffix_length": 4,
+          "suffix_sha256": "ffc4b500286d922b943933f4a6e165f22ba1f07f52628b040abf87aa2ae74905",
+          "terminated": true,
+          "truncated": false
+        },
+        "copy_effect_control": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 16,
+          "selected_token": "B",
+          "suffix_length": 4,
+          "suffix_sha256": "ffc4b500286d922b943933f4a6e165f22ba1f07f52628b040abf87aa2ae74905",
+          "terminated": true,
+          "truncated": false
+        },
+        "fixed_token_control": {
+          "executed": true,
+          "native_success": false,
+          "primitive_transitions": 14,
+          "selected_token": "A",
+          "suffix_length": 4,
+          "suffix_sha256": "ffc4b500286d922b943933f4a6e165f22ba1f07f52628b040abf87aa2ae74905",
+          "terminated": false,
+          "truncated": false
+        },
+        "neural_only_direct": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 16,
+          "selected_token": "B",
+          "suffix_length": 4,
+          "suffix_sha256": "ffc4b500286d922b943933f4a6e165f22ba1f07f52628b040abf87aa2ae74905",
+          "terminated": true,
+          "truncated": false
+        },
+        "shuffled_binding_control": {
+          "executed": true,
+          "native_success": false,
+          "primitive_transitions": 14,
+          "selected_token": "A",
+          "suffix_length": 4,
+          "suffix_sha256": "ffc4b500286d922b943933f4a6e165f22ba1f07f52628b040abf87aa2ae74905",
+          "terminated": false,
+          "truncated": false
+        },
+        "source_induced": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 16,
+          "selected_token": "B",
+          "suffix_length": 4,
+          "suffix_sha256": "ffc4b500286d922b943933f4a6e165f22ba1f07f52628b040abf87aa2ae74905",
+          "terminated": true,
+          "truncated": false
+        },
+        "target_written_isomorphic": {
+          "executed": true,
+          "native_success": true,
+          "primitive_transitions": 16,
+          "selected_token": "B",
+          "suffix_length": 4,
+          "suffix_sha256": "ffc4b500286d922b943933f4a6e165f22ba1f07f52628b040abf87aa2ae74905",
+          "terminated": true,
+          "truncated": false
+        }
+      },
+      "seed": 760124,
+      "source_program_or_identity_exposed_to_neural_inference": false
+    }
+  ],
+  "schema_version": "minigrid-orientation-target-report-v31",
+  "split": "qualification",
+  "status": "FRESH_QUALIFICATION_MINIGRID_CYCLIC_TRANSFER_PASSED"
+}

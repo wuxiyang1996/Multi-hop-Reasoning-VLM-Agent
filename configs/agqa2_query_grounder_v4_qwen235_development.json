@@ -1,0 +1,69 @@
+{
+  "schema_version": "agqa-query-grounder-v4-qwen235-development-v1",
+  "status": "FROZEN_AFTER_ONE_OUTCOME_BLIND_PREFLIGHT_BEFORE_FULL_V4_DEVELOPMENT_OR_ANY_V4_OUTCOMES",
+  "parent_development_calibration": "runs/agqa2_query_grounder_v3_compositional_development/global_threshold_calibration.json",
+  "parent_status": "V3_CALIBRATION_FAILED",
+  "development_split": "AGQA balanced train / Action Genome train",
+  "claim_boundary": "Grounder development only; no row in this cohort is eligible as transfer evidence.",
+  "design_evidence": {
+    "artifact": "runs/agqa2_query_grounder_v2_development/qwen235_multitool_pilot20_v1_evaluation.json",
+    "task_count": 20,
+    "top1_correct": 11,
+    "top1_accuracy": 0.55,
+    "reported_cost_usd": 0.00849323
+  },
+  "outcome_blind_preflight": {
+    "artifact": "runs/agqa2_query_grounder_v4_qwen235_development/preflight_three.json",
+    "artifact_file_sha256": "64e123af8883017de9faf9937986c8bf606af52deeb4b93467771fd2b0bb2712",
+    "artifact_report_sha256": "244f6547095859b84d9e5a4cc2cdbcfc9517b0bf5ebbf124690ea794a94756c1",
+    "rows": 3,
+    "provider_calls": 1,
+    "development_outcomes_opened": false,
+    "compatibility_repair": "Removed unsupported JSON-Schema uniqueItems; runtime still canonicalizes evidence IDs."
+  },
+  "frozen_runtime_sha256": {
+    "adjudicator": "ebee84818c884b86963b3e280d2600e7469085dd7ea66b5bba2fecc02626dfcb",
+    "provider_helper": "11b8be01fb01009896ec376ecc269e6c7765a316d6a7fcf956b2c549082d1102",
+    "shard_merger": "4ba961075a2873201103c3294e4c08a4c5f0cfe61e8df019411bbb9a10d67f12",
+    "threshold_calibrator": "34972a1b12028accc515359e09f6d92d15abecc9aca9de2f622b25579012852e"
+  },
+  "immutable_inputs": {
+    "cohort_sha256": "9a8854c9b98c6e5dd766b71f698dd5978bcc30ab086a759e9f0569cdd3f44ef4",
+    "query_grounding_file_sha256": "5a1e69723afbb78cd516a89927c23a73e0b9476edb551e65776777aaf5610ec6",
+    "sgdet_file_sha256": "47f7ed9d4754339a361f10494db8c4e2b244c83e436c4dce4394d4c17f0e48c2",
+    "slowfast_binding_file_sha256": "83f575891ae2ae6052fac425b00e117c9b950c926c8eb33ef16c38d355e719b9"
+  },
+  "verifier": {
+    "model": "qwen/qwen3-vl-235b-a22b-instruct",
+    "temperature_omitted": true,
+    "candidate_pool": "top-10 frozen SGDET/SlowFast reciprocal-rank candidates",
+    "maximum_candidate_count": 10,
+    "maximum_presented_unique_frames": 12,
+    "frames_per_panel": 2,
+    "frame_width": 448,
+    "stable_track_specific_boxes": true,
+    "output": "candidate ID or ABSTAIN only; no free-text rationale",
+    "answer_name_output_forbidden": true,
+    "functional_program_read": false,
+    "official_scene_graph_read": false,
+    "source_controller_read": false,
+    "target_outcome_read": false
+  },
+  "threshold_selection": {
+    "score": "frozen VLM self-reported confidence",
+    "candidate_grid": [0.5, 0.6, 0.7, 0.8, 0.85, 0.9, 0.925, 0.95, 0.96, 0.97, 0.98, 0.99],
+    "objective": "maximum unique-supported coverage",
+    "constraints": {
+      "unique_supported_count_minimum": 40,
+      "unique_supported_precision_wilson_95_lower_bound_minimum": 0.6,
+      "unique_supported_coverage_minimum": 0.2
+    },
+    "tie_break": "higher threshold",
+    "predicate_role_slice_or_task_specific_thresholds_forbidden": true
+  },
+  "qualification_after_development": {
+    "new_never_mentioned_agqa_test_task_ids_required": true,
+    "one_global_threshold_and_identical_prompt_required": true,
+    "gates_unchanged": true
+  }
+}

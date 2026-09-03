@@ -1,0 +1,106 @@
+{
+  "schema_version": "agqa-query-grounder-v5-coordinate-corrected-development-protocol-v1",
+  "status": "OUTCOME_BLIND_DATA_ACQUISITION_AMENDMENT_FROZEN_BEFORE_V5_SELECTION_ACQUISITION_OR_OUTCOMES",
+  "parent_development": {
+    "v3": "runs/agqa2_query_grounder_v3_compositional_development/global_threshold_calibration.json",
+    "v3_status": "CALIBRATION_FAILED",
+    "v4": "runs/agqa2_query_grounder_v4_qwen235_development/global_threshold_calibration.json",
+    "v4_status": "CALIBRATION_FAILED"
+  },
+  "outcome_independent_bug_fix": {
+    "problem": "uniform48 SlowFast proxy positions 0..47 were persisted as original-video frame coordinates",
+    "repair": "persist actual OpenCV-decoded native indices and map all three proxy views through them",
+    "hyperparameter_changed": false
+  },
+  "development_split": "AGQA balanced train / Action Genome train",
+  "claim_boundary": "Grounder development only; no selected row is transfer evidence.",
+  "cohort": {
+    "structural_type": "query",
+    "public_semantic_type": "object",
+    "sampling_frame": "broad object-query tasks without requiring an official generalization slice",
+    "total_videos": 120,
+    "total_tasks": 240,
+    "report_prior_task_mentions_without_treating_metadata_only_mentions_as_raw_exposure": true,
+    "exclude_all_prior_raw_video_exposure": true,
+    "report_prior_frozen_video_allocations_without_treating_them_as_raw_exposure": true
+  },
+  "feasibility_amendment": {
+    "failed_request": "60 more_steps videos plus 60 novel_composition videos",
+    "failure": "only 3 fresh more_steps object-query videos remained after all exclusion gates",
+    "cohort_written_by_failed_attempt": false,
+    "task_outcomes_read": false,
+    "scientific_reason": "official generalization-slice membership is not required to develop target-native entity and role grounding",
+    "unchanged": ["120 videos", "240 tasks", "object queries", "prior-raw-video exclusion"]
+  },
+  "allocation_amendment": {
+    "trigger": "excluding every historical frozen or aborted config allocation left only 21 broad object-query videos",
+    "cohort_written_before_amendment": false,
+    "task_outcomes_read": false,
+    "decision": "prior config allocation is reported but is not treated as raw-video exposure for this development-only cohort",
+    "hard_exclusions_unchanged": ["all prior raw-frame exposure", "all prior task IDs"],
+    "future_qualification": "must be newly frozen and video-disjoint from this development cohort"
+  },
+  "task_mention_amendment": {
+    "trigger": "excluding every task ID ever enumerated by metadata-only full-program audits left only 22 raw-video-fresh object-query videos",
+    "cohort_written_before_amendment": false,
+    "task_outcomes_read_during_feasibility": false,
+    "decision": "metadata-only task-ID mention is reported but is not treated as raw-video exposure for this development-only cohort",
+    "hard_exclusion_unchanged": "all prior raw-frame/model exposure",
+    "claim_boundary": "development only; no selected result is transfer evidence"
+  },
+  "data_availability_amendment": {
+    "trigger": "only 22 raw-video-fresh object-query train videos were locally present although 4576 were eligible in official train metadata",
+    "outcome_blind_staged_counts": {
+      "official_train_videos": 7786,
+      "raw_video_fresh_train_videos": 4593,
+      "object_query_raw_video_fresh_videos": 4576,
+      "locally_present_train_videos": 3175,
+      "locally_present_raw_video_fresh_train_videos": 22,
+      "eligible_but_missing_local_object_query_videos": 4554
+    },
+    "cohort_written_before_amendment": false,
+    "task_outcomes_read_during_feasibility": false,
+    "decision": "freeze eligible video and task IDs from public metadata before transport, then range-download only the frozen videos and content-address them",
+    "local_file_presence_is_eligibility_gate": false,
+    "hard_exclusion_unchanged": "all prior raw-frame/model exposure",
+    "transport_archive": "official Charades_v1_480.zip"
+  },
+  "stage_a": {
+    "name": "coordinate_corrected_sgdet_slowfast",
+    "grounder_unchanged_except_coordinate_fix": true,
+    "candidate_generation_threshold": 0.0,
+    "threshold_grid": [0.5, 0.525, 0.55, 0.575, 0.6, 0.625, 0.65, 0.675, 0.7, 0.725, 0.75, 0.775, 0.8]
+  },
+  "stage_b_if_stage_a_fails_recall_or_coverage": {
+    "name": "video_skills_question_blind_candidate_supplement",
+    "allowed_inputs": ["raw_video_frames", "public_target_ontology"],
+    "per_video_question_blind_cache_required": true,
+    "allowed_outputs": ["entity_mentions", "state_assertions", "typed_event_candidates", "timestamps", "uncertainty"],
+    "must_bind_to_frozen_frame_receipts": true,
+    "cannot_override_supported_detector_track_without_independent_evidence": true,
+    "forbidden_inputs": ["task_answer", "official_stsg", "functional_program", "source_controller", "target_outcome", "expert_demo_clues"]
+  },
+  "development_gates": {
+    "unique_supported_count_minimum": 40,
+    "unique_supported_precision_wilson_95_lower_bound_minimum": 0.6,
+    "unique_supported_coverage_minimum": 0.2,
+    "entity_candidate_pool_recall_minimum": 0.75,
+    "typed_role_fidelity_minimum": 0.8,
+    "cross_frame_dedup_fidelity_minimum": 0.9,
+    "negative_transfer_maximum": 0.05,
+    "one_global_threshold_required": true,
+    "predicate_role_slice_or_task_specific_thresholds_forbidden": true
+  },
+  "post_development": {
+    "fresh_video_disjoint_qualification_required": true,
+    "freeze_prompt_models_frame_budget_ontology_threshold_and_fusion": true,
+    "formal_run_forbidden_until_qualification_passes": true
+  },
+  "authority": {
+    "answers_read_by_grounder": false,
+    "official_stsg_read": false,
+    "functional_program_read": false,
+    "source_controller_read": false,
+    "target_outcome_read": false
+  }
+}

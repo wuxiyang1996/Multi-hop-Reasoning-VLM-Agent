@@ -1,0 +1,148 @@
+{
+  "aggregate": {
+    "authentic_binding_accuracy": 1.0,
+    "authentic_bindings": 32,
+    "authentic_sequence_support": 1.0,
+    "authentic_supported": 12,
+    "correct_program_selection_rate": 1.0,
+    "correct_program_selections": 12,
+    "operator_occurrences": 32,
+    "permuted_sequence_support": 0.3333333333333333,
+    "permuted_supported": 4,
+    "replay_mismatches": 0,
+    "shuffled_binding_accuracy": 0.0,
+    "shuffled_bindings": 0,
+    "success_paths": 12,
+    "unique_authentic_bindings": 32,
+    "unique_program_selection_rate": 1.0,
+    "unique_program_selections": 12
+  },
+  "claim_boundary": "FRESH_SOURCE_ONLY;DOMAIN_SPECIFIC_STRUCTURAL_PROGRAM_INDUCTION_VALIDATION;NO_CROSS_DOMAIN_TARGET_CLAIM",
+  "gates": {
+    "all_fresh_seeds_present": true,
+    "all_replays_exact": true,
+    "authentic_beats_shuffled_binding": true,
+    "authentic_beats_source_permuted": true,
+    "authentic_binding_accuracy": true,
+    "authentic_sequence_support": true,
+    "correct_program_is_blindly_selected": true,
+    "every_task_has_success_evidence": true,
+    "operator_bindings_are_unique": true,
+    "program_bodies_remain_distinct": true
+  },
+  "lineages": [
+    {
+      "authentic_sequence_supported": 4,
+      "blind_program_selections": [
+        [
+          "doorkey_5x5"
+        ],
+        [
+          "doorkey_5x5"
+        ],
+        [
+          "doorkey_5x5"
+        ],
+        [
+          "doorkey_5x5"
+        ]
+      ],
+      "correct_program_selections": 4,
+      "fresh_seeds": [
+        31,
+        32,
+        33,
+        34
+      ],
+      "grounding": {
+        "authentic_correct_bindings": 8,
+        "operator_occurrences": 8,
+        "shuffled_correct_bindings": 0,
+        "unique_authentic_bindings": 8
+      },
+      "permuted_sequence_supported": 0,
+      "permuted_task_id": "unlock_pickup",
+      "replay_mismatches": 0,
+      "success_paths": 4,
+      "task_id": "doorkey_5x5",
+      "unique_program_selections": 4
+    },
+    {
+      "authentic_sequence_supported": 4,
+      "blind_program_selections": [
+        [
+          "put_near"
+        ],
+        [
+          "put_near"
+        ],
+        [
+          "put_near"
+        ],
+        [
+          "put_near"
+        ]
+      ],
+      "correct_program_selections": 4,
+      "fresh_seeds": [
+        31,
+        32,
+        33,
+        34
+      ],
+      "grounding": {
+        "authentic_correct_bindings": 8,
+        "operator_occurrences": 8,
+        "shuffled_correct_bindings": 0,
+        "unique_authentic_bindings": 8
+      },
+      "permuted_sequence_supported": 0,
+      "permuted_task_id": "doorkey_5x5",
+      "replay_mismatches": 0,
+      "success_paths": 4,
+      "task_id": "put_near",
+      "unique_program_selections": 4
+    },
+    {
+      "authentic_sequence_supported": 4,
+      "blind_program_selections": [
+        [
+          "unlock_pickup"
+        ],
+        [
+          "unlock_pickup"
+        ],
+        [
+          "unlock_pickup"
+        ],
+        [
+          "unlock_pickup"
+        ]
+      ],
+      "correct_program_selections": 4,
+      "fresh_seeds": [
+        31,
+        32,
+        33,
+        34
+      ],
+      "grounding": {
+        "authentic_correct_bindings": 16,
+        "operator_occurrences": 16,
+        "shuffled_correct_bindings": 0,
+        "unique_authentic_bindings": 16
+      },
+      "permuted_sequence_supported": 4,
+      "permuted_task_id": "put_near",
+      "replay_mismatches": 0,
+      "success_paths": 4,
+      "task_id": "unlock_pickup",
+      "unique_program_selections": 4
+    }
+  ],
+  "manifest_sha256": "ab24bdb5689bbedd2d2a398387a0825e2d130aed84ca72162fdbcd77db0fe92f",
+  "report_sha256": "92ae5e2d41bc5302566bf07c58e40aa1922ef44079abff0a6359b6280e9a337b",
+  "schema_version": "source-structural-fresh-report-v5c",
+  "status": "SOURCE_STRUCTURAL_FRESH_VALIDATED",
+  "summary_sha256": "bd6aba48216afcd61dc1cf0082ca331aae7dc9b02a3142f857ed8a5e8763656a"
+}

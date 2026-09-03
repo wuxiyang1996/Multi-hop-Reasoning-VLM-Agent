@@ -1,0 +1,106 @@
+{
+  "schema_version": "target-induced-alfworld-recurrent-program-v1",
+  "status": "TARGET_ONLY_RECURRENT_PROGRAM_INDUCED",
+  "complete_target_trajectory_budget": 1,
+  "induction_authority": "TARGET_STATE_ACTION_EFFECT_NEXT_STATE_ONLY",
+  "target_receipts_sha256": "80b887060330fe4d7c632b8e451df54412c6a6cd13023fb15fac662a0a6c9837",
+  "operator_types": [
+    {
+      "schema_version": "anonymous-structural-operator-type-v1",
+      "operation": "UPDATE",
+      "predicate_family": "CONTROL_STATE",
+      "arity": 1,
+      "value_kind": "POSITION",
+      "operator_type_id": "ATYPE_a51cbb518f4b6b10"
+    },
+    {
+      "schema_version": "anonymous-structural-operator-type-v1",
+      "operation": "UPDATE",
+      "predicate_family": "POSITIVE_EFFECT_BINDING",
+      "arity": 1,
+      "value_kind": "CANDIDATE_CARDINALITY",
+      "operator_type_id": "ATYPE_ebdf2c54c56b9d83"
+    },
+    {
+      "schema_version": "anonymous-structural-operator-type-v1",
+      "operation": "UPDATE",
+      "predicate_family": "ENTITY_GOAL_RELATION",
+      "arity": 2,
+      "value_kind": "RELATION_COVERAGE",
+      "operator_type_id": "ATYPE_d22678218ae08b32"
+    }
+  ],
+  "program": {
+    "activation_guard": {
+      "completed_relations": {
+        "operator": "EQ",
+        "value": 1
+      },
+      "remaining_relations": {
+        "operator": "GT",
+        "value": 0
+      }
+    },
+    "entry_operator_type_id": "ATYPE_a51cbb518f4b6b10",
+    "binding_operator_type_id": "ATYPE_ebdf2c54c56b9d83",
+    "relation_operator_type_id": "ATYPE_d22678218ae08b32",
+    "transitions": [
+      {
+        "from": "ACQUIRE",
+        "observed_effect": "IGNORE",
+        "to": "ACQUIRE",
+        "cardinality": "ONE_OR_MORE",
+        "support": 4
+      },
+      {
+        "from": "ACQUIRE",
+        "observed_effect": "BIND_INSTANCE",
+        "to": "RELATE",
+        "cardinality": "EXACTLY_ONE",
+        "support": 1
+      },
+      {
+        "from": "RELATE",
+        "observed_effect": "IGNORE",
+        "to": "RELATE",
+        "cardinality": "ONE_OR_MORE",
+        "support": 28
+      },
+      {
+        "from": "RELATE",
+        "observed_effect": "RELATE_SLOT_CLOSED",
+        "to": "TERMINAL",
+        "cardinality": "EXACTLY_ONE",
+        "support": 1
+      }
+    ],
+    "relation_argument_rule": "PRESERVE_FIRST_POSITIVE_RELATION_HANDLE",
+    "terminal_rule": {
+      "feature": "remaining_relations",
+      "operator": "EQ",
+      "value": 0
+    },
+    "observed_positive_effect_cardinality": 1,
+    "abstention_rule": {
+      "unobserved_binding_cardinality": "ABSTAIN",
+      "multiple_native_bindings": "ABSTAIN",
+      "relation_handle_conflict": "ABSTAIN",
+      "nonconforming_observed_effect": "ABSTAIN_AND_REMEASURE"
+    },
+    "abstention_authority": "VERSION_SPACE_CONSERVATISM_OUTSIDE_OBSERVED_TARGET_TUPLES"
+  },
+  "induction_diagnostics": {
+    "trajectories": 1,
+    "acquisition_control_steps": 4,
+    "relation_grounding_steps": 28,
+    "task_id_hashes": [
+      "b07491accb296965ef57cfad5e607af3f2f9298def3726ba9e1f7f650673b5a3"
+    ]
+  },
+  "named_controller_template_used": false,
+  "source_artifact_read": false,
+  "induction_data_role": "CALLER_SUPPLIED_COMPLETE_TARGET_DEMONSTRATIONS",
+  "outcome_used_only_to_define_complete_successful_demo": true,
+  "untouched_target_outcome_read": false,
+  "program_sha256": "9e2987123fe8c4d9f34fde5f9ac366764df3ea41fee876feb7279765fc492c05"
+}

@@ -1,0 +1,167 @@
+{
+  "schema_version": "phase2-discoveryworld-selective-cell-v2",
+  "manifest_sha256": "36e9fbb35836bd1e4a0d51fa3a305b598534c617b6d53a74671f8bbb2c779afa",
+  "task_id": "proteomics.easy.seed73",
+  "source_game": "gymv_thunder_force_iii",
+  "source_artifact_sha256": "78ccd564e5453fa33a2b34eb2edf46263f025ec45eae2c1bbdf3017cc7d695d8",
+  "applicable": true,
+  "abstention_rule": null,
+  "outcomes": {
+    "target_native_myopic": true,
+    "authentic_sokoban_effect_plus_target": false,
+    "commit_availability_control_plus_target": true,
+    "inverted_effect_control_plus_target": true,
+    "position_prior_control_plus_target": false
+  },
+  "recovery_steps": {
+    "target_native_myopic": 1,
+    "authentic_sokoban_effect_plus_target": 8,
+    "commit_availability_control_plus_target": 1,
+    "inverted_effect_control_plus_target": 1,
+    "position_prior_control_plus_target": 2
+  },
+  "authentic_source_routes": [
+    {
+      "domain": "discoveryworld",
+      "episode_id": "proteomics.easy.seed73",
+      "decision_index": 0,
+      "target_event": "NO_ACTIVE_CANDIDATE_AND_UNTRIED_REMAIN",
+      "source_action": "EXPLORE_UNTRIED",
+      "native_action_id": "9540f91fc095165c64ee92dd4ac71c12245ca4998e4e7986b5743b7a1543ecfd",
+      "native_action": {
+        "action": "TELEPORT_TO_OBJECT",
+        "arg1": 63031
+      },
+      "admitted": true,
+      "reason": "SOURCE_EVENT_ROUTE_TARGET_NATIVE_REALIZATION",
+      "source_artifact_sha256": "78ccd564e5453fa33a2b34eb2edf46263f025ec45eae2c1bbdf3017cc7d695d8",
+      "target_evidence_sha256": "ce29904aa76d555f9254648ca3320651945836725d6ec32a4d15fa24290f5025",
+      "receipt_sha256": "524f6c0547c669542d09d6180898ac7782777606df80b681283f803bdcfec62b"
+    },
+    {
+      "domain": "discoveryworld",
+      "episode_id": "proteomics.easy.seed73",
+      "decision_index": 1,
+      "target_event": "NO_ACTIVE_CANDIDATE_AND_UNTRIED_REMAIN",
+      "source_action": "EXPLORE_UNTRIED",
+      "native_action_id": "00175ae7e72c64e59874465017a4064f0ca55a1b14a5e604c17db1f551e833ba",
+      "native_action": {
+        "action": "MOVE_DIRECTION",
+        "arg1": "west"
+      },
+      "admitted": true,
+      "reason": "SOURCE_EVENT_ROUTE_TARGET_NATIVE_REALIZATION",
+      "source_artifact_sha256": "78ccd564e5453fa33a2b34eb2edf46263f025ec45eae2c1bbdf3017cc7d695d8",
+      "target_evidence_sha256": "f1e183d4acf1efa545a334dd0cf3fab22b271c9ff9f90aef2fe5b04a656a13bd",
+      "receipt_sha256": "fb2863813176fb66abbebd92898059b737fa39ee8fb3b1a67e87548ddbdb8302"
+    },
+    {
+      "domain": "discoveryworld",
+      "episode_id": "proteomics.easy.seed73",
+      "decision_index": 2,
+      "target_event": "NO_ACTIVE_CANDIDATE_AND_UNTRIED_REMAIN",
+      "source_action": "EXPLORE_UNTRIED",
+      "native_action_id": "a471859582c55dff858761e75b1d999bd650b99f5c744de0b6f68e7a0da6fbcd",
+      "native_action": {
+        "action": "ROTATE_DIRECTION",
+        "arg1": "west"
+      },
+      "admitted": true,
+      "reason": "SOURCE_EVENT_ROUTE_TARGET_NATIVE_REALIZATION",
+      "source_artifact_sha256": "78ccd564e5453fa33a2b34eb2edf46263f025ec45eae2c1bbdf3017cc7d695d8",
+      "target_evidence_sha256": "afc59c5b2a02596ed51a565d02425e388799ba42c3e48a1cdac109d8a9f74973",
+      "receipt_sha256": "df2d9a473f5663f8f7d48568aa3a3a62e6fe6e3b600d267dfb9f420ad663ad76"
+    },
+    {
+      "domain": "discoveryworld",
+      "episode_id": "proteomics.easy.seed73",
+      "decision_index": 3,
+      "target_event": "NO_ACTIVE_CANDIDATE_AND_UNTRIED_REMAIN",
+      "source_action": "EXPLORE_UNTRIED",
+      "native_action_id": "1db37486491489c54f90495859f7436b51a1c6faf172bb1bb4000c1edbe51b84",
+      "native_action": {
+        "action": "ROTATE_DIRECTION",
+        "arg1": "east"
+      },
+      "admitted": true,
+      "reason": "SOURCE_EVENT_ROUTE_TARGET_NATIVE_REALIZATION",
+      "source_artifact_sha256": "78ccd564e5453fa33a2b34eb2edf46263f025ec45eae2c1bbdf3017cc7d695d8",
+      "target_evidence_sha256": "85bd0dab75db4326c5b5d5b05576266f8d2570e571d727a21430b096337512cb",
+      "receipt_sha256": "852c108ff629329b8e6288cac403c839d5ddc439b9255aa0dff2e5f580eb34ba"
+    },
+    {
+      "domain": "discoveryworld",
+      "episode_id": "proteomics.easy.seed73",
+      "decision_index": 4,
+      "target_event": "NO_ACTIVE_CANDIDATE_AND_UNTRIED_REMAIN",
+      "source_action": "EXPLORE_UNTRIED",
+      "native_action_id": "a471859582c55dff858761e75b1d999bd650b99f5c744de0b6f68e7a0da6fbcd",
+      "native_action": {
+        "action": "ROTATE_DIRECTION",
+        "arg1": "west"
+      },
+      "admitted": true,
+      "reason": "SOURCE_EVENT_ROUTE_TARGET_NATIVE_REALIZATION",
+      "source_artifact_sha256": "78ccd564e5453fa33a2b34eb2edf46263f025ec45eae2c1bbdf3017cc7d695d8",
+      "target_evidence_sha256": "c313c913c721172caa5b30e452fda1b5e2ae3096923633a4d709012a14910a9b",
+      "receipt_sha256": "e4bb5553080526f6d54aab0e215a104aadbc8a5a264c88e259ea133e0f8efdde"
+    },
+    {
+      "domain": "discoveryworld",
+      "episode_id": "proteomics.easy.seed73",
+      "decision_index": 5,
+      "target_event": "NO_ACTIVE_CANDIDATE_AND_UNTRIED_REMAIN",
+      "source_action": "EXPLORE_UNTRIED",
+      "native_action_id": "9540f91fc095165c64ee92dd4ac71c12245ca4998e4e7986b5743b7a1543ecfd",
+      "native_action": {
+        "action": "TELEPORT_TO_OBJECT",
+        "arg1": 63031
+      },
+      "admitted": true,
+      "reason": "SOURCE_EVENT_ROUTE_TARGET_NATIVE_REALIZATION",
+      "source_artifact_sha256": "78ccd564e5453fa33a2b34eb2edf46263f025ec45eae2c1bbdf3017cc7d695d8",
+      "target_evidence_sha256": "1b7c869c18f7231c17a13a6429a8ce5f897469e8741c3a0297264fb4b6b278f4",
+      "receipt_sha256": "f98d18bbe16ff9906080506c7dc1cc9a7f0f7675122eaac7a6a9add3dc87f8a3"
+    },
+    {
+      "domain": "discoveryworld",
+      "episode_id": "proteomics.easy.seed73",
+      "decision_index": 6,
+      "target_event": "NO_ACTIVE_CANDIDATE_AND_UNTRIED_REMAIN",
+      "source_action": "EXPLORE_UNTRIED",
+      "native_action_id": "00175ae7e72c64e59874465017a4064f0ca55a1b14a5e604c17db1f551e833ba",
+      "native_action": {
+        "action": "MOVE_DIRECTION",
+        "arg1": "west"
+      },
+      "admitted": true,
+      "reason": "SOURCE_EVENT_ROUTE_TARGET_NATIVE_REALIZATION",
+      "source_artifact_sha256": "78ccd564e5453fa33a2b34eb2edf46263f025ec45eae2c1bbdf3017cc7d695d8",
+      "target_evidence_sha256": "94391ffff4396e18416b204bc0097c8cd9aa4ddd277f994b10c7a12a299fda79",
+      "receipt_sha256": "c3d458fe10b418a48b69166805c69baa453bd2ae01c5def46ce31dd4916fdeb1"
+    },
+    {
+      "domain": "discoveryworld",
+      "episode_id": "proteomics.easy.seed73",
+      "decision_index": 7,
+      "target_event": "NO_ACTIVE_CANDIDATE_AND_UNTRIED_REMAIN",
+      "source_action": "EXPLORE_UNTRIED",
+      "native_action_id": "a471859582c55dff858761e75b1d999bd650b99f5c744de0b6f68e7a0da6fbcd",
+      "native_action": {
+        "action": "ROTATE_DIRECTION",
+        "arg1": "west"
+      },
+      "admitted": true,
+      "reason": "SOURCE_EVENT_ROUTE_TARGET_NATIVE_REALIZATION",
+      "source_artifact_sha256": "78ccd564e5453fa33a2b34eb2edf46263f025ec45eae2c1bbdf3017cc7d695d8",
+      "target_evidence_sha256": "91cc894d8fc178d8059574fe1c32a50f7b1cc75c3782bbd5ab5766582ea9e4ae",
+      "receipt_sha256": "2bbbda2bbfbbd9f31ddc9c9c511ee3130030506dc25059467e685f7348eefb79"
+    }
+  ],
+  "matched_result_file_sha256": "9506fee31a7883592fa012f633b2b6c446549c80107dd156f1f263d934ef8fee",
+  "all_matched_forks": true,
+  "all_selection_receipts_valid": true,
+  "policy_runtime_saw_oracle_scorecard": false,
+  "runtime_error": null,
+  "cell_sha256": "176456577c4340dd94937fd983689b2ea451562b3ff8a7796044e7fea96a0358"
+}

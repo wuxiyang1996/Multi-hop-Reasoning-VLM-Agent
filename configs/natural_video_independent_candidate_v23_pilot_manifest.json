@@ -1,0 +1,171 @@
+{
+  "schema_version": 23,
+  "status": "FROZEN_BEFORE_V23_INDEPENDENT_CANDIDATE_PILOT",
+  "selection_rule": "For every V19 benchmark/video cluster select the one manifest row with minimum sha256(salt|benchmark|video_id|sample_id).",
+  "selection_fields": [
+    "benchmark",
+    "video_id",
+    "sample_id",
+    "family"
+  ],
+  "forbidden_selection_fields": [
+    "answer",
+    "question",
+    "options",
+    "model_outcome",
+    "correctness",
+    "proof",
+    "generic_direct"
+  ],
+  "outcomes_or_answers_read_by_selector": false,
+  "development_only_consumed_videos": true,
+  "salt_sha256": "54d2b3c161c5477f7919c2f0e8d411395770b5b0579384f4fdd5bff0d995970b",
+  "v19_manifest": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/configs/natural_video_v19_expanded_formal_manifest.json",
+  "v19_manifest_sha256": "8da331cabc8e8af45b5dfb5916d0a81dcfec96a569a8763f917edc5f1edd1e8f",
+  "benchmarks": {
+    "star": [
+      {
+        "sample_id": "Feasibility_T6_482",
+        "video_id": "NEM29",
+        "family": "Feasibility"
+      },
+      {
+        "sample_id": "Sequence_T5_1257",
+        "video_id": "727IZ",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Interaction_T2_2514",
+        "video_id": "IO712",
+        "family": "Interaction"
+      },
+      {
+        "sample_id": "Interaction_T1_4197",
+        "video_id": "P4HXN",
+        "family": "Interaction"
+      },
+      {
+        "sample_id": "Interaction_T1_3097",
+        "video_id": "D6D85",
+        "family": "Interaction"
+      },
+      {
+        "sample_id": "Prediction_T4_838",
+        "video_id": "IUOC0",
+        "family": "Prediction"
+      },
+      {
+        "sample_id": "Interaction_T3_2274",
+        "video_id": "Z7QTA",
+        "family": "Interaction"
+      },
+      {
+        "sample_id": "Sequence_T4_3552",
+        "video_id": "P2UBC",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Feasibility_T5_463",
+        "video_id": "0PVKV",
+        "family": "Feasibility"
+      },
+      {
+        "sample_id": "Sequence_T3_2397",
+        "video_id": "5MF9Y",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Sequence_T6_4836",
+        "video_id": "S3TZ1",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Sequence_T5_433",
+        "video_id": "YHXU9",
+        "family": "Sequence"
+      },
+      {
+        "sample_id": "Interaction_T3_2320",
+        "video_id": "MX9XB",
+        "family": "Interaction"
+      },
+      {
+        "sample_id": "Interaction_T4_3362",
+        "video_id": "CF9QP",
+        "family": "Interaction"
+      },
+      {
+        "sample_id": "Interaction_T1_3499",
+        "video_id": "XAX61",
+        "family": "Interaction"
+      },
+      {
+        "sample_id": "Interaction_T1_4150",
+        "video_id": "A3OWG",
+        "family": "Interaction"
+      }
+    ],
+    "nextqa": [
+      {
+        "sample_id": "4443526735.Q8",
+        "video_id": "4443526735",
+        "family": "Temporal"
+      },
+      {
+        "sample_id": "4272084125.Q10",
+        "video_id": "4272084125",
+        "family": "Causal"
+      },
+      {
+        "sample_id": "4889681401.Q1",
+        "video_id": "4889681401",
+        "family": "Temporal"
+      },
+      {
+        "sample_id": "7001078933.Q6",
+        "video_id": "7001078933",
+        "family": "Descriptive"
+      },
+      {
+        "sample_id": "6895608152.Q2",
+        "video_id": "6895608152",
+        "family": "Causal"
+      },
+      {
+        "sample_id": "8563398032.Q5",
+        "video_id": "8563398032",
+        "family": "Temporal"
+      },
+      {
+        "sample_id": "4968805923.Q1",
+        "video_id": "4968805923",
+        "family": "Temporal"
+      },
+      {
+        "sample_id": "2552130183.Q9",
+        "video_id": "2552130183",
+        "family": "Temporal"
+      },
+      {
+        "sample_id": "4123915842.Q7",
+        "video_id": "4123915842",
+        "family": "Temporal"
+      },
+      {
+        "sample_id": "5026660202.Q0",
+        "video_id": "5026660202",
+        "family": "Causal"
+      },
+      {
+        "sample_id": "3508407941.Q6",
+        "video_id": "3508407941",
+        "family": "Descriptive"
+      },
+      {
+        "sample_id": "9217939684.Q5",
+        "video_id": "9217939684",
+        "family": "Temporal"
+      }
+    ]
+  }
+}

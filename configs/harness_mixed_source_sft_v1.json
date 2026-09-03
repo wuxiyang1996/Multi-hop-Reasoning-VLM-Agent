@@ -1,0 +1,12 @@
+{
+  "schema_version": "harness-mixed-source-sft-build-config-v1",
+  "components": {
+    "SCALAR_EXECUTOR": {
+      "dataset_dir": "runs/harness_controller_sft_v5_schema_closure"
+    },
+    "MULTI_IR_SELECTOR": {
+      "dataset_dir": "runs/harness_multi_ir_selector_sft_v1c"
+    }
+  },
+  "claim_boundary": "SOURCE_ONLY_MIXED_SFT;PRESERVE_SCALAR_TYPED_EFFECT_EXECUTOR;ADD_ALL_ARITY_MISSING_SCHEMA_ABSTENTION;ADD_FOUR_IR_PROGRAM_SELECTION;NO_TARGET_EXAMPLES_OR_OUTCOMES"
+}

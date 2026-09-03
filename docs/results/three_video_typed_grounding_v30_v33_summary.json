@@ -1,0 +1,60 @@
+{
+  "schema_version": 33,
+  "status": "CROSS_MODEL_CASCADE_SIGNAL_STRONG_TARGET_GATE_FAILED",
+  "development_samples": 12,
+  "pooled": {
+    "gemini_direct": 9,
+    "typed_on_gemini": 8,
+    "typed_vs_gemini_net_wins": -1,
+    "claude_direct": 6,
+    "typed_on_claude": 8,
+    "typed_vs_claude_net_wins": 2,
+    "binding_rotation_on_claude": 3
+  },
+  "benchmarks": {
+    "clevrer": {
+      "gemini_direct": 2,
+      "typed_on_gemini": 1,
+      "claude_direct": 1,
+      "typed_on_claude": 1,
+      "binding_rotation": 0,
+      "formal_route": "runs/sokoban_clevrer_proof_v14_formal/formal_report.json",
+      "formal_route_status": "SOKOBAN_TO_CLEVRER_PROOF_NEUROSYMBOLIC_TRANSFER_FORMAL_VALIDATED",
+      "formal_primary_correct": 489,
+      "formal_authentic_correct": 511,
+      "formal_samples": 720
+    },
+    "star": {
+      "gemini_direct": 3,
+      "typed_on_gemini": 3,
+      "claude_direct": 2,
+      "typed_on_claude": 3,
+      "binding_rotation": 1
+    },
+    "nextqa": {
+      "gemini_direct": 4,
+      "typed_on_gemini": 4,
+      "claude_direct": 3,
+      "typed_on_claude": 4,
+      "binding_rotation": 2
+    }
+  },
+  "natural_candidate_grounding": {
+    "candidates": 36,
+    "covered": 35,
+    "correct": 33,
+    "coverage": 0.9722222222222222,
+    "covered_accuracy": 0.9428571428571428
+  },
+  "gates": {
+    "candidate_isolation": true,
+    "natural_intrinsic_accuracy": true,
+    "cross_model_cascade_signal": true,
+    "binding_necessity": true,
+    "strong_target_superiority": false,
+    "per_benchmark_non_degradation": false,
+    "video_disjoint_nextqa_confirmation_available_locally": false
+  },
+  "fresh_confirmation_authorized": false,
+  "formal_report_sha256": "971b7c34604916d2bb4299b5890b3e9f267d80d26c52affcac27fb7977e5b523"
+}

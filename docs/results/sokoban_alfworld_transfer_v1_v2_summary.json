@@ -1,0 +1,662 @@
+{
+  "diagnosis": {
+    "next_required_source_evidence": "MATCHED_INTERVENTION_FORKS_WITH_TYPED_POSSESSION_PROPERTY_MUTATION_AND_RELATION_EFFECTS",
+    "v1": "SOURCE_OPTION_OCCUPANCY_AND_RAW_FEATURE_SCALE_TRANSFERRED;_PHASE_CONTROL_OUTPERFORMED_AUTHENTIC",
+    "v2": "EFFECT_DIRECTION_WAS_NONRANDOM_BUT_BINARY_POSITION_COMMIT_COLLAPSED_ACQUIRE_TRANSFORM_AND_PLACE"
+  },
+  "reports": {
+    "v1": {
+      "authentic_option_to_required_group": {
+        "COMMIT->COMMIT": 105,
+        "COMMIT->POSITION": 46,
+        "POSITION->COMMIT": 485,
+        "POSITION->POSITION": 233
+      },
+      "file_sha256": "3e437963238967c38e117d69fae3072f9c9be0e52bca22c1b71fcf1496f812ca",
+      "gates": {
+        "nontrivial_changed_option_rate": true,
+        "strict_success_superiority": false,
+        "target_capability": true
+      },
+      "heldout_read": false,
+      "paired_official_success": {
+        "option_swap_source_plus_harness": {
+          "losses": 0,
+          "net_wins": 14,
+          "ties": 10,
+          "wins": 14
+        },
+        "phase_permuted_source_plus_harness": {
+          "losses": 4,
+          "net_wins": -4,
+          "ties": 20,
+          "wins": 0
+        },
+        "source_marginal_plus_harness": {
+          "losses": 2,
+          "net_wins": 7,
+          "ties": 13,
+          "wins": 9
+        },
+        "target_only": {
+          "losses": 3,
+          "net_wins": 3,
+          "ties": 15,
+          "wins": 6
+        }
+      },
+      "path": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/sokoban_alfworld_transfer_v1/qualification_report.json",
+      "phase_control_option_to_required_group": {
+        "COMMIT->COMMIT": 159,
+        "COMMIT->POSITION": 6,
+        "POSITION->COMMIT": 89,
+        "POSITION->POSITION": 500
+      },
+      "report_sha256": "002fe9fbc47cc4aa7f6591abe9d25c3f2fc0047672d14f9f91b1d26cbe080072",
+      "status": "QUALIFICATION_FAILED_STOP_BEFORE_HELDOUT",
+      "summaries": {
+        "authentic_source_plus_harness": {
+          "changed_action_rate": 0.7652474108170311,
+          "changed_option_rate": 0.12313003452243959,
+          "mean_return": 0.5833333333333334,
+          "mean_steps": 36.208333333333336,
+          "source_admission_rate": 0.8918296892980437,
+          "success_rate": 0.5833333333333334,
+          "successes": 14,
+          "tasks": 24
+        },
+        "option_swap_source_plus_harness": {
+          "changed_action_rate": 0.075,
+          "changed_option_rate": 0.06904761904761905,
+          "mean_return": 0.0,
+          "mean_steps": 70.0,
+          "source_admission_rate": 0.0761904761904762,
+          "success_rate": 0.0,
+          "successes": 0,
+          "tasks": 24
+        },
+        "phase_permuted_source_plus_harness": {
+          "changed_action_rate": 0.7387267904509284,
+          "changed_option_rate": 0.11936339522546419,
+          "mean_return": 0.75,
+          "mean_steps": 31.416666666666668,
+          "source_admission_rate": 0.8687002652519894,
+          "success_rate": 0.75,
+          "successes": 18,
+          "tasks": 24
+        },
+        "source_marginal_plus_harness": {
+          "changed_action_rate": 0.4814004376367615,
+          "changed_option_rate": 0.10065645514223195,
+          "mean_return": 0.2916666666666667,
+          "mean_steps": 57.125,
+          "source_admission_rate": 0.5477753464624362,
+          "success_rate": 0.2916666666666667,
+          "successes": 7,
+          "tasks": 24
+        },
+        "target_only": {
+          "changed_action_rate": 0.0,
+          "changed_option_rate": 0.0,
+          "mean_return": 0.4583333333333333,
+          "mean_steps": 48.75,
+          "source_admission_rate": 0.0,
+          "success_rate": 0.4583333333333333,
+          "successes": 11,
+          "tasks": 24
+        },
+        "target_oracle_option_plus_harness": {
+          "changed_action_rate": 0.6422976501305483,
+          "changed_option_rate": 0.12402088772845953,
+          "mean_return": 0.7916666666666666,
+          "mean_steps": 31.916666666666668,
+          "source_admission_rate": 0.762402088772846,
+          "success_rate": 0.7916666666666666,
+          "successes": 19,
+          "tasks": 24
+        }
+      }
+    },
+    "v2": {
+      "authentic_option_to_required_group": {
+        "COMMIT->COMMIT": 196,
+        "COMMIT->POSITION": 23,
+        "POSITION->COMMIT": 283,
+        "POSITION->POSITION": 680
+      },
+      "file_sha256": "7fad66b9f6367f5a43996e1c8aaaaf7a26d5784a407681bcb913dd52657a285b",
+      "gates": {
+        "both_effect_predicate_values_observed": true,
+        "nontrivial_changed_option_rate": true,
+        "required_option_invariance": true,
+        "strict_success_superiority_to_null_and_source_controls": false,
+        "target_capability": true
+      },
+      "heldout_read": false,
+      "paired_official_success": {
+        "commit_availability_control": {
+          "losses": 0,
+          "net_wins": 10,
+          "ties": 14,
+          "wins": 10
+        },
+        "effect_group_permuted_control": {
+          "losses": 0,
+          "net_wins": 10,
+          "ties": 14,
+          "wins": 10
+        },
+        "inverted_effect_control": {
+          "losses": 0,
+          "net_wins": 10,
+          "ties": 14,
+          "wins": 10
+        },
+        "position_occupancy_control": {
+          "losses": 0,
+          "net_wins": 10,
+          "ties": 14,
+          "wins": 10
+        },
+        "target_native_stage_reference": {
+          "losses": 7,
+          "net_wins": -5,
+          "ties": 15,
+          "wins": 2
+        },
+        "target_only": {
+          "losses": 7,
+          "net_wins": -6,
+          "ties": 16,
+          "wins": 1
+        }
+      },
+      "path": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/runs/sokoban_alfworld_effect_transfer_v2/qualification_report.json",
+      "report_sha256": "a16090f77514f9609b91571ef683e83e63b82cfbae28c320f42564675d25fa08",
+      "status": "QUALIFICATION_FAILED_STOP_BEFORE_HELDOUT",
+      "summaries": {
+        "authentic_source_effect_harness": {
+          "changed_action_rate": 0.1996615905245347,
+          "changed_option_rate": 0.1844331641285956,
+          "mean_return": 0.4166666666666667,
+          "mean_steps": 49.25,
+          "positive_effect_predicate_rate": 0.18527918781725888,
+          "required_option_invariance_rate": 1.0,
+          "source_admission_rate": 1.0,
+          "success_rate": 0.4166666666666667,
+          "successes": 10,
+          "tasks": 24
+        },
+        "commit_availability_control": {
+          "changed_action_rate": 0.9113095238095238,
+          "changed_option_rate": 0.9107142857142857,
+          "mean_return": 0.0,
+          "mean_steps": 70.0,
+          "positive_effect_predicate_rate": 0.08988095238095238,
+          "required_option_invariance_rate": 1.0,
+          "source_admission_rate": 1.0,
+          "success_rate": 0.0,
+          "successes": 0,
+          "tasks": 24
+        },
+        "effect_group_permuted_control": {
+          "changed_action_rate": 0.8720238095238095,
+          "changed_option_rate": 0.8720238095238095,
+          "mean_return": 0.0,
+          "mean_steps": 70.0,
+          "positive_effect_predicate_rate": 0.060714285714285714,
+          "required_option_invariance_rate": 1.0,
+          "source_admission_rate": 1.0,
+          "success_rate": 0.0,
+          "successes": 0,
+          "tasks": 24
+        },
+        "inverted_effect_control": {
+          "changed_action_rate": 0.8517857142857143,
+          "changed_option_rate": 0.8517857142857143,
+          "mean_return": 0.0,
+          "mean_steps": 70.0,
+          "positive_effect_predicate_rate": 0.014285714285714285,
+          "required_option_invariance_rate": 1.0,
+          "source_admission_rate": 1.0,
+          "success_rate": 0.0,
+          "successes": 0,
+          "tasks": 24
+        },
+        "position_occupancy_control": {
+          "changed_action_rate": 0.10595238095238095,
+          "changed_option_rate": 0.10595238095238095,
+          "mean_return": 0.0,
+          "mean_steps": 70.0,
+          "positive_effect_predicate_rate": 0.07321428571428572,
+          "required_option_invariance_rate": 1.0,
+          "source_admission_rate": 1.0,
+          "success_rate": 0.0,
+          "successes": 0,
+          "tasks": 24
+        },
+        "target_native_stage_reference": {
+          "changed_action_rate": 0.19539078156312625,
+          "changed_option_rate": 0.19138276553106212,
+          "mean_return": 0.625,
+          "mean_steps": 41.583333333333336,
+          "positive_effect_predicate_rate": 0.14529058116232466,
+          "required_option_invariance_rate": 1.0,
+          "source_admission_rate": 1.0,
+          "success_rate": 0.625,
+          "successes": 15,
+          "tasks": 24
+        },
+        "target_only": {
+          "changed_action_rate": 0.0,
+          "changed_option_rate": 0.0,
+          "mean_return": 0.6666666666666666,
+          "mean_steps": 42.0,
+          "positive_effect_predicate_rate": 0.17063492063492064,
+          "required_option_invariance_rate": 1.0,
+          "source_admission_rate": 0.0,
+          "success_rate": 0.6666666666666666,
+          "successes": 16,
+          "tasks": 24
+        }
+      },
+      "target_only_win_loop_diagnostics": [
+        {
+          "option_stage_counts": {
+            "COMMIT->COMMIT": 14,
+            "COMMIT->POSITION": 1,
+            "POSITION->COMMIT": 49,
+            "POSITION->POSITION": 6
+          },
+          "task_id": "pick_cool_then_place_in_recep-Mug-None-CoffeeMachine-10/trial_T20190907_183853_958104/game.tw-pddl",
+          "task_index": 0,
+          "top_repeated_actions": [
+            {
+              "action": "go to coffeemachine 1",
+              "count": 11
+            },
+            {
+              "action": "look",
+              "count": 5
+            },
+            {
+              "action": "examine coffeemachine 1",
+              "count": 5
+            },
+            {
+              "action": "open drawer 1",
+              "count": 5
+            },
+            {
+              "action": "cool apple 1 with fridge 1",
+              "count": 5
+            }
+          ]
+        },
+        {
+          "option_stage_counts": {
+            "COMMIT->COMMIT": 19,
+            "COMMIT->POSITION": 4,
+            "POSITION->COMMIT": 29,
+            "POSITION->POSITION": 18
+          },
+          "task_id": "pick_clean_then_place_in_recep-Pan-None-CounterTop-10/trial_T20190908_032434_013084/game.tw-pddl",
+          "task_index": 1,
+          "top_repeated_actions": [
+            {
+              "action": "cool pan 1 with fridge 1",
+              "count": 14
+            },
+            {
+              "action": "go to countertop 1",
+              "count": 3
+            },
+            {
+              "action": "look",
+              "count": 2
+            },
+            {
+              "action": "go to sinkbasin 1",
+              "count": 2
+            },
+            {
+              "action": "go to fridge 1",
+              "count": 2
+            }
+          ]
+        },
+        {
+          "option_stage_counts": {
+            "COMMIT->COMMIT": 19,
+            "COMMIT->POSITION": 4,
+            "POSITION->COMMIT": 29,
+            "POSITION->POSITION": 18
+          },
+          "task_id": "pick_clean_then_place_in_recep-Pan-None-CounterTop-10/trial_T20190908_032518_891433/game.tw-pddl",
+          "task_index": 5,
+          "top_repeated_actions": [
+            {
+              "action": "cool pan 1 with fridge 1",
+              "count": 14
+            },
+            {
+              "action": "go to countertop 1",
+              "count": 3
+            },
+            {
+              "action": "look",
+              "count": 2
+            },
+            {
+              "action": "go to sinkbasin 1",
+              "count": 2
+            },
+            {
+              "action": "go to fridge 1",
+              "count": 2
+            }
+          ]
+        },
+        {
+          "option_stage_counts": {
+            "COMMIT->POSITION": 1,
+            "POSITION->POSITION": 69
+          },
+          "task_id": "pick_and_place_simple-Vase-None-Safe-219/trial_T20190908_205246_776817/game.tw-pddl",
+          "task_index": 6,
+          "top_repeated_actions": [
+            {
+              "action": "go to sofa 1",
+              "count": 3
+            },
+            {
+              "action": "look",
+              "count": 2
+            },
+            {
+              "action": "go to safe 1",
+              "count": 2
+            },
+            {
+              "action": "go to shelf 1",
+              "count": 2
+            },
+            {
+              "action": "go to shelf 2",
+              "count": 2
+            }
+          ]
+        },
+        {
+          "option_stage_counts": {
+            "COMMIT->COMMIT": 19,
+            "COMMIT->POSITION": 1,
+            "POSITION->COMMIT": 39,
+            "POSITION->POSITION": 11
+          },
+          "task_id": "pick_clean_then_place_in_recep-Plate-None-CounterTop-10/trial_T20190908_213420_728917/game.tw-pddl",
+          "task_index": 10,
+          "top_repeated_actions": [
+            {
+              "action": "cool plate 4 with fridge 1",
+              "count": 15
+            },
+            {
+              "action": "look",
+              "count": 4
+            },
+            {
+              "action": "go to countertop 1",
+              "count": 3
+            },
+            {
+              "action": "examine countertop 1",
+              "count": 3
+            },
+            {
+              "action": "inventory",
+              "count": 3
+            }
+          ]
+        },
+        {
+          "option_stage_counts": {
+            "COMMIT->COMMIT": 43,
+            "COMMIT->POSITION": 1,
+            "POSITION->COMMIT": 13,
+            "POSITION->POSITION": 13
+          },
+          "task_id": "pick_clean_then_place_in_recep-Pan-None-CounterTop-10/trial_T20190908_032543_712058/game.tw-pddl",
+          "task_index": 17,
+          "top_repeated_actions": [
+            {
+              "action": "cool pan 1 with fridge 1",
+              "count": 37
+            },
+            {
+              "action": "take pan 1 from countertop 1",
+              "count": 3
+            },
+            {
+              "action": "look",
+              "count": 2
+            },
+            {
+              "action": "go to sinkbasin 1",
+              "count": 2
+            },
+            {
+              "action": "go to countertop 1",
+              "count": 2
+            }
+          ]
+        },
+        {
+          "option_stage_counts": {
+            "COMMIT->COMMIT": 1,
+            "COMMIT->POSITION": 1,
+            "POSITION->COMMIT": 38,
+            "POSITION->POSITION": 30
+          },
+          "task_id": "pick_cool_then_place_in_recep-Mug-None-CoffeeMachine-10/trial_T20190907_183715_299073/game.tw-pddl",
+          "task_index": 19,
+          "top_repeated_actions": [
+            {
+              "action": "look",
+              "count": 5
+            },
+            {
+              "action": "go to coffeemachine 1",
+              "count": 5
+            },
+            {
+              "action": "go to shelf 1",
+              "count": 5
+            },
+            {
+              "action": "go to fridge 1",
+              "count": 4
+            },
+            {
+              "action": "go to cabinet 1",
+              "count": 4
+            }
+          ]
+        }
+      ],
+      "task_differences_vs_target_only": [
+        {
+          "authentic_steps": 70,
+          "authentic_success": false,
+          "paired_difference": -1,
+          "target_only_steps": 29,
+          "target_only_success": true,
+          "target_stage_reference_steps": 12,
+          "target_stage_reference_success": true,
+          "task_id": "pick_cool_then_place_in_recep-Mug-None-CoffeeMachine-10/trial_T20190907_183853_958104/game.tw-pddl",
+          "task_index": 0
+        },
+        {
+          "authentic_steps": 70,
+          "authentic_success": false,
+          "paired_difference": -1,
+          "target_only_steps": 41,
+          "target_only_success": true,
+          "target_stage_reference_steps": 57,
+          "target_stage_reference_success": true,
+          "task_id": "pick_clean_then_place_in_recep-Pan-None-CounterTop-10/trial_T20190908_032434_013084/game.tw-pddl",
+          "task_index": 1
+        },
+        {
+          "authentic_steps": 59,
+          "authentic_success": true,
+          "paired_difference": 1,
+          "target_only_steps": 70,
+          "target_only_success": false,
+          "target_stage_reference_steps": 70,
+          "target_stage_reference_success": false,
+          "task_id": "pick_two_obj_and_place-PepperShaker-None-Drawer-10/trial_T20190912_221141_608117/game.tw-pddl",
+          "task_index": 2
+        },
+        {
+          "authentic_steps": 70,
+          "authentic_success": false,
+          "paired_difference": -1,
+          "target_only_steps": 41,
+          "target_only_success": true,
+          "target_stage_reference_steps": 57,
+          "target_stage_reference_success": true,
+          "task_id": "pick_clean_then_place_in_recep-Pan-None-CounterTop-10/trial_T20190908_032518_891433/game.tw-pddl",
+          "task_index": 5
+        },
+        {
+          "authentic_steps": 70,
+          "authentic_success": false,
+          "paired_difference": -1,
+          "target_only_steps": 53,
+          "target_only_success": true,
+          "target_stage_reference_steps": 53,
+          "target_stage_reference_success": true,
+          "task_id": "pick_and_place_simple-Vase-None-Safe-219/trial_T20190908_205246_776817/game.tw-pddl",
+          "task_index": 6
+        },
+        {
+          "authentic_steps": 70,
+          "authentic_success": false,
+          "paired_difference": -1,
+          "target_only_steps": 47,
+          "target_only_success": true,
+          "target_stage_reference_steps": 26,
+          "target_stage_reference_success": true,
+          "task_id": "pick_clean_then_place_in_recep-Plate-None-CounterTop-10/trial_T20190908_213420_728917/game.tw-pddl",
+          "task_index": 10
+        },
+        {
+          "authentic_steps": 70,
+          "authentic_success": false,
+          "paired_difference": -1,
+          "target_only_steps": 35,
+          "target_only_success": true,
+          "target_stage_reference_steps": 26,
+          "target_stage_reference_success": true,
+          "task_id": "pick_clean_then_place_in_recep-Pan-None-CounterTop-10/trial_T20190908_032543_712058/game.tw-pddl",
+          "task_index": 17
+        },
+        {
+          "authentic_steps": 70,
+          "authentic_success": false,
+          "paired_difference": -1,
+          "target_only_steps": 60,
+          "target_only_success": true,
+          "target_stage_reference_steps": 70,
+          "target_stage_reference_success": false,
+          "task_id": "pick_cool_then_place_in_recep-Mug-None-CoffeeMachine-10/trial_T20190907_183715_299073/game.tw-pddl",
+          "task_index": 19
+        }
+      ],
+      "task_family_metrics": {
+        "authentic_source_effect_harness": {
+          "look_at_obj_in_light": {
+            "successes": 0,
+            "tasks": 2
+          },
+          "pick_and_place_simple": {
+            "successes": 5,
+            "tasks": 6
+          },
+          "pick_clean_then_place_in_recep": {
+            "successes": 3,
+            "tasks": 9
+          },
+          "pick_cool_then_place_in_recep": {
+            "successes": 0,
+            "tasks": 4
+          },
+          "pick_heat_then_place_in_recep": {
+            "successes": 1,
+            "tasks": 1
+          },
+          "pick_two_obj_and_place": {
+            "successes": 1,
+            "tasks": 2
+          }
+        },
+        "target_native_stage_reference": {
+          "look_at_obj_in_light": {
+            "successes": 0,
+            "tasks": 2
+          },
+          "pick_and_place_simple": {
+            "successes": 6,
+            "tasks": 6
+          },
+          "pick_clean_then_place_in_recep": {
+            "successes": 7,
+            "tasks": 9
+          },
+          "pick_cool_then_place_in_recep": {
+            "successes": 1,
+            "tasks": 4
+          },
+          "pick_heat_then_place_in_recep": {
+            "successes": 1,
+            "tasks": 1
+          },
+          "pick_two_obj_and_place": {
+            "successes": 0,
+            "tasks": 2
+          }
+        },
+        "target_only": {
+          "look_at_obj_in_light": {
+            "successes": 0,
+            "tasks": 2
+          },
+          "pick_and_place_simple": {
+            "successes": 6,
+            "tasks": 6
+          },
+          "pick_clean_then_place_in_recep": {
+            "successes": 7,
+            "tasks": 9
+          },
+          "pick_cool_then_place_in_recep": {
+            "successes": 2,
+            "tasks": 4
+          },
+          "pick_heat_then_place_in_recep": {
+            "successes": 1,
+            "tasks": 1
+          },
+          "pick_two_obj_and_place": {
+            "successes": 0,
+            "tasks": 2
+          }
+        }
+      }
+    }
+  },
+  "schema_version": "sokoban-alfworld-transfer-v1-v2-summary",
+  "status": "REAL_GAME_TRANSFER_NOT_QUALIFIED_HELDOUT_UNREAD",
+  "summary_sha256": "e36763f609a30dfb5f1182461b539b86b76a6f7e8044e98a17ad2d0bd609a934"
+}

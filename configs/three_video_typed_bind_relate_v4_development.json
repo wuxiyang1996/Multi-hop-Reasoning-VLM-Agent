@@ -1,0 +1,103 @@
+{
+  "schema_version": 4,
+  "status": "DEVELOPMENT_ADAPTATION_ONLY",
+  "claim_boundary": "Executable target-native entity binding for a source-validated BIND->RELATE edge. Gold answers and benchmark oracle structures are evaluator-only; qualification and held-out remain sealed.",
+  "source": {
+    "typed_summary": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/docs/results/typed_multisource_v4_summary.json",
+    "typed_summary_sha256": "1386d2023dbf1ebac88992dd49cad1aa1e323299a0937c4e2dd3bf4505613969",
+    "transferred_structure": "BIND--CARRIER_BOUND-->RELATE",
+    "supporting_tasks": ["put_near", "putnext_3d"],
+    "supporting_simulator_families": ["minigrid", "miniworld"],
+    "real_game_transfer_claim": true,
+    "target_objective_test_cost": 0.0,
+    "model_seed": 2026081701
+  },
+  "wrapper": {
+    "root": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent"
+  },
+  "split_manifest": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/configs/three_video_benchmark_splits_v1.json",
+  "benchmarks": {
+    "clevrer": {
+      "root": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent/data/CLEVRER",
+      "annotation_split": "validation",
+      "state_kind": "ANSWER_COMPLETE_CANONICAL_ENTITY_EVENT_GRAPH",
+      "answer_contract": "ALL_BINARY_VECTORS_WHOLE_QUESTION_EXACT_MATCH"
+    },
+    "star": {
+      "root": "/fs/gamma-projects/vlm-robot/datasets/STAR-official",
+      "annotation_split": "val",
+      "state_kind": "ANSWER_COMPLETE_CANONICAL_ENTITY_HYPERGRAPH",
+      "answer_contract": "ALL_FOUR_MC_SLOTS_EXACT_MATCH"
+    },
+    "nextqa": {
+      "root": "/fs/gamma-projects/vlm-robot/datasets/NExT-QA-official",
+      "annotation_split": "val",
+      "state_kind": "ANSWER_COMPLETE_CANONICAL_ENTITY_EVENT_GRAPH",
+      "answer_contract": "ALL_FIVE_MC_SLOTS_EXACT_MATCH"
+    }
+  },
+  "model": {
+    "provider": "openai",
+    "api_key_name": "OPENAI_API_KEY",
+    "id": "gpt-5.4",
+    "base_url": "https://us.api.openai.com/v1",
+    "timeout_seconds": 240,
+    "max_retries": 2,
+    "max_world_model_tokens": 7000,
+    "max_probe_tokens": 700,
+    "schema_retries": 3
+  },
+  "media": {
+    "proxy_frame_count": 48,
+    "proxy_frame_max_side": 720,
+    "scout_frame_count": 12,
+    "scout_frame_width": 224,
+    "frames_per_probe": 16,
+    "evidence_frame_width": 256,
+    "jpeg_quality": 88
+  },
+  "interventions": {
+    "answer_complete_hypotheses": true,
+    "particle_count": 4,
+    "probe_count": 5,
+    "max_tests": 2,
+    "require_bind_relate_roles": true,
+    "minimum_bind_probes": 2,
+    "minimum_relate_probes": 3,
+    "maximum_object_present_probes": 1,
+    "minimum_non_presence_probes": 4,
+    "minimum_likelihood_span": 0.0,
+    "minimum_relate_likelihood_span": 0.2,
+    "probe_design_contract": "First create an entity_catalog of stable visible entities with canonical IDs E0,E1,... and visual descriptions. Return exactly two target_event_role=BIND probes and three target_event_role=RELATE probes. BIND must use OBJECT_PRESENT, OBJECT_ATTRIBUTE, or OBJECT_TRACK to establish a finite visible identity fact; it may be answer-invariant because its purpose is to ground the guard. RELATE must use OBJECT_MOTION, COLLISION, ENTRY, EXIT, EVENT_ORDER, or CAUSAL_ANCESTOR. Every RELATE entity_ids list must reuse at least one exact entity ID from a BIND probe and its likelihood vector must have max-minus-min at least 0.2. At most one BIND may be OBJECT_PRESENT. Prefer BIND assertions likely measurable as true; a false BIND is an executable failed guard. Do not create one probe per answer option.",
+    "allowed_predicates": [
+      "OBJECT_PRESENT",
+      "OBJECT_ATTRIBUTE",
+      "OBJECT_MOTION",
+      "OBJECT_TRACK",
+      "COLLISION",
+      "ENTRY",
+      "EXIT",
+      "EVENT_ORDER",
+      "CAUSAL_ANCESTOR"
+    ],
+    "grounder_contract": "GROUND_CANONICAL_TARGET_ENTITY_PREDICATE_FROM_16_FRAMES;NEVER_SEE_QUESTION_OPTIONS_GOLD_OR_SOURCE_EDGE",
+    "matched_fork_contract": "ALL_FIVE_PROBES_EXECUTED_ON_IDENTICAL_48_FRAME_PROXY_VIDEO"
+  },
+  "conditions": [
+    "target_native_expected_accuracy",
+    "authentic_bind_relate_ir",
+    "reversed_relate_bind_ir",
+    "wrong_guard_bind_relate_ir",
+    "node_only_bind_bind_ir",
+    "deterministic_random_probe"
+  ],
+  "adaptation_gates": {
+    "minimum_gold_answer_world_coverage_fraction": 1.0,
+    "minimum_oracle_headroom_samples": 1,
+    "minimum_authentic_action_contrasts": 2,
+    "minimum_authentic_edge_traversals": 2,
+    "require_source_gate_receipt": true,
+    "require_authentic_strictly_above_target_only": true,
+    "require_authentic_strictly_above_all_edge_controls": true
+  }
+}

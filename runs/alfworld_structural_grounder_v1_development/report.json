@@ -1,0 +1,368 @@
+{
+  "artifact_path": "artifacts/alfworld_structural_grounder_v1/artifact.json.gz",
+  "authentic_add_remove_macro_f1": 1.0,
+  "development_receipts_sha256": "af62e7fb0754a084372b7834707528b9e91ab31f304a8d37d93e3935e8a936c1",
+  "executed_transition_qualification_metrics": {
+    "ATYPE_18eeebf1cd0ef26f": {
+      "accuracy": 1.0,
+      "examples": 306,
+      "f1": 1.0,
+      "fn": 0,
+      "fp": 0,
+      "positive_examples": 83,
+      "precision": 1.0,
+      "recall": 1.0,
+      "tn": 223,
+      "tp": 83
+    },
+    "ATYPE_3c9d9c20ed4abeb6": {
+      "accuracy": 1.0,
+      "examples": 306,
+      "f1": 1.0,
+      "fn": 0,
+      "fp": 0,
+      "positive_examples": 14,
+      "precision": 1.0,
+      "recall": 1.0,
+      "tn": 292,
+      "tp": 14
+    },
+    "ATYPE_e2afbbc8aa7f4ef0": {
+      "accuracy": 1.0,
+      "examples": 306,
+      "f1": 1.0,
+      "fn": 0,
+      "fp": 0,
+      "positive_examples": 12,
+      "precision": 1.0,
+      "recall": 1.0,
+      "tn": 294,
+      "tp": 12
+    }
+  },
+  "formal_target_outcome_read": false,
+  "gates": {
+    "add_remove_grounding_f1": true,
+    "destination_binding_f1": true,
+    "development_only_partitions": true,
+    "entity_binding_f1": true,
+    "executed_add_remove_grounding_f1": true,
+    "fixed_grounding_threshold": true,
+    "heldout_target_sequence_support": true,
+    "put_near_selected_without_source_identity_feature": true,
+    "shuffled_effect_gap": true,
+    "unique_source_structural_match": true
+  },
+  "grounder_sha256": "c76d4a0be29777cd74429be5d5ac91816265b4e870922a3ceed5592fe151c5ae",
+  "heldout_target_sequence_support": 1.0,
+  "qualification_episode_audit": [
+    {
+      "induced_bindings": {
+        "destination": [
+          "cabinet"
+        ],
+        "entity": [
+          "mug"
+        ]
+      },
+      "partition": "adaptation_validation",
+      "structural_sequence": [
+        "ATYPE_3c9d9c20ed4abeb6",
+        "ATYPE_e2afbbc8aa7f4ef0",
+        "ATYPE_3c9d9c20ed4abeb6",
+        "ATYPE_e2afbbc8aa7f4ef0"
+      ],
+      "task_id": "pick_two_obj_and_place-Mug-None-Cabinet-318/trial_T20190907_222852_159147/game.tw-pddl"
+    },
+    {
+      "induced_bindings": {
+        "destination": [
+          "garbagecan"
+        ],
+        "entity": [
+          "spraybottle"
+        ]
+      },
+      "partition": "adaptation_validation",
+      "structural_sequence": [
+        "ATYPE_3c9d9c20ed4abeb6",
+        "ATYPE_e2afbbc8aa7f4ef0",
+        "ATYPE_3c9d9c20ed4abeb6",
+        "ATYPE_e2afbbc8aa7f4ef0"
+      ],
+      "task_id": "pick_two_obj_and_place-SprayBottle-None-GarbageCan-420/trial_T20190909_141746_420846/game.tw-pddl"
+    }
+  ],
+  "qualification_metrics": {
+    "ATYPE_18eeebf1cd0ef26f": {
+      "accuracy": 1.0,
+      "examples": 11118,
+      "f1": 1.0,
+      "fn": 0,
+      "fp": 0,
+      "positive_examples": 212,
+      "precision": 1.0,
+      "recall": 1.0,
+      "tn": 10906,
+      "tp": 212
+    },
+    "ATYPE_3c9d9c20ed4abeb6": {
+      "accuracy": 1.0,
+      "examples": 11118,
+      "f1": 1.0,
+      "fn": 0,
+      "fp": 0,
+      "positive_examples": 212,
+      "precision": 1.0,
+      "recall": 1.0,
+      "tn": 10906,
+      "tp": 212
+    },
+    "ATYPE_e2afbbc8aa7f4ef0": {
+      "accuracy": 1.0,
+      "examples": 11118,
+      "f1": 1.0,
+      "fn": 0,
+      "fp": 0,
+      "positive_examples": 77,
+      "precision": 1.0,
+      "recall": 1.0,
+      "tn": 11041,
+      "tp": 77
+    },
+    "BEHAVIOR": {
+      "accuracy": 0.8953125,
+      "examples": 2560,
+      "f1": 0.3163265306122449,
+      "fn": 38,
+      "fp": 230,
+      "positive_examples": 100,
+      "precision": 0.21232876712328766,
+      "recall": 0.62,
+      "tn": 2230,
+      "tp": 62
+    },
+    "DESTINATION_BINDING": {
+      "accuracy": 0.990625,
+      "examples": 2560,
+      "f1": 0.9387755102040817,
+      "fn": 1,
+      "fp": 23,
+      "positive_examples": 185,
+      "precision": 0.8888888888888888,
+      "recall": 0.9945945945945946,
+      "tn": 2352,
+      "tp": 184
+    },
+    "ENTITY_BINDING": {
+      "accuracy": 0.9890625,
+      "examples": 2560,
+      "f1": 0.9020979020979021,
+      "fn": 0,
+      "fp": 28,
+      "positive_examples": 129,
+      "precision": 0.821656050955414,
+      "recall": 1.0,
+      "tn": 2403,
+      "tp": 129
+    }
+  },
+  "report_sha256": "f0cb8b90f052c22c518c837f489d339a83cb53efcfd416b438a17d5b19ed5b09",
+  "schema_version": "alfworld-structural-grounder-development-report-v1",
+  "shuffled_add_remove_macro_f1": 0.012496937025238911,
+  "shuffled_effect_metrics": {
+    "ATYPE_18eeebf1cd0ef26f": {
+      "accuracy": 0.576902320561252,
+      "examples": 11118,
+      "f1": 0.034482758620689655,
+      "fn": 128,
+      "fp": 4576,
+      "positive_examples": 212,
+      "precision": 0.018025751072961373,
+      "recall": 0.39622641509433965,
+      "tn": 6330,
+      "tp": 84
+    },
+    "ATYPE_3c9d9c20ed4abeb6": {
+      "accuracy": 0.6421118906278107,
+      "examples": 11118,
+      "f1": 0.024993874050477823,
+      "fn": 161,
+      "fp": 3818,
+      "positive_examples": 212,
+      "precision": 0.013181700697854742,
+      "recall": 0.24056603773584906,
+      "tn": 7088,
+      "tp": 51
+    },
+    "ATYPE_e2afbbc8aa7f4ef0": {
+      "accuracy": 0.42669544882173055,
+      "examples": 11118,
+      "f1": 0.0,
+      "fn": 77,
+      "fp": 6297,
+      "positive_examples": 77,
+      "precision": 0.0,
+      "recall": 0.0,
+      "tn": 4744,
+      "tp": 0
+    }
+  },
+  "source_applicability": [
+    {
+      "applicability": {
+        "applicable": false,
+        "explained_operator_count": 0,
+        "repeat_count": 0,
+        "target_operator_count": 4
+      },
+      "file_sha256": "df21547a30e12b476ba8e2cef735f96ef4fb1af246b0a0baaa83c04878f682e5",
+      "path": "configs/source_structural_v5c_frozen/programs/doorkey_5x5.json",
+      "program_sha256": "1bb9972d1d55d18f53d336b5a021c73033a92e42d557f33b5eeb9e78a446a288",
+      "source_name": "doorkey_5x5",
+      "source_sequence": [
+        "ATYPE_3c9d9c20ed4abeb6",
+        "ATYPE_18eeebf1cd0ef26f"
+      ]
+    },
+    {
+      "applicability": {
+        "applicable": true,
+        "explained_operator_count": 4,
+        "repeat_count": 2,
+        "target_operator_count": 4
+      },
+      "file_sha256": "dfd3c98d6ca41c7940e86819b60aa0e711bfdddffcb7fee6efa181acffed8bf9",
+      "path": "configs/source_structural_v5c_frozen/programs/put_near.json",
+      "program_sha256": "b0d3b7cd706f8c18f35217a30d72e2f5d88b60f437f8c9980d9dbbf7478ee2c0",
+      "source_name": "put_near",
+      "source_sequence": [
+        "ATYPE_3c9d9c20ed4abeb6",
+        "ATYPE_e2afbbc8aa7f4ef0"
+      ]
+    },
+    {
+      "applicability": {
+        "applicable": false,
+        "explained_operator_count": 0,
+        "repeat_count": 0,
+        "target_operator_count": 4
+      },
+      "file_sha256": "355aa4822b4d25a5df2912e247f33d0b16e44d2fec42522c1772ba94a22c46f4",
+      "path": "configs/source_structural_v5c_frozen/programs/unlock_pickup.json",
+      "program_sha256": "6635161e8a514a2f2a72a3391f46ef0d6d30a461c696bf748e3942b25e9a543a",
+      "source_name": "unlock_pickup",
+      "source_sequence": [
+        "ATYPE_3c9d9c20ed4abeb6",
+        "ATYPE_18eeebf1cd0ef26f",
+        "ATYPE_e2afbbc8aa7f4ef0",
+        "ATYPE_3c9d9c20ed4abeb6"
+      ]
+    }
+  ],
+  "status": "ALFWORLD_STRUCTURAL_GROUNDER_QUALIFIED",
+  "target_program": {
+    "abstention_rule": {
+      "missing_neural_binding": "ABSTAIN_TO_TARGET_POLICY",
+      "observed_transition_mismatch": "DO_NOT_ADVANCE_SYMBOLIC_CURSOR"
+    },
+    "development_receipts_sha256": "af62e7fb0754a084372b7834707528b9e91ab31f304a8d37d93e3935e8a936c1",
+    "formal_target_data_read": false,
+    "induced_sequence": [
+      "ATYPE_3c9d9c20ed4abeb6",
+      "ATYPE_e2afbbc8aa7f4ef0",
+      "ATYPE_3c9d9c20ed4abeb6",
+      "ATYPE_e2afbbc8aa7f4ef0"
+    ],
+    "operator_requirements": [
+      {
+        "minimum_count": 2,
+        "operator_type_id": "ATYPE_3c9d9c20ed4abeb6"
+      },
+      {
+        "minimum_count": 2,
+        "operator_type_id": "ATYPE_e2afbbc8aa7f4ef0"
+      }
+    ],
+    "program_sha256": "1614ec4b73a209d1af5f0b3e6474db18bf2925d18eb5ef97452e6910a7b21e1a",
+    "schema_version": "target-induced-counted-sequence-program-v1",
+    "source_program_copied_as_target_body": false,
+    "terminal_rule": "OBSERVED_TARGET_SEQUENCE_PREFIX_REACHES_INDUCED_LENGTH"
+  },
+  "train_episode_audit": [
+    {
+      "induced_bindings": {
+        "destination": [
+          "armchair"
+        ],
+        "entity": [
+          "creditcard"
+        ]
+      },
+      "partition": "adaptation_train",
+      "structural_sequence": [
+        "ATYPE_3c9d9c20ed4abeb6",
+        "ATYPE_e2afbbc8aa7f4ef0",
+        "ATYPE_3c9d9c20ed4abeb6",
+        "ATYPE_e2afbbc8aa7f4ef0"
+      ],
+      "task_id": "pick_two_obj_and_place-CreditCard-None-ArmChair-214/trial_T20190909_033000_959343/game.tw-pddl"
+    },
+    {
+      "induced_bindings": {
+        "destination": [
+          "cabinet"
+        ],
+        "entity": [
+          "toiletpaper"
+        ]
+      },
+      "partition": "adaptation_train",
+      "structural_sequence": [
+        "ATYPE_3c9d9c20ed4abeb6",
+        "ATYPE_e2afbbc8aa7f4ef0",
+        "ATYPE_3c9d9c20ed4abeb6",
+        "ATYPE_e2afbbc8aa7f4ef0"
+      ],
+      "task_id": "pick_two_obj_and_place-ToiletPaper-None-Cabinet-417/trial_T20190909_115038_213553/game.tw-pddl"
+    },
+    {
+      "induced_bindings": {
+        "destination": [
+          "cabinet"
+        ],
+        "entity": [
+          "candle"
+        ]
+      },
+      "partition": "adaptation_train",
+      "structural_sequence": [
+        "ATYPE_3c9d9c20ed4abeb6",
+        "ATYPE_e2afbbc8aa7f4ef0",
+        "ATYPE_3c9d9c20ed4abeb6",
+        "ATYPE_e2afbbc8aa7f4ef0",
+        "ATYPE_3c9d9c20ed4abeb6",
+        "ATYPE_e2afbbc8aa7f4ef0"
+      ],
+      "task_id": "pick_two_obj_and_place-Candle-None-Cabinet-412/trial_T20190908_222933_552183/game.tw-pddl"
+    },
+    {
+      "induced_bindings": {
+        "destination": [
+          "toilet"
+        ],
+        "entity": [
+          "toiletpaper"
+        ]
+      },
+      "partition": "adaptation_train",
+      "structural_sequence": [
+        "ATYPE_3c9d9c20ed4abeb6",
+        "ATYPE_e2afbbc8aa7f4ef0",
+        "ATYPE_3c9d9c20ed4abeb6",
+        "ATYPE_e2afbbc8aa7f4ef0"
+      ],
+      "task_id": "pick_two_obj_and_place-ToiletPaper-None-Toilet-429/trial_T20190909_031718_783966/game.tw-pddl"
+    }
+  ]
+}

@@ -1,0 +1,107 @@
+{
+  "base_evaluation_protocol_sha256": "182ae3f2d1a855cbe7ce82240740fcf28dc55040791de13623006a7077ca91c5",
+  "changes_prediction_grounding_execution_or_gates": false,
+  "claim_boundary": "THREE_HUNDRED_NEW_CROSS_EXPERIMENT_VIDEO_DISJOINT_ATOMIC_BEFORE_AFTER_ROWS_FROM_OFFICIAL_TEST_METADATA;EXACT_V54_ASYMMETRIC_SUPPORT_RULE;ONE_CONFIRMATORY_FORMAL_RUN",
+  "confirmatory_claim_allowed": true,
+  "cost_projection": {
+    "frozen_cap_usd": 2.7,
+    "projected_300_row_cost_usd": 2.06543838,
+    "v55_observed_300_row_cost_usd": 2.06543838
+  },
+  "development_calibration": {
+    "decision": "SELECT_SKILL",
+    "losses": 0,
+    "reason": "V54_RISK_FIRST_RELATION_CONDITIONAL_SUPPORT_INDUCTION",
+    "ties": 912,
+    "wins": 38
+  },
+  "download_receipt_file_sha256": "59aa4afac4f5bde7d4e738528737bf8e819bf66dbdb140f76f897475a9632ca4",
+  "failure_policy": {
+    "failed_gate": "REPORT_NOT_QUALIFIED;DO_NOT_RESAMPLE",
+    "formal": "RUN_ONCE_ON_FROZEN_POOL;NO_POST_OUTCOME_ADAPTATION",
+    "transport_failure": "RETRY_ONLY_MISSING_RECEIPTS;KEEP_FIXED_POOL"
+  },
+  "formal_gates": {
+    "maximum_exact_one_sided_pvalue": 0.05,
+    "maximum_reported_provider_cost_usd": 2.7,
+    "maximum_source_losses": 1,
+    "minimum_source_authorizations": 35,
+    "minimum_source_minus_target_correct": 8,
+    "minimum_source_wins": 9,
+    "required_effect_shuffled_abstentions": 300,
+    "required_generic_scaffold_matches": 300,
+    "required_target_written_equivalent_matches": 300,
+    "required_unique_videos": 300,
+    "required_valid_rows": 300,
+    "required_wrong_source_abstentions": 300
+  },
+  "formal_manifest_sha256": "1f10ce301155d6959b685b9c783c6cc3e0d1237edc9b2af69c13953a282ba589",
+  "postground_evaluation_protocol": {
+    "aggregate_adapter_sha256": "6021b1865e3cbf138c0fe1d4054861a13d15a6cbbdfe8c527ea33e874ec05945",
+    "calibration_artifact_sha256": "61679d425b7b221f056e668087fc622aaeccfe6305c863dd24536d424297d241",
+    "calibration_rule_sha256": "ccc436199f314b6e02815862ab7c9bbcfcda192e63c7a4ab406a7c5034962a81",
+    "calibrator_module_sha256": "5f5c4bc24af3c00eaa8d25819418f1375756150c179db2c5495972e14c54ccb9",
+    "controls": [
+      "SOURCE_EFFECT_SHUFFLED",
+      "WRONG_SOURCE_TEMPORAL_SINGLE",
+      "HANDWRITTEN_GENERIC_EQUIVALENT",
+      "TARGET_WRITTEN_EQUIVALENT"
+    ],
+    "current_outcome_authorization": false,
+    "development_calibration": {
+      "decision": "SELECT_SKILL",
+      "losses": 0,
+      "reason": "V54_RISK_FIRST_RELATION_CONDITIONAL_SUPPORT_INDUCTION",
+      "ties": 912,
+      "wins": 38
+    },
+    "evaluator_module_sha256": "574375dec6b0eea51a6a59a34aafcd3e7113cad8249fc9010161955b106f3c5b",
+    "fallback": "PRESERVE_MATCHED_TARGET_NATIVE_DIRECT_ON_ABSTENTION",
+    "formal_collector_module_sha256": "d51ecf8b31baf42018e468a5a7ac315cdbf297d35eab6d25d1c287ddd7b86e93",
+    "formal_gates": {
+      "maximum_exact_one_sided_pvalue": 0.05,
+      "maximum_reported_provider_cost_usd": 2.7,
+      "maximum_source_losses": 1,
+      "minimum_source_authorizations": 35,
+      "minimum_source_minus_target_correct": 8,
+      "minimum_source_wins": 9,
+      "required_effect_shuffled_abstentions": 300,
+      "required_generic_scaffold_matches": 300,
+      "required_target_written_equivalent_matches": 300,
+      "required_unique_videos": 300,
+      "required_valid_rows": 300,
+      "required_wrong_source_abstentions": 300
+    },
+    "primary_endpoint": "SOURCE_INDUCED_VS_TARGET_NATIVE_PAIRED_ACCURACY",
+    "runtime_calibrator_authority": "ABSTENTION_ONLY;NO_INTERVAL_RELATION_OR_BINDING_CREATION_OR_EDIT",
+    "runtime_features": [
+      "VIEW",
+      "GAP",
+      "SPREAD",
+      "RELATION_CONDITIONAL_INTERVAL_SPAN"
+    ],
+    "sample_count": 300,
+    "schema_version": "agqa2-asymmetric-support-v56-formal-protocol-v1",
+    "source_program_sha256": "cc5f177fd54a2f17ccaa688ea1ecf6d0ae2395554a97a921563e70c32721601d",
+    "target_executor_sha256": "ff7b92a29b28b4c90c1bb511ae995b9c6b7b31c32ff0890455bd05b2dee92ece",
+    "target_grounder_sha256": "78722dea321a22975fdd01f367db6c118324fbaf9d84ae97db5530f991ed377a"
+  },
+  "postground_evaluation_protocol_sha256": "e9b8d2286b071ab725bf6420b585c0c4002c2f671a283be62c27fb00b25122dd",
+  "qualified_parent_grounder_sha256": "6c617dd0847f132257dcdc2d584511bdd1b00a87c68190dbbc6ff453ccc27e7f",
+  "qualified_target_grounder_sha256": "78722dea321a22975fdd01f367db6c118324fbaf9d84ae97db5530f991ed377a",
+  "qualified_v33_development_report_sha256": "61679d425b7b221f056e668087fc622aaeccfe6305c863dd24536d424297d241",
+  "qualified_v55_report_file_sha256": "c18f1dde64d68c900ccfb1de9f37a1badd1b4ef3fa7c30bde6037bd5abeffdc6",
+  "qualified_v55_report_sha256": "8e81b8b754ca7a174d9fe09e8202e171ce384aecdb2b999868fe32358388e27a",
+  "schema_version": "agqa2-asymmetric-support-v56-preregistration-v1",
+  "selection_manifest_sha256": "d17c907ab4dea25d29fc30cb40763eb44fa804fd125050f73f7b64a4ffd67ab5",
+  "source_program_induced_from_game_interventions": true,
+  "source_program_sha256": "cc5f177fd54a2f17ccaa688ea1ecf6d0ae2395554a97a921563e70c32721601d",
+  "source_program_target_data_read": false,
+  "status": "FROZEN_BEFORE_ANY_V34_FORMAL_PROVIDER_OR_OUTCOME_CALL",
+  "target_executor_sha256": "ff7b92a29b28b4c90c1bb511ae995b9c6b7b31c32ff0890455bd05b2dee92ece",
+  "v54_calibration_rule_sha256": "ccc436199f314b6e02815862ab7c9bbcfcda192e63c7a4ab406a7c5034962a81",
+  "v54_training_artifact_sha256": "61679d425b7b221f056e668087fc622aaeccfe6305c863dd24536d424297d241",
+  "v56_compatibility_alias": "qualified_v33_development_report_sha256=v54_training_artifact_sha256",
+  "v56_compatibility_alias_only": true,
+  "v56_status": "FROZEN_BEFORE_ANY_V56_FORMAL_PROVIDER_OR_OUTCOME_CALL"
+}

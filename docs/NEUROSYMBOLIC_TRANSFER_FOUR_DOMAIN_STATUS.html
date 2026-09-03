@@ -1,0 +1,718 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Game-derived neural-symbolic transfer status for WebShop, ALFWorld, DiscoveryWorld, and TIR.">
+  <title>Game → Four Domains · Neural-Symbolic Transfer Status</title>
+  <style>
+    :root {
+      --bg: #f4f2ea;
+      --paper: #fffdf7;
+      --ink: #18211d;
+      --muted: #66716a;
+      --line: #d6d8ce;
+      --green: #167653;
+      --green-soft: #e9f6ee;
+      --blue: #245d8a;
+      --blue-soft: #edf4fa;
+      --amber: #956500;
+      --amber-soft: #fff5d8;
+      --red: #ac382e;
+      --red-soft: #fff0ec;
+      --purple: #6a4da0;
+      --code: #232a26;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 10% 0%, rgba(36, 93, 138, 0.09), transparent 30rem),
+        radial-gradient(circle at 95% 12%, rgba(22, 118, 83, 0.10), transparent 28rem),
+        var(--bg);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.6;
+    }
+
+    a {
+      color: var(--blue);
+      text-decoration-thickness: 0.08em;
+      text-underline-offset: 0.18em;
+    }
+
+    .wrap {
+      width: min(1180px, calc(100% - 36px));
+      margin: 0 auto;
+    }
+
+    header {
+      padding: 58px 0 36px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 253, 247, 0.62);
+    }
+
+    .eyebrow {
+      margin: 0 0 12px;
+      color: var(--blue);
+      font-size: 0.82rem;
+      font-weight: 760;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      max-width: 970px;
+      margin: 0;
+      font-size: clamp(2.25rem, 5.2vw, 4.8rem);
+      line-height: 1.02;
+      letter-spacing: -0.045em;
+    }
+
+    .subtitle {
+      max-width: 900px;
+      margin: 20px 0 0;
+      color: #3d4943;
+      font-size: clamp(1rem, 2vw, 1.22rem);
+    }
+
+    .pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 24px;
+    }
+
+    .pill, .tag {
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--paper);
+      white-space: nowrap;
+    }
+
+    .pill { padding: 5px 11px; font-size: 0.88rem; }
+    .tag { padding: 2px 8px; font-size: 0.76rem; font-weight: 700; }
+    .good { color: var(--green); border-color: #9fd5bb; background: var(--green-soft); }
+    .warn { color: var(--amber); border-color: #e4c36b; background: var(--amber-soft); }
+    .bad { color: var(--red); border-color: #e5aaa3; background: var(--red-soft); }
+    .info { color: var(--blue); border-color: #abc9de; background: var(--blue-soft); }
+
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      border-bottom: 1px solid var(--line);
+      background: rgba(244, 242, 234, 0.94);
+      backdrop-filter: blur(12px);
+    }
+
+    nav .wrap {
+      display: flex;
+      gap: 18px;
+      overflow-x: auto;
+      padding: 10px 0;
+    }
+
+    nav a {
+      flex: 0 0 auto;
+      color: #435049;
+      font-size: 0.9rem;
+      text-decoration: none;
+    }
+
+    main { padding: 28px 0 62px; }
+
+    section {
+      margin: 28px 0;
+      padding: 26px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: rgba(255, 253, 247, 0.94);
+      box-shadow: 0 10px 30px rgba(35, 42, 38, 0.035);
+    }
+
+    h2 {
+      margin: 0 0 14px;
+      font-size: clamp(1.35rem, 3vw, 1.75rem);
+      letter-spacing: -0.02em;
+    }
+
+    h3 { margin: 22px 0 10px; font-size: 1.05rem; }
+    p { margin: 0 0 12px; }
+    .lead { max-width: 940px; font-size: 1.05rem; }
+    .small { color: var(--muted); font-size: 0.88rem; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .span-3 { grid-column: span 3; }
+    .span-4 { grid-column: span 4; }
+    .span-6 { grid-column: span 6; }
+    .span-8 { grid-column: span 8; }
+    .span-12 { grid-column: span 12; }
+
+    .card {
+      min-width: 0;
+      padding: 17px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fffefa;
+    }
+
+    .metric { margin: 0 0 4px; color: var(--muted); font-size: 0.8rem; }
+    .value { margin: 0; font-size: 1.55rem; font-weight: 780; line-height: 1.16; }
+
+    .result-card {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .result-card::before {
+      content: "";
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 4px;
+      background: var(--green);
+    }
+
+    .bar-pair { margin-top: 14px; }
+    .bar-row {
+      display: grid;
+      grid-template-columns: 76px 1fr 46px;
+      gap: 8px;
+      align-items: center;
+      margin: 7px 0;
+      font-size: 0.78rem;
+    }
+
+    .bar-track {
+      height: 9px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: #e5e6df;
+    }
+
+    .bar { height: 100%; border-radius: inherit; background: var(--green); }
+    .bar.baseline { background: #9ba59f; }
+
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(105px, 1fr));
+      gap: 22px;
+      margin: 20px 0 8px;
+    }
+
+    .node {
+      position: relative;
+      min-height: 118px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fffefa;
+    }
+
+    .node:not(:last-child)::after {
+      content: "→";
+      position: absolute;
+      top: 39px;
+      right: -19px;
+      color: #7d8781;
+      font-size: 1.2rem;
+      font-weight: 800;
+    }
+
+    .node.symbolic { border-top: 4px solid var(--purple); }
+    .node.neural { border-top: 4px solid var(--blue); }
+    .node.evidence { border-top: 4px solid var(--green); }
+    .node strong { display: block; margin-bottom: 5px; }
+
+    .callout {
+      margin: 16px 0;
+      padding: 16px 17px;
+      border-left: 4px solid var(--blue);
+      background: var(--blue-soft);
+    }
+
+    .callout.warn { border-left-color: var(--amber); background: var(--amber-soft); }
+    .callout.bad { border-left-color: var(--red); background: var(--red-soft); }
+
+    table {
+      width: 100%;
+      margin: 14px 0 18px;
+      border-collapse: collapse;
+      font-size: 0.91rem;
+    }
+
+    th, td {
+      padding: 10px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th { background: #edf0e9; font-weight: 760; }
+
+    code, pre { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; }
+    code { padding: 0.12em 0.35em; border-radius: 5px; background: #eeede5; font-size: 0.9em; }
+    pre {
+      overflow-x: auto;
+      padding: 15px;
+      border-radius: 9px;
+      background: var(--code);
+      color: #f6f2e8;
+      font-size: 0.85rem;
+      line-height: 1.48;
+    }
+
+    ol, ul { margin: 8px 0 14px 1.15rem; padding: 0; }
+    li { margin: 7px 0; }
+
+    .priority {
+      display: grid;
+      grid-template-columns: 46px 1fr;
+      gap: 12px;
+      align-items: start;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .priority:last-child { border-bottom: 0; }
+    .rank {
+      display: grid;
+      width: 40px;
+      height: 40px;
+      place-items: center;
+      border-radius: 9px;
+      background: var(--ink);
+      color: white;
+      font-weight: 800;
+    }
+
+    details {
+      margin: 10px 0;
+      padding: 11px 13px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fffefa;
+    }
+
+    summary { cursor: pointer; font-weight: 720; }
+    footer { padding: 8px 0 40px; color: var(--muted); font-size: 0.86rem; }
+
+    @media (max-width: 960px) {
+      .span-3, .span-4 { grid-column: span 6; }
+      .flow { grid-template-columns: repeat(2, 1fr); }
+      .node:not(:last-child)::after { display: none; }
+    }
+
+    @media (max-width: 650px) {
+      .wrap { width: min(100% - 24px, 1180px); }
+      header { padding-top: 38px; }
+      section { padding: 18px; }
+      .span-3, .span-4, .span-6, .span-8 { grid-column: span 12; }
+      .flow { grid-template-columns: 1fr; }
+      table { display: block; overflow-x: auto; white-space: nowrap; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <p class="eyebrow">Evidence-bound status · 2026-08-20</p>
+      <h1>Game → Four Domains<br>Neural-Symbolic Transfer</h1>
+      <p class="subtitle">
+        我们实现的不是“一条高层游戏 heuristic 到处通用”，而是 intervention-grounded symbolic
+        structures 由 target-native neural grounding 执行。七步扩展已跑完；后续审计撤回了 WebShop
+        旧 independent-goal claim，并把自然视频正式负结果纳入边界。
+      </p>
+      <div class="pills">
+        <span class="pill good">3 distinct acquisition families validated</span>
+        <span class="pill good">Phase 17 prospective V28 target passed</span>
+        <span class="pill good">ALFWorld source order 64/64</span>
+        <span class="pill bad">Old 4-domain aggregate retired</span>
+        <span class="pill good">Target action authority preserved</span>
+        <span class="pill info">5 select · 4 abstain</span>
+        <span class="pill warn">WebShop bridge 2/2 · source increment pending</span>
+        <span class="pill bad">V15 triage source gate failed closed</span>
+        <span class="pill bad">Natural-video V37 failed</span>
+        <span class="pill bad">Universal learned ontology not confirmed</span>
+      </div>
+    </div>
+  </header>
+
+  <nav>
+    <div class="wrap">
+      <a href="#outcome">结果</a>
+      <a href="#acquisition">Acquisition</a>
+      <a href="#mechanism">机制</a>
+      <a href="#alfworld">ALFWorld</a>
+      <a href="#journey">七步实验</a>
+      <a href="#boundary">Claim boundary</a>
+      <a href="#missing">仍缺什么</a>
+      <a href="#next">下一步</a>
+      <a href="#evidence">证据</a>
+    </div>
+  </nav>
+
+  <main class="wrap">
+    <section id="outcome">
+      <h2>当前结论：WebShop 旧 aggregate 被 semantic pseudoreplication 限定</h2>
+      <p class="lead">
+        旧四域 aggregate 在 task-ID 层通过，但 2026-08-14 审计发现 WebShop IDs 114–177 都在循环同一组
+        13 个 human-goal semantics；两段 32-task sets 不是独立 semantic reserves。因此旧 aggregate 不能再作为
+        independent four-domain confirmation。ALFWorld、DiscoveryWorld、TIR 和 CLEVRER 的既有结果不受此
+        WebShop sampler 问题影响。
+      </p>
+
+      <div class="callout bad">
+        <strong>WebShop correction：</strong>V13 cluster-aware 为 5 positive / 0 negative（p=.0625），replication
+        为 4/1（p=.375）。V14 已切到 native synthetic goals，冻结 24 development + 32 formal，56/56 live
+        hashes、56 unique semantics、56 unique ASINs 全通过；formal outcome sealed。V14 final mechanism
+        在两个 development goals 上把 strict success 从 target-only 0/2 提高到 coverage/authentic 2/2，
+        但 authentic 与 coverage-only、commit-availability control 都持平，因此 source-specific increment 未成立。
+        V15 随后在读 target outcome 前审计三分支 source controller：只有 COMMIT/VERIFY 通过，
+        BACKTRACK 与 EXPLORE 缺 source intervention support，target adapter 被 fail-closed gate 阻止。
+      </div>
+
+      <div class="grid">
+        <article class="card result-card span-3">
+          <p class="metric">WebShop · product search/commit</p>
+          <p class="value">14 / 32</p>
+          <p class="small">旧 task-ID result；仅 13 个重复 semantics · independent claim 撤回</p>
+          <div class="bar-pair">
+            <div class="bar-row"><span>transfer</span><div class="bar-track"><div class="bar" style="width:43.75%"></div></div><b>44%</b></div>
+            <div class="bar-row"><span>baseline</span><div class="bar-track"><div class="bar baseline" style="width:28.125%"></div></div><b>28%</b></div>
+          </div>
+        </article>
+
+        <article class="card result-card span-3">
+          <p class="metric">ALFWorld · valid_unseen workflow</p>
+          <p class="value">31 / 32</p>
+          <p class="small">target-only 22/32 · 9W/0L · p=.00390625</p>
+          <div class="bar-pair">
+            <div class="bar-row"><span>transfer</span><div class="bar-track"><div class="bar" style="width:96.875%"></div></div><b>97%</b></div>
+            <div class="bar-row"><span>baseline</span><div class="bar-track"><div class="bar baseline" style="width:68.75%"></div></div><b>69%</b></div>
+          </div>
+        </article>
+
+        <article class="card result-card span-3">
+          <p class="metric">DiscoveryWorld Easy · spatial commit</p>
+          <p class="value">13 / 16</p>
+          <p class="small">target-native myopic 10/16 · 3W/0L · p=.25</p>
+          <div class="bar-pair">
+            <div class="bar-row"><span>transfer</span><div class="bar-track"><div class="bar" style="width:81.25%"></div></div><b>81%</b></div>
+            <div class="bar-row"><span>baseline</span><div class="bar-track"><div class="bar baseline" style="width:62.5%"></div></div><b>63%</b></div>
+          </div>
+        </article>
+
+        <article class="card result-card span-3">
+          <p class="metric">TIR · single-image maze</p>
+          <p class="value">41 / 48</p>
+          <p class="small">raw neural 19/48 · 22W/0L · p=4.768e-7</p>
+          <div class="bar-pair">
+            <div class="bar-row"><span>transfer</span><div class="bar-track"><div class="bar" style="width:85.417%"></div></div><b>85%</b></div>
+            <div class="bar-row"><span>baseline</span><div class="bar-track"><div class="bar baseline" style="width:39.583%"></div></div><b>40%</b></div>
+          </div>
+        </article>
+      </div>
+
+      <div class="callout">
+        <strong>统一 harness 的含义：</strong>
+        registry 在 exact domain/interface/capability/evidence 匹配后只能返回 <code>SELECT_SKILL</code> 或
+        <code>ABSTAIN</code>。在线 utility audit 在复现后选择 5 条、拒绝 4 条 route；它不产生 target action。
+        这仍是 route-level calibration，不是学出来的 state-level analogy detector。
+      </div>
+    </section>
+
+    <section id="acquisition">
+      <h2>最新：source value 在 acquisition，不在 provenance</h2>
+      <p class="lead">
+        同构 target-written controller 可以与 source-induced controller 完全等价；真正可归因给 source
+        intervention 的价值，是在没有完整 target 成功轨迹时自动取得正确 symbolic content。这个结论现在已在
+        三个结构不同的 program families 上通过。
+      </p>
+
+      <table>
+        <thead><tr><th>Program family</th><th>Source acquisition</th><th>Target-only acquisition</th><th>Controls / utility</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>ALFWorld recurrent acquisition→binding→relation</strong></td>
+            <td>主排序 K=4；64/64 重排在 K≤9 恢复</td>
+            <td>K=0 abstain；9/9 单-demo 在 K=1 恢复；各支持 11/11 held-out</td>
+            <td>shuffled/permuted 0；fresh execution source=target K1=9/14，raw=4/14</td>
+          </tr>
+          <tr>
+            <td><strong>PutNear finite ADD-slot→REMOVE-slot</strong></td>
+            <td>K=0/K=1 abstain；K=2 恢复；4/4 fresh source paths</td>
+            <td>K=0 abstain；3/3 单-demo 在 K=1 恢复；各支持 3/3 held-out</td>
+            <td>reversed/wrong-family/permuted 0；existing formal 12/12 vs 3/12</td>
+          </tr>
+          <tr>
+            <td><strong>Tetris cyclic identity recovery</strong></td>
+            <td>K=0 abstain；K=3 唯一归纳 compose-to-identity；fresh reserve 72/72</td>
+            <td>zero-trajectory LLM：family/core 4/4，exact safe program 0/4</td>
+            <td>effect/label permutations abstain；existing TIR 19/21 vs raw 4/21</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout warn">
+        <strong>Phase 16 成本与 synthesis 审计：</strong>ALFWorld source K=4 的完整成本为 16 forks / 108
+        primitive transitions，而不是只算成功路径的 27；target K=1 为 15–39。Zero-trajectory LLM baseline
+        花费 $0.0036568，strict exact 0/12，但 ALFWorld/TIR family+core 为 8/8。不同环境仍不能据此声称
+        source 更 sample-efficient。
+      </div>
+      <p class="small">
+        完整协议、数字和复现入口见
+        <a href="PHASE14_PHASE15_MATCHED_ACQUISITION_AND_SECOND_FAMILY_RESULTS.md">Phase 14–15 matched acquisition report</a>
+        与 <a href="PHASE16_GAP_CLOSURE_RESULTS.md">Phase 16 gap closure report</a>。
+      </p>
+      <div class="callout">
+        <strong>Phase 17 prospective V28 target：</strong>fresh qualification 通过后才打开的 48 个 MiniGrid
+        orientation-recovery formal tasks 上，V28 source-induced cyclic identity program 为 <strong>48/48</strong>，
+        64-label neural-only direct MLP 为 16/48（32W/0L，p=4.66e-10），copy/fixed/shuffled controls 为
+        26/12/13；target-written isomorphic 同为 48/48。336/336 visual panels 与 48/48 effect bindings 正确。
+        这关闭了 V28 缺少 prospective target reserve 的边界，同时再次确认 content、不是 provenance，驱动
+        execution。详见 <a href="PHASE17_PROSPECTIVE_V28_TARGET_RESERVE_RESULTS.md">Phase 17 report</a>。
+      </div>
+    </section>
+
+    <section id="mechanism">
+      <h2>真正实现的 neural-symbolic factorization</h2>
+      <p>
+        Neural 和 symbolic 不是把 LLM 输出改名。Source 侧的 value/structure 必须来自执行过的 intervention；
+        target 侧的 neural component 只负责把当前 observation 与 admissible action 绑定到已冻结的 canonical structure。
+      </p>
+
+      <div class="flow" aria-label="Neural-symbolic transfer data flow">
+        <div class="node evidence"><strong>Source MDP</strong><span class="small">真实执行、matched forks、observed effects</span></div>
+        <div class="node evidence"><strong>Receipts</strong><span class="small">state/action/effect/return 与 lineage hash</span></div>
+        <div class="node symbolic"><strong>Symbolic skill</strong><span class="small">effect guard、typed workflow 或 anonymous topology</span></div>
+        <div class="node symbolic"><strong>Dispatcher</strong><span class="small">exact route match，否则 abstain</span></div>
+        <div class="node neural"><strong>Target grounder</strong><span class="small">native state、role、option 与 action binding</span></div>
+        <div class="node evidence"><strong>Executor + verify</strong><span class="small">只执行 admissible target action 并观察效果</span></div>
+      </div>
+
+      <table>
+        <thead><tr><th>Target</th><th>Transferred symbolic object</th><th>Target-native neural responsibility</th></tr></thead>
+        <tbody>
+          <tr><td>WebShop</td><td>Sokoban positive-effect <code>COMMIT / POSITION / VERIFY</code> guard</td><td>候选商品结果、搜索与购买动作</td></tr>
+          <tr><td>DiscoveryWorld</td><td>同一 source-qualified positive-effect guard</td><td>object relation、inventory 和 spatial realization</td></tr>
+          <tr><td>ALFWorld</td><td>Procedural-game <code>SEARCH→ACQUIRE→TRANSFORM→PLACE→VERIFY</code> option value</td><td>goal binding、feasibility、admissible command ranking</td></tr>
+          <tr><td>TIR maze</td><td>Sokoban anonymous topology bind/execute/refute/verify program</td><td>pixel graph、direction semantics 和 endpoint binding</td></tr>
+        </tbody>
+      </table>
+
+      <p class="small">
+        因此是三种 source structures、四个 target adapters。WebShop 与 DiscoveryWorld 共享 source artifact，
+        但 target grounding 与 executor 不共享。
+      </p>
+    </section>
+
+    <section id="alfworld">
+      <h2>为什么 ALFWorld 这次成立</h2>
+      <p class="lead">
+        旧 Sokoban 二元 <code>POSITION/COMMIT</code> 把 acquire、transform、place 等不同阶段压成一个动作，曾产生明确负迁移。
+        新路线扩大 source domain，但收紧 transfer object：只迁移 typed workflow 上由 matched interventions 学到的 option value。
+      </p>
+
+      <div class="grid">
+        <div class="card span-4"><p class="metric">Source held-out receipts</p><p class="value">46,080</p><p class="small">2 个未见 source surfaces · 24 domains · 0 surface overlap</p></div>
+        <div class="card span-4"><p class="metric">Independent replication</p><p class="value">+9 / 32</p><p class="small">9 rescues、0 regressions、23 ties</p></div>
+        <div class="card span-4"><p class="metric">Multiplicity extension</p><p class="value">4 / 6</p><p class="small">target-only 1/6 · 3W/0L · count-two only</p></div>
+      </div>
+
+      <p class="small">下表是首次 24-task frozen result；独立 32-task reserve 的主要 paired result 为 31/32 vs 22/32。</p>
+      <table>
+        <thead><tr><th>Frozen condition</th><th>Success</th><th>Mean steps</th><th>Changed option</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Authentic source value + target grounder</strong></td><td><strong>22/24</strong></td><td><strong>24.417</strong></td><td>17.75%</td></tr>
+          <tr><td>Target-only neural grounder</td><td>14/24</td><td>44.125</td><td>0%</td></tr>
+          <tr><td>Source marginal</td><td>14/24</td><td>44.125</td><td>0%</td></tr>
+          <tr><td>Shuffled source value</td><td>10/24</td><td>54.000</td><td>33.72%</td></tr>
+          <tr><td>Phase-permuted source value</td><td>3/24</td><td>65.125</td><td>38.90%</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout warn">
+        <strong>边界：</strong>identity-aware multiplicity 修复在 6 个 fresh count-two tasks 上为正，但样本很小，
+        不能外推到 arbitrary counts；typed ontology 和 target symbolic parser 仍是人工设计；target neural grounder
+        使用 ALFWorld adaptation split，所以不是 zero-shot。
+      </div>
+    </section>
+
+    <section id="journey">
+      <h2>七步计划：做到第 7 步后的真实状态</h2>
+      <ol>
+        <li><strong>Portable audit。</strong>exact registry、compact receipts 与 ALFWorld replay 可 clean-checkout 审计；三域外部 runtime/cache 尚未 vendored。</li>
+        <li><strong>四域 reserve audit。</strong>ALFWorld/TIR 强确认，DiscoveryWorld 小样本正向；WebShop 被发现只有 13 个循环 semantics，所以旧四域 independent aggregate claim 撤回。</li>
+        <li><strong>ALFWorld multiplicity。</strong>identity set 在 6 个 count-two tasks 上 4/6 vs 1/6；正向但仍小样本。</li>
+        <li><strong>扩 target scope。</strong>TIR rotation 19/21 vs 4/21；DiscoveryWorld Normal 则发现 adjacency vocabulary gap 并出现 0/1 vs 1/1 负迁移。</li>
+        <li><strong>学习 latent ontology。</strong>Sokoban/Tetris/2048 学到的匿名 roles 在 Candy/Super Mario fresh confirm 未超过 marginal，因此不确认。</li>
+        <li><strong>Online utility/abstention。</strong>one-sided 95% Beta lower bound + exact applicability 在 future-route 层面给出 5 select / 4 abstain；cold start 一律 abstain。</li>
+        <li><strong>Video event graph。</strong>CLEVRER 511/720 vs 489/720（27W/5L）；只确认 synthetic event-graph route，不确认自然视频。</li>
+      </ol>
+
+      <div class="callout">
+        这条演化最重要的 lesson：<strong>abstraction 必须与 target 的控制层级同构。</strong>
+        增加更多 rollouts 或更强模型不能修复错误的 symbolic state/action factorization。
+      </div>
+    </section>
+
+    <section id="boundary">
+      <h2>证据支持什么，不支持什么</h2>
+      <div class="grid">
+        <div class="card span-6">
+          <h3><span class="tag good">Supported</span> 当前可以写进结论</h3>
+          <ul>
+            <li>ALFWorld 与 TIR 的独立 reserve 强通过；DiscoveryWorld Easy 小样本正向且无 regression。</li>
+            <li>Target-native neural grounding 与 source symbolic control 可以分离。</li>
+            <li>WebShop V14 的 56-goal unique-semantic/unique-ASIN live execution preflight 已通过。</li>
+            <li>Fail-closed dispatcher 能阻止 unsupported route 获得 source authority。</li>
+            <li>另有 TIR rotation 与 CLEVRER synthetic event-graph 两条正式正结果。</li>
+            <li>V28 cyclic identity content 已在新 MiniGrid orientation-recovery untouched reserve 上 prospective 通过 48/48。</li>
+          </ul>
+        </div>
+        <div class="card span-6">
+          <h3><span class="tag bad">Not supported</span> 仍不能声称</h3>
+          <ul>
+            <li>同一个 universal skill 从一个游戏迁移到所有四域。</li>
+            <li>任意真实游戏、任意 task 或整个 benchmark 已解决。</li>
+            <li>Zero-shot grounding 或自动发现跨域 ontology；本轮 learned ontology 是负结果。</li>
+            <li>WebShop 已被独立 32-goal 统计复现；旧两段各自只有同一组 13 个 goal families。</li>
+            <li>STAR、NExT-QA、Video-Holmes 或广义自然视频迁移已通过。</li>
+            <li>达到 benchmark SOTA，或 source provenance 对所有 route 都是必要的。</li>
+          </ul>
+        </div>
+      </div>
+
+      <details>
+        <summary>Operational disclosure：ALFWorld final replay</summary>
+        <p class="small">
+          第一次 final invocation 在完成 target-only、authentic 和两个 shuffled tasks 后因 foreground transport 中断，且没有写 final report。
+          未修改 artifact、task、threshold、seed 或 policy；随后从头执行完全相同的冻结 deterministic replay。
+          因此该证据是 frozen deterministic replay，不是 uninterrupted one-shot run。
+        </p>
+      </details>
+    </section>
+
+    <section id="missing">
+      <h2>仍然缺失：七步完成不等于 broad claim 完成</h2>
+      <table>
+        <thead><tr><th>缺口</th><th>当前证据</th><th>完成标准</th><th>优先级</th></tr></thead>
+        <tbody>
+          <tr><td><strong>WebShop semantic replication</strong></td><td>V14 target bridge 已 live 通过；V15 source-only triage 只有 COMMIT/VERIFY 通过，BACKTRACK labels=0，EXPLORE 在 blind common cells 为 0 wins</td><td>先在真实 source states 做 matched BACKTRACK / EXPLORE_UNTRIED / COMMIT forks；三分支 source gate 过后才写 target adapter、打开 32 formal</td><td><span class="tag bad">P0</span></td></tr>
+          <tr><td><strong>完整四域 clean-room replay</strong></td><td>Release V1 已完成 clean-checkout audit、环境锁定和 ALFWorld artifact/replay bundle；其余三域保留 compact receipts</td><td>再打包 WebShop provider cache、DiscoveryWorld installation recipe 与 TIR execution cache，完成四域从头执行</td><td><span class="tag warn">P0 partial</span></td></tr>
+          <tr><td><strong>DiscoveryWorld Normal</strong></td><td>target-native 1/1、authentic 0/1；当前 vocabulary 无法表示 undirected adjacency，且 fork 已在 ceiling</td><td>只在 development 修 target-native adjacency，并在 non-ceiling fork 冻结新 reserve</td><td><span class="tag bad">P0</span></td></tr>
+          <tr><td><strong>ALFWorld multiplicity breadth</strong></td><td>count-two fresh 4/6 vs 1/6，3W/0L</td><td>更多 unopened tasks 与多种 counts；不能只重复当前六题</td><td><span class="tag warn">P1</span></td></tr>
+          <tr><td><strong>自动 ontology induction</strong></td><td>pooled latent ontology fresh confirm 失败：MSE 8.57 vs marginal 8.22</td><td>缩小到可执行 family 内的 causal roles，并在未见 games 先确认</td><td><span class="tag warn">P1</span></td></tr>
+          <tr><td><strong>State-level applicability</strong></td><td>route-level posterior gate 已能 5 select / 4 abstain；structural predicates 仍手写</td><td>在执行前用当前 state 预测 transfer utility，严格使用过去数据并校准 negative transfer</td><td><span class="tag warn">P1</span></td></tr>
+          <tr><td><strong>等预算强 baseline</strong></td><td>已有 target-only 和 structural controls</td><td>同模型/数据/调用预算下对比 target memory、retrieval、black-box policy 与 target-written workflow</td><td><span class="tag warn">P1</span></td></tr>
+          <tr><td><strong>单一 source / universal skill</strong></td><td>旧 single Sokoban effect 在 ALF/TIR 失败；当前使用三种 structures</td><td>若仍追求此 claim，必须先提出非退化共享结构并通过四域 controls</td><td><span class="tag info">Open, not required</span></td></tr>
+          <tr><td><strong>Natural-video route</strong></td><td>V37 已正式失败：149/201 source vs 150/201 direct；inverted 152/201；已花约 $11.63</td><td>暂停新调用；先用旧 receipts 证明 target evidence headroom 与 source-specific applicability</td><td><span class="tag info">STOP spend</span></td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout bad">
+        最大的 scientific gap 不是再加一个 heuristic，而是：<strong>当前 selector 还不能从 target state 学出
+        “这个 source structure 此刻是否适用”。</strong>本轮 pooled latent ontology 失败说明不能靠扩大高层抽象直接解决。
+      </div>
+    </section>
+
+    <section id="next">
+      <h2>建议的执行顺序</h2>
+      <div class="priority">
+        <div class="rank">1</div>
+        <div><strong>保持 WebShop formal sealed，先补 source 三分支 identifiability。</strong><p class="small">V15 已 fail closed：现有 source 只识别 COMMIT/POSITION；REPLAN 没有 intervention labels，真实游戏 SWITCH 在 blind common cells 没有一次胜出。下一轮必须先做 matched BACKTRACK / EXPLORE_UNTRIED / COMMIT source forks，不能把 target coverage logic 当作迁移知识。</p></div>
+      </div>
+      <div class="priority">
+        <div class="rank">2</div>
+        <div><strong>学习 state-level applicability。</strong><p class="small">以历史 route evidence 训练，但当前 task outcome 不能影响自身选择；同时保留 cold-start abstain 和 exact structural fail-close。</p></div>
+      </div>
+      <div class="priority">
+        <div class="rank">3</div>
+        <div><strong>修 DiscoveryWorld representation，不修 consumed trajectory。</strong><p class="small">只在 development 加 target-native adjacency；找到 target comparator 非 ceiling 的早期决策点后，再冻结 Normal reserve。</p></div>
+      </div>
+      <div class="priority">
+        <div class="rank">4</div>
+        <div><strong>缩小 ontology-learning claim。</strong><p class="small">当前三游戏 pooled roles 在 Candy/Super Mario 未确认；下一轮只学习单个 executable family 内可被 intervention 识别的 causal role。</p></div>
+      </div>
+      <div class="priority">
+        <div class="rank">5</div>
+        <div><strong>暂停自然视频新 API 调用。</strong><p class="small">V37 的 201-question formal 已失败；先离线验证新的 evidence operator 有 intrinsic headroom，再讨论 STAR/NExT-QA。Video-Holmes 降级。</p></div>
+      </div>
+      <div class="priority">
+        <div class="rank">6</div>
+        <div><strong>补 full clean-room 与 equal-budget baselines。</strong><p class="small">vendor 或锁定外部 runtime/cache，并比较 target memory、retrieval、target-written symbolic workflow 和 black-box policy。</p></div>
+      </div>
+    </section>
+
+    <section id="evidence">
+      <h2>Evidence map</h2>
+      <div class="grid">
+        <div class="card span-6">
+          <h3>Human-readable</h3>
+          <ul>
+            <li><a href="FOUR_DOMAIN_NEUROSYMBOLIC_TRANSFER_HARNESS_V1.md">Four-domain harness contract</a></li>
+            <li><a href="FOUR_DOMAIN_NEUROSYMBOLIC_RELEASE_V1.md">Portable release and ALFWorld replay</a></li>
+            <li><a href="PROCEDURAL_GAME_ALFWORLD_NEUROSYMBOLIC_V1_RESULTS.md">Procedural-game → ALFWorld result</a></li>
+            <li><a href="SOKOBAN_WEBSHOP_NEUROSYMBOLIC_TRANSFER_V12_V13_RESULTS.md">Sokoban → WebShop result</a></li>
+            <li><a href="WEBSHOP_V14_AND_VIDEO_COST_BOUNDARY.md">WebShop correction + video cost boundary</a></li>
+            <li><a href="SOURCE_TRIAGE_GATE_V15_RESULTS.md">V15 source-only triage gate</a></li>
+            <li><a href="DISCOVERYWORLD_SOKOBAN_V23_RESULTS.md">Sokoban → DiscoveryWorld result</a></li>
+            <li><a href="TIR_MAZE_SOKOBAN_TOPOLOGY_V1_V2_RESULTS.md">Sokoban topology → TIR maze result</a></li>
+            <li><a href="TIR_TETRIS_ROTATION_COUNTERFACTUAL_V2_RESULTS.md">Tetris → TIR rotation result</a></li>
+            <li><a href="PHASE17_PROSPECTIVE_V28_TARGET_RESERVE_RESULTS.md">V28 → MiniGrid prospective target reserve</a></li>
+            <li><a href="DISCOVERYWORLD_NEUROSYMBOLIC_TRANSFER_V22_NORMAL_FORMAL_RESULTS.md">DiscoveryWorld Normal negative diagnosis</a></li>
+            <li><a href="SOKOBAN_CLEVRER_EVENT_GRAPH_V14_RESULTS.md">Sokoban → CLEVRER event-graph result</a></li>
+          </ul>
+        </div>
+        <div class="card span-6">
+          <h3>Machine-readable</h3>
+          <ul>
+            <li><a href="results/four_domain_neurosymbolic_harness_v1_summary.json">Unified dispatch audit</a></li>
+            <li><a href="results/four_domain_neurosymbolic_release_v1_audit.json">Portable release audit</a></li>
+            <li><a href="results/procedural_game_alfworld_v1_summary.json">ALFWorld compact receipt</a></li>
+            <li><a href="results/webshop_sokoban_effect_transfer_v13_summary.json">WebShop compact receipt</a></li>
+            <li><a href="results/webshop_semantic_independence_v14_audit.json">WebShop semantic audit</a></li>
+            <li><a href="results/webshop_synthetic_server_v14_preflight.json">WebShop V14 live preflight</a></li>
+            <li><a href="results/webshop_synthetic_v14_development_smoke_v1.json">WebShop V14 development smoke</a></li>
+            <li><a href="results/webshop_coverage_transfer_v14_development.json">WebShop V14 live coverage transfer diagnosis</a></li>
+            <li><a href="results/source_triage_gate_v15.json">V15 source-only triage receipt</a></li>
+            <li><a href="results/natural_video_cost_boundary_v38_audit.json">Natural-video cost audit</a></li>
+            <li><a href="results/discoveryworld_v23_fresh_easy_formal_summary.json">DiscoveryWorld compact receipt</a></li>
+            <li><a href="results/tir_maze_topology_v2_summary.json">TIR compact receipt</a></li>
+            <li><a href="results/four_domain_replication_v1_summary.json">Independent four-domain aggregate</a></li>
+            <li><a href="results/online_transfer_utility_v1_audit.json">Online utility and abstention audit</a></li>
+            <li><a href="results/alfworld_multiplicity_v1_formal_summary.json">ALFWorld multiplicity extension</a></li>
+            <li><a href="results/tir_rotation_counterfactual_v2_summary.json">TIR rotation extension</a></li>
+            <li><a href="results/minigrid_orientation_target_v31_summary.json">V31 prospective target summary</a></li>
+            <li><a href="results/real_game_latent_options_v6_formal_summary.json">Learned latent ontology negative result</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <pre>PYTHONPATH=src python scripts/audit_four_domain_neurosymbolic_library.py \
+  --registry configs/neurosymbolic_skill_library_v1.json \
+  --output docs/results/four_domain_neurosymbolic_harness_v1_summary.json
+
+PYTHONPATH=src:. pytest -q \
+  tests/test_neurosymbolic_skill_library.py \
+  tests/test_four_domain_neurosymbolic_registry.py</pre>
+      <p class="small">Branch: <code>agent/harness-transfer-bitter-lessons</code> · status updated through Phase 17 prospective V28 target reserve on 2026-08-20.</p>
+    </section>
+  </main>
+
+  <footer class="wrap">
+    This page is a status map, not a replacement for hash-bound JSON receipts. When prose and receipts disagree, the frozen receipt and registry audit define the claim.
+  </footer>
+</body>
+</html>

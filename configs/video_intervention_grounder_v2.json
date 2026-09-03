@@ -1,0 +1,72 @@
+{
+  "schema_version": "video-intervention-grounder-v2-config",
+  "status": "FROZEN_BEFORE_INTERVENTION_LEDGER_READINESS_AUDIT",
+  "development_sources": {
+    "clevrer": {
+      "path": "runs/clevrer_sokoban_proof_v14_development/development_receipts.json",
+      "sha256": "0b43baecf57d0189dc13df47f8bf0b5a9c5327491a8e6d5d2713a8de6b47b378",
+      "rows_field": "rows"
+    },
+    "agqa2": {
+      "path": "runs/agqa2_temporal_localized_query_v59_development/report.json",
+      "sha256": "9362fe7ffc07f299823901d302dfe9bce10a23ffb544cbb67ab62ba3db3e4ad6",
+      "rows_field": "rows"
+    }
+  },
+  "required_ledger": {
+    "schema_version": "video-intervention-ledger-v2",
+    "required_horizons": [
+      1,
+      4,
+      8
+    ],
+    "typed_effects": [
+      "EFFECT_BY_TRANSITION_1",
+      "EFFECT_BY_TRANSITION_4",
+      "EFFECT_BY_TRANSITION_8",
+      "EXECUTABLE_TRANSITION_PERSISTENCE"
+    ],
+    "required_top_level_fields": [
+      "schema_version",
+      "record_id",
+      "benchmark",
+      "video_id",
+      "split",
+      "belief_state_before",
+      "intervention",
+      "observations_by_horizon",
+      "typed_effects",
+      "effect_derivation",
+      "belief_state_after",
+      "transition",
+      "executability_by_horizon",
+      "blindness"
+    ],
+    "effect_derivation_kind": "MEASURED_INTERVENTION_BELIEF_DELTA",
+    "forbidden_induction_reads": [
+      "gold_answer",
+      "formal_success",
+      "official_scene_graph",
+      "functional_program",
+      "source_identity"
+    ]
+  },
+  "readiness_gates": {
+    "minimum_eligible_records_per_benchmark": 100,
+    "minimum_unique_videos_per_benchmark": 30,
+    "minimum_candidates_per_intervention_set": 2,
+    "heldout_video_fraction": 0.25,
+    "all_required_horizons_observed": true,
+    "all_forbidden_reads_false": true,
+    "shuffled_effect_control_required": true
+  },
+  "qualification_gates_after_collection": {
+    "heldout_effect_macro_auc_minimum": 0.65,
+    "authentic_minus_shuffled_auc_minimum": 0.10,
+    "heldout_brier_maximum": 0.22,
+    "heldout_ece_maximum": 0.10,
+    "negative_transfer_rate_maximum": 0.05,
+    "thresholds_must_remain_frozen": true
+  },
+  "claim_boundary": "NO_VIDEO_V2_GROUNDER_TRAINING_UNTIL_REAL_STATE_INTERVENTION_EFFECT_NEXT_STATE_LEDGERS_PASS_READINESS;STATIC_QA_RECEIPTS_ARE_INSUFFICIENT"
+}

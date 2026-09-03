@@ -1,0 +1,308 @@
+{
+  "artifact_sha256": "af337470707a41a160bae2077577e5749f9e75feaaa263d2cb5e1b0073a5d5de",
+  "authentic_program": {
+    "abstention_rule": {
+      "kind": "NO_UNIQUE_QUALIFIED_OPERATOR",
+      "multiple_matching_operators": "ABSTAIN",
+      "unknown_predicate_value": "ABSTAIN",
+      "zero_matching_operators": "ABSTAIN"
+    },
+    "discovery_metrics": {
+      "abstained": 0,
+      "admitted": 40,
+      "correct": 40,
+      "coverage": 1.0,
+      "examples": 40,
+      "operator_route_counts": {
+        "OP_23e232e1a9ece985": 20,
+        "OP_a3126032f76e895f": 7,
+        "OP_b1eed9a105f62ecd": 13
+      },
+      "overall_accuracy": 1.0,
+      "selective_accuracy": 1.0,
+      "wrong": 0
+    },
+    "forbidden_export_fields": [
+      "candidate_action",
+      "candidate_id",
+      "actions",
+      "option_template_id"
+    ],
+    "gates": {
+      "all_operator_gates_pass": true,
+      "at_least_three_anonymous_operators_induced": true,
+      "no_induction_errors": true,
+      "no_named_phase2_policy_tokens": true,
+      "no_source_native_action_or_candidate_export": true,
+      "qualification_coverage": true,
+      "qualification_selective_accuracy": true,
+      "unknown_or_ambiguous_routes_fail_closed": true
+    },
+    "induction_authority": "SOURCE_DISCOVERY_INTERVENTION_TUPLES_ONLY;QUALIFICATION_FOR_FAIL_CLOSED_CALIBRATION;NO_TARGET_DATA",
+    "induction_errors": [],
+    "operator_gates": {
+      "OP_23e232e1a9ece985": {
+        "discovery_precision": true,
+        "discovery_support": true,
+        "qualification_precision": true,
+        "qualification_support": true
+      },
+      "OP_a3126032f76e895f": {
+        "discovery_precision": true,
+        "discovery_support": true,
+        "qualification_precision": true,
+        "qualification_support": true
+      },
+      "OP_b1eed9a105f62ecd": {
+        "discovery_precision": true,
+        "discovery_support": true,
+        "qualification_precision": true,
+        "qualification_support": true
+      }
+    },
+    "operator_vocabulary": "CONTENT_ADDRESSED_STATE_DELTAS_ONLY",
+    "operators": [
+      {
+        "discovery_precision": 1.0,
+        "discovery_support": 20,
+        "operator_id": "OP_23e232e1a9ece985",
+        "preconditions": [
+          {
+            "field": "active_presence",
+            "value": "ABSENT"
+          }
+        ],
+        "qualification_precision": 1.0,
+        "qualification_support": 22,
+        "state_delta": [
+          [
+            "active",
+            "OBSERVED_EFFECT"
+          ],
+          [
+            "tried",
+            "ADD_ONE"
+          ]
+        ]
+      },
+      {
+        "discovery_precision": 1.0,
+        "discovery_support": 7,
+        "operator_id": "OP_a3126032f76e895f",
+        "preconditions": [
+          {
+            "field": "active_effect",
+            "value": "HIGH"
+          },
+          {
+            "field": "active_presence",
+            "value": "PRESENT"
+          }
+        ],
+        "qualification_precision": 1.0,
+        "qualification_support": 9,
+        "state_delta": [
+          [
+            "terminal",
+            "TRUE"
+          ]
+        ]
+      },
+      {
+        "discovery_precision": 1.0,
+        "discovery_support": 13,
+        "operator_id": "OP_b1eed9a105f62ecd",
+        "preconditions": [
+          {
+            "field": "active_effect",
+            "value": "LOW"
+          },
+          {
+            "field": "active_presence",
+            "value": "PRESENT"
+          }
+        ],
+        "qualification_precision": 1.0,
+        "qualification_support": 13,
+        "state_delta": [
+          [
+            "active",
+            "ABSENT"
+          ]
+        ]
+      }
+    ],
+    "program_sha256": "3671757c3aa239c58d52cc99fc5c909eea5499039623f62198705af276b5f91f",
+    "qualification_metrics": {
+      "abstained": 0,
+      "admitted": 44,
+      "correct": 44,
+      "coverage": 1.0,
+      "examples": 44,
+      "operator_route_counts": {
+        "OP_23e232e1a9ece985": 22,
+        "OP_a3126032f76e895f": 9,
+        "OP_b1eed9a105f62ecd": 13
+      },
+      "overall_accuracy": 1.0,
+      "selective_accuracy": 1.0,
+      "wrong": 0
+    },
+    "schema_version": "phase3-source-induced-anonymous-program-v1",
+    "source_game": "tetris",
+    "source_induction_receipts_sha256": "3d6c4d00dd0edd9a63893135c45cb9587a5bb8c53a834ecf3fd4f6ef80622b59",
+    "status": "SOURCE_INDUCED_PROGRAM_QUALIFIED",
+    "thresholds": {
+      "maximum_literals": 3,
+      "minimum_discovery_support": 2,
+      "minimum_qualification_coverage": 0.95,
+      "minimum_qualification_precision": 1.0,
+      "minimum_qualification_support": 2
+    }
+  },
+  "forbidden_named_policy_tokens": [
+    "EXPLORE_UNTRIED",
+    "BACKTRACK_REPLAN",
+    "COMMIT_VERIFY"
+  ],
+  "historical_data_role": "DEVELOPMENT_AND_QUALIFICATION_ONLY_FOR_PROGRAM_CONTENT;OLD_HELDOUT_REPLAY_NOT_A_NEW_CONFIRMATORY_CLAIM",
+  "historical_rows_file_sha256": "925842ca9aca8c6fee1490f3982c6ee7b854dfd5eae95613c65d2d957e85f955",
+  "schema_version": "phase3-frozen-lineage-program-v1",
+  "shuffled_effect_program": {
+    "abstention_rule": {
+      "kind": "NO_UNIQUE_QUALIFIED_OPERATOR",
+      "multiple_matching_operators": "ABSTAIN",
+      "unknown_predicate_value": "ABSTAIN",
+      "zero_matching_operators": "ABSTAIN"
+    },
+    "discovery_metrics": {
+      "abstained": 20,
+      "admitted": 20,
+      "correct": 20,
+      "coverage": 0.5,
+      "examples": 40,
+      "operator_route_counts": {
+        "OP_23e232e1a9ece985": 20
+      },
+      "overall_accuracy": 0.5,
+      "selective_accuracy": 1.0,
+      "wrong": 0
+    },
+    "forbidden_export_fields": [
+      "candidate_action",
+      "candidate_id",
+      "actions",
+      "option_template_id"
+    ],
+    "gates": {
+      "all_operator_gates_pass": true,
+      "at_least_three_anonymous_operators_induced": false,
+      "no_induction_errors": false,
+      "no_named_phase2_policy_tokens": true,
+      "no_source_native_action_or_candidate_export": true,
+      "qualification_coverage": false,
+      "qualification_selective_accuracy": true,
+      "unknown_or_ambiguous_routes_fail_closed": true
+    },
+    "induction_authority": "SOURCE_DISCOVERY_INTERVENTION_TUPLES_ONLY;QUALIFICATION_FOR_FAIL_CLOSED_CALIBRATION;NO_TARGET_DATA",
+    "induction_errors": [
+      {
+        "error": "no bounded precondition conjunction separates an observed state delta",
+        "state_delta": [
+          [
+            "active",
+            "ABSENT"
+          ]
+        ]
+      },
+      {
+        "error": "no bounded precondition conjunction separates an observed state delta",
+        "state_delta": [
+          [
+            "terminal",
+            "TRUE"
+          ]
+        ]
+      }
+    ],
+    "operator_gates": {
+      "OP_23e232e1a9ece985": {
+        "discovery_precision": true,
+        "discovery_support": true,
+        "qualification_precision": true,
+        "qualification_support": true
+      }
+    },
+    "operator_vocabulary": "CONTENT_ADDRESSED_STATE_DELTAS_ONLY",
+    "operators": [
+      {
+        "discovery_precision": 1.0,
+        "discovery_support": 20,
+        "operator_id": "OP_23e232e1a9ece985",
+        "preconditions": [
+          {
+            "field": "active_presence",
+            "value": "ABSENT"
+          }
+        ],
+        "qualification_precision": 1.0,
+        "qualification_support": 22,
+        "state_delta": [
+          [
+            "active",
+            "OBSERVED_EFFECT"
+          ],
+          [
+            "tried",
+            "ADD_ONE"
+          ]
+        ]
+      }
+    ],
+    "program_sha256": "8892bb5131e4f101cd5c5763daf57fae24cccd87f766d71fdd69e23c79c5be66",
+    "qualification_metrics": {
+      "abstained": 22,
+      "admitted": 22,
+      "correct": 22,
+      "coverage": 0.5,
+      "examples": 44,
+      "operator_route_counts": {
+        "OP_23e232e1a9ece985": 22
+      },
+      "overall_accuracy": 0.5,
+      "selective_accuracy": 1.0,
+      "wrong": 0
+    },
+    "schema_version": "phase3-source-induced-anonymous-program-v1",
+    "source_game": "tetris",
+    "source_induction_receipts_sha256": "f59921a14cf0f9b2303986b1a54ec938a735b599b1ee616c6dae11497052244c",
+    "status": "SOURCE_INDUCED_PROGRAM_NOT_QUALIFIED",
+    "thresholds": {
+      "maximum_literals": 3,
+      "minimum_discovery_support": 2,
+      "minimum_qualification_coverage": 0.95,
+      "minimum_qualification_precision": 1.0,
+      "minimum_qualification_support": 2
+    }
+  },
+  "source_game": "tetris",
+  "source_only_profile": {
+    "candidate_count_max": 4,
+    "candidate_count_median": 4,
+    "candidate_count_min": 4,
+    "eligible_ledgers": 24,
+    "primary_horizon": 16,
+    "profile_sha256": "f1f511c525a95df0503faf88820f8491d6ac8760c1fcc96a3f1c09982e633c62",
+    "return_gap_lower_quartile": 1.0,
+    "return_gap_median": 1.0,
+    "return_gap_min": 1.0,
+    "verified_rank_distribution": {
+      "0": 3,
+      "1": 4,
+      "2": 5,
+      "3": 4
+    }
+  },
+  "status": "FROZEN_BEFORE_FRESH_SOURCE_CONFIRMATION",
+  "target_data_read_for_program_induction": false
+}

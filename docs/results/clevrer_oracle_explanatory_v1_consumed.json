@@ -1,0 +1,24 @@
+{
+  "claim_boundary": "Consumed explanatory-only grounding diagnostic. Official factual graph does not authorize predictive or counterfactual claims.",
+  "gates": {
+    "all_120_explanatory_tasks_executed": true,
+    "official_factual_executor_improves_neural_grounding": true,
+    "official_factual_executor_perfect_on_consumed_diagnostic": true,
+    "predictive_counterfactual_not_claimed": true,
+    "zero_runtime_answer_program_read": true
+  },
+  "lineage": {
+    "evaluator_sha256": "01b3051a81a23fe2cdcd8fe42801e2d4cd29bcdad168ac190d54c4ccbbcdb42b",
+    "official_archive_sha256": "d89e74714dff7a1117fd113b54af99fbbc51583ebd742c788c484d708eb426d2",
+    "public_sha256": "9926ec90aa5e1c0b1323ac14112fabf4241c5c542f6797b0ebb814a94f4a9d91",
+    "runtime_sha256": "4b29fa5bbb2269c1658358fed5b91e856e2fa9500d16d359ae1448cdb1860e56"
+  },
+  "neural_only_accuracy": 0.8416666666666667,
+  "neural_only_correct": 101,
+  "oracle_accuracy": 1.0,
+  "oracle_correct": 120,
+  "report_sha256": "9cb4ebf567c58092228474b9da474fac7d6329ac3e9305c3082b9f9399219da8",
+  "schema_version": "clevrer-oracle-explanatory-consumed-audit-v1",
+  "status": "PASSED",
+  "tasks": 120
+}

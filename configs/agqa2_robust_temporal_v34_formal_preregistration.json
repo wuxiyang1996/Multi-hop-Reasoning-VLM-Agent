@@ -1,0 +1,88 @@
+{
+  "base_evaluation_protocol_sha256": "d50b8c69e128f255a786f77b673a9cc62963caad33d92d0dee2b0124b0701d8a",
+  "claim_boundary": "ONE_HUNDRED_NEW_CROSS_EXPERIMENT_VIDEO_DISJOINT_ATOMIC_BEFORE_AFTER_ROWS;NOT_UNTOUCHED_METADATA",
+  "cost_projection": {
+    "frozen_cap_usd": 0.9,
+    "projected_100_row_cost_usd": 0.69045976,
+    "v19_temporal_pair_mean_cost_per_row_usd": 0.0069045976
+  },
+  "development_calibration": {
+    "decision": "SELECT_SKILL",
+    "losses": 0,
+    "posterior_lower_win_probability": 0.5492802716530589,
+    "reason": "POSTERIOR_DIRECTIONAL_UTILITY_LOWER_BOUND_POSITIVE",
+    "ties": 31,
+    "wins": 4
+  },
+  "download_receipt_file_sha256": "a9960181d4dc619d667b317493f3fd952fdc1bce2212d7eef42b40a6e2d00b84",
+  "failure_policy": {
+    "failed_gate": "REPORT_NOT_QUALIFIED;DO_NOT_RESAMPLE",
+    "formal": "RUN_ONCE_ON_FROZEN_POOL;NO_POST_OUTCOME_ADAPTATION"
+  },
+  "formal_gates": {
+    "maximum_exact_one_sided_pvalue": 0.05,
+    "maximum_reported_provider_cost_usd": 0.9,
+    "maximum_source_losses": 1,
+    "minimum_source_authorizations": 20,
+    "minimum_source_minus_target_correct": 5,
+    "minimum_source_wins": 7,
+    "required_effect_shuffled_abstentions": 100,
+    "required_generic_scaffold_matches": 100,
+    "required_target_written_equivalent_matches": 100,
+    "required_unique_videos": 100,
+    "required_valid_rows": 100,
+    "required_wrong_source_abstentions": 100
+  },
+  "formal_manifest_sha256": "6e1464f519c15e323495fd72a3999265817556e604c5b80d9658484f60ca1b60",
+  "postground_evaluation_protocol": {
+    "adapter_module_sha256": "9bf1e9974cfac35a2aae46955191396a475cf847776d507d38825549c85c378c",
+    "controls": [
+      "SOURCE_EFFECT_SHUFFLED",
+      "WRONG_SOURCE_TEMPORAL_SINGLE",
+      "HANDWRITTEN_GENERIC_EQUIVALENT",
+      "TARGET_WRITTEN_EQUIVALENT"
+    ],
+    "current_outcome_authorization": false,
+    "development_calibration": {
+      "decision": "SELECT_SKILL",
+      "losses": 0,
+      "posterior_lower_win_probability": 0.5492802716530589,
+      "reason": "POSTERIOR_DIRECTIONAL_UTILITY_LOWER_BOUND_POSITIVE",
+      "ties": 31,
+      "wins": 4
+    },
+    "evaluator_module_sha256": "ed0d8f2d807d2044e49fdd8e350c95f80206b703d193648f5575aaac1ecb16ca",
+    "fallback": "PRESERVE_MATCHED_TARGET_NATIVE_DIRECT_ON_ABSTENTION",
+    "formal_gates": {
+      "maximum_exact_one_sided_pvalue": 0.05,
+      "maximum_reported_provider_cost_usd": 0.9,
+      "maximum_source_losses": 1,
+      "minimum_source_authorizations": 20,
+      "minimum_source_minus_target_correct": 5,
+      "minimum_source_wins": 7,
+      "required_effect_shuffled_abstentions": 100,
+      "required_generic_scaffold_matches": 100,
+      "required_target_written_equivalent_matches": 100,
+      "required_unique_videos": 100,
+      "required_valid_rows": 100,
+      "required_wrong_source_abstentions": 100
+    },
+    "postground_target_grounder_sha256": "2aa91116771c459c61a33764c83086e0f49eee8936914fc50d8a8a0940adaf5c",
+    "primary_endpoint": "SOURCE_INDUCED_VS_TARGET_NATIVE_PAIRED_ACCURACY",
+    "sample_count": 100,
+    "schema_version": "agqa2-robust-temporal-v34-evaluation-protocol-v1",
+    "source_program_sha256": "cc5f177fd54a2f17ccaa688ea1ecf6d0ae2395554a97a921563e70c32721601d",
+    "target_executor_sha256": "ff7b92a29b28b4c90c1bb511ae995b9c6b7b31c32ff0890455bd05b2dee92ece"
+  },
+  "postground_evaluation_protocol_sha256": "6528b1c299141f84add6e6f9cb7b7d7bb004027510c17f5c0608abecd19bb517",
+  "qualified_parent_grounder_sha256": "b7b9c21142a91582edc67a31e87f8e96e7ec407d4a8ebc2334434626b09ef40a",
+  "qualified_postground_target_grounder_sha256": "2aa91116771c459c61a33764c83086e0f49eee8936914fc50d8a8a0940adaf5c",
+  "qualified_v33_development_report_sha256": "0b054fb68a17b765eecd1c3842e3d15cee326b065d300d47895d2bcc87c05d06",
+  "schema_version": "agqa2-robust-temporal-v34-preregistration-v1",
+  "selection_manifest_sha256": "279a453a0525688956b59f3877027faead7ab6423f5f8e674a216683d7f4f487",
+  "source_program_induced_from_interventions": true,
+  "source_program_sha256": "cc5f177fd54a2f17ccaa688ea1ecf6d0ae2395554a97a921563e70c32721601d",
+  "source_program_target_data_read": false,
+  "status": "FROZEN_BEFORE_ANY_V34_FORMAL_PROVIDER_OR_OUTCOME_CALL",
+  "target_executor_sha256": "ff7b92a29b28b4c90c1bb511ae995b9c6b7b31c32ff0890455bd05b2dee92ece"
+}

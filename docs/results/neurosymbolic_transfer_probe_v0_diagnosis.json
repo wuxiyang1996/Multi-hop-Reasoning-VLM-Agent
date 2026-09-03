@@ -1,0 +1,149 @@
+{
+  "schema_version": 1,
+  "diagnosis": "CURRENT_OPERATIONAL_SYMBOLS_ARE_DOMAIN_CONFOUNDED",
+  "v0_primary_gate_passed": false,
+  "source_target_shift": {
+    "source_train_label_rates": {
+      "admissible_set_changed": 0.3463,
+      "positive_native_reward": 0.4122,
+      "terminal": 0.0203
+    },
+    "alfworld_internal_evaluation_label_rates": {
+      "admissible_set_changed": 0.9143,
+      "positive_native_reward": 0.0286,
+      "terminal": 0.0571
+    },
+    "source_zero_shot_prediction_ranges_across_five_seeds": {
+      "admissible_set_changed": [0.9255, 0.9577],
+      "positive_native_reward": [0.9690, 1.0],
+      "terminal": [0.0, 0.1402]
+    }
+  },
+  "per_game_confound": {
+    "tetris": {
+      "transitions": 292,
+      "admissible_set_changed_rate": 1.0,
+      "positive_reward_rate": 1.0
+    },
+    "candy_crush": {
+      "transitions": 300,
+      "admissible_set_changed_rate": 1.0,
+      "positive_reward_rate": 1.0
+    },
+    "gymv_streets_of_rage_2": {
+      "transitions": 300,
+      "admissible_set_changed_rate": 0.02,
+      "positive_reward_rate": 0.05
+    },
+    "gymv_strider": {
+      "transitions": 300,
+      "admissible_set_changed_rate": 0.02,
+      "positive_reward_rate": 0.0533
+    },
+    "gymv_columns": {
+      "transitions": 277,
+      "admissible_set_changed_rate": 0.0217,
+      "positive_reward_rate": 0.3357
+    },
+    "gymv_thunder_force_iii": {
+      "transitions": 300,
+      "admissible_set_changed_rate": 0.02,
+      "positive_reward_rate": 0.0567
+    },
+    "interpretation": "The neural probe can infer source-game regime from native-action count and recent effect history even when game ID is removed. Source-held-out performance therefore does not demonstrate domain-invariant reasoning."
+  },
+  "historical_skill_label_inconsistency": [
+    {
+      "skill_id": "COMMIT/POSITION",
+      "game": "tetris",
+      "transitions": 292,
+      "admissible_set_changed_rate": 1.0,
+      "positive_reward_rate": 1.0
+    },
+    {
+      "skill_id": "COMMIT/POSITION",
+      "game": "gymv_strider",
+      "transitions": 212,
+      "admissible_set_changed_rate": 0.028,
+      "positive_reward_rate": 0.071
+    },
+    {
+      "skill_id": "COMMIT/POSITION",
+      "game": "gymv_thunder_force_iii",
+      "transitions": 14,
+      "admissible_set_changed_rate": 0.0,
+      "positive_reward_rate": 0.0
+    },
+    {
+      "skill_id": "COMMIT/CLEAR",
+      "game": "candy_crush",
+      "transitions": 300,
+      "admissible_set_changed_rate": 1.0,
+      "positive_reward_rate": 1.0
+    },
+    {
+      "skill_id": "COMMIT/CLEAR",
+      "game": "gymv_thunder_force_iii",
+      "transitions": 131,
+      "admissible_set_changed_rate": 0.046,
+      "positive_reward_rate": 0.0
+    }
+  ],
+  "fresh_matched_intervention_audit": {
+    "gymv_strider": {
+      "complete_four_treatment_snapshots": 2,
+      "insufficient_for_value_claim": true
+    },
+    "gymv_thunder_force_iii": {
+      "complete_four_treatment_snapshots": 107,
+      "authentic_action_differs_from_base": 81,
+      "authentic_action_differs_from_skill_masked": 75,
+      "authentic_action_differs_from_random_skill": 73,
+      "authentic_action_unique_against_all_controls": 48
+    },
+    "outcome_fields_in_matched_replay_receipts": [
+      "alternative_reward",
+      "alternative_terminated",
+      "alternative_truncated"
+    ],
+    "interpretation": "Authentic skill context changes the source policy. The matched one-step forks record immediate reward and termination, but one-step outcomes cannot identify delayed value."
+  },
+  "multi_horizon_value_smoke_v1": {
+    "slurm_job_id": 7230057,
+    "selected_snapshots": 2,
+    "complete_cells": 16,
+    "invalid_cells": 0,
+    "qualification_full_regime_h8": {
+      "B": 0.0,
+      "G_MINUS_S": 0.0,
+      "G_PLUS_S": 100.0,
+      "G_PLUS_RANDOM": 0.0
+    },
+    "all_other_split_estimand_h8_cells": "ALL_TREATMENTS_ZERO",
+    "SOURCE_H8_VALUE_SUPPORTED": false,
+    "interpretation": "Sustained authentic context produced a local qualification-only reward at decision 3, but the effect did not survive common continuation or held-out evaluation. Current COMMIT/CLEAR is not value-qualified for transfer."
+  },
+  "what_v0_falsifies": [
+    "Direct transfer of absolute admissible-set-change, positive-reward, and terminal predictors from pooled games to ALFWorld",
+    "The claim that source-held-out probe accuracy alone demonstrates a domain-invariant neural symbol",
+    "Treating current historical skill labels as a shared semantic ontology"
+  ],
+  "what_v0_does_not_falsify": [
+    "Target-native neural grounding combined with a source-derived symbolic control graph",
+    "Transfer of relative verification, recovery, and abstention structure after matched source value qualification",
+    "Weight-level meta-learning of how to induce a target-native program from few target receipts"
+  ],
+  "recommended_transfer_object": {
+    "neural_layer": "Target-native calibrated probes for evidence gain, repeated failure, contradiction, and official completion. Source and target do not share raw probe weights by default.",
+    "symbolic_layer": "A receipt-qualified ATTEMPT -> VERIFY -> CONTINUE/REPLAN/ABSTAIN -> OFFICIAL_STOP graph whose edges are supported by matched source interventions.",
+    "source_training_target": "Predict relative authentic-vs-skill-masked/random outcome differences under matched snapshots, not absolute game reward or action-set statistics.",
+    "required_new_receipts": [
+      "discovery-only relative multi-horizon candidate induction",
+      "more qualification and held-out snapshots for value recurrence",
+      "per-treatment official progress/value where the environment exposes it",
+      "failure/recovery latency",
+      "same-prefix action and after-state hashes"
+    ]
+  },
+  "bottom_line": "Neural-symbolic transfer remains technically plausible. The multi-horizon mechanism now identifies one local authentic-context value event, but it is not held-out recurrent; a new relative, intervention-grounded source representation is still required."
+}

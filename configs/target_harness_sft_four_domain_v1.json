@@ -1,0 +1,84 @@
+{
+  "schema_version": "target-harness-sft-four-domain-config-v1",
+  "status": "FROZEN_BEFORE_FOUR_DOMAIN_DATASET_BUILD",
+  "parent_two_domain_dataset": {
+    "directory": "runs/target_harness_sft_pilot_v2",
+    "manifest_sha256": "fa7227507a703e452315326314477e82319d11d05f7566cb739200d51d6e90a7",
+    "structured_sha256": "80c4bbfdaaf57033e4d16fe2c3687b653cfb524baaa84090167f889953c12a24",
+    "train_sha256": "455bf7d1ce460a2f6b75334921f2e6d32bdebbc214fe21b6144b8a3c5443b093",
+    "validation_sha256": "2f9b2a55568a44bb6549886efb297870bee6a4962e67253d55d6ff65adae6cd5"
+  },
+  "source_program_root": "configs/phase3_source_function_v4/frozen_reserve/programs",
+  "source_families": [
+    "candy_crush",
+    "gymv_columns",
+    "gymv_streets_of_rage_2",
+    "gymv_strider",
+    "gymv_thunder_force_iii",
+    "tetris"
+  ],
+  "discoveryworld": {
+    "authority_config": "configs/phase3_discoveryworld_structured_acquisition_v2/development.json",
+    "authority_config_sha256": "04e93b23671ae031749088fd7f7c826c03e3b82eb16c409335a7ceaa5c05f836",
+    "episode_root": "runs/phase3_discoveryworld_structured_acquisition_v2_development",
+    "episode_file_sha256": {
+      "proteomics.easy.seed45": "595760ee0b149981015e2ea168b6dd668e2cc114208c20f6872cea9bd9ca6ed0",
+      "proteomics.easy.seed46": "673205cfac386d67bb216aad8108aca03e4a4a0093eff90c688075bba3c70a78",
+      "proteomics.easy.seed47": "92da7655785f4bdf21e677ac5819860044a14a4e1aca273a5ede62f19df58367",
+      "proteomics.easy.seed48": "f8367cc1718248c4dfc6ca57e7e722c5606281b95e371ce506934d0b88682fbf",
+      "proteomics.easy.seed49": "e1fcfccaf2b250944edec5fd2dff72844b015299bf3139f8aff7c44e9ab636d2",
+      "proteomics.easy.seed50": "327f5a9afa7dc3f1f247184b336b0fd870e88f59c0bfab15503cffd923b92779"
+    },
+    "train_tasks": [
+      "proteomics.easy.seed45",
+      "proteomics.easy.seed46",
+      "proteomics.easy.seed47",
+      "proteomics.easy.seed48"
+    ],
+    "validation_tasks": [
+      "proteomics.easy.seed49",
+      "proteomics.easy.seed50"
+    ],
+    "candidate_options": ["PICKUP", "TELEPORT_TO_OBJECT", "USE"],
+    "candidate_subset_sizes": [2, 3],
+    "grounder": {
+      "kind": "standardized-balanced-logistic-regression",
+      "regularization_c": 1.0,
+      "maximum_iterations": 2000,
+      "seed": 20260901,
+      "minimum_per_head_validation_auc": 0.55,
+      "minimum_macro_validation_auc": 0.65
+    }
+  },
+  "tirbench": {
+    "split_manifest": "configs/phase3_tir_visual_search_v2_splits.json",
+    "split_manifest_sha256": "9e650dad43b7ad5403d8270eeeb951032a452035d8f280b0bd826ae1389d2fc1",
+    "development_train_receipts": "runs/phase3_tir_visual_search_v11_verified_development/development_train_receipts.json",
+    "development_train_receipts_sha256": "7df6fb66b8b6d828d960b89c7eea65998c6b2031632bf5a24b0522e568d6702b",
+    "development_validation_receipts": "runs/phase3_tir_visual_search_v11_verified_development/development_validation_receipts.json",
+    "development_validation_receipts_sha256": "6951fa143110671a7a78a7b610b8565fa0dd4f31cd79b1ebe9e0b34f43c26a71",
+    "grounder_artifact": "runs/phase3_tir_visual_search_v12_verified_frozen/artifact.json",
+    "grounder_artifact_file_sha256": "e11a57079b20c83325ca842d663c9b35083c95be404359792cd86ad26ab8200e",
+    "grounder_artifact_sha256": "5d2cc56af94412fb050bfec981c1f7321abf5b0f8fe25219789270063f294fb2",
+    "candidate_subset_sizes": [2, 3, 4]
+  },
+  "quota_per_added_domain": {
+    "train_authentic": 450,
+    "validation_authentic": 150,
+    "matched_controls_per_authentic": 1
+  },
+  "controller_training": {
+    "model": "Qwen/Qwen3.5-9B",
+    "maximum_sequence_length": 2048,
+    "probability_decimal_places": 6
+  },
+  "prompt_policy": {
+    "domain_identity_exposed": false,
+    "native_actions_exposed": false,
+    "reward_or_success_exposed": false,
+    "control_variant_exposed": false,
+    "reasoning_trace_requested": false,
+    "json_only": true
+  },
+  "claim_boundary": "FOUR_TARGET_DEVELOPMENT_SFT_ONLY;NOT_TARGET_TRANSFER_EVALUATION;FORMAL_QUALIFICATION_HELDOUT_RESERVE_EXCLUDED;VIDEO_REMAINS_OOD"
+}

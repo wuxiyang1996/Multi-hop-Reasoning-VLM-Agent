@@ -1,0 +1,91 @@
+{
+  "schema_version": "agqa2-layer-b-raw-video-epistemic-qualification-v4-preregistration",
+  "status": "FROZEN_BEFORE_PARSER_GROUNDER_CLAIMS_FALLBACK_OR_OUTCOME",
+  "claim": "game-acquired symbolic guard and operator structure transfers to raw-video question answering under matched target-native grounding",
+  "cohort": {
+    "rows": 512,
+    "videos": 512,
+    "per_semantic_root": 64,
+    "public_cohort_sha256": "3ce5cab90a1bb5fcdc22b42158c256560dfe12b7732d25e07b1b3832c3267d55",
+    "public_cohort_file_sha256": "83cd25ebc442183c502094398a248c1c98414eedd099bbfc05d0253f68a8851c",
+    "manifest_sha256": "88b7aae3e6ca35945edfd2a6e9913d108c5d1c1afd2b4b2a534dbff8bdbb90e7",
+    "manifest_file_sha256": "328cc59509a029ad39b243d987b6c929c52e6d55e95a171506db84da92493961",
+    "semantic_parser_train_validation_task_overlap": 0,
+    "excluded_prior_layer_b_tasks_and_videos": 512,
+    "answers_read": false
+  },
+  "consumed_development_evidence": {
+    "qualification_v3_is_permanently_consumed": true,
+    "closed_world_source_vs_neural": "27W/24L; p=.77977; failed",
+    "qwen32_scoped_three_value_source_vs_neural": "20W/11L; p=.14961",
+    "qwen32_scoped_source_accuracy": "118/256",
+    "qwen32_scoped_neural_accuracy": "109/256",
+    "qwen32_scoped_generic_accuracy": "113/256",
+    "negative_transfer_gate_passed_on_consumed_diagnostic": true,
+    "qwen235_consistency_pilot_rejected_before_v4": true,
+    "selection_used_only_consumed_outcomes": true
+  },
+  "shared_pipeline": {
+    "semantic_parser": "frozen target-native Flan-T5-small question-to-operator-free-semantics parser",
+    "positive_event_grounders": [
+      "frozen Qwen3-VL-32B uniform 48 proxy frames",
+      "frozen Qwen3-VL-32B uniform 96 proxy frames"
+    ],
+    "action_tool": "frozen SlowFast-R50 Charades dense10x32 at threshold 0.1",
+    "positive_event_merge": "FILL_MISSING_ONLY",
+    "source_blind_router": "FIRST_GENERIC_COMMIT_ELSE_FIRST_CANDIDATE",
+    "atomic_claim_grounder": "frozen Qwen3-VL-32B, 96 uniform full-video frames, exactly one scoped operator-free proposition per call",
+    "atomic_claim_states": ["SUPPORTED", "REFUTED", "UNKNOWN"],
+    "absence_implies_refuted": false,
+    "maximum_actual_frame_presentations_per_task": 560,
+    "fallback_actor": "frozen Qwen3.5-9B",
+    "all_grounding_and_claim_receipts_shared_across_five_arms": true
+  },
+  "harness_policy": {
+    "generic_scaffold": "EAGER_CLOSED_WORLD_WITH_ALL_VM_PRIMITIVES",
+    "source_permuted": "CAUSAL_LINEAGE_REJECTED_AND_SHARED_FALLBACK",
+    "source_induced": "SOURCE_OPEN_WORLD_GUARDS_OVER_SHARED_THREE_VALUE_EVIDENCE",
+    "target_written_isomorphic": "EXACT_SOURCE_POLICY_CLONE_FOR_CEILING_ONLY",
+    "xor_yes_or_choice": "commit only with exactly one SUPPORTED and one REFUTED branch",
+    "xor_no": "commit only when both branches have the same explicit non-UNKNOWN state",
+    "and_yes": "commit only when every branch is SUPPORTED",
+    "and_no": "commit only when at least one branch is REFUTED",
+    "exists_yes": "commit only with explicit SUPPORTED evidence",
+    "exists_no": "commit only with explicit REFUTED evidence",
+    "non_boolean_operator_behavior": "unchanged strict typed executor",
+    "confidence_threshold": null,
+    "outcome_adaptive_rules": false
+  },
+  "arms": [
+    "neural_only",
+    "generic_scaffold",
+    "source_permuted",
+    "source_induced",
+    "target_written_isomorphic"
+  ],
+  "source_capability_artifact_sha256": "8db5041579e8d5a69c5612247d62803ada2d98e745734fd9fac8cc3d7ca7902d",
+  "implementation_file_sha256s": {
+    "src/motif_transfer/agqa_layer_b_epistemic.py": "1f372ddc62d3a886c73c5ab430697e7117b1a42386384572f17cecf62724738b",
+    "scripts/collect_agqa_layer_b_atomic_claims.py": "db67d398982494c19f34769e273ddb57fed450e437828776ddc3f0bf3daa89a2",
+    "scripts/evaluate_agqa_layer_b_epistemic_five_arm.py": "042ba59664de85c2ee50805540c2cfab06a1c1946c953e82c4e0572d5e841055",
+    "scripts/rebase_agqa_layer_b_charades_actions.py": "9bcffe0927c9da8e1165bdeed1b21b54d4bb54810d4877147f6a8f1f05beb570",
+    "scripts/route_agqa_layer_b_shared_grounding.py": "6429fa0e37ab4df8c5b57cbe57f5bbf0607095861888012cd13a664ec5602220"
+  },
+  "gates": {
+    "outcome_blind_source_execution_coverage_at_least": 0.4,
+    "source_accuracy_strictly_above_neural_only": true,
+    "source_vs_neural_exact_mcnemar_p_below": 0.05,
+    "source_accuracy_strictly_above_generic_scaffold": true,
+    "source_permuted_not_above_source": true,
+    "negative_transfer_losses_fraction_at_most": 0.05,
+    "target_written_isomorphic_action_equivalence": 1.0,
+    "semantic_parser_supervision_overlap": 0
+  },
+  "decision_rule": "Qualification passes only if every gate passes in one immutable evaluation. Failure consumes v4 and forbids same-reserve tuning. Untouched formal may start only after a pass.",
+  "layer_boundary": {
+    "official_stsg_runtime_allowed": false,
+    "official_functional_program_runtime_allowed": false,
+    "official_answer_allowed_before_final_evaluator": false,
+    "layer_a_oracle_stsg_results_are_not_layer_b_evidence": true
+  }
+}

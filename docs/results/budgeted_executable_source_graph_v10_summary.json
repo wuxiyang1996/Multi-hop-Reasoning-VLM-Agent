@@ -1,0 +1,70 @@
+{
+  "adaptation_gate": {
+    "failed_gate": "changed_effects_each_claimed_effect",
+    "gates": {
+      "authentic_changes_exceed_edge_control": true,
+      "authentic_success_noninferior_to_target_only": true,
+      "authentic_success_superior_to_edge_control": true,
+      "changed_effects_each_claimed_effect": false,
+      "changed_source_edges": true,
+      "changed_tasks": true,
+      "no_failed_selected_postconditions": true,
+      "no_reopened_completed_slots": true,
+      "paired_net_win_nonnegative": true,
+      "required_option_invariance": true,
+      "source_admission_rate_range": true
+    },
+    "paired_authentic_vs_each_control": {
+      "losses": 1,
+      "net_wins": 1,
+      "ties": 13,
+      "wins": 2
+    },
+    "report_sha256": "eabaf136b27bdbf73f8eea5647bc78d5f77c91f439111511936648bc1dca3147",
+    "status": "ADAPTATION_GATE_FAILED_STOP",
+    "summaries": {
+      "authentic_slot_ir": {
+        "changed_by_effect": {
+          "BIND": 0,
+          "MUTATE": 0,
+          "RELATE": 7
+        },
+        "changed_effect_count": 7,
+        "changed_task_count": 5,
+        "mean_steps": 27.125,
+        "source_edge_changed_count": 7,
+        "successes": 14,
+        "tasks": 16
+      },
+      "edge_permuted_ir": {
+        "mean_steps": 29.8125,
+        "successes": 13,
+        "tasks": 16
+      },
+      "property_permuted_router": {
+        "mean_steps": 29.8125,
+        "successes": 13,
+        "tasks": 16
+      },
+      "target_only": {
+        "mean_steps": 30.625,
+        "successes": 13,
+        "tasks": 16
+      }
+    }
+  },
+  "confirmation_authorized": false,
+  "existing_valid_unseen_heldout_read": false,
+  "experiment_parameters": {
+    "max_steps": 60,
+    "primary_endpoint": "OFFICIAL_SUCCESS_WITHIN_STEP_BUDGET",
+    "runner_seed": 99501
+  },
+  "frozen_hashes": {
+    "candidate_sha256": "c066b21a097f9c9c9803d1e65e2ee157c21ce5735d3f35cc6863a020ef10cfee",
+    "manifest_sha256": "a066cea5191d51710091307eea76ad1269931f3a1d5b9b56b3aaa647d2a2cb77"
+  },
+  "schema_version": "budgeted-executable-source-graph-v10-result-summary",
+  "source_edge_budgeted_success_signal": true,
+  "verdict": "POSITIVE_ADAPTATION_SIGNAL_BUT_CLAIM_COVERAGE_GATE_FAILED"
+}

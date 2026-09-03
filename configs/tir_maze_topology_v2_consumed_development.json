@@ -1,0 +1,31 @@
+{
+  "schema_version": 2,
+  "status": "CONSUMED_DEVELOPMENT_ONLY",
+  "claim_boundary": {
+    "consumed_development": "DEVELOPMENT_ONLY_ON_NINE_PREVIOUSLY_CONSUMED_TIR_MAZE_TASKS; TARGET_NEURAL_BINDING_SEES_NO_GOLD_AND_SOURCE_PROGRAM_SEES_ONLY_ANONYMOUS_GRAPH_EDGES",
+    "qualification": "NOT_AUTHORIZED_BY_THIS_CONFIG",
+    "heldout": "NOT_AUTHORIZED_BY_THIS_CONFIG"
+  },
+  "source": {
+    "artifact_path": "runs/sokoban_topology_skill_v1/discovery_artifact.json",
+    "confirmation_path": "runs/sokoban_topology_skill_v1/fresh_confirmation_report.json"
+  },
+  "dataset": {
+    "file_sha256": "e764c780c53fdce2e0bb64846a8119b48b731c90c7168c6c202f270062684bc8"
+  },
+  "model": {
+    "provider": "openrouter",
+    "id": "openai/gpt-4.1-mini",
+    "base_url": "https://openrouter.ai/api/v1",
+    "timeout_seconds": 180,
+    "max_retries": 2,
+    "maximum_output_tokens": 1200,
+    "temperature": 0
+  },
+  "media": {"max_side": 768, "jpeg_quality": 90},
+  "splits": {
+    "consumed_development": ["158", "423", "49", "474", "1092", "596", "550", "17", "92"],
+    "qualification": [],
+    "heldout": []
+  }
+}

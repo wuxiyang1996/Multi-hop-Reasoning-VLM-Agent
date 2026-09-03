@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Phase 3 V2 · Source-Induced Structural IR Transfer</title>
+  <style>
+    :root{--ink:#152326;--muted:#647174;--paper:#f4f0e7;--card:#fffdf8;--line:#d9d1c2;--green:#13725a;--red:#ad4938;--blue:#315f8b;--amber:#a26b18}
+    *{box-sizing:border-box} body{margin:0;background:radial-gradient(circle at 90% 0,#dce9e2 0,transparent 34%),linear-gradient(145deg,#eef1ec,var(--paper));color:var(--ink);font:16px/1.58 ui-sans-serif,system-ui,"PingFang SC",sans-serif}
+    main{max-width:1160px;margin:auto;padding:52px 24px 80px} h1{max-width:940px;margin:0 0 18px;font:750 clamp(2.4rem,6vw,5.2rem)/.94 ui-serif,Georgia,"Noto Serif SC",serif;letter-spacing:-.045em}
+    h2{margin:48px 0 15px;font:720 1.75rem/1.15 ui-serif,Georgia,"Noto Serif SC",serif} h3{margin:25px 0 8px}.lead{max-width:900px;color:var(--muted);font-size:1.12rem}.eyebrow{color:var(--blue);font-weight:750;letter-spacing:.11em;text-transform:uppercase}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;margin:30px 0}.card{background:color-mix(in srgb,var(--card) 94%,transparent);border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:0 12px 34px #263a4010}.metric{font:780 2.45rem/1 ui-serif,Georgia,serif}.label{margin-top:9px;color:var(--muted)}
+    .ok{color:var(--green)}.bad{color:var(--red)}.warn{color:var(--amber)}.pill{display:inline-block;border-radius:999px;padding:5px 10px;background:#e4eee8;color:var(--green);font-size:.82rem;font-weight:700}.pill.bad{background:#f3e5e1;color:var(--red)}
+    .flow{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:24px 0}.flow div{position:relative;padding:15px 11px;border:1px solid var(--line);border-radius:10px;background:var(--card);text-align:center;font-size:.9rem}.flow div:not(:last-child)::after{content:"→";position:absolute;right:-12px;top:50%;z-index:2;color:var(--blue);font-weight:800}
+    table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden}th,td{padding:11px 14px;border-bottom:1px solid var(--line);text-align:left}th{color:var(--muted);font-size:.8rem;text-transform:uppercase;letter-spacing:.06em}.best{font-weight:800;color:var(--green)}
+    .columns{display:grid;grid-template-columns:1fr 1fr;gap:18px}.note{margin:20px 0;padding:14px 18px;border-left:4px solid var(--blue);background:#f4f8fb}.boundary{border-left-color:var(--amber);background:#fbf5e8}code{background:#e9e3d8;padding:.13em .38em;border-radius:5px}a{color:var(--blue)}.muted{color:var(--muted)}
+    @media(max-width:780px){main{padding-top:32px}.flow,.columns{grid-template-columns:1fr}.flow div:not(:last-child)::after{content:"↓";right:50%;top:auto;bottom:-18px}}
+  </style>
+</head>
+<body><main>
+  <div class="eyebrow">Phase 3 · Structural IR · 2026-08-16</div>
+  <h1>共享 IR，不复制 controller。</h1>
+  <p class="lead">从 source game intervention tuples 自动归纳 typed operators、transition、terminal predicate 和 abstention；目标域只学习 native neural grounding。DiscoveryWorld 与 TIR maze 已获得 prospective success-rate transfer，ALFWorld 保留为诚实的 source-specific failure。</p>
+
+  <section class="grid">
+    <article class="card"><span class="pill">Validated</span><div class="metric ok">12/12</div><div class="label">DiscoveryWorld source-induced；neural 3/12</div></article>
+    <article class="card"><span class="pill">Validated</span><div class="metric ok">12/18</div><div class="label">TIR formal source-induced；neural 6/18</div></article>
+    <article class="card"><span class="pill bad">Not specific</span><div class="metric bad">22 = 22</div><div class="label">ALFWorld source-induced = permuted / 72</div></article>
+    <article class="card"><span class="pill">Source-only</span><div class="metric">496 → 0</div><div class="label">authentic vs shuffled next-state bindings</div></article>
+  </section>
+
+  <h2>实际系统边界</h2>
+  <div class="flow"><div>source state/action/effect/next-state</div><div>anonymous typed operators</div><div>induced transitions + abstention</div><div>target-native neural grounding</div><div>native target execution</div></div>
+  <div class="note"><strong>Same IR 的定义：</strong>共同的 type system、inducer contract、executor semantics、content hash 与 causal controls。target program 可以包含自己的 operator、multiplicity、entity binding 和 risk model；不要求所有域执行同一个 canonical body。</div>
+
+  <h2>Source induction 是低层、可证伪的</h2>
+  <div class="columns">
+    <article class="card"><h3>MiniGrid state deltas</h3><p>DoorKey、PutNear、UnlockPickup 自动产生三个不同的 ADD / REMOVE / UPDATE sequence。Fresh reserve 上 12/12 program support，32/32 authentic bindings，shuffled 0/32。</p></article>
+    <article class="card"><h3>Sokoban relational program</h3><p>自动学出 <code>UPDATE CONTROL_STATE POSITION</code> 的可重复 self-loop、<code>ENTITY_GOAL_RELATION=1</code> 和唯一候选 abstention。Fresh source 为 72/72 unique selection，496/496 effect bindings；shuffled 0。</p></article>
+  </div>
+
+  <h2>两个 prospective target</h2>
+  <div class="columns">
+    <article><h3>DiscoveryWorld · 12 tasks</h3><table><thead><tr><th>Arm</th><th>Success</th></tr></thead><tbody><tr><td>Neural-only</td><td>3</td></tr><tr><td>Source-induced</td><td class="best">12</td></tr><tr><td>Source-permuted</td><td>3</td></tr><tr><td>Generic</td><td>0</td></tr><tr><td>Target ceiling</td><td>12</td></tr></tbody></table><p class="muted">9W / 0L / 3T vs neural；exact p=0.00390625。</p></article>
+    <article><h3>TIR maze · 18 formal tasks</h3><table><thead><tr><th>Arm</th><th>Success</th></tr></thead><tbody><tr><td>Neural-only</td><td>6</td></tr><tr><td>Source-induced</td><td class="best">12</td></tr><tr><td>Alpha-renamed</td><td>12</td></tr><tr><td>Source-permuted</td><td>6</td></tr><tr><td>Generic</td><td>4</td></tr><tr><td>Target ceiling</td><td>12</td></tr></tbody></table><p class="muted">6W / 0L / 12T vs neural 和 permuted；exact p=0.03125。</p></article>
+  </div>
+
+  <h2>为什么 TIR 结果 non-trivial</h2>
+  <p>旧 topology artifact 的规则是手写的，所以没有纳入新 claim。V3 重新从 Sokoban tuples 归纳 program，并在 72 个新 source episodes 上确认；随后审计所有历史 TIR allocations，在看 prompt/image/answer/outcome 前冻结剩余 27 个 maze IDs。9-task qualification 一次通过后，未改 code 或 threshold，才解锁 18-task formal。</p>
+  <p>Target neural binder 只绑定视觉 <code>R/L/U/D</code> relations 和 start/goal entities；source program 只提供重复 typed transition、goal relation 和 abstention。Relation-permuted control 回落到 6/18，authentic 提升到 12/18，说明 program 的 relation structure 而非“有一个 source 标签”产生差异。</p>
+
+  <h2>ALFWorld 的边界</h2>
+  <p>Grounder 本身在 development 上合格：ADD/REMOVE F1=1.0，entity F1=0.902，destination F1=0.939，shuffled macro F1=0.0125。72-task extension 中 source 为 22/72、neural 20/72，但 source-permuted 同样为 22/72；source vs permuted 为 1W/1L。因此它是安全的小收益，不是 source-specific transfer validation。</p>
+
+  <div class="note boundary"><strong>Claim boundary：</strong>已证明的是两类结构匹配 target 上的 shared-IR neural-symbolic transfer；没有证明 source provenance 必要、任意 domain 通用、视频可直接复用 maze dynamics，或历史 24/24 mechanism cells 都有 powered success gain。</div>
+
+  <h2>下一步</h2>
+  <ol><li>冻结新的 ALFWorld/WebShop reserve，只更换 target-native grounder。</li><li>在 ALFWorld development 中学习 deadline、irreversibility、binding-risk，而不是增加 source heuristic。</li><li>扩大 source program family，并在 target execution 前预测 structural applicability。</li><li>独立复制 TIR 的 seed/model；将 18-task p=0.03125 作为明确但窄的证据。</li><li>视频先建立 target-native event graph 与 intervention effects，再进入同一 IR。</li></ol>
+
+  <p class="muted">完整说明：<a href="PHASE3_STRUCTURAL_IR_TRANSFER_V2_RESULTS.md">Phase 3 V2 results</a> · <a href="results/phase3_structural_ir_transfer_v2_summary.json">machine-readable summary</a></p>
+</main></body></html>

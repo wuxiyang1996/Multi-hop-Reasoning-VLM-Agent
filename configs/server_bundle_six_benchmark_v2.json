@@ -1,0 +1,45 @@
+{
+  "schema_version": "server-bundle-six-benchmark-v2",
+  "status": "PORTABLE_DEPENDENCY_CLOSURE_DECLARED",
+  "dependency_archive": "13-six-benchmark-portable-dependencies.tar.zst",
+  "dependency_roots": [
+    "runs/phase3_source_function_v4_reserve",
+    "runs/harness_9b_six_benchmark_substitution_v1",
+    "runs/webshop_structural_transfer_v21_formal",
+    "runs/discoveryworld_structural_transfer_v1_matched",
+    "runs/tir_maze_structural_transfer_v3",
+    "runs/alfworld_unified_goal_acquisition_v13_formal",
+    "runs/clevrer_unified_goal_relation_v15_reserve",
+    "runs/agqa2_full_distribution_v62",
+    "runs/harness_controller_sft_v4_cardinality",
+    "runs/harness_controller_scientific_v4_zero_shot"
+  ],
+  "archives_reused_from_v1": [
+    "00b-source-runtime-repository.bundle",
+    "02-code-github-main-8bbfb4d.tar.zst",
+    "03-code-source-fresh-v1-db1a5ac.tar.zst",
+    "04-code-visual-wrapper-6038601.tar.zst",
+    "10-harness-source-only-core.tar.zst",
+    "11-target-adapted-baseline.tar.zst",
+    "12-cross-domain-memory-baselines.tar.zst",
+    "20-source-game-checkpoints.tar.zst",
+    "30-qwen35-9b-hf-cache.tar.zst"
+  ],
+  "clean_room_archives": [
+    "10-harness-source-only-core.tar.zst",
+    "11-target-adapted-baseline.tar.zst",
+    "13-six-benchmark-portable-dependencies.tar.zst"
+  ],
+  "reproducible_workspace_config": "configs/reproducible_workspace_v1.json",
+  "pytest_targets": [
+    "tests/test_portable_paths.py",
+    "tests/test_server_bundle_six_benchmark_v2.py",
+    "tests/test_reproducible_workspace_v1.py",
+    "tests/test_harness_six_benchmark_substitution.py",
+    "tests/test_harness_controller_v4_cardinality.py",
+    "tests/test_harness_controller_training.py"
+  ],
+  "expected_pytest_passes": 24,
+  "expected_report_status": "PAPER_TABLE_READY_SIX_BENCHMARK_9B_SUBSTITUTION_VALIDATED",
+  "claim_boundary": "Portable reproduction of the historical frozen-cohort six-benchmark controller-substitution and action-equivalence result. It is not a full official-benchmark outcome rerun."
+}

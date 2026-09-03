@@ -1,0 +1,79 @@
+{
+  "schema_version": "agqa2-qwen235-source-transfer-final-summary-v1",
+  "status": "AGQA2_SUCCESS_RATE_TRANSFER_NOT_CONFIRMED",
+  "date": "2026-09-01",
+  "grounder": {
+    "model": "qwen/qwen3-vl-235b-a22b-instruct",
+    "training": "NONE_OFF_THE_SHELF",
+    "runtime_answer_program_scene_graph_access": false
+  },
+  "transfer_mechanism": {
+    "source_ir": "SOURCE_INDUCED_RECURRENT_ENTITY_GOAL_RELATION",
+    "target_native_router": "FROZEN_QUESTION_ONLY_ROUTER_V2",
+    "target_native_grounder": "QWEN3_VL_235B_INSTRUCT",
+    "source_permuted_control": "WRONG_TYPE_MUST_ABSTAIN",
+    "target_written_control": "ISOMORPHIC_EXECUTOR_MUST_MATCH"
+  },
+  "experiments": {
+    "v65_fresh_reserve": {
+      "sample_count": 30,
+      "neural_only_correct": 17,
+      "source_induced_correct": 16,
+      "wins": 2,
+      "losses": 3,
+      "status": "FAILED"
+    },
+    "v73_untouched_formal": {
+      "sample_count": 240,
+      "neural_only_correct": 149,
+      "raw_typed_correct": 154,
+      "wins": 19,
+      "losses": 14,
+      "net_gain": 5,
+      "accuracy_delta_pp": 2.0833333333333335,
+      "route_accuracy": 1.0,
+      "source_permuted_abstention_rate": 1.0,
+      "target_written_equivalent_rate": 1.0,
+      "reported_provider_cost_usd": 0.37531378,
+      "status": "FAILED_PREREGISTERED_MINIMUM_WINS_GATE",
+      "artifact": "runs/agqa2_source_executor_formal_v14/report.json"
+    },
+    "v74_final_video_disjoint_replication": {
+      "sample_count": 266,
+      "authorized_count": 151,
+      "applicability_rule": "SINGLE_EVENT_BINDING_AND_NO_CONFLICT_TIEBREAK",
+      "neural_only_correct": 172,
+      "neural_only_accuracy": 0.6466165413533834,
+      "source_induced_correct": 168,
+      "source_induced_accuracy": 0.631578947368421,
+      "wins": 12,
+      "losses": 16,
+      "net_gain": -4,
+      "accuracy_delta_pp": -1.5037593984962405,
+      "one_sided_exact_binomial_pvalue": 0.8275357745587826,
+      "route_accuracy": 1.0,
+      "source_permuted_abstention_rate": 1.0,
+      "target_written_equivalent_rate": 1.0,
+      "reported_provider_cost_usd": 0.42215072,
+      "status": "FAILED",
+      "artifact": "runs/agqa2_source_binding_formal_v15/evaluation_report.json"
+    }
+  },
+  "conclusion": {
+    "mechanism_and_control_integrity": "VALIDATED",
+    "robust_target_success_gain": "NOT_VALIDATED",
+    "diagnosis": "VISUAL_GROUNDING_ERRORS_REMAIN_CORRELATED_WITH_SYMBOLIC_OVERRIDES",
+    "paper_claim": "REPORT_AGQA2_AS_A_PREREGISTERED_NEGATIVE_REPLICATION_AND_LIMITATION_NOT_AS_A_PASSED_TARGET_DOMAIN",
+    "failure_policy": "NO_FURTHER_AGQA_ADAPTATION_ON_CONSUMED_COHORTS"
+  },
+  "fresh_evidence_inventory": {
+    "official_test_video_count": 1814,
+    "official_test_untouched_video_count": 0,
+    "official_test_exists_compatible_video_count": 1807,
+    "official_test_untouched_exists_compatible_video_count": 0,
+    "train_formal_untouched_video_count": 96,
+    "train_formal_use_authorized_after_v74": false,
+    "artifact": "docs/results/agqa2_untouched_inventory_v16.json"
+  },
+  "other_target_domains": "UNCHANGED_BY_THIS_AGQA2_RESULT"
+}

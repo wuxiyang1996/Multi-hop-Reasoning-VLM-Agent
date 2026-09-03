@@ -1,0 +1,265 @@
+{
+  "schema_version": "phase3-tir-visual-search-split-manifest-v2",
+  "status": "FROZEN_BEFORE_ANY_TIR_V2_TARGET_CALL",
+  "claim_boundary": "PROSPECTIVE_SAME_SOURCE_IR_REPLICATION_ON_NON_MAZE_TIR_VISUAL_SEARCH;NEURAL_ANCHOR_TARGET_GROUNDER;QUALIFICATION_AND_FORMAL_LOCKED",
+  "predecessor_development_gate": {
+    "config": "configs/phase3_tir_nonmaze_v1_splits.json",
+    "receipts": "runs/phase3_tir_nonmaze_v2/development_validation_receipts.json",
+    "status": "TARGET_EVIDENCE_HEADROOM_FAILED_2_OF_8_EQUALS_BASELINE",
+    "qualification_or_formal_consumed": false,
+    "reason_for_new_family": "COLOR_MIXED_COUNT_ILLUSION_AND_SEMANTIC_COLOR_TASKS_DO_NOT_MATCH_AVAILABLE_REGION_TOOLS;PRIOR_CONSUMED_VISUAL_SEARCH_DEV_SHOWED_4_OF_4_ONE_CROP_ORACLE_HEADROOM"
+  },
+  "dataset": {
+    "path": "/fs/gamma-projects/vlm-robot/datasets/TIR-Bench/TIR-Bench.json",
+    "sha256": "e764c780c53fdce2e0bb64846a8119b48b731c90c7168c6c202f270062684bc8",
+    "benchmark": "TIR-Bench",
+    "family": "visual_search",
+    "eligible_a_to_f_population": 78,
+    "formal_prompt_image_answer_read_before_freeze": false,
+    "answer_schema_used_for_eligibility_only": true,
+    "answer_value_used_for_selection_or_order": false
+  },
+  "selection": {
+    "rule": "Use historically TIR-reserved/executed visual_search IDs plus IDs 22/42 as development first; fill development to 24 by a frozen hash. Order every remaining A--F single-image visual_search ID by sha256('phase3-tir-visual-search-v2-fresh\\0'+id), allocate 10 qualification and the next 24 formal. No prompt, image, or answer value is read for fresh ordering.",
+    "historical_development_ids": [
+      "360",
+      "532",
+      "1110",
+      "272",
+      "735",
+      "879",
+      "805",
+      "42",
+      "1029",
+      "578",
+      "668",
+      "22",
+      "1132",
+      "834",
+      "842",
+      "1109",
+      "622"
+    ],
+    "historical_reservation_receipt_sha256": "110ea7b251bf216a2ebdfae48e305bfb33f8c131f42500ebdd4321ad79d0979a",
+    "prompt_or_image_used_for_fresh_order": false,
+    "answer_value_used_for_fresh_order": false
+  },
+  "splits": {
+    "development_train": [
+      "360",
+      "532",
+      "1110",
+      "272",
+      "735",
+      "879",
+      "805",
+      "42",
+      "1029",
+      "578",
+      "668",
+      "22",
+      "1132",
+      "834",
+      "842",
+      "1109"
+    ],
+    "development_validation": [
+      "622",
+      "466",
+      "779",
+      "157",
+      "1205",
+      "230",
+      "1086",
+      "1168"
+    ],
+    "qualification": [
+      "268",
+      "781",
+      "162",
+      "399",
+      "479",
+      "653",
+      "292",
+      "295",
+      "827",
+      "948"
+    ],
+    "formal": [
+      "445",
+      "810",
+      "307",
+      "312",
+      "458",
+      "694",
+      "544",
+      "426",
+      "186",
+      "1207",
+      "1026",
+      "585",
+      "149",
+      "906",
+      "919",
+      "635",
+      "170",
+      "301",
+      "966",
+      "1119",
+      "141",
+      "430",
+      "680",
+      "317"
+    ],
+    "unopened_reserve": [
+      "1079",
+      "396",
+      "385",
+      "470",
+      "1133",
+      "759",
+      "415",
+      "650",
+      "899",
+      "207",
+      "990",
+      "1177",
+      "1127",
+      "930",
+      "856",
+      "988",
+      "742",
+      "925",
+      "1125",
+      "717"
+    ]
+  },
+  "conditions": [
+    "neural_only",
+    "source_induced",
+    "source_permuted",
+    "generic_scaffold",
+    "target_native_ceiling"
+  ],
+  "source_programs": [
+    {
+      "path": "configs/phase3_source_induction_v3/frozen_reserve/programs/candy_crush.json",
+      "file_sha256": "194d9fa366cdfed53726da6e158d8297c61bd4fca06adb8930e85bf2f54e4ea9",
+      "artifact_sha256": "ea841196f4753b1f62423aa7a1abd834002db89bef11a96f6960df9b9e116ae4"
+    },
+    {
+      "path": "configs/phase3_source_induction_v3/frozen_reserve/programs/gymv_columns.json",
+      "file_sha256": "4210418ae8d7c0d6fcece3b2cf2c95a89d3699de9115d4d47eefca35f5e1fcb7",
+      "artifact_sha256": "f647aada5003ad2f4626927f93b89f38b947284d249ada8ecaf8fd5a147b743a"
+    },
+    {
+      "path": "configs/phase3_source_induction_v3/frozen_reserve/programs/gymv_streets_of_rage_2.json",
+      "file_sha256": "2b827513c80842e761009e56d30ad126dfa341f1b91273e8a551267e114b8f57",
+      "artifact_sha256": "fa2a7efae09d09b28a31a7900271e30589305af151406ed59d1430720c31d291"
+    },
+    {
+      "path": "configs/phase3_source_induction_v3/frozen_reserve/programs/gymv_strider.json",
+      "file_sha256": "151b172525bf82473e270863d23c531143c477074ed8c55ee69af51cb03bec22",
+      "artifact_sha256": "d6655c32d4d5c1b5e157a568c6d823d22f3533dbffea1ccac07a5fdf0862b8cc"
+    },
+    {
+      "path": "configs/phase3_source_induction_v3/frozen_reserve/programs/gymv_thunder_force_iii.json",
+      "file_sha256": "dd6aa9442d23b11c9668141e6efd263dfe8a9079f458ac9cf3ff59f0f7b32c26",
+      "artifact_sha256": "927ee6c97997275abafcc2e2fab06321d04ae010c0f5a5e445943aa0d21df7bb"
+    },
+    {
+      "path": "configs/phase3_source_induction_v3/frozen_reserve/programs/tetris.json",
+      "file_sha256": "353aa9903148311a0b54809614022c5b3922118258b7137d5ab6bab89b103728",
+      "artifact_sha256": "5c6b44491dd8a7f9ab558576427e2c89610b915aad7f1f6a7b669c6798245504"
+    }
+  ],
+  "source_ir": {
+    "runtime": "src/motif_transfer/phase3_attempt_runtime.py",
+    "portfolio": "src/motif_transfer/phase3_source_portfolio.py",
+    "typed_effect_induction": "src/motif_transfer/phase3_typed_effect_induction.py",
+    "program_updated_for_tir": false,
+    "source_identity_used_as_runtime_feature": false
+  },
+  "target_mdp": {
+    "state": "ACCUMULATED_MULTISCALE_REGION_EVIDENCE",
+    "action": "zoom_region",
+    "neural_operands": "FOUR_TARGET_NEURAL_ANCHORS",
+    "transition_horizons": [
+      1,
+      4,
+      8
+    ],
+    "budget": 8,
+    "formal_gold_visible_to_grounder_or_source": false
+  },
+  "wrapper": {
+    "root": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent",
+    "execution_authority": "visual_reasoning_wrapper.zoom_region"
+  },
+  "model": {
+    "provider": "openrouter",
+    "id": "qwen/qwen3-vl-32b-instruct",
+    "base_url": "https://openrouter.ai/api/v1",
+    "timeout_seconds": 240,
+    "max_retries": 3,
+    "temperature": 0
+  },
+  "media": {
+    "maximum_source_pixels": 300000000,
+    "native_working_max_side": 2048,
+    "overview_max_side": 768,
+    "evidence_max_side": 1280,
+    "jpeg_quality": 88
+  },
+  "qualification_gates": {
+    "expected_tasks": 10,
+    "minimum_ceiling_successes": 8,
+    "minimum_source_action_contrasts": 3,
+    "minimum_permuted_action_contrasts": 3,
+    "minimum_selected_effect_types": 2,
+    "maximum_negative_transfer_rate": 0.0,
+    "required_gate_names": [
+      "expected_task_count",
+      "target_native_ceiling_capable",
+      "source_changes_target_policy",
+      "authentic_differs_from_permuted",
+      "multiple_source_effect_types_selected",
+      "maximum_negative_transfer",
+      "source_not_below_neural",
+      "source_strictly_beats_neural",
+      "source_strictly_beats_permuted",
+      "source_strictly_beats_generic"
+    ]
+  },
+  "formal_gates": {
+    "expected_tasks": 24,
+    "minimum_ceiling_successes": 18,
+    "minimum_source_action_contrasts": 6,
+    "minimum_permuted_action_contrasts": 6,
+    "minimum_selected_effect_types": 2,
+    "maximum_negative_transfer_rate": 0.0,
+    "required_gate_names": [
+      "expected_task_count",
+      "target_native_ceiling_capable",
+      "source_changes_target_policy",
+      "authentic_differs_from_permuted",
+      "multiple_source_effect_types_selected",
+      "maximum_negative_transfer",
+      "source_not_below_neural",
+      "source_strictly_beats_neural",
+      "source_strictly_beats_permuted",
+      "source_strictly_beats_generic"
+    ]
+  },
+  "integrity": {
+    "code_sha256": {
+      "scripts/collect_phase3_tir_visual_search_v2.py": "61dec074d5579b81be95a3e18f22bd7494590d317f8457bfeabc11800c620f6e",
+      "scripts/collect_phase3_tir_nonmaze.py": "8b365fc1f1d00bad0844a77aaa78ef3cea32346a993effd8bcdb85ef55035f8d",
+      "src/motif_transfer/phase3_tir_nonmaze.py": "ece6b7f6055cd624e032912325be7800ecf54bfceaf7f0590c50ed705aa6abef",
+      "src/motif_transfer/phase3_attempt_runtime.py": "dc7cd679d4a666f661d8007c5ccb5c0d902e41d6867b00c9705a1b416dc7e4c3",
+      "src/motif_transfer/phase3_source_portfolio.py": "4a347cc5a0a206a51dc26a1fb131496cf9c19e1802d90602b514f44076f3d034",
+      "src/motif_transfer/phase3_typed_effect_induction.py": "9bf1f653f2e03a978afbcfeaa40eadaf87f3989fa6cf9e4d68c0e85e57f4aa52"
+    }
+  },
+  "config_sha256": "4ab89fea6cc00f1188ef6f6013987a7943135d47c1e7c1d7a6018f07bba0e976"
+}

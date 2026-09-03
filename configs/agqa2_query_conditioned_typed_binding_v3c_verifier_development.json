@@ -1,0 +1,68 @@
+{
+  "schema_version": "agqa-query-conditioned-typed-binding-v3c-verifier-development-protocol-v1",
+  "status": "FROZEN_ON_CONSUMED_DEVELOPMENT_BEFORE_INDEPENDENT_VERIFIER_CALLS",
+  "claim_boundary": "Consumed AGQA balanced-train development only. The proposal was frozen before this protocol; verifier outcomes are diagnostic and cannot become transfer evidence.",
+  "scientific_change": {
+    "reason": "The recall-only proposal reaches 9/20 top-1 on the pilot, while proposal confidence does not separate correct from incorrect bindings.",
+    "method": "Independently verify exactly one frozen candidate from raw pixels, without question text, alternatives, answer, source controller, or target outcome.",
+    "alternative_candidate_selection": false,
+    "proposal_status_has_harness_authority": false,
+    "only_supported_verifier_status_may_be_compiled": true
+  },
+  "immutable_inputs": {
+    "cohort_file_sha256": "4a41e3389aa146ce3d39b88402e94c08c05c144aaa7ffe7426c35f635cf861eb",
+    "sgdet_file_sha256": "37d59769f73087f3a7d295db2622e1aa86ea2e44be4f5391f037972d00561813",
+    "proposal_file_sha256": "9cfd16548305b70c0a8d5b4b5e62a28c86ad9f2b0dcbb88e50e32e499b755f79",
+    "verifier_sha256": "dcb6abf6bec4d7543c36be99a68127b0686999211322c489d3d170ff41e3f905"
+  },
+  "independent_binary_verifier": {
+    "model": "qwen/qwen3-vl-235b-a22b-instruct",
+    "provider": "parasail",
+    "provider_allow_fallbacks": false,
+    "seed": 0,
+    "maximum_frames": 12,
+    "minimum_object_score": 0.05,
+    "frames_per_panel": 2,
+    "panel_frame_width": 448,
+    "jpeg_quality": 90,
+    "max_tokens": 160,
+    "maximum_contract_attempts": 2,
+    "temperature": 0,
+    "thinking": false,
+    "candidate_count_per_task": 1,
+    "supported_requires_same_frame_person_and_candidate_track_evidence": true
+  },
+  "qualification_gates_for_full_240_development": {
+    "entity_candidate_pool_recall_minimum": 0.75,
+    "typed_role_fidelity_minimum": 0.8,
+    "cross_frame_dedup_fidelity_minimum": 0.9,
+    "provider_and_contract_success_fraction_minimum": 0.99,
+    "authority_safe_receipt_fraction": 1.0,
+    "unique_supported_count_minimum": 40,
+    "unique_supported_coverage_minimum": 0.2,
+    "unique_supported_precision_wilson_95_lower_bound_minimum": 0.6,
+    "one_global_threshold_required": true
+  },
+  "threshold_selection": {
+    "candidate_grid": [
+      0.5, 0.525, 0.55, 0.575, 0.6, 0.625, 0.65, 0.675,
+      0.7, 0.725, 0.75, 0.775, 0.8, 0.825, 0.85, 0.875,
+      0.9, 0.925, 0.95, 0.975
+    ],
+    "objective": "maximum unique-supported coverage subject to frozen gates",
+    "tie_break": "higher threshold"
+  },
+  "authority": {
+    "public_question_read": false,
+    "typed_predicate_role_scope_read": true,
+    "single_candidate_label_and_tracks_read": true,
+    "raw_video_frames_read": true,
+    "agqa_answer_read": false,
+    "agqa_answer_alternatives_read": false,
+    "official_scene_graph_read": false,
+    "official_stsg_read": false,
+    "functional_program_read": false,
+    "source_controller_read": false,
+    "target_outcome_read": false
+  }
+}

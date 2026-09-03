@@ -1,0 +1,73 @@
+{
+  "schema_version": "source-induced-relational-structural-program-v2",
+  "artifact_version": "SOURCE_INDUCED_RELATIONAL_STRUCTURAL_PROGRAM_V2",
+  "status": "SOURCE_RELATIONAL_PROGRAM_INDUCED_AWAITING_FRESH_CONFIRMATION",
+  "source_receipts_sha256": "bd18a1a84b3a0faf8c37d5e986d7e01e224ae98eb98515fd7da976cd293e3265",
+  "induction_authority": "SOURCE_STATE_ACTION_EFFECT_NEXT_STATE_ONLY",
+  "operator_types": [
+    {
+      "schema_version": "anonymous-structural-operator-type-v1",
+      "operation": "UPDATE",
+      "predicate_family": "CONTROL_STATE",
+      "arity": 1,
+      "value_kind": "POSITION",
+      "operator_type_id": "ATYPE_a51cbb518f4b6b10"
+    }
+  ],
+  "program": {
+    "entry_operator_type_id": "ATYPE_a51cbb518f4b6b10",
+    "transitions": [
+      {
+        "from_operator_type_id": "ATYPE_a51cbb518f4b6b10",
+        "guard": "NEXT_GROUNDED_EFFECT_HAS_SAME_OPERATOR_TYPE",
+        "to_operator_type_id": "ATYPE_a51cbb518f4b6b10",
+        "cardinality": "ONE_OR_MORE"
+      }
+    ],
+    "terminal_predicates": [
+      {
+        "predicate_family": "ENTITY_GOAL_RELATION",
+        "arity": 2,
+        "value_kind": "RELATION_COVERAGE",
+        "feature": "entity_goal_relation_coverage",
+        "operator": "EQ",
+        "value": 1.0
+      }
+    ],
+    "terminal_rule": "INDUCED_PREDICATE_CONJUNCTION_AFTER_TYPED_TRANSITIONS",
+    "abstention_rule": {
+      "learned_candidate_cardinality": {
+        "operator": "EQ",
+        "value": 1
+      },
+      "otherwise": "ABSTAIN"
+    }
+  },
+  "induction_diagnostics": {
+    "episodes": 68,
+    "successful_transition_tuples": 450,
+    "observed_success_path_lengths": [
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11
+    ],
+    "repeating_transition_induced": true,
+    "terminal_hypothesis_count": 3,
+    "selected_terminal_predicate_count": 1
+  },
+  "forbidden_named_controller_templates": [
+    "EXPLORE",
+    "BACKTRACK",
+    "COMMIT"
+  ],
+  "named_controller_template_used": false,
+  "target_binding": "TARGET_NATIVE_NEURAL_RELATION_GROUNDER",
+  "target_data_read": false,
+  "artifact_sha256": "8e751718cd5df14141a8dce0b10f4c57eb4d676a9ff3d125e3f293fdbe9c83ce"
+}

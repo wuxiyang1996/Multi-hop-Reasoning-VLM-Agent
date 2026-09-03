@@ -1,0 +1,2024 @@
+{
+  "schema_version": "phase3-discoveryworld-grounding-task-v1",
+  "status": "GROUNDING_QUALIFICATION_TASK_COMPLETE",
+  "role": "development",
+  "task_id": "proteomics.easy.seed87",
+  "task": {
+    "scenario": "Proteomics",
+    "difficulty": "Easy",
+    "seed": 87
+  },
+  "steps": [
+    {
+      "step": 1,
+      "action": {
+        "action": "TELEPORT_TO_LOCATION",
+        "arg1": "Animal Area 1"
+      },
+      "action_succeeded": true,
+      "schema_fallback": false,
+      "schema_attempts": [
+        {
+          "attempt": 1,
+          "accepted": true,
+          "raw_sha256": "94afed1b2dcbedbd216de0380fbdb19cf8586a76123a4b6a9230c7a7a4045bb6",
+          "usage": {
+            "cache_hit": false,
+            "original_usage": {
+              "prompt_tokens": 7733,
+              "completion_tokens": 86,
+              "total_tokens": 7819,
+              "cost": 0.0032308,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0032308,
+                "upstream_inference_prompt_cost": 0.0030932,
+                "upstream_inference_completions_cost": 0.0001376
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "affordance_check": null
+        }
+      ],
+      "model_response_sha256": "94afed1b2dcbedbd216de0380fbdb19cf8586a76123a4b6a9230c7a7a4045bb6",
+      "transition_receipt_sha256": "c169df8a0782641ff5c9d7af5c9529a1171fb78a38ab8d6a9092a33f7a0707a9",
+      "terminal": false,
+      "policy_runtime_saw_oracle_scorecard": false
+    },
+    {
+      "step": 2,
+      "action": {
+        "action": "TELEPORT_TO_OBJECT",
+        "arg1": 16434
+      },
+      "action_succeeded": true,
+      "schema_fallback": false,
+      "schema_attempts": [
+        {
+          "attempt": 1,
+          "accepted": true,
+          "raw_sha256": "b14a707869704022e35d7c23fe6bb2c9b3485691247c8a3b2fe3d2996c203a37",
+          "usage": {
+            "cache_hit": false,
+            "original_usage": {
+              "prompt_tokens": 7061,
+              "completion_tokens": 96,
+              "total_tokens": 7157,
+              "cost": 0.002978,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.002978,
+                "upstream_inference_prompt_cost": 0.0028244,
+                "upstream_inference_completions_cost": 0.0001536
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "affordance_check": null
+        }
+      ],
+      "model_response_sha256": "b14a707869704022e35d7c23fe6bb2c9b3485691247c8a3b2fe3d2996c203a37",
+      "transition_receipt_sha256": "af9815ed5e73990f8c1835249f949ad510410ca8c80f3187be17f09f2e44f982",
+      "terminal": false,
+      "policy_runtime_saw_oracle_scorecard": false
+    },
+    {
+      "step": 3,
+      "action": {
+        "action": "USE",
+        "arg1": 16434,
+        "arg2": 5697
+      },
+      "action_succeeded": true,
+      "schema_fallback": false,
+      "schema_attempts": [
+        {
+          "attempt": 1,
+          "accepted": true,
+          "raw_sha256": "4405027f4f47e806f4e7115d4c5ff68e8c716c97c6d7214df4164a7b8c53e6e7",
+          "usage": {
+            "cache_hit": false,
+            "original_usage": {
+              "prompt_tokens": 7501,
+              "completion_tokens": 113,
+              "total_tokens": 7614,
+              "cost": 0.0019908,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 3968,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0019908,
+                "upstream_inference_prompt_cost": 0.00181,
+                "upstream_inference_completions_cost": 0.0001808
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "affordance_check": {
+            "accepted": true,
+            "verdict": "VALID",
+            "reason": "The proposed action is USE proteomics meter (a plausible tool/instrument) on animaplant (a plausible specimen/target). This matches the expected affordance for USE: arg1 is a tool, arg2 is a specimen. Both are in the allowed domains for USE in the action catalog.",
+            "raw_sha256": "d1bc0b8bfec11fe3570d2765917f0b85f9504827548517c813d91a5c1ed88228",
+            "usage": {
+              "cache_hit": false,
+              "original_usage": {
+                "prompt_tokens": 3342,
+                "completion_tokens": 70,
+                "total_tokens": 3412,
+                "cost": 0.007244,
+                "is_byok": false,
+                "prompt_tokens_details": {
+                  "cached_tokens": 0,
+                  "cache_write_tokens": 0,
+                  "audio_tokens": 0,
+                  "video_tokens": 0
+                },
+                "cost_details": {
+                  "upstream_inference_cost": 0.007244,
+                  "upstream_inference_prompt_cost": 0.006684,
+                  "upstream_inference_completions_cost": 0.00056
+                },
+                "completion_tokens_details": {
+                  "reasoning_tokens": 0,
+                  "image_tokens": 0,
+                  "audio_tokens": 0
+                }
+              }
+            }
+          }
+        }
+      ],
+      "model_response_sha256": "4405027f4f47e806f4e7115d4c5ff68e8c716c97c6d7214df4164a7b8c53e6e7",
+      "transition_receipt_sha256": "11b5316741ca750432b5b8ee21becb28ae7a76d78f7a284513360b3e00f2c769",
+      "terminal": false,
+      "policy_runtime_saw_oracle_scorecard": false
+    },
+    {
+      "step": 4,
+      "action": {
+        "action": "TELEPORT_TO_LOCATION",
+        "arg1": "Animal Area 2"
+      },
+      "action_succeeded": true,
+      "schema_fallback": false,
+      "schema_attempts": [
+        {
+          "attempt": 1,
+          "accepted": true,
+          "raw_sha256": "259c8278aba9e88855782cfa086de4e7aeaba77f496c1ac9d7830e3ac32de7b6",
+          "usage": {
+            "cache_hit": false,
+            "original_usage": {
+              "prompt_tokens": 7635,
+              "completion_tokens": 132,
+              "total_tokens": 7767,
+              "cost": 0.0026892,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 1920,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0026892,
+                "upstream_inference_prompt_cost": 0.002478,
+                "upstream_inference_completions_cost": 0.0002112
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "affordance_check": null
+        }
+      ],
+      "model_response_sha256": "259c8278aba9e88855782cfa086de4e7aeaba77f496c1ac9d7830e3ac32de7b6",
+      "transition_receipt_sha256": "cbcadf472a9896103fa097aee06438b2f9196807a341df42a87ca9e374f5d90c",
+      "terminal": false,
+      "policy_runtime_saw_oracle_scorecard": false
+    },
+    {
+      "step": 5,
+      "action": {
+        "action": "TELEPORT_TO_OBJECT",
+        "arg1": 6122
+      },
+      "action_succeeded": true,
+      "schema_fallback": false,
+      "schema_attempts": [
+        {
+          "attempt": 1,
+          "accepted": true,
+          "raw_sha256": "b1ffdc4351569ff68891e34b637dbe60a0425c0c701c8335416607cc30973b89",
+          "usage": {
+            "cache_hit": false,
+            "original_usage": {
+              "prompt_tokens": 7403,
+              "completion_tokens": 127,
+              "total_tokens": 7530,
+              "cost": 0.0031644,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0031644,
+                "upstream_inference_prompt_cost": 0.0029612,
+                "upstream_inference_completions_cost": 0.0002032
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "affordance_check": null
+        }
+      ],
+      "model_response_sha256": "b1ffdc4351569ff68891e34b637dbe60a0425c0c701c8335416607cc30973b89",
+      "transition_receipt_sha256": "e0893ef064f134ffe3e6958af8f39c0c553fc43648e05d5cab0bb9291ac9e2d0",
+      "terminal": false,
+      "policy_runtime_saw_oracle_scorecard": false
+    },
+    {
+      "step": 6,
+      "action": {
+        "action": "TELEPORT_TO_OBJECT",
+        "arg1": 16434
+      },
+      "action_succeeded": true,
+      "schema_fallback": false,
+      "schema_attempts": [
+        {
+          "attempt": 1,
+          "accepted": false,
+          "error": "ValueError: USE arg1 is not accessible or in inventory",
+          "raw_sha256": "cd5100fb15ad591b1ea34408f8bc89cf4ce7d47fbaa03c6c7ed0039a7dd9389f",
+          "usage": {
+            "cache_hit": false,
+            "original_usage": {
+              "prompt_tokens": 7324,
+              "completion_tokens": 116,
+              "total_tokens": 7440,
+              "cost": 0.0031152,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0031152,
+                "upstream_inference_prompt_cost": 0.0029296,
+                "upstream_inference_completions_cost": 0.0001856
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "affordance_check": null
+        },
+        {
+          "attempt": 2,
+          "accepted": false,
+          "error": "ValueError: PICKUP arg1 is not in accessibleEnvironmentObjects",
+          "raw_sha256": "bc3912760a55edf0e37b4ef3adc0db29b854b2912eb696c5d57d279222ed22ca",
+          "usage": {
+            "cache_hit": false,
+            "original_usage": {
+              "prompt_tokens": 3929,
+              "completion_tokens": 106,
+              "total_tokens": 4035,
+              "cost": 0.0017412,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0017412,
+                "upstream_inference_prompt_cost": 0.0015716,
+                "upstream_inference_completions_cost": 0.0001696
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "affordance_check": null
+        },
+        {
+          "attempt": 3,
+          "accepted": true,
+          "raw_sha256": "178c471029d6c38222ee92fb389dd4df98a57d3d6ed19507bd31710a1f3f5904",
+          "usage": {
+            "cache_hit": false,
+            "original_usage": {
+              "prompt_tokens": 3920,
+              "completion_tokens": 113,
+              "total_tokens": 4033,
+              "cost": 0.0008656,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 2944,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0008656,
+                "upstream_inference_prompt_cost": 0.0006848,
+                "upstream_inference_completions_cost": 0.0001808
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "affordance_check": null
+        }
+      ],
+      "model_response_sha256": "178c471029d6c38222ee92fb389dd4df98a57d3d6ed19507bd31710a1f3f5904",
+      "transition_receipt_sha256": "f6a3f5a49c0813537807e7779cb29575e9a89bd98a1efd8be0e8465e998f7aaa",
+      "terminal": false,
+      "policy_runtime_saw_oracle_scorecard": false
+    },
+    {
+      "step": 7,
+      "action": {
+        "action": "PICKUP",
+        "arg1": 16434
+      },
+      "action_succeeded": true,
+      "schema_fallback": false,
+      "schema_attempts": [
+        {
+          "attempt": 1,
+          "accepted": true,
+          "raw_sha256": "58bc876c922b38d8ff8531b84bce96eb5cba1b2547f9d90b5a3b472c5d5cc2ff",
+          "usage": {
+            "cache_hit": false,
+            "original_usage": {
+              "prompt_tokens": 7575,
+              "completion_tokens": 105,
+              "total_tokens": 7680,
+              "cost": 0.003198,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.003198,
+                "upstream_inference_prompt_cost": 0.00303,
+                "upstream_inference_completions_cost": 0.000168
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "affordance_check": {
+            "accepted": true,
+            "verdict": "VALID",
+            "reason": "The target (uuid: 16434, 'proteomics meter') is a named meter/instrument, which is a plausible portable PICKUP target. It is also accessible. No precondition error.",
+            "raw_sha256": "365dec40f8f94dceaa7e328b50ee6e164af06962b21050874b422dea077d5897",
+            "usage": {
+              "cache_hit": false,
+              "original_usage": {
+                "prompt_tokens": 3336,
+                "completion_tokens": 50,
+                "total_tokens": 3386,
+                "cost": 0.007072,
+                "is_byok": false,
+                "prompt_tokens_details": {
+                  "cached_tokens": 0,
+                  "cache_write_tokens": 0,
+                  "audio_tokens": 0,
+                  "video_tokens": 0
+                },
+                "cost_details": {
+                  "upstream_inference_cost": 0.007072,
+                  "upstream_inference_prompt_cost": 0.006672,
+                  "upstream_inference_completions_cost": 0.0004
+                },
+                "completion_tokens_details": {
+                  "reasoning_tokens": 0,
+                  "image_tokens": 0,
+                  "audio_tokens": 0
+                }
+              }
+            }
+          }
+        }
+      ],
+      "model_response_sha256": "58bc876c922b38d8ff8531b84bce96eb5cba1b2547f9d90b5a3b472c5d5cc2ff",
+      "transition_receipt_sha256": "89bd44032c6cfd3098b668817b1e41ab13aa3f154339f8d75a95db2336660627",
+      "terminal": false,
+      "policy_runtime_saw_oracle_scorecard": false
+    },
+    {
+      "step": 8,
+      "action": {
+        "action": "USE",
+        "arg1": 16434,
+        "arg2": 5697
+      },
+      "action_succeeded": true,
+      "schema_fallback": false,
+      "schema_attempts": [
+        {
+          "attempt": 1,
+          "accepted": true,
+          "raw_sha256": "bae70887c18b91eb5422a6b7c68b85a542be520afdd4756251da0c7c1274a5bf",
+          "usage": {
+            "cache_hit": false,
+            "original_usage": {
+              "prompt_tokens": 7509,
+              "completion_tokens": 129,
+              "total_tokens": 7638,
+              "cost": 0.00321,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.00321,
+                "upstream_inference_prompt_cost": 0.0030036,
+                "upstream_inference_completions_cost": 0.0002064
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "affordance_check": {
+            "accepted": true,
+            "verdict": "VALID",
+            "reason": "The proposed action is USE proteomics meter (a plausible tool/instrument) on animaplant (a plausible specimen/target). This matches the native affordance pattern for USE: arg1 is a tool/instrument, arg2 is a specimen. Both are allowed in the action catalog for USE. No precondition error.",
+            "raw_sha256": "cc8dd5b9335d17ff2ba83473fe3f2bf0a65abf335b76f4d2edcab3e6eb8be6ab",
+            "usage": {
+              "cache_hit": false,
+              "original_usage": {
+                "prompt_tokens": 3320,
+                "completion_tokens": 75,
+                "total_tokens": 3395,
+                "cost": 0.00724,
+                "is_byok": false,
+                "prompt_tokens_details": {
+                  "cached_tokens": 0,
+                  "cache_write_tokens": 0,
+                  "audio_tokens": 0,
+                  "video_tokens": 0
+                },
+                "cost_details": {
+                  "upstream_inference_cost": 0.00724,
+                  "upstream_inference_prompt_cost": 0.00664,
+                  "upstream_inference_completions_cost": 0.0006
+                },
+                "completion_tokens_details": {
+                  "reasoning_tokens": 0,
+                  "image_tokens": 0,
+                  "audio_tokens": 0
+                }
+              }
+            }
+          }
+        }
+      ],
+      "model_response_sha256": "bae70887c18b91eb5422a6b7c68b85a542be520afdd4756251da0c7c1274a5bf",
+      "transition_receipt_sha256": "8084802ca25e70a3efeb40d4ba7b98df5cfd78739ce0661d032851da48264259",
+      "terminal": false,
+      "policy_runtime_saw_oracle_scorecard": false
+    },
+    {
+      "step": 9,
+      "action": {
+        "action": "TELEPORT_TO_OBJECT",
+        "arg1": 6122
+      },
+      "action_succeeded": true,
+      "schema_fallback": false,
+      "schema_attempts": [
+        {
+          "attempt": 1,
+          "accepted": true,
+          "raw_sha256": "2b870b27a1f7662e4e187601e3d40e4e3f4eca75ee2b30ac7f0a49b656f9168b",
+          "usage": {
+            "cache_hit": false,
+            "original_usage": {
+              "prompt_tokens": 7628,
+              "completion_tokens": 112,
+              "total_tokens": 7740,
+              "cost": 0.0032304,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0032304,
+                "upstream_inference_prompt_cost": 0.0030512,
+                "upstream_inference_completions_cost": 0.0001792
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "affordance_check": null
+        }
+      ],
+      "model_response_sha256": "2b870b27a1f7662e4e187601e3d40e4e3f4eca75ee2b30ac7f0a49b656f9168b",
+      "transition_receipt_sha256": "ddd4c58822c361b397c10ddd39e3c2265877e1ba97cfe65ae35e91e3a3275877",
+      "terminal": false,
+      "policy_runtime_saw_oracle_scorecard": false
+    },
+    {
+      "step": 10,
+      "action": {
+        "action": "USE",
+        "arg1": 16434,
+        "arg2": 6122
+      },
+      "action_succeeded": true,
+      "schema_fallback": false,
+      "schema_attempts": [
+        {
+          "attempt": 1,
+          "accepted": true,
+          "raw_sha256": "f79f5452e92a1eb38a4e38b18197a4913e59ff566bfe676ccfd260e8e3a81b1f",
+          "usage": {
+            "cache_hit": false,
+            "original_usage": {
+              "prompt_tokens": 7395,
+              "completion_tokens": 109,
+              "total_tokens": 7504,
+              "cost": 0.0031324,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0031324,
+                "upstream_inference_prompt_cost": 0.002958,
+                "upstream_inference_completions_cost": 0.0001744
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "affordance_check": {
+            "accepted": true,
+            "verdict": "VALID",
+            "reason": "The proposed action is USE proteomics meter (uuid: 16434) on spheroid (uuid: 6122). The proteomics meter is a plausible usable tool/instrument, and the spheroid is a plausible specimen/target. This matches the native affordance rules for USE.",
+            "raw_sha256": "169315b51e9d201fad45a25ff20b8dbf00a6c7b2df84381648d0e6595f4a2fe3",
+            "usage": {
+              "cache_hit": false,
+              "original_usage": {
+                "prompt_tokens": 3242,
+                "completion_tokens": 68,
+                "total_tokens": 3310,
+                "cost": 0.007028,
+                "is_byok": false,
+                "prompt_tokens_details": {
+                  "cached_tokens": 0,
+                  "cache_write_tokens": 0,
+                  "audio_tokens": 0,
+                  "video_tokens": 0
+                },
+                "cost_details": {
+                  "upstream_inference_cost": 0.007028,
+                  "upstream_inference_prompt_cost": 0.006484,
+                  "upstream_inference_completions_cost": 0.000544
+                },
+                "completion_tokens_details": {
+                  "reasoning_tokens": 0,
+                  "image_tokens": 0,
+                  "audio_tokens": 0
+                }
+              }
+            }
+          }
+        }
+      ],
+      "model_response_sha256": "f79f5452e92a1eb38a4e38b18197a4913e59ff566bfe676ccfd260e8e3a81b1f",
+      "transition_receipt_sha256": "3e8b17fbe7a766c3ba7b2bf666eee134ba2be99d571f60fd2e7d1342a9c34359",
+      "terminal": false,
+      "policy_runtime_saw_oracle_scorecard": false
+    },
+    {
+      "step": 11,
+      "action": {
+        "action": "TELEPORT_TO_OBJECT",
+        "arg1": 63031
+      },
+      "action_succeeded": true,
+      "schema_fallback": false,
+      "schema_attempts": [
+        {
+          "attempt": 1,
+          "accepted": true,
+          "raw_sha256": "4b3474b348a565f8f86bc95602a65c51001a5d3c7258d896d209c3c2933f808a",
+          "usage": {
+            "cache_hit": false,
+            "original_usage": {
+              "prompt_tokens": 7499,
+              "completion_tokens": 133,
+              "total_tokens": 7632,
+              "cost": 0.0032124,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0032124,
+                "upstream_inference_prompt_cost": 0.0029996,
+                "upstream_inference_completions_cost": 0.0002128
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "affordance_check": null
+        }
+      ],
+      "model_response_sha256": "4b3474b348a565f8f86bc95602a65c51001a5d3c7258d896d209c3c2933f808a",
+      "transition_receipt_sha256": "70f858bd0571edf65dac1ce58a036442d1d11df5994571992b7c25a856d28044",
+      "terminal": false,
+      "policy_runtime_saw_oracle_scorecard": false
+    },
+    {
+      "step": 12,
+      "action": {
+        "action": "USE",
+        "arg1": 16434,
+        "arg2": 63031
+      },
+      "action_succeeded": true,
+      "schema_fallback": false,
+      "schema_attempts": [
+        {
+          "attempt": 1,
+          "accepted": true,
+          "raw_sha256": "4d9000b159c5a2d75ef6d3ed547b4c3724c1fb0a2e118074a1a8ac489ad8dce2",
+          "usage": {
+            "cache_hit": false,
+            "original_usage": {
+              "prompt_tokens": 7519,
+              "completion_tokens": 175,
+              "total_tokens": 7694,
+              "cost": 0.0032876,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0032876,
+                "upstream_inference_prompt_cost": 0.0030076,
+                "upstream_inference_completions_cost": 0.00028
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "affordance_check": {
+            "accepted": true,
+            "verdict": "VALID",
+            "reason": "The proposed action is USE proteomics meter (arg1, uuid 16434) on prismatic beast (arg2, uuid 63031). The proteomics meter is a plausible usable tool/instrument, and the prismatic beast is a plausible specimen/target. This matches the native affordance rules for USE.",
+            "raw_sha256": "b4643955cecc3bcc0fdcd984d541173f8a6337be13f596a83aebc1ef4b634e80",
+            "usage": {
+              "cache_hit": false,
+              "original_usage": {
+                "prompt_tokens": 3285,
+                "completion_tokens": 74,
+                "total_tokens": 3359,
+                "cost": 0.007162,
+                "is_byok": false,
+                "prompt_tokens_details": {
+                  "cached_tokens": 0,
+                  "cache_write_tokens": 0,
+                  "audio_tokens": 0,
+                  "video_tokens": 0
+                },
+                "cost_details": {
+                  "upstream_inference_cost": 0.007162,
+                  "upstream_inference_prompt_cost": 0.00657,
+                  "upstream_inference_completions_cost": 0.000592
+                },
+                "completion_tokens_details": {
+                  "reasoning_tokens": 0,
+                  "image_tokens": 0,
+                  "audio_tokens": 0
+                }
+              }
+            }
+          }
+        }
+      ],
+      "model_response_sha256": "4d9000b159c5a2d75ef6d3ed547b4c3724c1fb0a2e118074a1a8ac489ad8dce2",
+      "transition_receipt_sha256": "213f4d599806835439028be8a1411bcc54937074d526c6ebaf6396f7c231b81a",
+      "terminal": false,
+      "policy_runtime_saw_oracle_scorecard": false
+    },
+    {
+      "step": 13,
+      "action": {
+        "action": "USE",
+        "arg1": 16434,
+        "arg2": 63031
+      },
+      "action_succeeded": true,
+      "schema_fallback": false,
+      "schema_attempts": [
+        {
+          "attempt": 1,
+          "accepted": false,
+          "error": "ValueError: USE arg2 is not accessible or in inventory",
+          "raw_sha256": "53b95edc229fe5761b0423a5babc1f1deecdf436fefd5f6295d5fd41b64ecf78",
+          "usage": {
+            "cache_hit": false,
+            "original_usage": {
+              "prompt_tokens": 7625,
+              "completion_tokens": 169,
+              "total_tokens": 7794,
+              "cost": 0.0033204,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0033204,
+                "upstream_inference_prompt_cost": 0.00305,
+                "upstream_inference_completions_cost": 0.0002704
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "affordance_check": null
+        },
+        {
+          "attempt": 2,
+          "accepted": true,
+          "raw_sha256": "0d77dbbb71d1a852348c7aa60c90297537da6b8a30eecf2707ebd427a0a84e88",
+          "usage": {
+            "cache_hit": false,
+            "original_usage": {
+              "prompt_tokens": 4143,
+              "completion_tokens": 169,
+              "total_tokens": 4312,
+              "cost": 0.0019276,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0019276,
+                "upstream_inference_prompt_cost": 0.0016572,
+                "upstream_inference_completions_cost": 0.0002704
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "affordance_check": {
+            "accepted": true,
+            "verdict": "VALID",
+            "reason": "The proposed action is USE proteomics meter (arg1, uuid 16434) on prismatic beast (arg2, uuid 63031). The proteomics meter is a plausible usable tool/instrument, and the prismatic beast is a plausible specimen/target. This matches the native affordance rules for USE.",
+            "raw_sha256": "b4643955cecc3bcc0fdcd984d541173f8a6337be13f596a83aebc1ef4b634e80",
+            "usage": {
+              "cache_hit": true,
+              "original_usage": {
+                "prompt_tokens": 3285,
+                "completion_tokens": 74,
+                "total_tokens": 3359,
+                "cost": 0.007162,
+                "is_byok": false,
+                "prompt_tokens_details": {
+                  "cached_tokens": 0,
+                  "cache_write_tokens": 0,
+                  "audio_tokens": 0,
+                  "video_tokens": 0
+                },
+                "cost_details": {
+                  "upstream_inference_cost": 0.007162,
+                  "upstream_inference_prompt_cost": 0.00657,
+                  "upstream_inference_completions_cost": 0.000592
+                },
+                "completion_tokens_details": {
+                  "reasoning_tokens": 0,
+                  "image_tokens": 0,
+                  "audio_tokens": 0
+                }
+              }
+            }
+          }
+        }
+      ],
+      "model_response_sha256": "0d77dbbb71d1a852348c7aa60c90297537da6b8a30eecf2707ebd427a0a84e88",
+      "transition_receipt_sha256": "1cf1bf34fac621cfcad67f63795958a4341c3d2beb609d86c6eae55839ca6a8e",
+      "terminal": false,
+      "policy_runtime_saw_oracle_scorecard": false
+    },
+    {
+      "step": 14,
+      "action": {
+        "action": "USE",
+        "arg1": 16434,
+        "arg2": 6122
+      },
+      "action_succeeded": true,
+      "schema_fallback": false,
+      "schema_attempts": [
+        {
+          "attempt": 1,
+          "accepted": true,
+          "raw_sha256": "4383cc444136fa89dd4249dd3a0f9107e3ee805131f8f240fe821b804d4409e1",
+          "usage": {
+            "cache_hit": false,
+            "original_usage": {
+              "prompt_tokens": 7619,
+              "completion_tokens": 152,
+              "total_tokens": 7771,
+              "cost": 0.0032908,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0032908,
+                "upstream_inference_prompt_cost": 0.0030476,
+                "upstream_inference_completions_cost": 0.0002432
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "affordance_check": {
+            "accepted": true,
+            "verdict": "VALID",
+            "reason": "The proposed action is USE proteomics meter (a plausible tool/instrument) on spheroid (a plausible specimen/target). This matches the native affordance rules for USE: arg1 is a tool, arg2 is a plausible specimen, and both are in the allowed domains.",
+            "raw_sha256": "97a0c824ca093aad6440f50ce65e9aeaec357d02b829529fe3d0360640101dfd",
+            "usage": {
+              "cache_hit": false,
+              "original_usage": {
+                "prompt_tokens": 3285,
+                "completion_tokens": 66,
+                "total_tokens": 3351,
+                "cost": 0.007098,
+                "is_byok": false,
+                "prompt_tokens_details": {
+                  "cached_tokens": 0,
+                  "cache_write_tokens": 0,
+                  "audio_tokens": 0,
+                  "video_tokens": 0
+                },
+                "cost_details": {
+                  "upstream_inference_cost": 0.007098,
+                  "upstream_inference_prompt_cost": 0.00657,
+                  "upstream_inference_completions_cost": 0.000528
+                },
+                "completion_tokens_details": {
+                  "reasoning_tokens": 0,
+                  "image_tokens": 0,
+                  "audio_tokens": 0
+                }
+              }
+            }
+          }
+        }
+      ],
+      "model_response_sha256": "4383cc444136fa89dd4249dd3a0f9107e3ee805131f8f240fe821b804d4409e1",
+      "transition_receipt_sha256": "1017285aa84253b04fab5d978c8ce554d7fef08a1ba191ab2d1dfdf54ef475c3",
+      "terminal": false,
+      "policy_runtime_saw_oracle_scorecard": false
+    },
+    {
+      "step": 15,
+      "action": {
+        "action": "USE",
+        "arg1": 16434,
+        "arg2": 63031
+      },
+      "action_succeeded": true,
+      "schema_fallback": false,
+      "schema_attempts": [
+        {
+          "attempt": 1,
+          "accepted": false,
+          "error": "ValueError: USE arg2 is not accessible or in inventory",
+          "raw_sha256": "196fd26b0f7fd90ac909d02827bc26287b633a93c023eb989626ae6575ebc32b",
+          "usage": {
+            "cache_hit": false,
+            "original_usage": {
+              "prompt_tokens": 7638,
+              "completion_tokens": 174,
+              "total_tokens": 7812,
+              "cost": 0.0033336,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0033336,
+                "upstream_inference_prompt_cost": 0.0030552,
+                "upstream_inference_completions_cost": 0.0002784
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "affordance_check": null
+        },
+        {
+          "attempt": 2,
+          "accepted": false,
+          "error": "ValueError: USE arg2 is not accessible or in inventory",
+          "raw_sha256": "42c5510e8e8158cc319dca2114853ea97ed699ec240ccfa3f466b5a71268b756",
+          "usage": {
+            "cache_hit": false,
+            "original_usage": {
+              "prompt_tokens": 4142,
+              "completion_tokens": 173,
+              "total_tokens": 4315,
+              "cost": 0.0019336,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0019336,
+                "upstream_inference_prompt_cost": 0.0016568,
+                "upstream_inference_completions_cost": 0.0002768
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "affordance_check": null
+        },
+        {
+          "attempt": 3,
+          "accepted": true,
+          "raw_sha256": "2b6f675e6784ce7c863a6c45cb91996db5a15e3a2d6679452c0a7e74ef30c4a8",
+          "usage": {
+            "cache_hit": false,
+            "original_usage": {
+              "prompt_tokens": 4142,
+              "completion_tokens": 169,
+              "total_tokens": 4311,
+              "cost": 0.001044,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 2944,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.001044,
+                "upstream_inference_prompt_cost": 0.0007736,
+                "upstream_inference_completions_cost": 0.0002704
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "affordance_check": {
+            "accepted": true,
+            "verdict": "VALID",
+            "reason": "The proposed action is USE proteomics meter (arg1, uuid 16434) on prismatic beast (arg2, uuid 63031). The proteomics meter is a plausible usable tool/instrument, and the prismatic beast is a plausible specimen/target. This matches the native affordance rules for USE.",
+            "raw_sha256": "b4643955cecc3bcc0fdcd984d541173f8a6337be13f596a83aebc1ef4b634e80",
+            "usage": {
+              "cache_hit": true,
+              "original_usage": {
+                "prompt_tokens": 3285,
+                "completion_tokens": 74,
+                "total_tokens": 3359,
+                "cost": 0.007162,
+                "is_byok": false,
+                "prompt_tokens_details": {
+                  "cached_tokens": 0,
+                  "cache_write_tokens": 0,
+                  "audio_tokens": 0,
+                  "video_tokens": 0
+                },
+                "cost_details": {
+                  "upstream_inference_cost": 0.007162,
+                  "upstream_inference_prompt_cost": 0.00657,
+                  "upstream_inference_completions_cost": 0.000592
+                },
+                "completion_tokens_details": {
+                  "reasoning_tokens": 0,
+                  "image_tokens": 0,
+                  "audio_tokens": 0
+                }
+              }
+            }
+          }
+        }
+      ],
+      "model_response_sha256": "2b6f675e6784ce7c863a6c45cb91996db5a15e3a2d6679452c0a7e74ef30c4a8",
+      "transition_receipt_sha256": "9384259eca8d5a3c62d55c030303df719fabec558a3b53788700900181e105c6",
+      "terminal": false,
+      "policy_runtime_saw_oracle_scorecard": false
+    },
+    {
+      "step": 16,
+      "action": {
+        "action": "DISCOVERY_FEED_GET_UPDATES"
+      },
+      "action_succeeded": true,
+      "schema_fallback": true,
+      "schema_attempts": [
+        {
+          "attempt": 1,
+          "accepted": false,
+          "error": "ValueError: USE arg2 is not accessible or in inventory",
+          "raw_sha256": "ba6d0df794228d61c89089418b16ef093dda5d3d79cf9f85f042c84996b4b3b1",
+          "usage": {
+            "cache_hit": false,
+            "original_usage": {
+              "prompt_tokens": 7638,
+              "completion_tokens": 174,
+              "total_tokens": 7812,
+              "cost": 0.0033336,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0033336,
+                "upstream_inference_prompt_cost": 0.0030552,
+                "upstream_inference_completions_cost": 0.0002784
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "affordance_check": null
+        },
+        {
+          "attempt": 2,
+          "accepted": false,
+          "error": "ValueError: USE arg2 is not accessible or in inventory",
+          "raw_sha256": "ba6d0df794228d61c89089418b16ef093dda5d3d79cf9f85f042c84996b4b3b1",
+          "usage": {
+            "cache_hit": false,
+            "original_usage": {
+              "prompt_tokens": 4140,
+              "completion_tokens": 174,
+              "total_tokens": 4314,
+              "cost": 0.0010512,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 2944,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0010512,
+                "upstream_inference_prompt_cost": 0.0007728,
+                "upstream_inference_completions_cost": 0.0002784
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "affordance_check": null
+        },
+        {
+          "attempt": 3,
+          "accepted": false,
+          "error": "ValueError: USE arg2 is not accessible or in inventory",
+          "raw_sha256": "ba6d0df794228d61c89089418b16ef093dda5d3d79cf9f85f042c84996b4b3b1",
+          "usage": {
+            "cache_hit": true,
+            "original_usage": {
+              "prompt_tokens": 4140,
+              "completion_tokens": 174,
+              "total_tokens": 4314,
+              "cost": 0.0010512,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 2944,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0010512,
+                "upstream_inference_prompt_cost": 0.0007728,
+                "upstream_inference_completions_cost": 0.0002784
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "affordance_check": null
+        }
+      ],
+      "model_response_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "transition_receipt_sha256": "9bb2fa7134bdee5b5672b352a28ac94643bef6d172db50c341c353c43ac7099e",
+      "terminal": false,
+      "policy_runtime_saw_oracle_scorecard": false
+    },
+    {
+      "step": 17,
+      "action": {
+        "action": "USE",
+        "arg1": 16434,
+        "arg2": 63031
+      },
+      "action_succeeded": true,
+      "schema_fallback": false,
+      "schema_attempts": [
+        {
+          "attempt": 1,
+          "accepted": false,
+          "error": "ValueError: USE arg2 is not accessible or in inventory",
+          "raw_sha256": "30207ada2444bdc57dbcd17f679dad733e87cbb3a9862b7b9a04d82e3648d5d7",
+          "usage": {
+            "cache_hit": false,
+            "original_usage": {
+              "prompt_tokens": 7753,
+              "completion_tokens": 154,
+              "total_tokens": 7907,
+              "cost": 0.0033476,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0033476,
+                "upstream_inference_prompt_cost": 0.0031012,
+                "upstream_inference_completions_cost": 0.0002464
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "affordance_check": null
+        },
+        {
+          "attempt": 2,
+          "accepted": true,
+          "raw_sha256": "546452b9b520056659c158101e34817a98639fe7ee88e8702d36b0f74f5b8d41",
+          "usage": {
+            "cache_hit": false,
+            "original_usage": {
+              "prompt_tokens": 4153,
+              "completion_tokens": 154,
+              "total_tokens": 4307,
+              "cost": 0.0019076,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0019076,
+                "upstream_inference_prompt_cost": 0.0016612,
+                "upstream_inference_completions_cost": 0.0002464
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "affordance_check": {
+            "accepted": true,
+            "verdict": "VALID",
+            "reason": "The proposed action is USE proteomics meter (arg1, uuid 16434) on prismatic beast (arg2, uuid 63031). The proteomics meter is a plausible usable tool/instrument, and the prismatic beast is a plausible specimen/target. This matches the native affordance rules for USE.",
+            "raw_sha256": "b4643955cecc3bcc0fdcd984d541173f8a6337be13f596a83aebc1ef4b634e80",
+            "usage": {
+              "cache_hit": true,
+              "original_usage": {
+                "prompt_tokens": 3285,
+                "completion_tokens": 74,
+                "total_tokens": 3359,
+                "cost": 0.007162,
+                "is_byok": false,
+                "prompt_tokens_details": {
+                  "cached_tokens": 0,
+                  "cache_write_tokens": 0,
+                  "audio_tokens": 0,
+                  "video_tokens": 0
+                },
+                "cost_details": {
+                  "upstream_inference_cost": 0.007162,
+                  "upstream_inference_prompt_cost": 0.00657,
+                  "upstream_inference_completions_cost": 0.000592
+                },
+                "completion_tokens_details": {
+                  "reasoning_tokens": 0,
+                  "image_tokens": 0,
+                  "audio_tokens": 0
+                }
+              }
+            }
+          }
+        }
+      ],
+      "model_response_sha256": "546452b9b520056659c158101e34817a98639fe7ee88e8702d36b0f74f5b8d41",
+      "transition_receipt_sha256": "1c936bbb2a1ef85c244b393d86a908307855e42a692ce4a8b7514ab407ff735e",
+      "terminal": false,
+      "policy_runtime_saw_oracle_scorecard": false
+    },
+    {
+      "step": 18,
+      "action": {
+        "action": "USE",
+        "arg1": 16434,
+        "arg2": 6122
+      },
+      "action_succeeded": true,
+      "schema_fallback": false,
+      "schema_attempts": [
+        {
+          "attempt": 1,
+          "accepted": true,
+          "raw_sha256": "98630a47191403df03f63a7506aac717a339d2047b2ec8871092fa861b82f413",
+          "usage": {
+            "cache_hit": false,
+            "original_usage": {
+              "prompt_tokens": 7661,
+              "completion_tokens": 166,
+              "total_tokens": 7827,
+              "cost": 0.00333,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.00333,
+                "upstream_inference_prompt_cost": 0.0030644,
+                "upstream_inference_completions_cost": 0.0002656
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "affordance_check": {
+            "accepted": true,
+            "verdict": "VALID",
+            "reason": "The proposed action is USE proteomics meter (a plausible tool/instrument) on spheroid (a plausible specimen/target). This matches the native affordance rules for USE: arg1 is a tool, arg2 is a plausible specimen, and both are in the allowed domains.",
+            "raw_sha256": "97a0c824ca093aad6440f50ce65e9aeaec357d02b829529fe3d0360640101dfd",
+            "usage": {
+              "cache_hit": true,
+              "original_usage": {
+                "prompt_tokens": 3285,
+                "completion_tokens": 66,
+                "total_tokens": 3351,
+                "cost": 0.007098,
+                "is_byok": false,
+                "prompt_tokens_details": {
+                  "cached_tokens": 0,
+                  "cache_write_tokens": 0,
+                  "audio_tokens": 0,
+                  "video_tokens": 0
+                },
+                "cost_details": {
+                  "upstream_inference_cost": 0.007098,
+                  "upstream_inference_prompt_cost": 0.00657,
+                  "upstream_inference_completions_cost": 0.000528
+                },
+                "completion_tokens_details": {
+                  "reasoning_tokens": 0,
+                  "image_tokens": 0,
+                  "audio_tokens": 0
+                }
+              }
+            }
+          }
+        }
+      ],
+      "model_response_sha256": "98630a47191403df03f63a7506aac717a339d2047b2ec8871092fa861b82f413",
+      "transition_receipt_sha256": "9afd1c991cef655c5a1a9c1aaafdf4271a3e695df6717778e90a933af075df90",
+      "terminal": false,
+      "policy_runtime_saw_oracle_scorecard": false
+    },
+    {
+      "step": 19,
+      "action": {
+        "action": "USE",
+        "arg1": 16434,
+        "arg2": 63031
+      },
+      "action_succeeded": true,
+      "schema_fallback": false,
+      "schema_attempts": [
+        {
+          "attempt": 1,
+          "accepted": false,
+          "error": "ValueError: USE arg2 is not accessible or in inventory",
+          "raw_sha256": "bcef793f3a271d2dffe93aa8447a7a50b20f734528dc687397b6459411033742",
+          "usage": {
+            "cache_hit": false,
+            "original_usage": {
+              "prompt_tokens": 7657,
+              "completion_tokens": 159,
+              "total_tokens": 7816,
+              "cost": 0.0033172,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0033172,
+                "upstream_inference_prompt_cost": 0.0030628,
+                "upstream_inference_completions_cost": 0.0002544
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "affordance_check": null
+        },
+        {
+          "attempt": 2,
+          "accepted": true,
+          "raw_sha256": "7509a20dd50c4337aae8d2585e9eade7e6336e697d2a22be1e56e13f6e1accd9",
+          "usage": {
+            "cache_hit": false,
+            "original_usage": {
+              "prompt_tokens": 4124,
+              "completion_tokens": 155,
+              "total_tokens": 4279,
+              "cost": 0.0010144,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 2944,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0010144,
+                "upstream_inference_prompt_cost": 0.0007664,
+                "upstream_inference_completions_cost": 0.000248
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "affordance_check": {
+            "accepted": true,
+            "verdict": "VALID",
+            "reason": "The proposed action is USE proteomics meter (arg1, uuid 16434) on prismatic beast (arg2, uuid 63031). The proteomics meter is a plausible usable tool/instrument, and the prismatic beast is a plausible specimen/target. This matches the native affordance rules for USE.",
+            "raw_sha256": "b4643955cecc3bcc0fdcd984d541173f8a6337be13f596a83aebc1ef4b634e80",
+            "usage": {
+              "cache_hit": true,
+              "original_usage": {
+                "prompt_tokens": 3285,
+                "completion_tokens": 74,
+                "total_tokens": 3359,
+                "cost": 0.007162,
+                "is_byok": false,
+                "prompt_tokens_details": {
+                  "cached_tokens": 0,
+                  "cache_write_tokens": 0,
+                  "audio_tokens": 0,
+                  "video_tokens": 0
+                },
+                "cost_details": {
+                  "upstream_inference_cost": 0.007162,
+                  "upstream_inference_prompt_cost": 0.00657,
+                  "upstream_inference_completions_cost": 0.000592
+                },
+                "completion_tokens_details": {
+                  "reasoning_tokens": 0,
+                  "image_tokens": 0,
+                  "audio_tokens": 0
+                }
+              }
+            }
+          }
+        }
+      ],
+      "model_response_sha256": "7509a20dd50c4337aae8d2585e9eade7e6336e697d2a22be1e56e13f6e1accd9",
+      "transition_receipt_sha256": "01e2e71cca07881c04b2fec9776c2bc3d3ee8185f840a5d5c191ff0645836e1f",
+      "terminal": false,
+      "policy_runtime_saw_oracle_scorecard": false
+    },
+    {
+      "step": 20,
+      "action": {
+        "action": "DISCOVERY_FEED_GET_UPDATES"
+      },
+      "action_succeeded": true,
+      "schema_fallback": true,
+      "schema_attempts": [
+        {
+          "attempt": 1,
+          "accepted": false,
+          "error": "ValueError: USE arg2 is not accessible or in inventory",
+          "raw_sha256": "8f3b964a90ef637551d4327b215e9c925ec8c4bd71000024c8df1b5395f26219",
+          "usage": {
+            "cache_hit": false,
+            "original_usage": {
+              "prompt_tokens": 7638,
+              "completion_tokens": 168,
+              "total_tokens": 7806,
+              "cost": 0.003324,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.003324,
+                "upstream_inference_prompt_cost": 0.0030552,
+                "upstream_inference_completions_cost": 0.0002688
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "affordance_check": null
+        },
+        {
+          "attempt": 2,
+          "accepted": false,
+          "error": "ValueError: USE arg2 is not accessible or in inventory",
+          "raw_sha256": "8f3b964a90ef637551d4327b215e9c925ec8c4bd71000024c8df1b5395f26219",
+          "usage": {
+            "cache_hit": false,
+            "original_usage": {
+              "prompt_tokens": 4134,
+              "completion_tokens": 168,
+              "total_tokens": 4302,
+              "cost": 0.0010392,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 2944,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0010392,
+                "upstream_inference_prompt_cost": 0.0007704,
+                "upstream_inference_completions_cost": 0.0002688
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "affordance_check": null
+        },
+        {
+          "attempt": 3,
+          "accepted": false,
+          "error": "ValueError: USE arg2 is not accessible or in inventory",
+          "raw_sha256": "8f3b964a90ef637551d4327b215e9c925ec8c4bd71000024c8df1b5395f26219",
+          "usage": {
+            "cache_hit": true,
+            "original_usage": {
+              "prompt_tokens": 4134,
+              "completion_tokens": 168,
+              "total_tokens": 4302,
+              "cost": 0.0010392,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 2944,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0010392,
+                "upstream_inference_prompt_cost": 0.0007704,
+                "upstream_inference_completions_cost": 0.0002688
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "affordance_check": null
+        }
+      ],
+      "model_response_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "transition_receipt_sha256": "07140e58a758645838089afed8e6001c883639849bf9001143ba1eaccbfe143b",
+      "terminal": false,
+      "policy_runtime_saw_oracle_scorecard": false
+    },
+    {
+      "step": 21,
+      "action": {
+        "action": "USE",
+        "arg1": 16434,
+        "arg2": 63031
+      },
+      "action_succeeded": true,
+      "schema_fallback": false,
+      "schema_attempts": [
+        {
+          "attempt": 1,
+          "accepted": false,
+          "error": "ValueError: USE arg2 is not accessible or in inventory",
+          "raw_sha256": "bbf544adfdcd41acc9c52beae49c7c690db5af9aef8de003467041e04d4edeb7",
+          "usage": {
+            "cache_hit": false,
+            "original_usage": {
+              "prompt_tokens": 7753,
+              "completion_tokens": 167,
+              "total_tokens": 7920,
+              "cost": 0.0033684,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0033684,
+                "upstream_inference_prompt_cost": 0.0031012,
+                "upstream_inference_completions_cost": 0.0002672
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "affordance_check": null
+        },
+        {
+          "attempt": 2,
+          "accepted": true,
+          "raw_sha256": "4e33b0147bc9b251a57a983eae4ec03cf84cef9bc682c06c1ec49ca152768d1f",
+          "usage": {
+            "cache_hit": false,
+            "original_usage": {
+              "prompt_tokens": 4165,
+              "completion_tokens": 163,
+              "total_tokens": 4328,
+              "cost": 0.0010436,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 2944,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0010436,
+                "upstream_inference_prompt_cost": 0.0007828,
+                "upstream_inference_completions_cost": 0.0002608
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "affordance_check": {
+            "accepted": true,
+            "verdict": "VALID",
+            "reason": "The proposed action is USE proteomics meter (arg1, uuid 16434) on prismatic beast (arg2, uuid 63031). The proteomics meter is a plausible usable tool/instrument, and the prismatic beast is a plausible specimen/target. This matches the native affordance rules for USE.",
+            "raw_sha256": "b4643955cecc3bcc0fdcd984d541173f8a6337be13f596a83aebc1ef4b634e80",
+            "usage": {
+              "cache_hit": true,
+              "original_usage": {
+                "prompt_tokens": 3285,
+                "completion_tokens": 74,
+                "total_tokens": 3359,
+                "cost": 0.007162,
+                "is_byok": false,
+                "prompt_tokens_details": {
+                  "cached_tokens": 0,
+                  "cache_write_tokens": 0,
+                  "audio_tokens": 0,
+                  "video_tokens": 0
+                },
+                "cost_details": {
+                  "upstream_inference_cost": 0.007162,
+                  "upstream_inference_prompt_cost": 0.00657,
+                  "upstream_inference_completions_cost": 0.000592
+                },
+                "completion_tokens_details": {
+                  "reasoning_tokens": 0,
+                  "image_tokens": 0,
+                  "audio_tokens": 0
+                }
+              }
+            }
+          }
+        }
+      ],
+      "model_response_sha256": "4e33b0147bc9b251a57a983eae4ec03cf84cef9bc682c06c1ec49ca152768d1f",
+      "transition_receipt_sha256": "1b36a7c617234faff1106834bfd85861714a609b0bd1e5b51000225fe9999bf5",
+      "terminal": false,
+      "policy_runtime_saw_oracle_scorecard": false
+    },
+    {
+      "step": 22,
+      "action": {
+        "action": "USE",
+        "arg1": 16434,
+        "arg2": 6122
+      },
+      "action_succeeded": true,
+      "schema_fallback": false,
+      "schema_attempts": [
+        {
+          "attempt": 1,
+          "accepted": true,
+          "raw_sha256": "066b89c356f62a6a73684117de1de1e3a37bc400a53bbcb7efe5e79fa5ecf2d8",
+          "usage": {
+            "cache_hit": false,
+            "original_usage": {
+              "prompt_tokens": 7661,
+              "completion_tokens": 144,
+              "total_tokens": 7805,
+              "cost": 0.0032948,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0032948,
+                "upstream_inference_prompt_cost": 0.0030644,
+                "upstream_inference_completions_cost": 0.0002304
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "affordance_check": {
+            "accepted": true,
+            "verdict": "VALID",
+            "reason": "The proposed action is USE proteomics meter (a plausible tool/instrument) on spheroid (a plausible specimen/target). This matches the native affordance rules for USE: arg1 is a tool, arg2 is a plausible specimen, and both are in the allowed domains.",
+            "raw_sha256": "97a0c824ca093aad6440f50ce65e9aeaec357d02b829529fe3d0360640101dfd",
+            "usage": {
+              "cache_hit": true,
+              "original_usage": {
+                "prompt_tokens": 3285,
+                "completion_tokens": 66,
+                "total_tokens": 3351,
+                "cost": 0.007098,
+                "is_byok": false,
+                "prompt_tokens_details": {
+                  "cached_tokens": 0,
+                  "cache_write_tokens": 0,
+                  "audio_tokens": 0,
+                  "video_tokens": 0
+                },
+                "cost_details": {
+                  "upstream_inference_cost": 0.007098,
+                  "upstream_inference_prompt_cost": 0.00657,
+                  "upstream_inference_completions_cost": 0.000528
+                },
+                "completion_tokens_details": {
+                  "reasoning_tokens": 0,
+                  "image_tokens": 0,
+                  "audio_tokens": 0
+                }
+              }
+            }
+          }
+        }
+      ],
+      "model_response_sha256": "066b89c356f62a6a73684117de1de1e3a37bc400a53bbcb7efe5e79fa5ecf2d8",
+      "transition_receipt_sha256": "4e68e3af3b765ee6dc566fd589193bde9afe50ae7fc5e08580e7901c79ef5169",
+      "terminal": false,
+      "policy_runtime_saw_oracle_scorecard": false
+    },
+    {
+      "step": 23,
+      "action": {
+        "action": "USE",
+        "arg1": 16434,
+        "arg2": 63031
+      },
+      "action_succeeded": true,
+      "schema_fallback": false,
+      "schema_attempts": [
+        {
+          "attempt": 1,
+          "accepted": false,
+          "error": "ValueError: USE arg2 is not accessible or in inventory",
+          "raw_sha256": "0e07a5449321bf6e6e1e2b51d4666db9536e6f77ebab3284c97710268e2654a8",
+          "usage": {
+            "cache_hit": false,
+            "original_usage": {
+              "prompt_tokens": 7657,
+              "completion_tokens": 155,
+              "total_tokens": 7812,
+              "cost": 0.0033108,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0033108,
+                "upstream_inference_prompt_cost": 0.0030628,
+                "upstream_inference_completions_cost": 0.000248
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "affordance_check": null
+        },
+        {
+          "attempt": 2,
+          "accepted": true,
+          "raw_sha256": "acdeb9444fd44ede849b1b4731fd6e6b811bd3e65cb1f2130745529337cccf38",
+          "usage": {
+            "cache_hit": false,
+            "original_usage": {
+              "prompt_tokens": 4121,
+              "completion_tokens": 155,
+              "total_tokens": 4276,
+              "cost": 0.0010132,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 2944,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0010132,
+                "upstream_inference_prompt_cost": 0.0007652,
+                "upstream_inference_completions_cost": 0.000248
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "affordance_check": {
+            "accepted": true,
+            "verdict": "VALID",
+            "reason": "The proposed action is USE proteomics meter (arg1, uuid 16434) on prismatic beast (arg2, uuid 63031). The proteomics meter is a plausible usable tool/instrument, and the prismatic beast is a plausible specimen/target. This matches the native affordance rules for USE.",
+            "raw_sha256": "b4643955cecc3bcc0fdcd984d541173f8a6337be13f596a83aebc1ef4b634e80",
+            "usage": {
+              "cache_hit": true,
+              "original_usage": {
+                "prompt_tokens": 3285,
+                "completion_tokens": 74,
+                "total_tokens": 3359,
+                "cost": 0.007162,
+                "is_byok": false,
+                "prompt_tokens_details": {
+                  "cached_tokens": 0,
+                  "cache_write_tokens": 0,
+                  "audio_tokens": 0,
+                  "video_tokens": 0
+                },
+                "cost_details": {
+                  "upstream_inference_cost": 0.007162,
+                  "upstream_inference_prompt_cost": 0.00657,
+                  "upstream_inference_completions_cost": 0.000592
+                },
+                "completion_tokens_details": {
+                  "reasoning_tokens": 0,
+                  "image_tokens": 0,
+                  "audio_tokens": 0
+                }
+              }
+            }
+          }
+        }
+      ],
+      "model_response_sha256": "acdeb9444fd44ede849b1b4731fd6e6b811bd3e65cb1f2130745529337cccf38",
+      "transition_receipt_sha256": "ac4252202f5e940f129988fc0eaa36f690734a68156614da03f2b3c833766425",
+      "terminal": false,
+      "policy_runtime_saw_oracle_scorecard": false
+    },
+    {
+      "step": 24,
+      "action": {
+        "action": "TELEPORT_TO_LOCATION",
+        "arg1": "Animal Area 3"
+      },
+      "action_succeeded": true,
+      "schema_fallback": false,
+      "schema_attempts": [
+        {
+          "attempt": 1,
+          "accepted": true,
+          "raw_sha256": "b822d4515e6488b0cb2169b9a4132f6748558738c7ad364e388265d6788bd65b",
+          "usage": {
+            "cache_hit": false,
+            "original_usage": {
+              "prompt_tokens": 7638,
+              "completion_tokens": 131,
+              "total_tokens": 7769,
+              "cost": 0.0032648,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0032648,
+                "upstream_inference_prompt_cost": 0.0030552,
+                "upstream_inference_completions_cost": 0.0002096
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            }
+          },
+          "affordance_check": null
+        }
+      ],
+      "model_response_sha256": "b822d4515e6488b0cb2169b9a4132f6748558738c7ad364e388265d6788bd65b",
+      "transition_receipt_sha256": "0965d160fefbb0e8e8ddfaffc2648ee9f5da0d04b35cd9e6b829bb63a0f8c7b3",
+      "terminal": false,
+      "policy_runtime_saw_oracle_scorecard": false
+    }
+  ],
+  "schema_fallback_steps": 2,
+  "invalid_native_actions": 0,
+  "policy_runtime_saw_oracle_scorecard": false,
+  "finalize_evaluation_called": false,
+  "official_success_persisted": false,
+  "claim_boundary": "V2 grounding repair on consumed failed V1 qualification seeds81-88 only; fixed horizon, no evaluator call, official success persistence, source program, or unopened target task.",
+  "receipt_sha256": "0a2550df4370209e44ee8dc24658bd2f6a7aa0c7553a384fe4b84e5ef5f8891e"
+}

@@ -1,0 +1,29 @@
+{
+  "schema_version": "phase1-common-search-ir-formal-v1",
+  "game": "gymv_streets_of_rage_2",
+  "namespace": "phase1-common-search-ir-formal-v1:gymv_streets_of_rage_2",
+  "source_runtime_script": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-source-fresh-v1/scripts/run_instrumented_source_smoke.py",
+  "gymv_python": "/fs/gamma-projects/vlm-robot/conda/envs/gymv/bin/python",
+  "seeds": [94301, 94302, 94303, 94304, 94305, 94306, 94307, 94308, 94309, 94310, 94311, 94312, 94313, 94314, 94315, 94316, 94317, 94318, 94319, 94320, 94321, 94322, 94323, 94324, 94325, 94326, 94327, 94328, 94329, 94330, 94331, 94332, 94333, 94334, 94335, 94336, 94337, 94338, 94339, 94340, 94341, 94342, 94343, 94344, 94345, 94346, 94347, 94348],
+  "max_steps": 50,
+  "rollout_steps": 20,
+  "snapshots_per_episode": 1,
+  "candidate_count": 4,
+  "minimum_step": 2,
+  "horizon": 16,
+  "repeats": 2,
+  "continuation_mode": "candidate_conditioned",
+  "maximum_infrastructure_attempts_per_snapshot": 2,
+  "maximum_intervention_failed_rows": 0,
+  "minimum_eligible_fraction_each_split": 0.40,
+  "expected_policy_sha256": "02d3adc83616688ae0b51b152bae3ce8ab468f0fc3a99ac0f27b7d399e696fdf",
+  "source_gate": {
+    "minimum_fresh_eligible_states": 8,
+    "minimum_fresh_examples_per_selected_action": 8,
+    "minimum_authentic_success_rate": 1.0,
+    "minimum_authentic_minus_each_destructive_control": 0.40,
+    "minimum_mean_matched_advantage_per_branch": 1.0,
+    "require_alpha_renaming_invariance": true,
+    "require_isomorphic_exhaustive_ceiling_reported_not_used_as_gate": true
+  }
+}

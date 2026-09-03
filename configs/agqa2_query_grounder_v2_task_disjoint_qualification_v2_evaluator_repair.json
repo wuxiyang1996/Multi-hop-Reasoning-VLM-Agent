@@ -1,0 +1,32 @@
+{
+  "schema_version": "agqa-query-grounder-v2-qualification-evaluator-repair-v1",
+  "status": "FROZEN_AFTER_EVALUATOR_SCHEMA_EXCEPTION_BEFORE_ANY_METRIC_WAS_EMITTED",
+  "failed_job": "7429876",
+  "failure": "Evaluator expected frozen_grounder.candidate_confidence to be a mapping, while the V2 protocol stores the confidence definition as a string and candidate_support_threshold as a sibling scalar.",
+  "outcome_boundary": {
+    "selected_answers_loaded_into_failed_process_memory": true,
+    "metric_computation_reached": false,
+    "per_task_or_aggregate_outcomes_emitted": false,
+    "grounder_or_threshold_changed_after_answer_load": false
+  },
+  "immutable_inputs": {
+    "grounding_path": "runs/agqa2_query_grounder_v2_task_disjoint_qualification_v2/query_grounder_v2_frozen.json",
+    "grounding_file_sha256": "304c65d55dbf004c9b1f90b43540125ea07b22a2dbb7c8093a18c60fac82b9b1",
+    "grounding_report_sha256": "bdcb75dba9711d9e65011bc7e0a2de35a0ba987901a83089716ca411d326503c",
+    "protocol_file_sha256": "4a3bd43e5d765f342deac1a907f6f555d73d3c8f5aa079be8bdeee9790f8ec69",
+    "candidate_support_threshold": 0.675,
+    "supported_candidate_count": 12,
+    "tasks": 80
+  },
+  "repair": {
+    "scope": "Schema-compatible threshold reader only",
+    "accepts": [
+      "legacy grounder.minimum_candidate_confidence",
+      "legacy frozen_grounder.candidate_confidence.support_threshold",
+      "V2 frozen_grounder.candidate_support_threshold"
+    ],
+    "evaluator_sha256_after_repair": "ee697965d2d8fe2fb895259de7864e26675c5d4fe7e45cccdb82f17a462c1cd8",
+    "focused_tests_passed": 16
+  },
+  "authorized_next_operation": "Replay evaluator once on the exact immutable grounding and protocol; no acquisition, candidate, confidence, threshold, or cohort change."
+}

@@ -1,0 +1,56 @@
+{
+  "accepted_runtime_provider_calls": 146,
+  "accepted_runtime_reported_provider_cost_usd": 0.25319662,
+  "controls": {
+    "source_permuted_abstentions": 30,
+    "target_written_equivalent_matches": 30
+  },
+  "evaluation_protocol_sha256": "0b3f7f3d74496c24818e36a1abcbc0c18965820708a0d8d4851faf58711e4ba4",
+  "failed_gates": [
+    "minimum_decisive_executions",
+    "minimum_typed_vs_direct_wins"
+  ],
+  "grounder_qualified": false,
+  "grounder_sha256": "65df2157fb77997317b68fbdbd7407bf0e1ce028468295c7cdb824d9d9d19906",
+  "interpretation": "ZERO_NEGATIVE_TRANSFER_AND_POSITIVE_ONE_ROW_GAIN;FORMAL_GATE_FAILED_FOR_SPARSE_EFFECT_AND_ONE_ROW_DECISIVE_SHORTFALL",
+  "metrics": {
+    "consensus_tiebreaks_triggered": 13,
+    "decisive_accuracy": 0.7894736842105263,
+    "decisive_correct": 15,
+    "decisive_coverage": 0.6333333333333333,
+    "decisive_executions": 19,
+    "direct_correct": 19,
+    "raw_typed_decisive_executions": 20,
+    "rescans_triggered": 30,
+    "route_accuracy": 1.0,
+    "route_correct": 30,
+    "source_typed_overrides": 1,
+    "typed_fallback_correct": 20,
+    "typed_vs_direct_losses": 0,
+    "typed_vs_direct_wins": 1,
+    "unified_harness_correct": 19,
+    "unified_harness_executor_authorizations": 0,
+    "unified_harness_vs_direct_delta": 0,
+    "valid_runtime_rows": 30
+  },
+  "provider_calls": 146,
+  "qualification_gates": {
+    "minimum_decisive_accuracy": true,
+    "minimum_decisive_executions": false,
+    "minimum_route_correct": true,
+    "minimum_typed_vs_direct_wins": false,
+    "no_typed_vs_direct_losses": true,
+    "prequalification_harness_abstained": true,
+    "provider_cost_within_cap": true,
+    "required_valid_runtime_rows": true,
+    "runtime_no_answer_program_scene_graph_or_source_identity": true,
+    "source_permuted_wrong_type_abstains": true,
+    "target_written_equivalent_matches": true
+  },
+  "report_file_sha256": "c023af8fb5c5a46bb4da85c7456b3bcd9b9d57357d661cbd756b24a19e281e33",
+  "report_sha256": "0aad1d82c28d9e8daca5e928a5ef0bc124766ff138792d81cf08732c5a5647e3",
+  "reported_provider_cost_usd": 0.25319662,
+  "result_sha256": "a30b59985ae646d3571ff1622551e14ce2f8df39e3ab1ce867d2f60a3f518803",
+  "schema_version": "agqa2-active-grounding-v16-reserve-result",
+  "status": "AGQA2_ACTIVE_GROUNDER_V16_RESERVE_NOT_QUALIFIED"
+}

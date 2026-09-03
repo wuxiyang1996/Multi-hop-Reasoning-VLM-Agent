@@ -1,0 +1,12 @@
+{
+  "schema_version": "harness-mixed-source-sft-build-config-v3",
+  "components": {
+    "SCALAR_EXECUTOR": {
+      "dataset_dir": "runs/harness_controller_sft_v5_schema_closure"
+    },
+    "MULTI_IR_SELECTOR": {
+      "dataset_dir": "runs/harness_multi_ir_permutation_closure_sft_v3"
+    }
+  },
+  "claim_boundary": "SOURCE_ONLY_MIXED_SFT;RETAIN_CARDINALITY_EQUIVARIANT_SCALAR_EXECUTOR;CLOSE_ANONYMOUS_CATALOG_PERMUTATION_AND_ALIAS_EQUIVARIANCE_FOR_ALL_SEVEN_SOURCE_PROGRAMS;NO_TARGET_EXAMPLES_ERRORS_IDENTITIES_ACTIONS_OR_OUTCOMES"
+}

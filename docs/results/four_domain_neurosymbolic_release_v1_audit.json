@@ -1,0 +1,41 @@
+{
+  "alfworld_full_artifact_bundle_present": true,
+  "audit_sha256": "faa69377dc4e175571751e349b40856d7859848e172b779ed8eb13e2fd88f789",
+  "bundled_artifacts": [
+    {
+      "compressed_bytes": 447359,
+      "file_sha256": "cfa3479406b3a1274ae1fe8f8cbcc212689b6839d6a1bd9ce1052fbcb3e38b74",
+      "role": "alfworld_frozen_candidate",
+      "uncompressed_sha256": "5f54973b8f46b977a5339bfb608215703a72ecf7a38e626ed36598256f47e81f"
+    },
+    {
+      "compressed_bytes": 214381,
+      "file_sha256": "f350f360b1ad3fc78e0a9b77f6767cd1356d4a06168c3280943dd1699f5ff3f0",
+      "role": "alfworld_development_report",
+      "uncompressed_sha256": "9d81a16167fdb50f6182d1eb522d627f632178a189e1bf50a97a26a76c8c1a8b"
+    },
+    {
+      "compressed_bytes": 682656,
+      "file_sha256": "7cc55fa4e899b1a702031c502c2ed6c57ef7fdab75c915b8b687f26cd261e28e",
+      "role": "alfworld_final_report",
+      "uncompressed_sha256": "0c42871e89a39555571df026767578d5618ad2340d8eda4ad3a66ddf69c2c860"
+    }
+  ],
+  "claim_boundary": "The bundle makes the four-route evidence audit portable and packages every large ALFWorld artifact needed for a target replay. Compact receipts, rather than full target trajectories, remain authoritative for WebShop, DiscoveryWorld, and TIR. Dataset installation is not redistributed.",
+  "domains": [
+    "webshop",
+    "alfworld",
+    "discoveryworld",
+    "tir"
+  ],
+  "frozen_summary_file_sha256": "fa710aeabd83cc42368faf9960cc12671d261bd4c5033887574a35e74da167e8",
+  "negative_abstentions": 3,
+  "positive_dispatches": 4,
+  "python": "3.13.5",
+  "registry_file_sha256": "36d669b6ee10a45dea6b6f8f2e018df46a014960d01a1f4315a67085c15dca4a",
+  "release_manifest_file_sha256": "bb09c739aee8faa22b248fab839f9fcd34be81980073e98e08f105864cf7b73d",
+  "schema_version": "four-domain-neurosymbolic-release-audit-v1",
+  "status": "PORTABLE_FOUR_DOMAIN_AUDIT_AND_ALFWORLD_BUNDLE_VALIDATED",
+  "target_native_action_authority": true,
+  "third_party_dependencies_used_by_audit": []
+}

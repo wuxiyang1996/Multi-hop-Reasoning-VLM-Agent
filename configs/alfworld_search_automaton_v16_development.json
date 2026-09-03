@@ -1,0 +1,37 @@
+{
+  "schema_version": "alfworld-search-automaton-v16-development-config",
+  "status": "FROZEN_CONSUMED_DEVELOPMENT_BEFORE_RUN",
+  "claim_boundary": "Eight previously consumed ALFWorld valid_unseen qualification tasks; may diagnose the V16 transfer runtime but is not fresh confirmatory evidence.",
+  "source": {
+    "artifact": "runs/sokoban_search_automaton_v16/artifact.json",
+    "artifact_sha256": "ba848d54a10c785912f2dbe29c9ea8e35ef8eec3daf2cea4e5d303919b6cd75f",
+    "artifact_file_sha256": "261847ec1825dac50f87da013c3967d939e593f2c204abcd046d1886eb7f6a54"
+  },
+  "target": {
+    "alfworld_config": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-source-fresh-v1/configs/alfworld_base_config.yaml",
+    "alfworld_data": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-github-main/.cache/alfworld_data",
+    "split": "eval_out_of_distribution",
+    "seed": 88601,
+    "max_steps": 70,
+    "target_grounder_artifact": "runs/procedural_game_alfworld_v1_development/frozen_candidate_artifact.json",
+    "target_grounder_artifact_file_sha256": "5f54973b8f46b977a5339bfb608215703a72ecf7a38e626ed36598256f47e81f",
+    "manifest": "configs/target_rollout_collection_v1.json",
+    "manifest_file_sha256": "5111cee477c852924a42e97f6b209ea56b3b9cc5935f5bf97faa35f309d5a04d",
+    "manifest_cell": "alfworld_valid_unseen",
+    "manifest_split": "qualification"
+  },
+  "conditions": [
+    "raw_target_only",
+    "authentic_search_automaton_plus_target",
+    "event_binding_permuted_control",
+    "ledger_blind_control",
+    "target_native_search_ceiling"
+  ],
+  "gates": {
+    "minimum_changed_actions": 2,
+    "require_success_gain_over_raw": true,
+    "require_zero_negative_transfer": true,
+    "require_strict_control_superiority": true
+  },
+  "output": "runs/alfworld_search_automaton_v16_development/report.json"
+}

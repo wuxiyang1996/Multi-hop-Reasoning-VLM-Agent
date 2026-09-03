@@ -1,0 +1,73 @@
+{
+  "claim_boundary": "Controlled synthetic hidden-rule game to semantically disjoint synthetic diagnosis only; no real arcade-to-ALFWorld or WebShop claim.",
+  "conditions": [
+    "target_only",
+    "authentic_source_plus_target",
+    "shuffled_source_plus_target",
+    "source_marginal_plus_target"
+  ],
+  "formal_config": {
+    "config_sha256": "4aa52752f157c30e1ddf1fe52cf70cb43b5b3f9e32ad353deedfc3ea939e6d53",
+    "file_sha256": "de4c9f122c03f325531294cb30566603d2c7b63478547ae43a91465f1101edfc",
+    "path": "configs/controlled_neural_symbolic_transfer_v3_formal.json"
+  },
+  "formal_report": {
+    "file_sha256": "f5eccd6776b5dc6c1e780f91ada93f4dfcc062e242d7d269201e23c2bc7d6c69",
+    "path": "runs/controlled_neural_symbolic_transfer_v3_formal/report.json"
+  },
+  "gates": {
+    "comparison_gate_passed": true,
+    "invariant_gate_passed": true,
+    "predeclared_comparisons": 12,
+    "representation_and_grounding_invariants": 5
+  },
+  "source": {
+    "matched_value_examples": 9268,
+    "state_dependent_structure": "TEST versus COMMIT intervention value",
+    "train_domains": 48,
+    "value_mse": {
+      "authentic": 0.0037571470427962906,
+      "marginal": 0.024377639191921232,
+      "shuffled": 0.06443171457696714
+    }
+  },
+  "splits": {
+    "neural_held_out": {
+      "authentic_success_rate": 0.74072265625,
+      "grounder_mse": 0.0033867896407779284,
+      "paired_net_return_delta_vs_target": {
+        "ci95_high": 0.05843566894531248,
+        "ci95_low": 0.019075012207031224,
+        "mean_delta": 0.03884277343749997
+      },
+      "paired_success_delta_vs_target": {
+        "ci95_high": 0.03955078125,
+        "ci95_low": 0.00048828125,
+        "mean_delta": 0.01953125
+      },
+      "target_success_rate": 0.72119140625
+    },
+    "neural_qualification": {
+      "authentic_success_rate": 0.72021484375,
+      "grounder_mse": 0.0028522686191528915,
+      "paired_net_return_delta_vs_target": {
+        "ci95_high": 0.05628784179687498,
+        "ci95_low": 0.020126037597656226,
+        "mean_delta": 0.03878173828124998
+      },
+      "paired_success_delta_vs_target": {
+        "ci95_high": 0.0380859375,
+        "ci95_low": 0.00146484375,
+        "mean_delta": 0.02001953125
+      },
+      "target_success_rate": 0.7001953125
+    }
+  },
+  "status": "CONTROLLED_NEURAL_SYMBOLIC_CROSS_DOMAIN_TRANSFER_VALIDATED",
+  "target_grounder": {
+    "calibration_outcomes_per_cell": 48,
+    "hidden_units": 32,
+    "kind": "target_native_mlp",
+    "raw_source_target_token_overlap": 0
+  }
+}

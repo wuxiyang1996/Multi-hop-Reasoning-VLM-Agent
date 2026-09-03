@@ -1,0 +1,19 @@
+{
+  "schema_version": "phase3-alfworld-intervention-acquisition-v9",
+  "status": "DEVELOPMENT_ONLY_FORMAL_UNOPENED",
+  "claim_boundary": "Counterfactual option forks are collected only from the pre-existing target adaptation train pool. Candidate selection and labels do not read qualification or formal success.",
+  "development_expert_receipts": "runs/multisource_alfworld_neurosymbolic_v2/adaptation_expert_receipts.json",
+  "target_policy_artifact": "runs/sokoban_alfworld_effect_transfer_v2/masked_target_grounder.json",
+  "alfworld_config": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-source-fresh-v1/configs/alfworld_base_config.yaml",
+  "alfworld_data": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-github-main/.cache/alfworld_data",
+  "seed": 2026081609,
+  "maximum_snapshots_per_episode": 3,
+  "maximum_horizon": 8,
+  "environment_max_steps": 100,
+  "forbidden": [
+    "READ_QUALIFICATION_OR_FORMAL_SUCCESS",
+    "CHANGE_SOURCE_SYMBOLIC_IR",
+    "USE_SOURCE_IDENTITY_AS_GROUNDER_FEATURE",
+    "LABEL_FUTURE_EXPERT_OPTION_OCCURRENCE_AS_INTERVENTION_EFFECT"
+  ]
+}

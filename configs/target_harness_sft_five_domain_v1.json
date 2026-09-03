@@ -1,0 +1,85 @@
+{
+  "schema_version": "target-harness-sft-five-domain-config-v1",
+  "status": "FROZEN_BEFORE_FIVE_DOMAIN_DATASET_BUILD",
+  "parent_four_domain_dataset": {
+    "directory": "runs/target_harness_sft_four_domain_v2",
+    "manifest_sha256": "c4186e07c0630e28d55c397ae3df7ce562962712e45f484d588df063ca52c1ea",
+    "structured_sha256": "98456f54c4300c0cae0fe9bec3a6936c3b08ba3850bcfb68d05434da8162e4b0",
+    "train_sha256": "27dd7734c67599c5bee1f23c258fe8a10cfa13da4c58658330195d1c3338e992",
+    "validation_sha256": "a37075a4181461fcfa217d71de25f619aa4501179cdb502d5463eebaba11a536"
+  },
+  "source_program_root": "configs/phase3_source_function_v4/frozen_reserve/programs",
+  "source_families": [
+    "candy_crush",
+    "gymv_columns",
+    "gymv_streets_of_rage_2",
+    "gymv_strider",
+    "gymv_thunder_force_iii",
+    "tetris"
+  ],
+  "video": {
+    "target_domain": "video",
+    "split_rule": {
+      "kind": "STABLE_VIDEO_ID_HASH_MODULO",
+      "modulus": 4,
+      "validation_bucket": 0,
+      "identity_only_no_outcome_selection": true
+    },
+    "quota_per_benchmark": {
+      "train_authentic": 225,
+      "validation_authentic": 75,
+      "matched_controls_per_authentic": 1
+    },
+    "clevrer": {
+      "development_receipts": "runs/clevrer_sokoban_proof_v14_development/development_receipts.json",
+      "development_receipts_sha256": "0b43baecf57d0189dc13df47f8bf0b5a9c5327491a8e6d5d2713a8de6b47b378",
+      "development_role_audit": "docs/results/clevrer_unified_goal_relation_v15_development.json",
+      "development_role_audit_sha256": "6c4cca72f9501f4106e2fa7111bf9ffe72de1e16540ab9213665780e32847d74",
+      "grounder_artifact": "runs/clevrer_sokoban_proof_v14_training/frozen_proof_grounder.json",
+      "grounder_artifact_file_sha256": "f2c380de4d451746517d849dab45ed54385068ee562998d646058f8f38a6423b",
+      "score_adapter": {
+        "kind": "FROZEN_UPLIFT_LOGISTIC_TO_TYPED_EFFECTS",
+        "temperature": 0.125,
+        "broadcast_across_effect_heads": true,
+        "candidate_order_variants": 2
+      }
+    },
+    "agqa2": {
+      "development_report": "runs/agqa2_temporal_localized_query_v59_development/report.json",
+      "development_report_sha256": "9362fe7ffc07f299823901d302dfe9bce10a23ffb544cbb67ab62ba3db3e4ad6",
+      "development_config": "configs/agqa2_temporal_localized_query_v59_development.json",
+      "development_config_sha256": "cfb63ef4966ccf3a11d50f2d6fae13b879331fcab1d97feddc242e2ddc5640cf",
+      "effect_adapter": {
+        "kind": "MULTIVIEW_NEURAL_EVIDENCE_TO_TYPED_EFFECTS",
+        "maximum_view_candidates": 3,
+        "candidate_subset_sizes": [2, 3],
+        "candidate_order_variants": 2,
+        "expected_sampled_frames": 48,
+        "evidence_frame_normalizer": 8,
+        "maximum_consensus_endpoint_spread": 8,
+        "coverage_scores": {
+          "SUFFICIENT": 1.0,
+          "PARTIAL": 0.5,
+          "MISSING": 0.0
+        }
+      }
+    }
+  },
+  "controller_training": {
+    "model": "Qwen/Qwen3.5-9B",
+    "maximum_sequence_length": 2048,
+    "probability_decimal_places": 6
+  },
+  "prompt_policy": {
+    "domain_identity_exposed": false,
+    "benchmark_identity_exposed": false,
+    "native_actions_or_relations_exposed": false,
+    "raw_frames_exposed": false,
+    "question_or_answer_exposed": false,
+    "reward_or_success_exposed": false,
+    "control_variant_exposed": false,
+    "reasoning_trace_requested": false,
+    "json_only": true
+  },
+  "claim_boundary": "FIVE_TARGET_DEVELOPMENT_SFT_ONLY;VIDEO_IS_NO_LONGER_OOD_FOR_THIS DATASET;NOT_VIDEO_QA_OR_TRANSFER_EVALUATION;NO_RAW_FRAMES;NO_FORMAL_OR_RESERVE_VIDEO_TARGETS"
+}

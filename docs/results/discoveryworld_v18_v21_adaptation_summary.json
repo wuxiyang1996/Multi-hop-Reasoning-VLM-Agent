@@ -1,0 +1,89 @@
+{
+  "schema_version": "discoveryworld-neurosymbolic-adaptation-summary-v21",
+  "status": "CONSUMED_ADAPTATION_GATE_PASSED",
+  "claim": "A source-qualified Sokoban positive-effect guard produced a matched DiscoveryWorld success rescue on consumed Easy data when combined with target-native neural binding and a shared exact local spatial realizer. This validates the candidate mechanism in adaptation, not held-out Normal-difficulty generalization.",
+  "source_contract": {
+    "source_program_sha256": "6b02dc1d7271bbd435e90539cedd7d56d04fcc1ad03798dd6dd06146d67f1fcd",
+    "source_confirmation_sha256": "d64606c916ce6e812ae1b920771d5175cb48983a2f141b2dab6f43d491a6c1ed",
+    "transferred_structure": "DIRECT_PROGRESS_AVAILABLE_OR_ASSIGNMENT_IMPROVEMENT_AVAILABLE_THEN_COMMIT_AND_VERIFY_ELSE_POSITION_AND_RECOMPUTE"
+  },
+  "v18_applicability_scan": {
+    "consumed_easy_tasks": 6,
+    "eligible_forks": 0,
+    "summary_sha256": "2c98a38edfc0c33a8cecd780509dc5cbbbf874bd41a78125266103927179e7b9",
+    "lesson": "At 32 target steps, strict source-guard disagreement was absent after rejecting wrong target bindings; this was a target acquisition and realization diagnostic, not evidence against the source effect program."
+  },
+  "v19_extended_target_baseline": {
+    "maximum_steps": 64,
+    "tasks": 6,
+    "successes": 2,
+    "mean_score_normalized": 0.6944444444444445,
+    "summary_sha256": "38caf1d75a2164e49f72711153a65ca6ecb9ff4c6cbbe9d8e4adfb2d27e998f7",
+    "lesson": "Proteomics seed2 succeeds only after step32, while other failures expose looping and final spatial realization errors."
+  },
+  "v20_matched_diagnostic": {
+    "eligible_forks": 4,
+    "success_counts": {
+      "target_only_recorded": 2,
+      "target_native_myopic": 3,
+      "authentic_sokoban_effect_plus_target": 3,
+      "commit_availability_control_plus_target": 2,
+      "inverted_effect_control_plus_target": 0,
+      "position_prior_control_plus_target": 0
+    },
+    "result_sha256": {
+      "proteomics.easy.seed2": "5131afada9e39838a4a2115c35c68a3ead7c247224915e781899d04bed32b0ef",
+      "proteomics.easy.seed3": "4dc8af123890cc8f5cce28021abac74390d6c940c1be2b7a788d409da559db05",
+      "proteomics.easy.seed4": "71694370680d5ae849866fd59160e1cf905a773a07b196a1133ea14eb2d43741",
+      "space_sick.easy.seed2": "dec348055ac004844bd202c95d67ed417c318f8ba02c49961bbba9365c8d1370"
+    },
+    "gate_passed": false,
+    "lesson": "The source guard prevented Proteomics seed4's premature DROP, but the neural POSITION grounder looped TELEPORT-west-TELEPORT and never established the exact relation."
+  },
+  "v21_shared_spatial_realization": {
+    "protocol_file_sha256": "9725ac4a84170644fcfc189e6f5da3c66457bba8a28a6bf87b848601f629719a",
+    "fork_freeze_summary_sha256": "ba338d17147362a06fde997ed12a65a9bbbec8bbfda6ecd36f4bf7b3fd22ed36",
+    "eligible_forks": 4,
+    "success_counts": {
+      "target_only_recorded": 2,
+      "target_native_myopic": 3,
+      "authentic_sokoban_effect_plus_target": 4,
+      "commit_availability_control_plus_target": 2,
+      "inverted_effect_control_plus_target": 0,
+      "position_prior_control_plus_target": 0
+    },
+    "success_gain_vs_target_only_recorded": 2,
+    "success_gain_vs_target_native_myopic": 1,
+    "success_gain_vs_commit_availability_control": 2,
+    "negative_transfer_count_vs_target_native_myopic": 0,
+    "integrity": {
+      "all_result_hashes_valid": true,
+      "all_policy_and_audit_forks_matched": true,
+      "all_selection_receipts_valid": true,
+      "all_spatial_realization_receipts_valid": true,
+      "all_binders_used_frozen_v20_cache": true,
+      "all_common_prefix_groundings_used_frozen_v20_cache": true,
+      "zero_runtime_errors": true,
+      "zero_policy_oracle_scorecard_use": true
+    },
+    "result_sha256": {
+      "proteomics.easy.seed2": "e7da2fe2ed6ef5cd3d16dca742106759a76ebda72741de35e65aa54e441165e1",
+      "proteomics.easy.seed3": "0596a337f80050739634ee133f70a76acf4e51cbad4be0f91f6c7384ffc3fd86",
+      "proteomics.easy.seed4": "e6611450aa51ce074099f0b9094888813195ccc54a5c9d6b83ee4415a93a5649",
+      "space_sick.easy.seed2": "de165f3d47cf30c55bef13d64f2d2d637689a1773309f3bdb32e46d9cfeab9c0"
+    },
+    "decisive_rescue": {
+      "task": "proteomics.easy.seed4",
+      "target_native_myopic": "TELEPORT_TO_OBJECT, premature DROP, then failure",
+      "authentic": "TELEPORT_TO_OBJECT, POSITION west, POSITION north, witnessed DROP, success",
+      "commit_availability_control": "premature DROP, then failure",
+      "position_prior_control": "reached the relation but never COMMITted, then failure"
+    },
+    "adaptation_gate_passed": true
+  },
+  "reserve_policy": {
+    "normal_difficulty_opened_by_v21": false,
+    "next_action": "Freeze the V21 code, task-native policy, six Space Sick/Proteomics Normal seeds2-4, baseline horizon, fork rule, five arms, and formal gates before collecting any Normal rollout."
+  },
+  "summary_sha256": "d608015ffa17cbeb8cbd038e44c5582743b03383b08633690c62121a06713edc"
+}

@@ -1,0 +1,484 @@
+{
+  "abstained_probe_count": 12,
+  "abstention_reasons": {
+    "DIRECTIONAL_UTILITY_NOT_CALIBRATED": 8,
+    "NO_EXACT_TARGET_INTERFACE_ROUTE": 4
+  },
+  "claim_boundary": "Pre-execution applicability and route-utility validation on frozen future task descriptors. No success-rate claim is made for the unopened DiscoveryWorld or ALFWorld tasks.",
+  "evidence_integrity": {
+    "minigrid-put-near-to-alfworld-multiplicity-v2": {
+      "file_hash_valid": true,
+      "status_valid": true
+    },
+    "minigrid-put-near-to-discoveryworld-easy-v1": {
+      "file_hash_valid": true,
+      "status_valid": true
+    },
+    "sokoban-relational-to-tir-maze-v3": {
+      "file_hash_valid": true,
+      "status_valid": true
+    },
+    "sokoban-relational-to-webshop-v21": {
+      "file_hash_valid": true,
+      "status_valid": true
+    }
+  },
+  "gates": {
+    "alfworld_abstention_is_calibrated_not_interface_failure": true,
+    "all_eight_execution_untouched_alfworld_tasks_abstained": true,
+    "manifest_and_evidence_hashes_valid": true,
+    "new_discoveryworld_easy_interface_selected": true,
+    "new_discoveryworld_normal_interfaces_abstained": true,
+    "selector_never_emits_target_action": true,
+    "three_positive_route_families_selected": true,
+    "zero_current_outcome_exposure": true
+  },
+  "manifest_sha256": "85d2df687b28e8b67b6241910ac40b46bc23c8056e784339fac7b75f55c75ce4",
+  "probes": [
+    {
+      "authorization": {
+        "authenticity_lower_bound": 0.83843388873926,
+        "authorization_sha256": "6f415ace93d42decdf68e56dadec12a88f2d8ac49721b381e4f7c6d72216d16d",
+        "current_outcome_read": false,
+        "reason": "STRUCTURALLY_APPLICABLE_CALIBRATED_SOURCE_PROGRAM",
+        "route_id": "sokoban-relational-to-webshop-v21",
+        "source_program_sha256": "8e751718cd5df14141a8dce0b10f4c57eb4d676a9ff3d125e3f293fdbe9c83ce",
+        "target_executor_id": "webshop.structural_target_executor.v21",
+        "target_executor_sha256": "a578c483b82c14ac1746460d153d85d1e74104bcd62ca4ba9f0a8375cac0a976",
+        "target_grounder_id": "webshop.low_sample_relation_grounder.v17",
+        "target_state_sha256": "5130a23e25efb6df1787028db97e6b5b7896fdf001193cd3f8f6158b1b891499",
+        "task_id": "webshop.future.option-relation",
+        "utility_lower_bound": 0.83843388873926,
+        "verdict": "SELECT_SKILL"
+      },
+      "grounding_formal_outcome_read": false,
+      "grounding_receipt_sha256": "5592839b3c0dc762a4a5f875f076d75351bbe300b0d7926cf7cb41eb83cef659",
+      "probe_kind": "REGISTERED_ROUTE_STRUCTURAL_CANARY",
+      "selector_emitted_target_action": false,
+      "target_domain": "webshop",
+      "target_interface": "product_option_relation_search",
+      "task_id": "webshop.future.option-relation"
+    },
+    {
+      "authorization": {
+        "authenticity_lower_bound": 0.6518363448688392,
+        "authorization_sha256": "f9b50d910ecf2207f08aa2cb18afe54cc2b58f2d6f7d420151d7c1777c93cb97",
+        "current_outcome_read": false,
+        "reason": "STRUCTURALLY_APPLICABLE_CALIBRATED_SOURCE_PROGRAM",
+        "route_id": "sokoban-relational-to-tir-maze-v3",
+        "source_program_sha256": "8e751718cd5df14141a8dce0b10f4c57eb4d676a9ff3d125e3f293fdbe9c83ce",
+        "target_executor_id": "tir.relational_path_executor.v3",
+        "target_executor_sha256": "9df1d5eb2bb73c5106a9247695b3e8dcf21e7c0fe56c78338395ef119870cfdd",
+        "target_grounder_id": "tir.openrouter_direction_pixel_grounder.v3",
+        "target_state_sha256": "e9e503f27056fa503e72695332d4541ca9c656461430e5d440d85fcef2d28a9c",
+        "task_id": "tir.future.single-image-maze",
+        "utility_lower_bound": 0.6518363448688392,
+        "verdict": "SELECT_SKILL"
+      },
+      "grounding_formal_outcome_read": false,
+      "grounding_receipt_sha256": "72dbff111756b4f2f641a8e6c53ef013894bac02249a0d557e2cad2e2e7140ac",
+      "probe_kind": "REGISTERED_ROUTE_STRUCTURAL_CANARY",
+      "selector_emitted_target_action": false,
+      "target_domain": "tir",
+      "target_interface": "single_image_maze_relational_path",
+      "task_id": "tir.future.single-image-maze"
+    },
+    {
+      "authorization": {
+        "authenticity_lower_bound": 0.7411344491069478,
+        "authorization_sha256": "14ac60fbeeb346fe810747a5ac66197573cc278875153b6eac86ff3145d78f11",
+        "current_outcome_read": false,
+        "reason": "STRUCTURALLY_APPLICABLE_CALIBRATED_SOURCE_PROGRAM",
+        "route_id": "minigrid-put-near-to-discoveryworld-easy-v1",
+        "source_program_sha256": "b0d3b7cd706f8c18f35217a30d72e2f5d88b60f437f8c9980d9dbbf7478ee2c0",
+        "target_executor_id": "discoveryworld.structural_target_executor.v1",
+        "target_executor_sha256": "4c9cda7a52ee1b7944ee85ae85fa6f3483d8369ca4c5dcd715a5fd4624b1bb2f",
+        "target_grounder_id": "discoveryworld.counted_relation_grounder.v1",
+        "target_state_sha256": "d06c48816c2b66b322202435688862339a77c8d50c02230223e348b30cb27157",
+        "task_id": "proteomics.easy.seed213",
+        "utility_lower_bound": 0.7411344491069478,
+        "verdict": "SELECT_SKILL"
+      },
+      "grounding_formal_outcome_read": false,
+      "grounding_receipt_sha256": "e73ce0b99ba88cf416224e3b10ccb491d892f839850c53b98acf0181886f2007",
+      "probe_kind": "UNOPENED_EXACT_INTERFACE_STRUCTURAL_CANARY",
+      "selector_emitted_target_action": false,
+      "target_domain": "discoveryworld",
+      "target_interface": "proteomics_easy_counted_partial_order",
+      "task_id": "proteomics.easy.seed213"
+    },
+    {
+      "authorization": {
+        "authenticity_lower_bound": 0.7411344491069478,
+        "authorization_sha256": "d392b1088f0309f4d4995eb1f1264b956cafdd979f34b0f6c997912777572ccb",
+        "current_outcome_read": false,
+        "reason": "STRUCTURALLY_APPLICABLE_CALIBRATED_SOURCE_PROGRAM",
+        "route_id": "minigrid-put-near-to-discoveryworld-easy-v1",
+        "source_program_sha256": "b0d3b7cd706f8c18f35217a30d72e2f5d88b60f437f8c9980d9dbbf7478ee2c0",
+        "target_executor_id": "discoveryworld.structural_target_executor.v1",
+        "target_executor_sha256": "4c9cda7a52ee1b7944ee85ae85fa6f3483d8369ca4c5dcd715a5fd4624b1bb2f",
+        "target_grounder_id": "discoveryworld.counted_relation_grounder.v1",
+        "target_state_sha256": "6aafa90569ae7abf6e188f3019ee84c66e0bcc5a629391d3b729882e6ffba78b",
+        "task_id": "proteomics.easy.seed214",
+        "utility_lower_bound": 0.7411344491069478,
+        "verdict": "SELECT_SKILL"
+      },
+      "grounding_formal_outcome_read": false,
+      "grounding_receipt_sha256": "e8342dfc0fb970afab220c94e0e08bd6594ef58010d36f89d9a158beeccc92dc",
+      "probe_kind": "UNOPENED_EXACT_INTERFACE_STRUCTURAL_CANARY",
+      "selector_emitted_target_action": false,
+      "target_domain": "discoveryworld",
+      "target_interface": "proteomics_easy_counted_partial_order",
+      "task_id": "proteomics.easy.seed214"
+    },
+    {
+      "authorization": {
+        "authenticity_lower_bound": 0.0,
+        "authorization_sha256": "e9512b530d99b879b445179f6afe6d6251b9ffdd2a205ac675fd26305d7d6a57",
+        "current_outcome_read": false,
+        "reason": "NO_EXACT_TARGET_INTERFACE_ROUTE",
+        "route_id": null,
+        "source_program_sha256": null,
+        "target_executor_id": null,
+        "target_executor_sha256": null,
+        "target_grounder_id": null,
+        "target_state_sha256": "578a58e0aed942c134df323978a8f6abf37df3da728804733ec2756895181ffd",
+        "task_id": "proteomics.normal.seed5",
+        "utility_lower_bound": 0.0,
+        "verdict": "ABSTAIN"
+      },
+      "grounding_formal_outcome_read": false,
+      "grounding_receipt_sha256": "f1157887f5454c079a3fe6fff87bd09b50b6f65bcd58893bc8b2a6c9b8318e41",
+      "probe_kind": "UNOPENED_INTERFACE_MISMATCH",
+      "selector_emitted_target_action": false,
+      "target_domain": "discoveryworld",
+      "target_interface": "proteomics_normal_adjacency",
+      "task_id": "proteomics.normal.seed5"
+    },
+    {
+      "authorization": {
+        "authenticity_lower_bound": 0.0,
+        "authorization_sha256": "2c5e1628ad1772ad70ec1256149a7de866461e7c6273ba66053f75648f8b0836",
+        "current_outcome_read": false,
+        "reason": "NO_EXACT_TARGET_INTERFACE_ROUTE",
+        "route_id": null,
+        "source_program_sha256": null,
+        "target_executor_id": null,
+        "target_executor_sha256": null,
+        "target_grounder_id": null,
+        "target_state_sha256": "b1f4f20957e7c9e18cec52471394d98795a2c673c9963ccdbbdac81895461818",
+        "task_id": "proteomics.normal.seed6",
+        "utility_lower_bound": 0.0,
+        "verdict": "ABSTAIN"
+      },
+      "grounding_formal_outcome_read": false,
+      "grounding_receipt_sha256": "a3a01ca05ab57f8efcd15e2b3364f50e37a4caf0623fad5130bb65aa37654433",
+      "probe_kind": "UNOPENED_INTERFACE_MISMATCH",
+      "selector_emitted_target_action": false,
+      "target_domain": "discoveryworld",
+      "target_interface": "proteomics_normal_adjacency",
+      "task_id": "proteomics.normal.seed6"
+    },
+    {
+      "authorization": {
+        "authenticity_lower_bound": 0.0,
+        "authorization_sha256": "a2e15c05d7688e3ba059d5a8680c0e4bf2784936342e02c3e316b46239e92878",
+        "current_outcome_read": false,
+        "reason": "NO_EXACT_TARGET_INTERFACE_ROUTE",
+        "route_id": null,
+        "source_program_sha256": null,
+        "target_executor_id": null,
+        "target_executor_sha256": null,
+        "target_grounder_id": null,
+        "target_state_sha256": "8eeff74b96041e566737960de229bd34798c6496b95478bfc14830cb51217dca",
+        "task_id": "space_sick.normal.seed5",
+        "utility_lower_bound": 0.0,
+        "verdict": "ABSTAIN"
+      },
+      "grounding_formal_outcome_read": false,
+      "grounding_receipt_sha256": "bd6ee3aad9c626a2cf57f1595b5cb4f1c90f7829cc611f47a427364a31e41d83",
+      "probe_kind": "UNOPENED_INTERFACE_MISMATCH",
+      "selector_emitted_target_action": false,
+      "target_domain": "discoveryworld",
+      "target_interface": "space_sick_normal_dialogue_feeding",
+      "task_id": "space_sick.normal.seed5"
+    },
+    {
+      "authorization": {
+        "authenticity_lower_bound": 0.0,
+        "authorization_sha256": "1f74f4f4bbaf61f97d95a3192b738e7acb96c684ba7673ed3b984cb8c04a3180",
+        "current_outcome_read": false,
+        "reason": "NO_EXACT_TARGET_INTERFACE_ROUTE",
+        "route_id": null,
+        "source_program_sha256": null,
+        "target_executor_id": null,
+        "target_executor_sha256": null,
+        "target_grounder_id": null,
+        "target_state_sha256": "cde5ab35f838d742386971631e735a930c6b20ac2a78fc8156ba17e53dfee671",
+        "task_id": "space_sick.normal.seed6",
+        "utility_lower_bound": 0.0,
+        "verdict": "ABSTAIN"
+      },
+      "grounding_formal_outcome_read": false,
+      "grounding_receipt_sha256": "a7afd9a9426454a76d242840b9dd516c922e267897f55b8f6f20776a7fc41f9b",
+      "probe_kind": "UNOPENED_INTERFACE_MISMATCH",
+      "selector_emitted_target_action": false,
+      "target_domain": "discoveryworld",
+      "target_interface": "space_sick_normal_dialogue_feeding",
+      "task_id": "space_sick.normal.seed6"
+    },
+    {
+      "authorization": {
+        "authenticity_lower_bound": 0.13535036217158386,
+        "authorization_sha256": "26e5111e8b47e365ba9b154d0454564f7683c6aafacb2b76309f35ac8cd3b55b",
+        "current_outcome_read": false,
+        "reason": "DIRECTIONAL_UTILITY_NOT_CALIBRATED",
+        "route_id": "minigrid-put-near-to-alfworld-multiplicity-v2",
+        "source_program_sha256": "b0d3b7cd706f8c18f35217a30d72e2f5d88b60f437f8c9980d9dbbf7478ee2c0",
+        "target_executor_id": "alfworld.structural_target_executor.v2",
+        "target_executor_sha256": "87d60965272021d5ac67516b877a30888e80d4dbce2473e4827d5c7139410da3",
+        "target_grounder_id": "alfworld.structural_grounder.v1",
+        "target_state_sha256": "c670dad9312f0ddbbb9baeda7562ed16b541a626d056754780cf4e7a6e8633af",
+        "task_id": "pick_two_obj_and_place-CellPhone-None-Bed-324/trial_T20190907_143501_605409/game.tw-pddl",
+        "utility_lower_bound": 0.36840314986403877,
+        "verdict": "ABSTAIN"
+      },
+      "grounding_formal_outcome_read": false,
+      "grounding_receipt_sha256": "50aa1011ace8ccd2d30cc91fe950b895afd0ab024132caedc8b81dc3912410ee",
+      "probe_kind": "EXECUTION_UNTOUCHED_STRUCTURAL_CANARY",
+      "selector_emitted_target_action": false,
+      "target_domain": "alfworld",
+      "target_interface": "multiplicity_add_remove_sequence",
+      "task_id": "pick_two_obj_and_place-CellPhone-None-Bed-324/trial_T20190907_143501_605409/game.tw-pddl"
+    },
+    {
+      "authorization": {
+        "authenticity_lower_bound": 0.13535036217158386,
+        "authorization_sha256": "2785634cc55df59f4c3caae2069c7cb367a65b30a98c7e7577a9ddd76584792c",
+        "current_outcome_read": false,
+        "reason": "DIRECTIONAL_UTILITY_NOT_CALIBRATED",
+        "route_id": "minigrid-put-near-to-alfworld-multiplicity-v2",
+        "source_program_sha256": "b0d3b7cd706f8c18f35217a30d72e2f5d88b60f437f8c9980d9dbbf7478ee2c0",
+        "target_executor_id": "alfworld.structural_target_executor.v2",
+        "target_executor_sha256": "87d60965272021d5ac67516b877a30888e80d4dbce2473e4827d5c7139410da3",
+        "target_grounder_id": "alfworld.structural_grounder.v1",
+        "target_state_sha256": "a78109ebb06644d65490223226f3cc7d7d1440a3ee01fe25ddc783181e57398f",
+        "task_id": "pick_two_obj_and_place-Newspaper-None-CoffeeTable-211/trial_T20190907_155539_093189/game.tw-pddl",
+        "utility_lower_bound": 0.36840314986403877,
+        "verdict": "ABSTAIN"
+      },
+      "grounding_formal_outcome_read": false,
+      "grounding_receipt_sha256": "efe4585ae6d9516342de9f95f1a5edd5a5736241b062b1f145ccbf16fb209b33",
+      "probe_kind": "EXECUTION_UNTOUCHED_STRUCTURAL_CANARY",
+      "selector_emitted_target_action": false,
+      "target_domain": "alfworld",
+      "target_interface": "multiplicity_add_remove_sequence",
+      "task_id": "pick_two_obj_and_place-Newspaper-None-CoffeeTable-211/trial_T20190907_155539_093189/game.tw-pddl"
+    },
+    {
+      "authorization": {
+        "authenticity_lower_bound": 0.13535036217158386,
+        "authorization_sha256": "aa5184edbc8b41e6b158ec59b5d9e9913ed1187b2a3115fb5e141992ad36be96",
+        "current_outcome_read": false,
+        "reason": "DIRECTIONAL_UTILITY_NOT_CALIBRATED",
+        "route_id": "minigrid-put-near-to-alfworld-multiplicity-v2",
+        "source_program_sha256": "b0d3b7cd706f8c18f35217a30d72e2f5d88b60f437f8c9980d9dbbf7478ee2c0",
+        "target_executor_id": "alfworld.structural_target_executor.v2",
+        "target_executor_sha256": "87d60965272021d5ac67516b877a30888e80d4dbce2473e4827d5c7139410da3",
+        "target_grounder_id": "alfworld.structural_grounder.v1",
+        "target_state_sha256": "36d1608335ccef224d8afc4a8e5774c0a4c5ecf61a6b78e5d61fa88ea8733d77",
+        "task_id": "pick_two_obj_and_place-Pillow-None-Ottoman-208/trial_T20190908_091502_530886/game.tw-pddl",
+        "utility_lower_bound": 0.36840314986403877,
+        "verdict": "ABSTAIN"
+      },
+      "grounding_formal_outcome_read": false,
+      "grounding_receipt_sha256": "3b0560bd6a54bd73d0ac031764ca0c5da02b80ba6c03c0b2462bf8555cf13a24",
+      "probe_kind": "EXECUTION_UNTOUCHED_STRUCTURAL_CANARY",
+      "selector_emitted_target_action": false,
+      "target_domain": "alfworld",
+      "target_interface": "multiplicity_add_remove_sequence",
+      "task_id": "pick_two_obj_and_place-Pillow-None-Ottoman-208/trial_T20190908_091502_530886/game.tw-pddl"
+    },
+    {
+      "authorization": {
+        "authenticity_lower_bound": 0.13535036217158386,
+        "authorization_sha256": "4abe850849b3446863f9d5810f1849ce74125f64061ae1edeefd557ccdb4b780",
+        "current_outcome_read": false,
+        "reason": "DIRECTIONAL_UTILITY_NOT_CALIBRATED",
+        "route_id": "minigrid-put-near-to-alfworld-multiplicity-v2",
+        "source_program_sha256": "b0d3b7cd706f8c18f35217a30d72e2f5d88b60f437f8c9980d9dbbf7478ee2c0",
+        "target_executor_id": "alfworld.structural_target_executor.v2",
+        "target_executor_sha256": "87d60965272021d5ac67516b877a30888e80d4dbce2473e4827d5c7139410da3",
+        "target_grounder_id": "alfworld.structural_grounder.v1",
+        "target_state_sha256": "94c36ebce3625bbd3a377e21c42698a34534edf169fc3ad851ce35f9040d6fef",
+        "task_id": "pick_two_obj_and_place-SoapBottle-None-Cart-401/trial_T20190908_215319_029253/game.tw-pddl",
+        "utility_lower_bound": 0.36840314986403877,
+        "verdict": "ABSTAIN"
+      },
+      "grounding_formal_outcome_read": false,
+      "grounding_receipt_sha256": "cf1cf7502a781a2579065d809fb2dfdb6fdb096ce2be4ce4345b446eba789d28",
+      "probe_kind": "EXECUTION_UNTOUCHED_STRUCTURAL_CANARY",
+      "selector_emitted_target_action": false,
+      "target_domain": "alfworld",
+      "target_interface": "multiplicity_add_remove_sequence",
+      "task_id": "pick_two_obj_and_place-SoapBottle-None-Cart-401/trial_T20190908_215319_029253/game.tw-pddl"
+    },
+    {
+      "authorization": {
+        "authenticity_lower_bound": 0.13535036217158386,
+        "authorization_sha256": "0f093b516985b1d7571e6661b115d70b6e61bda291693d8cb557f91a8f36db7b",
+        "current_outcome_read": false,
+        "reason": "DIRECTIONAL_UTILITY_NOT_CALIBRATED",
+        "route_id": "minigrid-put-near-to-alfworld-multiplicity-v2",
+        "source_program_sha256": "b0d3b7cd706f8c18f35217a30d72e2f5d88b60f437f8c9980d9dbbf7478ee2c0",
+        "target_executor_id": "alfworld.structural_target_executor.v2",
+        "target_executor_sha256": "87d60965272021d5ac67516b877a30888e80d4dbce2473e4827d5c7139410da3",
+        "target_grounder_id": "alfworld.structural_grounder.v1",
+        "target_state_sha256": "cc8e7b3b31d3c72a5eb8de2fd9d6d02697890fadf076eee5c8d5cd56f9dedebb",
+        "task_id": "pick_two_obj_and_place-SoapBottle-None-Toilet-405/trial_T20190909_014637_759728/game.tw-pddl",
+        "utility_lower_bound": 0.36840314986403877,
+        "verdict": "ABSTAIN"
+      },
+      "grounding_formal_outcome_read": false,
+      "grounding_receipt_sha256": "9a3fd86f628a08fb11021daf1ccc5f2658c55e96c3269e371336bbaacbf178cd",
+      "probe_kind": "EXECUTION_UNTOUCHED_STRUCTURAL_CANARY",
+      "selector_emitted_target_action": false,
+      "target_domain": "alfworld",
+      "target_interface": "multiplicity_add_remove_sequence",
+      "task_id": "pick_two_obj_and_place-SoapBottle-None-Toilet-405/trial_T20190909_014637_759728/game.tw-pddl"
+    },
+    {
+      "authorization": {
+        "authenticity_lower_bound": 0.13535036217158386,
+        "authorization_sha256": "ae68d067ba5c5885d7ec2516613bf0240dcc5bc1ed935fe8c2747c5a09e005fa",
+        "current_outcome_read": false,
+        "reason": "DIRECTIONAL_UTILITY_NOT_CALIBRATED",
+        "route_id": "minigrid-put-near-to-alfworld-multiplicity-v2",
+        "source_program_sha256": "b0d3b7cd706f8c18f35217a30d72e2f5d88b60f437f8c9980d9dbbf7478ee2c0",
+        "target_executor_id": "alfworld.structural_target_executor.v2",
+        "target_executor_sha256": "87d60965272021d5ac67516b877a30888e80d4dbce2473e4827d5c7139410da3",
+        "target_grounder_id": "alfworld.structural_grounder.v1",
+        "target_state_sha256": "1a9e4ee1bc8465290c6c985019e42f475c33131035a7b32e4c9bb4f30de02c80",
+        "task_id": "pick_two_obj_and_place-SprayBottle-None-CounterTop-409/trial_T20190908_131650_305225/game.tw-pddl",
+        "utility_lower_bound": 0.36840314986403877,
+        "verdict": "ABSTAIN"
+      },
+      "grounding_formal_outcome_read": false,
+      "grounding_receipt_sha256": "43636b0124f5bf5931c9111d6a8dfa5691646a37c4dca220a43fde1450fe73c8",
+      "probe_kind": "EXECUTION_UNTOUCHED_STRUCTURAL_CANARY",
+      "selector_emitted_target_action": false,
+      "target_domain": "alfworld",
+      "target_interface": "multiplicity_add_remove_sequence",
+      "task_id": "pick_two_obj_and_place-SprayBottle-None-CounterTop-409/trial_T20190908_131650_305225/game.tw-pddl"
+    },
+    {
+      "authorization": {
+        "authenticity_lower_bound": 0.13535036217158386,
+        "authorization_sha256": "33bbf45d289373cdbb2f21373c13686742ab06cf53a20a929639bd44c5ed579c",
+        "current_outcome_read": false,
+        "reason": "DIRECTIONAL_UTILITY_NOT_CALIBRATED",
+        "route_id": "minigrid-put-near-to-alfworld-multiplicity-v2",
+        "source_program_sha256": "b0d3b7cd706f8c18f35217a30d72e2f5d88b60f437f8c9980d9dbbf7478ee2c0",
+        "target_executor_id": "alfworld.structural_target_executor.v2",
+        "target_executor_sha256": "87d60965272021d5ac67516b877a30888e80d4dbce2473e4827d5c7139410da3",
+        "target_grounder_id": "alfworld.structural_grounder.v1",
+        "target_state_sha256": "984008bc77ea00faf28f48c2e0eb8bb63b90980e25cac8cba21459189b9b163a",
+        "task_id": "pick_two_obj_and_place-TissueBox-None-DiningTable-230/trial_T20190909_145505_799057/game.tw-pddl",
+        "utility_lower_bound": 0.36840314986403877,
+        "verdict": "ABSTAIN"
+      },
+      "grounding_formal_outcome_read": false,
+      "grounding_receipt_sha256": "2c29ef669f7964dde17d41b6c3f8cd574813e3e9d0ebd30ee884a12840a70d4c",
+      "probe_kind": "EXECUTION_UNTOUCHED_STRUCTURAL_CANARY",
+      "selector_emitted_target_action": false,
+      "target_domain": "alfworld",
+      "target_interface": "multiplicity_add_remove_sequence",
+      "task_id": "pick_two_obj_and_place-TissueBox-None-DiningTable-230/trial_T20190909_145505_799057/game.tw-pddl"
+    },
+    {
+      "authorization": {
+        "authenticity_lower_bound": 0.13535036217158386,
+        "authorization_sha256": "98fe87a87d946540be1a8a53f29ae35addd843c1d17bf0d1373d0ac5c344e89e",
+        "current_outcome_read": false,
+        "reason": "DIRECTIONAL_UTILITY_NOT_CALIBRATED",
+        "route_id": "minigrid-put-near-to-alfworld-multiplicity-v2",
+        "source_program_sha256": "b0d3b7cd706f8c18f35217a30d72e2f5d88b60f437f8c9980d9dbbf7478ee2c0",
+        "target_executor_id": "alfworld.structural_target_executor.v2",
+        "target_executor_sha256": "87d60965272021d5ac67516b877a30888e80d4dbce2473e4827d5c7139410da3",
+        "target_grounder_id": "alfworld.structural_grounder.v1",
+        "target_state_sha256": "4ccc273794b7f86e25d78f06aa81b65ed7c3b90562e282f25b1fe052a0d42548",
+        "task_id": "pick_two_obj_and_place-ToiletPaper-None-CounterTop-402/trial_T20190912_052310_164968/game.tw-pddl",
+        "utility_lower_bound": 0.36840314986403877,
+        "verdict": "ABSTAIN"
+      },
+      "grounding_formal_outcome_read": false,
+      "grounding_receipt_sha256": "3d9ed4b91f5af71f5c81353c33b823f81c7cdf479fb27ec9b0464cbc216515b6",
+      "probe_kind": "EXECUTION_UNTOUCHED_STRUCTURAL_CANARY",
+      "selector_emitted_target_action": false,
+      "target_domain": "alfworld",
+      "target_interface": "multiplicity_add_remove_sequence",
+      "task_id": "pick_two_obj_and_place-ToiletPaper-None-CounterTop-402/trial_T20190912_052310_164968/game.tw-pddl"
+    }
+  ],
+  "report_sha256": "46c0b3dc9cf62d2e90828039c7dd9908abf2ad6d27fc9cf1b25ab9d246685678",
+  "routes": {
+    "minigrid-put-near-to-alfworld-multiplicity-v2": {
+      "authenticity_vs_source_permuted": {
+        "losses": 1,
+        "ties": 70,
+        "wins": 1
+      },
+      "utility_vs_neural": {
+        "losses": 0,
+        "ties": 70,
+        "wins": 2
+      }
+    },
+    "minigrid-put-near-to-discoveryworld-easy-v1": {
+      "authenticity_vs_source_permuted": {
+        "losses": 0,
+        "ties": 3,
+        "wins": 9
+      },
+      "utility_vs_neural": {
+        "losses": 0,
+        "ties": 3,
+        "wins": 9
+      }
+    },
+    "sokoban-relational-to-tir-maze-v3": {
+      "authenticity_vs_source_permuted": {
+        "losses": 0,
+        "ties": 12,
+        "wins": 6
+      },
+      "utility_vs_neural": {
+        "losses": 0,
+        "ties": 12,
+        "wins": 6
+      }
+    },
+    "sokoban-relational-to-webshop-v21": {
+      "authenticity_vs_source_permuted": {
+        "losses": 0,
+        "ties": 16,
+        "wins": 16
+      },
+      "utility_vs_neural": {
+        "losses": 0,
+        "ties": 16,
+        "wins": 16
+      }
+    }
+  },
+  "schema_version": "phase5-unified-applicability-audit-v1",
+  "selected_probe_count": 4,
+  "selected_route_families": [
+    "minigrid-put-near-to-discoveryworld-easy-v1",
+    "sokoban-relational-to-tir-maze-v3",
+    "sokoban-relational-to-webshop-v21"
+  ],
+  "status": "PHASE5_FROZEN_SELECTIVE_ROUTING_VALIDATED",
+  "target_outcomes_read": 0,
+  "target_tasks_reset": 0
+}

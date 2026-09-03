@@ -1,0 +1,92 @@
+{
+  "schema_version": "phase2-alfworld-cell-receipt-v2",
+  "manifest_sha256": "8e665b51b913d75f2294aa36cd5d201a46a812b27cbea396d71557b1d97ff85a",
+  "target_identity": "look_at_obj_in_light-Statue-None-DeskLamp-216/trial_T20190909_193045_208933/game.tw-pddl",
+  "task_family": "look_at_obj_in_light",
+  "condition": "event_binding_permuted_control",
+  "source_game": "tetris",
+  "source_artifact_sha256": "585e5b29303fcbe23e8f8b5414ea389ea6257c96f55fa64897661fe2e2b306e7",
+  "initial_state_hash": "da32e315c0076b9bb971d7d0e1eab4d235ed6cee90b41707ff2df8ec804d5a1e",
+  "strict_success": true,
+  "pass_success": true,
+  "official_reward": 1.0,
+  "step_count": 4,
+  "steps": [
+    {
+      "step": 0,
+      "selected_action": "look",
+      "fallback_action": "look",
+      "changed_from_target_fallback": false,
+      "target_option": "SEARCH",
+      "target_policy_probability": 0.998577063398316,
+      "target_applicability": 0.9999998232777726,
+      "target_outcome": "REFUTED",
+      "reward_diagnostic_only": 0.0,
+      "official_success_after": false,
+      "before_state_sha256": "da32e315c0076b9bb971d7d0e1eab4d235ed6cee90b41707ff2df8ec804d5a1e",
+      "after_state_sha256": "b45454ba1d9ad60c456a917bb9697591f3d08b42dcd4a4eebd67c0a5791472a4",
+      "source_decision_receipt_sha256": "a1ca4fa306b43254d0aa0d7bf469e3405b4b60fc75656ec189c0eb4d31dd3f0d"
+    },
+    {
+      "step": 1,
+      "selected_action": "go to sidetable 1",
+      "fallback_action": "go to sidetable 1",
+      "changed_from_target_fallback": false,
+      "target_option": "SEARCH",
+      "target_policy_probability": 0.999827134994125,
+      "target_applicability": 0.9999999999999942,
+      "target_outcome": "NONTERMINAL_EFFECT",
+      "reward_diagnostic_only": 0.0,
+      "official_success_after": false,
+      "before_state_sha256": "b45454ba1d9ad60c456a917bb9697591f3d08b42dcd4a4eebd67c0a5791472a4",
+      "after_state_sha256": "c74ee75076f28a979be1fec34f04cf49fd6d162cb524b44c5dd2837afabd0d82",
+      "source_decision_receipt_sha256": "5359f9a62a77b0d36fec304e88b8c5969aefe858077381e7d57fdef1f2753760"
+    },
+    {
+      "step": 2,
+      "selected_action": "take statue 2 from sidetable 1",
+      "fallback_action": "take statue 2 from sidetable 1",
+      "changed_from_target_fallback": false,
+      "target_option": "ACQUIRE",
+      "target_policy_probability": 0.9999999986381372,
+      "target_applicability": 0.9999993519693456,
+      "target_outcome": "NONTERMINAL_EFFECT",
+      "reward_diagnostic_only": 0.0,
+      "official_success_after": false,
+      "before_state_sha256": "c74ee75076f28a979be1fec34f04cf49fd6d162cb524b44c5dd2837afabd0d82",
+      "after_state_sha256": "5eb2b99bfac7c73e08da1511bea3f996fdb7e6ba71b85836cca5447a114fbdf3",
+      "source_decision_receipt_sha256": "ede7ec7098d5f1a7d4a4babcd174c7a56b8b3360b60930a6db02e83ad6df39bd"
+    },
+    {
+      "step": 3,
+      "selected_action": "use desklamp 1",
+      "fallback_action": "use desklamp 1",
+      "changed_from_target_fallback": false,
+      "target_option": "TRANSFORM",
+      "target_policy_probability": 0.9999414495129584,
+      "target_applicability": 0.9999663373174678,
+      "target_outcome": "TERMINAL_VERIFIED",
+      "reward_diagnostic_only": 1.0,
+      "official_success_after": true,
+      "before_state_sha256": "5eb2b99bfac7c73e08da1511bea3f996fdb7e6ba71b85836cca5447a114fbdf3",
+      "after_state_sha256": "57d30a237c965f76dd21bfbbfcc1950f968eefd5cd75ce71064a2d720be57dcb",
+      "source_decision_receipt_sha256": "480152eacf473ab1ee54ac8ed36418e06b91e72fe4ea8b055f35fc9280e9887f"
+    }
+  ],
+  "v16_controller": {
+    "source_decisions": 4,
+    "source_action_counts": {
+      "BACKTRACK_REPLAN": 4
+    }
+  },
+  "target_outcomes": {
+    "REFUTED": 1,
+    "NONTERMINAL_EFFECT": 2,
+    "TERMINAL_VERIFIED": 1
+  },
+  "failure": null,
+  "unsafe_commits": [],
+  "target_reset_or_sample_open_count": 1,
+  "historical_target_outcome_reused": false,
+  "receipt_sha256": "e7dbc7111f7528b8539c8416a8e330e8ee6d1ec8940222749ca7a4b781bbd46c"
+}

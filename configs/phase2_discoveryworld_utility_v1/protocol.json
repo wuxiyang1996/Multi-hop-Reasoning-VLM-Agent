@@ -1,0 +1,112 @@
+{
+  "schema_version": "phase2-discoveryworld-causal-utility-protocol-v1",
+  "status": "FORMAL_RESERVE_FROZEN_BEFORE_OPEN",
+  "claim_boundary": "Powered fresh causal utility estimate on 36 Proteomics Easy forks; the 30 historical eligible forks used for power planning are excluded.",
+  "evaluation_stage": "FORMAL_RESERVE",
+  "target_baseline_config": "configs/phase2_discoveryworld_utility_v1/target_only.json",
+  "task_ids": [
+    "proteomics.easy.seed45",
+    "proteomics.easy.seed46",
+    "proteomics.easy.seed47",
+    "proteomics.easy.seed48",
+    "proteomics.easy.seed49",
+    "proteomics.easy.seed50",
+    "proteomics.easy.seed51",
+    "proteomics.easy.seed52",
+    "proteomics.easy.seed53",
+    "proteomics.easy.seed54",
+    "proteomics.easy.seed55",
+    "proteomics.easy.seed56",
+    "proteomics.easy.seed57",
+    "proteomics.easy.seed58",
+    "proteomics.easy.seed59",
+    "proteomics.easy.seed60",
+    "proteomics.easy.seed61",
+    "proteomics.easy.seed62",
+    "proteomics.easy.seed63",
+    "proteomics.easy.seed64",
+    "proteomics.easy.seed65",
+    "proteomics.easy.seed66",
+    "proteomics.easy.seed67",
+    "proteomics.easy.seed68",
+    "proteomics.easy.seed69",
+    "proteomics.easy.seed70",
+    "proteomics.easy.seed71",
+    "proteomics.easy.seed72",
+    "proteomics.easy.seed73",
+    "proteomics.easy.seed74",
+    "proteomics.easy.seed75",
+    "proteomics.easy.seed76",
+    "proteomics.easy.seed77",
+    "proteomics.easy.seed78",
+    "proteomics.easy.seed79",
+    "proteomics.easy.seed80"
+  ],
+  "fork_rule": {
+    "name": "FIRST_PREDECLARED_NATIVE_COMMIT_PROPOSAL",
+    "allowed_commit_actions": [
+      "DROP",
+      "PUT"
+    ],
+    "minimum_fork_after_episode_step": 1,
+    "reads_action_success": false,
+    "reads_evaluation_or_scorecard": false,
+    "reads_terminal_outcome": false
+  },
+  "conditions": [
+    "target_native_myopic",
+    "authentic_sokoban_effect_plus_target",
+    "commit_availability_control_plus_target",
+    "inverted_effect_control_plus_target",
+    "position_prior_control_plus_target"
+  ],
+  "source_contract": {
+    "compact_receipt": "docs/results/sokoban_effect_program_v2_compact_receipt.json",
+    "require_source_gate_passed": true,
+    "source_confirmation_sha256": "d64606c916ce6e812ae1b920771d5175cb48983a2f141b2dab6f43d491a6c1ed",
+    "source_program_sha256": "6b02dc1d7271bbd435e90539cedd7d56d04fcc1ad03798dd6dd06146d67f1fcd",
+    "transferred_structure": "DIRECT_PROGRESS_AVAILABLE_OR_ASSIGNMENT_IMPROVEMENT_AVAILABLE_THEN_COMMIT_AND_VERIFY_ELSE_POSITION_AND_RECOMPUTE"
+  },
+  "selector": {
+    "positive_effect_threshold": 0.65,
+    "prerequisite_threshold": 0.9
+  },
+  "model": {
+    "api_key_name": "OPENROUTER_API_KEY",
+    "base_url": "https://openrouter.ai/api/v1",
+    "hidden_reasoning_effort": "none",
+    "maximum_output_tokens": 2000,
+    "model": "openai/gpt-4.1-mini",
+    "provider": "openrouter",
+    "schema_attempts": 3,
+    "temperature": 0
+  },
+  "recovery_horizon": 8,
+  "target_native_spatial_realizer": {
+    "activation": "AFTER_SUCCESSFUL_TARGET_BOUND_TELEPORT",
+    "enabled": true,
+    "may_select_commit": false,
+    "objective": "STRICT_WORST_CASE_RELATION_ERROR_REDUCTION_OVER_UI_COMPATIBLE_VECTORS",
+    "schema_version": "discoveryworld-local-spatial-realization-v1",
+    "shared_across_all_conditions": true
+  },
+  "transport_compatibility": {
+    "change": "APPEND_LOWERCASE_JSON_TOKEN_TO_MATCHED_GROUNDING_PROMPTS_ONLY",
+    "candidate_schema_changed": false,
+    "parser_changed": false,
+    "selector_changed": false,
+    "symbolic_gate_changed": false
+  },
+  "component_qualification": {
+    "acquisition": "V1 target-only seeds21-26 produced six eligible frozen forks.",
+    "grounding": "Consumed seed26 GPT-4.1-mini diagnostic completed 5/5 arms, 40/40 decisions, with zero schema retries."
+  },
+  "applicability_completeness_contract": {
+    "accept_if": "EXISTS_NEURAL_TYPED_PARSER_VALIDATED_REVERSIBLE_POSITION OR EXISTS_SYMBOLICALLY_WITNESSED_COMMIT",
+    "on_failure": "REJECT_NEURAL_SET_AND_RESAMPLE_WITHIN_FROZEN_ATTEMPT_BUDGET",
+    "unsafe_legacy_fallback": "IF_UNWITNESSED_COMMIT_WOULD_BE_SELECTED_CHOOSE_MAX_INFORMATION_GAIN_POSITION_FROM_THE_SAME_NEURAL_SET",
+    "creates_native_action": false,
+    "weakens_source_gate": false,
+    "uses_outcome_or_scorecard": false
+  }
+}

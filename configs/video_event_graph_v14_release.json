@@ -1,0 +1,53 @@
+{
+  "schema_version": "video-event-graph-v14-release-v1",
+  "status": "CLEVRER_FORMAL_EVENT_GRAPH_TRANSFER_VALIDATED",
+  "route": {
+    "source": "real Sokoban effect receipt",
+    "transfer_object": "COMMIT -> VERIFY_EXPECTED_EFFECT; EXPECTED_EFFECT_REFUTED -> REPLAN_OR_ABSTAIN",
+    "target_neural_grounding": "paired CLEVRER-native explicit-relation and trajectory dynamics predictions",
+    "symbolic_execution": "typed postfix query compiler, event-graph proof receipts, and selective representation recovery",
+    "target_actions_remain_target_native": true
+  },
+  "bundled_artifacts": [
+    {
+      "role": "formal_report",
+      "path": "artifacts/video_event_graph_v14/formal_report.json.gz",
+      "gzip_sha256": "24b0ae13889dd6035b877857c92102006b0fe03e4a9214f5004739465965caba",
+      "uncompressed_sha256": "82cf5f9cf4c75171f4589e7db5b0abad691b69d107ec9429556b6998571f3949"
+    },
+    {
+      "role": "frozen_proof_grounder",
+      "path": "artifacts/video_event_graph_v14/frozen_proof_grounder.json.gz",
+      "gzip_sha256": "e7aa3eaeba0bf973e1b8325e93566146fbaf0ae7506d214dda3ac0e929161e92",
+      "uncompressed_sha256": "f2c380de4d451746517d849dab45ed54385068ee562998d646058f8f38a6423b"
+    },
+    {
+      "role": "training_report",
+      "path": "artifacts/video_event_graph_v14/training_report.json.gz",
+      "gzip_sha256": "0e3730a24f0e2ad01cd5339317b4b94a597051610101edf172d9bd9276fe4430",
+      "uncompressed_sha256": "a726e4d54ee6d0ac9e3de9cdb5e61ea93bbe8ce8221b525d42e83e26dfd4caad"
+    }
+  ],
+  "frozen_runtime_sha256": {
+    "configs/sokoban_clevrer_proof_v14_formal.json": "50735e7d67a8647acd11bf5adea8f9afbb609fc950b1970f0eea8c7d388778bb",
+    "configs/clevrer_sokoban_proof_v14_splits.json": "cde4d9b8f12fcf6cd6cb70d4635c3335123d91156e2eac5ab07bf1d591a616be",
+    "configs/clevrer_sokoban_proof_v14_training.json": "f26a3a2f80d9e3fb8746afb5705e6be1056e45396ad20a561fe8615c9e97db9f",
+    "docs/results/sokoban_effect_program_v2_compact_receipt.json": "8f175c0edda951eba2064e9c53a8db6a25cdfa9fb0de8049d371dbf5335c9e80",
+    "scripts/run_clevrer_sokoban_proof_v14.py": "91894d03b0a4d78202672d710b67ceae49f5668217c120b08e314508ac58e2fe",
+    "src/motif_transfer/video_proof_grounder.py": "778e73cc7b6bdf612a1016e9088f9d86e99e272dd51a104c7c55fae8e8e6794d",
+    "src/motif_transfer/clevrer_proof_receipts.py": "def0e90c0c3f43d3a23717ff52ffc2ec67a476d5f1145f1633fa80e5c4fa8169",
+    "src/motif_transfer/clevrer_query_compiler.py": "49be363fac3603213ba5621855f7f6cdd6f5d17804961acb57ea6f3699b8ff5c",
+    "src/motif_transfer/video_recovery_cate.py": "86b165ee347479c0a63d76b830895a18f35e7dc18c3c1db84aaa986291c9a3af",
+    "src/motif_transfer/sokoban_video_recovery.py": "55776f55966a4c982e718701e15474442a4998769ee5a1a7aebbebb7fd7c5bae"
+  },
+  "formal_metrics": {
+    "samples": 720,
+    "target_only_correct": 489,
+    "authentic_correct": 511,
+    "authentic_recoveries": 59,
+    "paired_wins": 27,
+    "paired_losses": 5,
+    "exact_two_sided_p": 0.00011307420209050179
+  },
+  "claim_boundary": "This validates one adaptation-based Sokoban-to-CLEVRER event-graph recovery route in the pinned local setup. It does not validate free-text video grounding, STAR, NExT-QA, Video-Holmes, zero-shot ontology discovery, or the necessity of Sokoban provenance relative to an extensionally identical target-written controller."
+}

@@ -1,0 +1,318 @@
+{
+  "schema_version": 1,
+  "status": "FROZEN_BEFORE_VIDEO_V7_COLLECTION",
+  "selection_rule": "For each benchmark family, take the first six IDs from the ten IDs already frozen as held_out in the V1 manifest; leave four as reserve.",
+  "outcomes_or_answers_read": false,
+  "source_manifest": "/fs/gamma-projects/vlm-robot/Multi-hop-Reasoning-VLM-Agent-two-agent-clean/configs/three_video_benchmark_splits_v1.json",
+  "source_manifest_sha256": "578086b9829b095483e470f0fbe67972de6edc29a3726492fc6ef2fbdd37439d",
+  "confirmation_per_family": 6,
+  "reserve_per_family": 4,
+  "benchmarks": {
+    "clevrer": {
+      "families": [
+        "explanatory",
+        "predictive",
+        "counterfactual"
+      ],
+      "family_roles": {
+        "explanatory": {
+          "confirmation": [
+            "video_10428.mp4.Q11",
+            "video_14322.mp4.Q11",
+            "video_11223.mp4.Q11",
+            "video_12569.mp4.Q11",
+            "video_14702.mp4.Q11",
+            "video_12433.mp4.Q11"
+          ],
+          "reserve": [
+            "video_12985.mp4.Q11",
+            "video_13762.mp4.Q11",
+            "video_14640.mp4.Q12",
+            "video_11625.mp4.Q12"
+          ]
+        },
+        "predictive": {
+          "confirmation": [
+            "video_11542.mp4.Q13",
+            "video_13902.mp4.Q12",
+            "video_12396.mp4.Q12",
+            "video_14004.mp4.Q12",
+            "video_10780.mp4.Q13",
+            "video_10817.mp4.Q13"
+          ],
+          "reserve": [
+            "video_10529.mp4.Q12",
+            "video_10982.mp4.Q13",
+            "video_11515.mp4.Q13",
+            "video_13215.mp4.Q12"
+          ]
+        },
+        "counterfactual": {
+          "confirmation": [
+            "video_14791.mp4.Q14",
+            "video_11988.mp4.Q15",
+            "video_10938.mp4.Q13",
+            "video_11991.mp4.Q14",
+            "video_13500.mp4.Q14",
+            "video_10077.mp4.Q15"
+          ],
+          "reserve": [
+            "video_11164.mp4.Q14",
+            "video_14983.mp4.Q14",
+            "video_13328.mp4.Q13",
+            "video_11440.mp4.Q14"
+          ]
+        }
+      },
+      "splits": {
+        "confirmation": [
+          "video_10428.mp4.Q11",
+          "video_14322.mp4.Q11",
+          "video_11223.mp4.Q11",
+          "video_12569.mp4.Q11",
+          "video_14702.mp4.Q11",
+          "video_12433.mp4.Q11",
+          "video_11542.mp4.Q13",
+          "video_13902.mp4.Q12",
+          "video_12396.mp4.Q12",
+          "video_14004.mp4.Q12",
+          "video_10780.mp4.Q13",
+          "video_10817.mp4.Q13",
+          "video_14791.mp4.Q14",
+          "video_11988.mp4.Q15",
+          "video_10938.mp4.Q13",
+          "video_11991.mp4.Q14",
+          "video_13500.mp4.Q14",
+          "video_10077.mp4.Q15"
+        ],
+        "reserve": [
+          "video_12985.mp4.Q11",
+          "video_13762.mp4.Q11",
+          "video_14640.mp4.Q12",
+          "video_11625.mp4.Q12",
+          "video_10529.mp4.Q12",
+          "video_10982.mp4.Q13",
+          "video_11515.mp4.Q13",
+          "video_13215.mp4.Q12",
+          "video_11164.mp4.Q14",
+          "video_14983.mp4.Q14",
+          "video_13328.mp4.Q13",
+          "video_11440.mp4.Q14"
+        ]
+      }
+    },
+    "star": {
+      "families": [
+        "Interaction",
+        "Sequence",
+        "Prediction",
+        "Feasibility"
+      ],
+      "family_roles": {
+        "Interaction": {
+          "confirmation": [
+            "Interaction_T1_2424",
+            "Interaction_T4_4253",
+            "Interaction_T2_4464",
+            "Interaction_T4_4365",
+            "Interaction_T2_6160",
+            "Interaction_T1_5889"
+          ],
+          "reserve": [
+            "Interaction_T1_4221",
+            "Interaction_T4_2573",
+            "Interaction_T2_4658",
+            "Interaction_T4_418"
+          ]
+        },
+        "Sequence": {
+          "confirmation": [
+            "Sequence_T1_1945",
+            "Sequence_T1_6658",
+            "Sequence_T1_7085",
+            "Sequence_T5_999",
+            "Sequence_T3_6559",
+            "Sequence_T1_7478"
+          ],
+          "reserve": [
+            "Sequence_T5_1826",
+            "Sequence_T3_6303",
+            "Sequence_T4_4451",
+            "Sequence_T1_1168"
+          ]
+        },
+        "Prediction": {
+          "confirmation": [
+            "Prediction_T1_1600",
+            "Prediction_T3_495",
+            "Prediction_T1_616",
+            "Prediction_T1_2834",
+            "Prediction_T1_1163",
+            "Prediction_T2_240"
+          ],
+          "reserve": [
+            "Prediction_T1_2107",
+            "Prediction_T4_1017",
+            "Prediction_T2_779",
+            "Prediction_T4_491"
+          ]
+        },
+        "Feasibility": {
+          "confirmation": [
+            "Feasibility_T2_334",
+            "Feasibility_T5_553",
+            "Feasibility_T5_2018",
+            "Feasibility_T6_1145",
+            "Feasibility_T2_1046",
+            "Feasibility_T2_22"
+          ],
+          "reserve": [
+            "Feasibility_T5_2273",
+            "Feasibility_T6_406",
+            "Feasibility_T6_1326",
+            "Feasibility_T5_2422"
+          ]
+        }
+      },
+      "splits": {
+        "confirmation": [
+          "Interaction_T1_2424",
+          "Interaction_T4_4253",
+          "Interaction_T2_4464",
+          "Interaction_T4_4365",
+          "Interaction_T2_6160",
+          "Interaction_T1_5889",
+          "Sequence_T1_1945",
+          "Sequence_T1_6658",
+          "Sequence_T1_7085",
+          "Sequence_T5_999",
+          "Sequence_T3_6559",
+          "Sequence_T1_7478",
+          "Prediction_T1_1600",
+          "Prediction_T3_495",
+          "Prediction_T1_616",
+          "Prediction_T1_2834",
+          "Prediction_T1_1163",
+          "Prediction_T2_240",
+          "Feasibility_T2_334",
+          "Feasibility_T5_553",
+          "Feasibility_T5_2018",
+          "Feasibility_T6_1145",
+          "Feasibility_T2_1046",
+          "Feasibility_T2_22"
+        ],
+        "reserve": [
+          "Interaction_T1_4221",
+          "Interaction_T4_2573",
+          "Interaction_T2_4658",
+          "Interaction_T4_418",
+          "Sequence_T5_1826",
+          "Sequence_T3_6303",
+          "Sequence_T4_4451",
+          "Sequence_T1_1168",
+          "Prediction_T1_2107",
+          "Prediction_T4_1017",
+          "Prediction_T2_779",
+          "Prediction_T4_491",
+          "Feasibility_T5_2273",
+          "Feasibility_T6_406",
+          "Feasibility_T6_1326",
+          "Feasibility_T5_2422"
+        ]
+      }
+    },
+    "nextqa": {
+      "families": [
+        "Causal",
+        "Temporal",
+        "Descriptive"
+      ],
+      "family_roles": {
+        "Causal": {
+          "confirmation": [
+            "3655906094.Q5",
+            "8312058649.Q1",
+            "3557498300.Q3",
+            "8575881495.Q9",
+            "8107573462.Q6",
+            "5945172741.Q7"
+          ],
+          "reserve": [
+            "11670386946.Q3",
+            "2809330695.Q9",
+            "2834146886.Q5",
+            "6898821807.Q3"
+          ]
+        },
+        "Temporal": {
+          "confirmation": [
+            "4762946272.Q4",
+            "6592821115.Q13",
+            "5048503508.Q4",
+            "6277800530.Q3",
+            "6727904179.Q5",
+            "8387356484.Q4"
+          ],
+          "reserve": [
+            "11244289523.Q6",
+            "4164771889.Q7",
+            "11503803033.Q7",
+            "8277866423.Q3"
+          ]
+        },
+        "Descriptive": {
+          "confirmation": [
+            "4707679105.Q9",
+            "6205856607.Q5",
+            "12392885583.Q1",
+            "5533380417.Q8",
+            "6188449000.Q8",
+            "4419096437.Q8"
+          ],
+          "reserve": [
+            "7605329840.Q8",
+            "9304738817.Q7",
+            "5333075105.Q1",
+            "4740074365.Q2"
+          ]
+        }
+      },
+      "splits": {
+        "confirmation": [
+          "3655906094.Q5",
+          "8312058649.Q1",
+          "3557498300.Q3",
+          "8575881495.Q9",
+          "8107573462.Q6",
+          "5945172741.Q7",
+          "4762946272.Q4",
+          "6592821115.Q13",
+          "5048503508.Q4",
+          "6277800530.Q3",
+          "6727904179.Q5",
+          "8387356484.Q4",
+          "4707679105.Q9",
+          "6205856607.Q5",
+          "12392885583.Q1",
+          "5533380417.Q8",
+          "6188449000.Q8",
+          "4419096437.Q8"
+        ],
+        "reserve": [
+          "11670386946.Q3",
+          "2809330695.Q9",
+          "2834146886.Q5",
+          "6898821807.Q3",
+          "11244289523.Q6",
+          "4164771889.Q7",
+          "11503803033.Q7",
+          "8277866423.Q3",
+          "7605329840.Q8",
+          "9304738817.Q7",
+          "5333075105.Q1",
+          "4740074365.Q2"
+        ]
+      }
+    }
+  }
+}

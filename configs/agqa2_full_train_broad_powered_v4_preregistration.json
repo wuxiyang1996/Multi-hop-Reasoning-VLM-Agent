@@ -1,0 +1,104 @@
+{
+  "arm_contract": {
+    "all_arms_share_raw_videos_frames_grounding_parser_executor_fallback": true,
+    "generic_scaffold": "eager target-native VM ceiling",
+    "neural_only": "shared Qwen9B fallback only",
+    "source_induced": "anonymous source attempt/commit-or-release controller over strict VM candidate",
+    "source_permuted": "capacity-matched failed source control; fail closed to shared fallback",
+    "target_written_isomorphic": "independently instantiated extensionally identical ceiling"
+  },
+  "arms": [
+    "neural_only",
+    "generic_scaffold",
+    "source_permuted",
+    "source_induced",
+    "target_written_isomorphic"
+  ],
+  "authority": {
+    "formal_answer_available_before_evaluator": false,
+    "official_functional_program_available_at_runtime": false,
+    "official_scene_graph_available_at_runtime": false,
+    "source_or_threshold_selected_from_formal_outcome": false,
+    "target_structural_metadata_used_only_for_outcome-blind cohort balancing": true
+  },
+  "claim": "source-only anonymous game controller selectively improves final AGQA QA on a task- and prior-raw-runtime-video-disjoint broad reserve",
+  "cohort": {
+    "cohort_sha256": "87e61f5a1f157080c6c1c0edc689308a17bd0259c773b744812ef8082bfeacfa",
+    "manifest_sha256": "9d7ad7c68a2579c1a135d5d0a50d616866e73cd93cb249c65801e477b97b1090",
+    "official_split": "balanced_train",
+    "raw_video_runtime_disjoint": true,
+    "semantic_parser_exact_task_supervision_overlap": 0,
+    "structural_strata": [
+      "choose",
+      "compare",
+      "logic",
+      "query",
+      "verify"
+    ],
+    "tasks": 1800,
+    "tasks_per_video_per_stratum": 2,
+    "videos": 180
+  },
+  "failure_policy": "One immutable evaluator opening. Do not tune on this reserve or retry a failed deterministic result; any future run must use new task and raw-video-runtime-disjoint evidence.",
+  "formal_gates": {
+    "generic_symbolic_is_reported_ceiling_not_a_pass_gate": true,
+    "minimum_source_symbolic_commit_fraction": 0.2,
+    "negative_transfer_loss_fraction_maximum": 0.05,
+    "shared_grounder_receipt_fraction": 1.0,
+    "source_accuracy_strictly_above_neural": true,
+    "source_permuted_prediction_equivalence_to_neural": 1.0,
+    "source_vs_neural_exact_two_sided_p_maximum": 0.05,
+    "source_vs_permuted_exact_two_sided_p_maximum": 0.05,
+    "target_written_isomorphic_prediction_equivalence": 1.0
+  },
+  "frozen_components": {
+    "anonymous_source_controller_sha256": "cd48690e64392f8702e1a239afa1739c25863ce4bd6ae2efea355ac70467bfe6",
+    "atomic_claim_grounder": {
+      "frame_budget": 96,
+      "model": "qwen/qwen3-vl-32b-instruct",
+      "one_operator_free_proposition_per_call": true,
+      "provider": "OpenRouter",
+      "source_controller_visible": false
+    },
+    "fallback_actor": {
+      "input": "shared question, semantic slots, and grounded events",
+      "model": "Qwen/Qwen3.5-9B",
+      "thinking": false
+    },
+    "raw_event_grounder": {
+      "frame_budget": 48,
+      "maximum_events": 24,
+      "model": "qwen/qwen3-vl-32b-instruct",
+      "provider": "OpenRouter",
+      "sampling": "uniform_full_video",
+      "source_controller_visible": false
+    },
+    "semantic_parser": {
+      "formal_task_ids_seen_in_supervision": 0,
+      "heldout_semantic_exact_rate": 0.9958628268528394,
+      "model": "target-native Flan-T5-small question-to-operator-free-semantics",
+      "qualification_report_sha256": "dbb95ee168af674190d818ceefb24ca5a69a367576cf43867911c9a8f90a0e31"
+    },
+    "source_vm_capabilities_sha256": "8db5041579e8d5a69c5612247d62803ada2d98e745734fd9fac8cc3d7ca7902d"
+  },
+  "implementation_file_sha256s": {
+    "scripts/collect_agqa_layer_b_atomic_claims.py": "db67d398982494c19f34769e273ddb57fed450e437828776ddc3f0bf3daa89a2",
+    "scripts/collect_agqa_layer_b_qwen235_grounding.py": "480608348a85e7b7c139dea0b5c6952ce366582322329aa8390f9eb66d4aefc7",
+    "scripts/collect_agqa_layer_b_shared_fallback.py": "dda4fba97fe6a5da0af9a9d8f2156d82f6e8cab82cb0f7cbdb08de3edd0ee330",
+    "scripts/evaluate_agqa_layer_b_epistemic_five_arm.py": "6a0fcd90ccf8f9735da83e5e90ea7564b80b5e67f0d9d8a3586acf010515f43f",
+    "scripts/freeze_agqa_layer_b_epistemic_preoutcome.py": "efb86ef1b36c9051dd40b259b992a95a3e65012a69f3b6e9f901c389768a3de9",
+    "scripts/run_agqa_layer_b_semantic_parser.py": "4144459b0af1840d9cb3d90b1534a01f0d86fc9e64cb812220f6f40ecc7fa783",
+    "src/motif_transfer/anonymous_video_harness.py": "e4c58bbfb48debd5600552f491e64a8ead86e65505f2fd83359910ee3751187b"
+  },
+  "input_file_sha256s": {
+    "anonymous_controller": "698d3f377366d5cd8ae278461c2a29466d3a6f1af8885aa8fd6373139309a82e",
+    "cohort": "02987dd5e46d45a79f26cf8bb9e391d4e052c8dfc91042877ec4f9fd1937d574",
+    "manifest": "0c1e73477b9bb4fc5d31341c65940e723a76a3d7aa062c8598efd69fb254039c",
+    "parser_qualification": "0d04d4bafbae118172cd57cc4cb150be136fbc123d70fea3016648a063d662d0",
+    "raw_grounder_qualification_evidence": "dc6a5a4aff68021143446a15313b0f558b07a22c1f36b0870c9336c88d2081d4",
+    "source_capabilities": "2f11b31b41a8ca72ee7c889d4fba00b8103599ce885269eb845ae89c0e78d31c"
+  },
+  "preregistration_sha256": "9af59f64733a692b472b5ef6ef6aaa5929f0c08b69aa8843886df8550400da2f",
+  "schema_version": "agqa-full-train-broad-layer-b-preregistration-v1",
+  "status": "FROZEN_BEFORE_PARSER_GROUNDER_CLAIMS_FALLBACK_OR_OUTCOME"
+}

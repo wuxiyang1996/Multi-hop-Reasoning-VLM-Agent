@@ -1,0 +1,115 @@
+{
+  "all_qualification_gates_passed": true,
+  "claim_boundary": "Fresh qualification of program identification and target-native neural grounding. The source condition uses zero complete ordered target trajectories and replaces the minimum target-only demo needed to identify the same phase program. The source-blind survey controller is shared and already succeeds, so this does not claim an incremental success-rate gain over that controller or magical provenance for extensionally identical programs.",
+  "estimand": "How many complete ordered successful target trajectories are replaced by the source-induced acquisition->binding->relation program when both conditions use the same target-native grounding data?",
+  "formal_reserve_authorized": true,
+  "gates": {
+    "authentic_trace_conformance": true,
+    "binding_precision_recall": true,
+    "development_trajectory_count": true,
+    "formal_reserve_still_sealed": true,
+    "neural_grounder_exact_accuracy": true,
+    "neural_trace_conformance": true,
+    "qualification_official_success_rate": true,
+    "qualification_trajectory_count": true,
+    "relation_precision_recall": true,
+    "shuffled_trace_rejected": true,
+    "source_heldout_confirmation": true,
+    "source_permuted_trace_rejected": true,
+    "source_replaces_complete_target_trajectory": true,
+    "target_only_zero_demo_abstains": true
+  },
+  "identifiability_statement": {
+    "isomorphic_target_written_program": "ORACLE_CEILING",
+    "measured_source_information_value": "ONE_COMPLETE_ORDERED_SUCCESSFUL_TARGET_TRAJECTORY",
+    "source_provenance_identifiable_from_extensional_behavior_alone": false
+  },
+  "lineage": {
+    "development_summary_sha256": "0eff575479c10f1bda8b41a7488da90147df4477b58b2c6a006f978e495c6b1b",
+    "formal_seeds_read": [],
+    "grounder_sha256": "be775e38381807b94ccfeebd2fa78b85d542116f2ebc9b864e3059e5b8a7bb63",
+    "protocol_file_sha256": "8fafa1b6a6d0fef9b6218d790d0fc39955412ffe80dd85023cf4b4bc38e53c90",
+    "qualification_summary_sha256": "df660f6c29f60fd87b97102291dbfadfff1cb60965385c309a3d34ea4f71beee",
+    "source_artifact_sha256": "7ff3e950f3eebaf75cca015df88ab6a01f2f364fe246102984a3cb4ee095f0d7",
+    "source_confirmation_sha256": "f02fec96a448ea549e95ffa3fff3f9c5adf71ff202a89fb170a90ba55a257285"
+  },
+  "metrics": {
+    "authentic_trace_support": 8,
+    "complete_target_trajectories_replaced": 1,
+    "development_trajectories": 8,
+    "development_transitions": 185,
+    "grounding": {
+      "exact_accuracy": 1.0,
+      "per_class": {
+        "ACQUISITION_CONTROL": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "support": 125
+        },
+        "ACQUISITION_ENTITY": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "support": 56
+        },
+        "BINDING": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "support": 8
+        },
+        "RELATION": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "support": 8
+        }
+      },
+      "transitions": 197
+    },
+    "neural_trace_support": 8,
+    "qualification_official_success_rate": 1.0,
+    "qualification_official_successes": 8,
+    "qualification_trajectories": 8,
+    "qualification_transitions": 197,
+    "shuffled_trace_support": 0,
+    "source_permuted_trace_support": 0
+  },
+  "report_sha256": "de2d3c6baed5b4fe3afdff63afa3f0c078a041c8ee5e3fbf09fe4393a4be0b2b",
+  "schema_version": "discoveryworld-normal-source-value-v26-qualification-report",
+  "status": "DISCOVERYWORLD_NORMAL_V26_QUALIFIED",
+  "target_only_induction_curve": [
+    {
+      "complete_ordered_target_trajectory_budget": 0,
+      "matches_source_phase_program": false,
+      "program_sha256": "dbd56d268f82b80af30d7dcd3efd5ec17f562717fb4a57371827e34006eb53f7",
+      "qualification_support": 0,
+      "status": "ABSTAIN_NO_COMPLETE_TARGET_TRAJECTORY"
+    },
+    {
+      "complete_ordered_target_trajectory_budget": 1,
+      "matches_source_phase_program": true,
+      "program_sha256": "676ea9ce398b1fff41c1f7f090516bce5993a5acf7b3b9e95451d399aead768e",
+      "qualification_support": 8,
+      "status": "TARGET_ONLY_PROGRAM_INDUCED"
+    },
+    {
+      "complete_ordered_target_trajectory_budget": 2,
+      "matches_source_phase_program": true,
+      "program_sha256": "dbb64814f0d3f2e103255017ba108c23fa94b287e6093b841a817ca7c454e077",
+      "qualification_support": 8,
+      "status": "TARGET_ONLY_PROGRAM_INDUCED"
+    },
+    {
+      "complete_ordered_target_trajectory_budget": 4,
+      "matches_source_phase_program": true,
+      "program_sha256": "fbc73a565761cbcca124fd4ba97fe144f78bc9591ba4059465e203a9de6382d5",
+      "qualification_support": 8,
+      "status": "TARGET_ONLY_PROGRAM_INDUCED"
+    },
+    {
+      "complete_ordered_target_trajectory_budget": 8,
+      "matches_source_phase_program": true,
+      "program_sha256": "2586ab3dfef292a4374ffedc238b7eff770674c8e71592c565110021b3d7f7a9",
+      "qualification_support": 8,
+      "status": "TARGET_ONLY_PROGRAM_INDUCED"
+    }
+  ]
+}

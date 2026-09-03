@@ -1,0 +1,111 @@
+{
+  "aggregate": {
+    "equal_domain_weight_mean_success_rate_delta": 0.2708333333333333,
+    "pooled_paired": {
+      "descriptive_only": true,
+      "exact_two_sided_p": 3.8198777474462986e-11,
+      "losses": 1,
+      "ties": 87,
+      "wins": 40
+    },
+    "strict_positive_delta_domains": 4
+  },
+  "all_predeclared_gates_passed": true,
+  "claim_boundary": "Each domain authentic paired wins must exceed losses; at least three of four domains must have a strict positive success delta; no domain may have a negative success delta.",
+  "domains": {
+    "alfworld": {
+      "authentic_successes": 31,
+      "evidence_status": "FINAL_HELDOUT_PASSED",
+      "gates": {
+        "nonnegative_success_delta": true,
+        "paired_wins_exceed_losses": true,
+        "strict_positive_success_delta": true
+      },
+      "paired": {
+        "exact_two_sided_p": 0.00390625,
+        "losses": 0,
+        "ties": 23,
+        "wins": 9
+      },
+      "success_rate_delta": 0.28125,
+      "target_successes": 22,
+      "tasks": 32
+    },
+    "discoveryworld": {
+      "authentic_successes": 13,
+      "evidence_status": "FRESH_FORMAL_TRANSFER_VALIDATED",
+      "gates": {
+        "nonnegative_success_delta": true,
+        "paired_wins_exceed_losses": true,
+        "strict_positive_success_delta": true
+      },
+      "paired": {
+        "exact_two_sided_p": 0.25,
+        "losses": 0,
+        "ties": 13,
+        "wins": 3
+      },
+      "success_rate_delta": 0.1875,
+      "target_successes": 10,
+      "tasks": 16
+    },
+    "tir": {
+      "authentic_successes": 41,
+      "evidence_status": "FRESH_FORMAL_TRANSFER_VALIDATED",
+      "gates": {
+        "nonnegative_success_delta": true,
+        "paired_wins_exceed_losses": true,
+        "strict_positive_success_delta": true
+      },
+      "paired": {
+        "exact_two_sided_p": 4.76837158203125e-07,
+        "losses": 0,
+        "ties": 26,
+        "wins": 22
+      },
+      "success_rate_delta": 0.4583333333333333,
+      "target_successes": 19,
+      "tasks": 48
+    },
+    "webshop": {
+      "authentic_successes": 14,
+      "evidence_status": "REAL_SOKOBAN_TO_WEBSHOP_TRANSFER_V13_NOT_VALIDATED",
+      "gates": {
+        "nonnegative_success_delta": true,
+        "paired_wins_exceed_losses": true,
+        "strict_positive_success_delta": true
+      },
+      "paired": {
+        "exact_two_sided_p": 0.125,
+        "losses": 1,
+        "ties": 25,
+        "wins": 6
+      },
+      "success_rate_delta": 0.15625,
+      "target_successes": 9,
+      "tasks": 32
+    }
+  },
+  "gates": {
+    "at_least_three_domains_strict_positive_success_delta": true,
+    "every_domain_paired_wins_exceed_losses": true,
+    "exact_four_domain_coverage": true,
+    "no_domain_negative_success_delta": true
+  },
+  "integrity": {
+    "input_file_sha256": {
+      "alfworld": "9a6ca8e39e83b4f1e718a5d4baad9d1cf4ff103bc033365ca8cd8e1355f6c81d",
+      "discoveryworld": "2c4de3eba5ed5be8ee538f8ead8937f9d4923a630a736e395b7a6d782fb2222b",
+      "tir": "b7e5b9fe1567a9ecfe74152a7bb3680dd0d82523f92a30d594e64f736f63cb73",
+      "webshop": "6a5db9fff7b62ba7886b2a53bb1fabbed2e87480db0d86edeb9bc6bafb24069b"
+    },
+    "manifest_file_sha256": "3e241d743716377aa4cea10a489a4b5ad9c9a5053ba9bf3e0e54278596613f95"
+  },
+  "limitations": [
+    "Task units and success semantics differ by domain; pooled statistics are descriptive.",
+    "This validates registered exact routes, not arbitrary source-game or arbitrary-target transfer."
+  ],
+  "report_sha256": "f0fd57eee594663ce539317ac215211cd1c1816aa3d435200f29792c9e599882",
+  "schema_version": "four-domain-independent-replication-summary-v1",
+  "status": "FOUR_DOMAIN_INDEPENDENT_REPLICATION_VALIDATED"
+}

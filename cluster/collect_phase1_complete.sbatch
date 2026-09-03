@@ -55,24 +55,67 @@ else
 fi
 
 GAME_COUNT=${#GAMES[@]}
-GAME_INDEX=$((SLURM_ARRAY_TASK_ID % GAME_COUNT))
-GAME="${GAMES[${GAME_INDEX}]}"
-if (( SLURM_ARRAY_TASK_ID < GAME_COUNT )); then
-  CONDITION="authentic_skill_loaded"
+
+# The upstream writer emits every JSONL and the manifest in one batch at the end
+# of a run, so one invocation is the smallest atomic unit available without
+# patching it.  CHUNK_SIZE splits a game across several array tasks to shrink
+# that unit: measured cost is 1-2 min of vLLM startup against 4 min per episode,
+# so 4-episode chunks buy 4x finer resume for about 8% more GPU time.
+# CHUNK_SIZE=0 reproduces the original one-task-per-game layout exactly.
+CHUNK_SIZE="${CHUNK_SIZE:-0}"
+SEED_OFFSET=0
+if (( CHUNK_SIZE > 0 )); then
+  EPISODES_PER_GAME="${EPISODES_PER_GAME:-${EPISODES}}"
+  CHUNKS_PER_GAME=$(( (EPISODES_PER_GAME + CHUNK_SIZE - 1) / CHUNK_SIZE ))
+  GAME_INDEX=$(( SLURM_ARRAY_TASK_ID / CHUNKS_PER_GAME ))
+  CHUNK_INDEX=$(( SLURM_ARRAY_TASK_ID % CHUNKS_PER_GAME ))
+  (( GAME_INDEX < GAME_COUNT )) || {
+    echo "ERROR array task ${SLURM_ARRAY_TASK_ID} exceeds ${GAME_COUNT} games x ${CHUNKS_PER_GAME} chunks" >&2
+    exit 2
+  }
+  GAME="${GAMES[${GAME_INDEX}]}"
+  CONDITION="${CONDITION_OVERRIDE:-authentic_skill_loaded}"
+  SEED_OFFSET=$(( CHUNK_INDEX * CHUNK_SIZE ))
+  EPISODES=$(( EPISODES_PER_GAME - SEED_OFFSET ))
+  (( EPISODES <= CHUNK_SIZE )) || EPISODES=${CHUNK_SIZE}
 else
-  CONDITION="skill_disabled"
+  GAME_INDEX=$((SLURM_ARRAY_TASK_ID % GAME_COUNT))
+  GAME="${GAMES[${GAME_INDEX}]}"
+  if (( SLURM_ARRAY_TASK_ID < GAME_COUNT )); then
+    CONDITION="authentic_skill_loaded"
+  else
+    CONDITION="skill_disabled"
+  fi
 fi
 
 CHECKPOINT="${CHECKPOINT_ROOT}/${GAME}"
 SKILL_BANK="${CHECKPOINT}/banks/${GAME}/skill_bank.jsonl"
-RUN_DIR="${OUTPUT_ROOT}/${CONDITION}/${GAME}"
+if (( CHUNK_SIZE > 0 )); then
+  RUN_DIR="${OUTPUT_ROOT}/${CONDITION}/${GAME}/chunk$(printf '%02d' "${CHUNK_INDEX}")"
+else
+  RUN_DIR="${OUTPUT_ROOT}/${CONDITION}/${GAME}"
+fi
 PORT=$((PORT_BASE + 20 * SLURM_ARRAY_TASK_ID))
-SEED_BASE=$((7301 + 100 * GAME_INDEX))
+# Defaults reproduce the original 7301/7401 families exactly.  A fresh collection
+# passes SEED_BASE_ROOT/SEED_BASE_STRIDE so every game gets its own declared band
+# instead of silently reusing one base across game sets.
+SEED_BASE=$(( ${SEED_BASE:-$(( ${SEED_BASE_ROOT:-7301} + ${SEED_BASE_STRIDE:-100} * GAME_INDEX ))} + SEED_OFFSET ))
 LOCAL_CACHE_ROOT="/scratch0/${USER}/motif-p1-${SLURM_JOB_ID}-${SLURM_ARRAY_TASK_ID}"
 SOURCE_OVERLAY="$(mktemp -d "/tmp/motif-source-overlay-${SLURM_JOB_ID}-${SLURM_ARRAY_TASK_ID}-XXXXXX")"
 PATCH_SNAPSHOT="${SOURCE_OVERLAY}/patches"
 
-[[ ! -e "${RUN_DIR}" ]] || { echo "ERROR refusing to overwrite ${RUN_DIR}" >&2; exit 2; }
+ALLOW_RESUME="${ALLOW_RESUME:-0}"
+if [[ -e "${RUN_DIR}" ]]; then
+  # Collection is not restartable mid-episode: the writer emits every JSONL and the
+  # manifest in one batch at the end.  A finished manifest is therefore the only
+  # safe resume point, and a half-written directory must still be a hard failure.
+  if [[ "${ALLOW_RESUME}" == "1" && -f "${RUN_DIR}/evidence/manifest.json" ]]; then
+    echo "PHASE1_ALREADY_COMPLETE ${CONDITION} ${GAME} ${RUN_DIR}"
+    exit 0
+  fi
+  echo "ERROR refusing to overwrite ${RUN_DIR}" >&2
+  exit 2
+fi
 for path in \
   "${CHECKPOINT}/metadata.json" \
   "${CHECKPOINT}/adapters/decision/skill_selection/adapter_model.safetensors" \

@@ -1,0 +1,54 @@
+{
+  "schema_version": "agqa2-qwen235-grounder-v65-summary-v1",
+  "status": "QWEN235_OFF_THE_SHELF_GROUNDER_TRANSFER_NOT_VALIDATED",
+  "claim_boundary": "Development and 30-video fresh selective AGQA evaluation; not full AGQA, not SOTA, and not a positive transfer result.",
+  "model": "qwen/qwen3-vl-235b-a22b-instruct",
+  "training": false,
+  "thinking_enabled": false,
+  "development": {
+    "sample_count": 36,
+    "direct_correct": 24,
+    "unselective_typed_correct": 23,
+    "unselective_wins": 2,
+    "unselective_losses": 3,
+    "frozen_selective_correct": 25,
+    "frozen_selective_wins": 1,
+    "frozen_selective_losses": 0,
+    "reported_provider_cost_usd": 0.07216296,
+    "report_sha256": "c17adb90e0d3632df30055497796186dd2a5b089339d6a0b0833ae9fc6879270"
+  },
+  "fresh_v65": {
+    "sample_count": 30,
+    "unique_video_count": 30,
+    "previously_runtime_unexposed_videos": true,
+    "route_correct": 7,
+    "route_accuracy": 0.23333333333333334,
+    "direct_correct": 17,
+    "frozen_selective_correct": 16,
+    "frozen_selective_authorized": 13,
+    "frozen_selective_wins": 2,
+    "frozen_selective_losses": 3,
+    "frozen_selective_net_gain": -1,
+    "source_permuted_abstentions": 30,
+    "target_written_equivalent_matches": 30,
+    "reported_provider_cost_usd": 0.04992561,
+    "report_sha256": "633996ec308538e863a67cdf09971ac3393cbe809754f58030622e03af5d718d"
+  },
+  "wrapper_skeptical_verifier": {
+    "candidate_count": 13,
+    "provider_calls": 13,
+    "reported_provider_cost_usd": 0.00269176,
+    "authorized_at_supported_and_confidence_ge_0_9": 3,
+    "wins": 0,
+    "losses": 1,
+    "net_gain": -1,
+    "runtime_report_sha256": "62438c1ca48a354cd6a32b6f870036921c8afe21656eb4744a70c414a2738b7e"
+  },
+  "diagnosis": [
+    "The public-question grammar over-predicted RELATION_RECURRENT for action-existence and composite programs.",
+    "Repeated calls to the same frozen VLM produced correlated false-positive observations; two-scan agreement was not independent evidence.",
+    "A focused wrapper-window verifier reduced coverage but did not eliminate negative transfer."
+  ],
+  "scientific_decision": "Do not claim AGQA neural-symbolic skill-transfer success from this grounder. Preserve V65 as a consumed negative result. A future attempt requires a frozen target-native program-type router qualified on AGQA train/development and a new untouched evaluation unit; it must not tune on V65 outcomes.",
+  "other_domain_impact": "NONE; WebShop, ALFWorld, DiscoveryWorld, and TIRBench artifacts were neither rerun nor modified."
+}

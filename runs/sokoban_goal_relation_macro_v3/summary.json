@@ -1,0 +1,56 @@
+{
+  "schema_version": "sokoban-goal-relation-macro-summary-v3",
+  "status": "SOURCE_GOAL_RELATION_MACRO_FRESH_VALIDATED",
+  "manifest_sha256": "cd2e4227255c4b24c75ff8386c0bf4088d72757c4357e7c9ca435821d5263a32",
+  "artifact_sha256": "ed31de8757a12b57ea6d9a711a9b646646be5ebd0f1176b07320ef601f5fcb35",
+  "fresh_report_sha256": "0b9151dfe8c10d77c099d178cc7b7efe781e82b543aad048dfe4d703b9e0da81",
+  "program": {
+    "entry_operator_type_id": "ATYPE_d22678218ae08b32",
+    "transitions": [
+      {
+        "from_operator_type_id": "ATYPE_d22678218ae08b32",
+        "observed_effect_guard": {
+          "feature": "entity_goal_relation_coverage",
+          "change_sign": "INCREASE"
+        },
+        "to_operator_type_id": "ATYPE_d22678218ae08b32",
+        "cardinality": "ONE_OR_MORE"
+      }
+    ],
+    "terminal_predicates": [
+      {
+        "predicate_family": "ENTITY_GOAL_RELATION",
+        "arity": 2,
+        "value_kind": "RELATION_COVERAGE",
+        "feature": "entity_goal_relation_coverage",
+        "operator": "EQ",
+        "value": 1.0
+      }
+    ],
+    "terminal_rule": "INDUCED_PREDICATE_CONJUNCTION_AFTER_TYPED_EFFECT",
+    "abstention_rule": {
+      "zero_target_bindings": "ABSTAIN",
+      "multiple_target_bindings": "ABSTAIN",
+      "nonpositive_observed_relation_delta": "ABSTAIN",
+      "terminal_predicate_unobservable": "ABSTAIN"
+    }
+  },
+  "metrics": {
+    "heldout_episodes": 63,
+    "unique_source_success_selections": 63,
+    "authentic_effect_bindings": 93,
+    "shuffled_effect_bindings": 0
+  },
+  "gates": {
+    "heldout_episode_coverage": true,
+    "heldout_unique_program_selection": true,
+    "authentic_effect_binding_exact": true,
+    "shuffled_effect_binding_rejected": true,
+    "authentic_beats_shuffled_effect": true,
+    "recurrent_relation_operator": true,
+    "terminal_relation_induced": true,
+    "source_only_lineage": true,
+    "no_named_controller_template": true
+  },
+  "summary_sha256": "d292b993a62ac2ac6eed11b6ad6c20f9c91a627ba6244855dffa7bbf5bbeb4fb"
+}
